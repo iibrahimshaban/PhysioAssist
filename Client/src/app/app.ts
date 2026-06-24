@@ -1,9 +1,12 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ToastContainerComponent } from "./Shared/Components/toast-container/toast-container.component";
+import { LoadingBarComponent } from "./Shared/Components/loading-bar/loading-bar.component";
+import { HeaderComponent } from "./Layout/header/header.component";
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, ToastContainerComponent, LoadingBarComponent, HeaderComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

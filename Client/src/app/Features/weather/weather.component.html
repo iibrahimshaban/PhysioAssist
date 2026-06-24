@@ -1,0 +1,20 @@
+<div class="weather-container">
+  <h2 class="weather-title">5-Day Forecast</h2>
+
+  @if (forecasts().length === 0) {
+    <p class="loading-text">Loading forecast...</p>
+  } @else {
+    <div class="forecast-grid">
+      @for (forecast of forecasts(); track forecast.date) {
+        <div class="forecast-card" [class]="getSummaryClass(forecast.summary)">
+          <div class="card-date">{{ forecast.date | date: 'EEE, MMM d' }}</div>
+          <div class="card-summary">{{ forecast.summary }}</div>
+          <div class="card-temps">
+            <span class="temp-c">{{ forecast.temperatureC }}°C</span>
+            <span class="temp-f">{{ forecast.temperatureF }}°F</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
