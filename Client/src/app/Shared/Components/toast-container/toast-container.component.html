@@ -1,0 +1,18 @@
+<div class="toast-wrapper">
+  @for (toast of snackbar.toasts(); track toast.id) {
+    <div class="toast toast-{{ toast.type }}" animate.enter="toast-in" animate.leave="toast-out">
+      <span class="toast-icon">
+        @switch (toast.type) {
+          @case ('success') { <i class="ti ti-circle-check"></i> }
+          @case ('error') { <i class="ti ti-circle-x"></i> }
+          @case ('warning') { <i class="ti ti-alert-triangle"></i> }
+          @case ('info') { <i class="ti ti-info-circle"></i> }
+        }
+      </span>
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" (click)="snackbar.remove(toast.id)">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+  }
+</div>

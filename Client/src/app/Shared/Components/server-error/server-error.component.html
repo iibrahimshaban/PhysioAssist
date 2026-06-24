@@ -1,0 +1,21 @@
+<div class="error-page">
+  @if(error(); as e) {
+    <h2>Internal server error</h2>
+
+    <p class="error-message">Error: {{ e.message }}</p>
+    <p class="error-origin">This error comes from the server, not Angular</p>
+
+    <p class="what-next">What to do next?</p>
+    <ol>
+      <li>Check the network tab in chrome dev tools</li>
+      <li>Reproduce the error in postman. If same error, don't waste time troubleshooting angular code</li>
+    </ol>
+
+    <h4>Stack trace</h4>
+    <code class="stack-trace">{{ e.details }}</code>
+  }
+
+  <button (click)="reload()" class="btn btn-secondary">
+    <i class="ti ti-refresh"></i> Try again
+  </button>
+</div>

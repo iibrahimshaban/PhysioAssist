@@ -1,0 +1,80 @@
+.weather-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.weather-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #2d3748;
+}
+
+.loading-text {
+  color: #718096;
+}
+
+.forecast-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.forecast-card {
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  background: #e2e8f0;
+  transition: transform 0.2s;
+}
+
+.forecast-card:hover {
+  transform: translateY(-4px);
+}
+
+.card-date {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+}
+
+.card-summary {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #1a202c;
+}
+
+.card-temps {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.temp-c {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2b6cb0;
+}
+
+.temp-f {
+  font-size: 0.9rem;
+  color: #718096;
+  align-self: flex-end;
+}
+
+/* Summary color theming */
+.freezing  { background: #ebf8ff; }
+.bracing   { background: #e9f7fe; }
+.chilly    { background: #e0f2fe; }
+.cool      { background: #e6fffa; }
+.mild      { background: #f0fff4; }
+.warm      { background: #fffff0; }
+.balmy     { background: #fefcbf; }
+.hot       { background: #fef3c7; }
+.sweltering{ background: #fde8d8; }
+.scorching { background: #ffe4e6; }

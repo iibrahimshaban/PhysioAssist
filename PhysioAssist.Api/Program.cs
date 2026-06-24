@@ -1,10 +1,12 @@
+using PhysioAssist.Api;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddSwaggerGen();
+builder.Services.AddServicesRegistration(builder.Configuration);
 
 var app = builder.Build();
 
@@ -13,7 +15,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
+app.UseCors("AllowAngular");
 
 app.UseHttpsRedirection();
 
