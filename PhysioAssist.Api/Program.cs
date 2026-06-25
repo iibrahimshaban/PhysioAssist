@@ -1,4 +1,5 @@
 using PhysioAssist.Api;
+using PhysioAssist.Api.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,5 +25,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+await DataSeeder.SeedAsync(app.Services);
 
 app.Run();
