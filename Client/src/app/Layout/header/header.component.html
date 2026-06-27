@@ -1,6 +1,15 @@
-<nav class="d-flex gap-3 text-uppercase fs-5">
-      <a class="text-decoration-none" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
-      <a class="text-decoration-none" routerLink="/test-error" routerLinkActive="active">test error</a>
-      <a class="text-decoration-none" routerLink="/not-found">notfound</a>
-      <a class="text-decoration-none" routerLink="/weather">weather</a>
+<nav class="flex gap-3 uppercase text-lg">
+  <a
+    class="no-underline hover:underline"
+    routerLink="/"
+    routerLinkActive="active"
+    [routerLinkActiveOptions]="{ exact: true }"
+    >Home</a
+  >
+  <a class="no-underline hover:underline" routerLink="/test-error" routerLinkActive="active"
+    >test error</a
+  >
+  <a class="no-underline hover:underline" routerLink="/not-found">notfound</a>
+  <a class="no-underline hover:underline" routerLink="/weather">weather</a>
+  <a class="no-underline hover:underline" routerLink="/prime">weather</a>
 </nav>
