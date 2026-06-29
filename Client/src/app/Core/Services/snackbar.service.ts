@@ -8,18 +8,18 @@ export class SnackbarService {
   toasts = signal<Toast[]>([]);
   private counter = 0;
 
-  private show(message: string, type: ToastType) {
+  private show(title: string, messages: string[], type: ToastType) {
     const id = this.counter++;
-    this.toasts.update(t => [...t, { id, message, type }]);
-    setTimeout(() => this.remove(id), 3000);
+    this.toasts.update(t => [...t, { id, title, messages, type }]);
+    setTimeout(() => this.remove(id), 4000);
   }
 
   remove(id: number) {
     this.toasts.update(t => t.filter(toast => toast.id !== id));
   }
 
-  success(message: string) { this.show(message, 'success'); }
-  error(message: string) { this.show(message, 'error'); }
-  info(message: string) { this.show(message, 'info'); }
-  warning(message: string) { this.show(message, 'warning'); }
+  success(title: string, messages: string[] = []) { this.show(title, messages, 'success'); }
+  error(title: string, messages: string[] = [])   { this.show(title, messages, 'error'); }
+  info(title: string, messages: string[] = [])    { this.show(title, messages, 'info'); }
+  warning(title: string, messages: string[] = []) { this.show(title, messages, 'warning'); }
 }

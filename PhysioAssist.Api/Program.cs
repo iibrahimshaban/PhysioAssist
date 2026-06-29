@@ -1,5 +1,5 @@
 using PhysioAssist.Api;
-using PhysioAssist.Api.Helpers;
+using PhysioAssist.Api.Shared.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 

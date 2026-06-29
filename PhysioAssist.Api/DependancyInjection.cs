@@ -2,11 +2,13 @@
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
-using PhysioAssist.Api.Infrastructure;
-using PhysioAssist.Api.Interfaces;
+using PhysioAssist.Api.Infrastructure.CloudinaryClient;
+using PhysioAssist.Api.Modules.Auth;
+using PhysioAssist.Api.Modules.Auth.Entities;
+using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Repositories;
-using PhysioAssist.Api.Services.Authentication;
+using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
 
@@ -25,6 +27,11 @@ public static class DependancyInjection
             .AddCorsConfiguration(configuration)
             .AddDbContextConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration);
+
+        //adding modules registration
+
+        services
+            .AddAuthModule(configuration);
 
         return services;
 
