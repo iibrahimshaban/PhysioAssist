@@ -1,4 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using PhysioAssist.Api.Modules.Auth.Entities;
+using PhysioAssist.Api.Modules.Auth.Extensions;
+using PhysioAssist.Api.Modules.InitialReportModule.Entities;
+using PhysioAssist.Api.Modules.Intake.Entities;
+using PhysioAssist.Api.Modules.PatientModule.Entities;
+using PhysioAssist.Api.Modules.Scheduling.Entities;
+using PhysioAssist.Api.Modules.SessionModule.Entities;
+using PhysioAssist.Api.Shared.Entities;
 using System.Reflection;
 
 namespace PhysioAssist.Api.Persistence;
@@ -9,6 +17,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
         base.OnModelCreating(builder);
     }
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -32,5 +41,31 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         return base.SaveChangesAsync(cancellationToken);
     }
 
+    //Auth
     public DbSet<OtpEntry> OtpEntries { get; set; }
+    public DbSet<Doctor> Doctors { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
+
+    // Patient
+    public DbSet<Patient> Patients { get; set; }
+    public DbSet<DoctorPatient> DoctorPatients { get; set; }
+
+    // Intake
+    public DbSet<PatientFormSchema> PatientFormSchemas { get; set; }
+    public DbSet<PreVisitIntake> PreVisitIntakes { get; set; }
+
+    // InitialReport
+    public DbSet<InitialReport> InitialReports { get; set; }
+    public DbSet<ReportAttachment> ReportAttachments { get; set; }
+
+    // Session
+    public DbSet<Session> Sessions { get; set; }
+    public DbSet<SessionTranscription> SessionTranscriptions { get; set; }
+    public DbSet<SessionTranscriptionChunk> SessionTranscriptionChunks { get; set; }
+
+    // Scheduling
+    public DbSet<ScheduleSlot> ScheduleSlots { get; set; }
+
+    // Shared
+    public DbSet<Notification> Notifications { get; set; }
 }

@@ -21,7 +21,7 @@ export class TestErrorComponent {
   }
 
   get400Error() {
-    this.http.get(this.baseUrl + 'buggy/badrequest').subscribe({
+    this.http.get(this.baseUrl + 'Auth').subscribe({
       next: response => console.log(response),
       error: error => console.log(error)
     });
@@ -35,7 +35,10 @@ export class TestErrorComponent {
   }
 
   get401Error() {
-    this.http.get(this.baseUrl + 'buggy/unauthorized').subscribe({
+    this.http.post(this.baseUrl + 'Auth',{ 
+      "email": "",
+    "password": ""}
+    ).subscribe({
       next: response => console.log(response),
       error: error => console.log(error)
     });
