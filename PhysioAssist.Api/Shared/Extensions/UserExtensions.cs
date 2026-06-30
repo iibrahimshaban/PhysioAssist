@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace PhysioAssist.Api.Modules.Auth.Extensions;
+namespace PhysioAssist.Api.Shared.Extensions;
 
 public static class UserExtensions
 {

@@ -1,6 +1,6 @@
-﻿namespace PhysioAssist.Api.Infrastructure.CloudinaryClient;
+﻿namespace PhysioAssist.Api.Shared.Interfaces;
 
-public interface ICloudinaryService
+public interface IMediaStorageService
 {
     Task<string> UploadImageAsync(IFormFile file, string folder, string publicId);
     Task DeleteImageAsync(string publicId);

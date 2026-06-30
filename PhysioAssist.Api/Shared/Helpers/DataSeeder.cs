@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Shared.Consts;
+using System.Security.Claims;
 
 namespace PhysioAssist.Api.Shared.Helpers;
 
@@ -15,6 +16,7 @@ public static class DataSeeder
 
         await SeedRolesAsync(roleManager);
         await SeedAdminUserAsync(userManager);
+        await SeedAdminPermissionsAsync(roleManager);
     }
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
@@ -51,5 +53,25 @@ public static class DataSeeder
 
         await userManager.CreateAsync(admin, DefaultUsers.Password);
         await userManager.AddToRoleAsync(admin, DefaultRoles.Admin);
+    }
+    private static async Task SeedAdminPermissionsAsync(RoleManager<IdentityRole> roleManager)
+    {
+        var adminRole = await roleManager.FindByNameAsync(DefaultRoles.Admin);
+
+        if (adminRole is null) return;
+
+        var existingClaims = await roleManager.GetClaimsAsync(adminRole);
+        var allPermissions = Permissions.GetAllPermissions();
+
+        foreach (var permission in allPermissions)
+        {
+            if (string.IsNullOrEmpty(permission)) continue;
+
+            var alreadyExists = existingClaims.Any(c =>
+                c.Type == Permissions.Type && c.Value == permission);
+
+            if (!alreadyExists)
+                await roleManager.AddClaimAsync(adminRole, new Claim(Permissions.Type, permission));
+        }
     }
 }

@@ -1,45 +1,46 @@
-﻿using PhysioAssist.Api.Shared.ResultPattern;
-
-namespace PhysioAssist.Api.Modules.Auth.Errors;
+﻿namespace PhysioAssist.Api.Modules.Auth.Errors;
 
 public static class UserErrors
 {
     public static readonly Error InvalidCredentials =
-        new("User.InvalidCredentials", "Invalid email/password", StatusCodes.Status401Unauthorized);
+        new("User.InvalidCredentials", "The email or password you entered is incorrect.", StatusCodes.Status401Unauthorized);
 
     public static readonly Error InvalidJwtToken =
-        new("User.InvalidJwtToken", "Invalid Jwt token", StatusCodes.Status401Unauthorized);
+        new("User.InvalidJwtToken", "The provided token is invalid or has been tampered with.", StatusCodes.Status401Unauthorized);
 
-    public static readonly Error DuplicatedEmail =
-        new("User.DuplicatedEmail", "This Email already Exists", StatusCodes.Status409Conflict);
+    public static readonly Error ExpiredToken =
+        new("User.ExpiredToken", "Your session has expired. Please log in again.", StatusCodes.Status401Unauthorized);
+
+    public static readonly Error InvalidRefresh =
+        new("User.InvalidRefreshToken", "The refresh token is invalid, expired, or has already been used.", StatusCodes.Status401Unauthorized);
 
     public static readonly Error EmailNotConfirmed =
-    new("User.EmailNotConfirmed", "Email is not confirmed", StatusCodes.Status401Unauthorized);
+        new("User.EmailNotConfirmed", "Please confirm your email address before logging in.", StatusCodes.Status401Unauthorized);
 
-    public static readonly Error InvalidCode =
-        new("User.InvalidCode", "Invalid code", StatusCodes.Status401Unauthorized);
+    public static readonly Error DuplicatedEmail =
+        new("User.DuplicatedEmail", "An account with this email address already exists.", StatusCodes.Status409Conflict);
 
     public static readonly Error DuplicatedConfirmation =
-        new("User.DuplicatedConfirmation", "Email already confirmed", StatusCodes.Status400BadRequest);
+        new("User.DuplicatedConfirmation", "This email address has already been confirmed.", StatusCodes.Status409Conflict);
+
+    public static readonly Error InvalidCode =
+        new("User.InvalidCode", "The verification code is invalid or has expired.", StatusCodes.Status400BadRequest);
 
     public static readonly Error DisabledUser =
-        new("User.DisabledUser", "Disabled user, Please contact the support team.", StatusCodes.Status400BadRequest);
+        new("User.DisabledUser", "Your account has been disabled. Please contact support for assistance.", StatusCodes.Status403Forbidden);
 
     public static readonly Error LockedUser =
-        new("User.LockedUser", "Locked user, Please Wait and try again.", StatusCodes.Status400BadRequest);
+        new("User.LockedUser", "Your account has been temporarily locked due to multiple failed attempts. Please try again later.", StatusCodes.Status403Forbidden);
 
     public static readonly Error UserNotFound =
-        new("User.UserNotFound", "User NotFound.", StatusCodes.Status400BadRequest);
+        new("User.UserNotFound", "No account was found with the provided information.", StatusCodes.Status404NotFound);
 
     public static readonly Error InvalidRoles =
-        new("Role.InvalidRoles", "Invalid roles", StatusCodes.Status400BadRequest);
+        new("User.InvalidRoles", "One or more of the specified roles do not exist.", StatusCodes.Status400BadRequest);
 
-    public static readonly Error Invalid = new(
-        "User.invalid", "wrong name and password", StatusCodes.Status400BadRequest);
-    public static readonly Error NotFound = new(
-        "User.invalid", "wrong name and password", StatusCodes.Status404NotFound);
-    public static readonly Error ExpiredToken = new(
-        "User.ExpiredToken", "this token is not working any more", StatusCodes.Status400BadRequest);
-    public static readonly Error InvalidRefresh = new(
-        "User.InvalidRefreshToken", "can't generate a new refresh token", StatusCodes.Status400BadRequest);
+    public static readonly Error ResetPasswordFailed =
+        new("User.ResetPasswordFailed", "Password reset failed. Please request a new reset code and try again.", StatusCodes.Status400BadRequest);
+
+    public static readonly Error RegistrationFailed =
+        new("User.RegistrationFailed", "Registration could not be completed. Please try again later.", StatusCodes.Status400BadRequest);
 }

@@ -1,14 +1,15 @@
 ﻿using CloudinaryDotNet;
+using Hangfire;
 using Mapster;
 using MapsterMapper;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
 using PhysioAssist.Api.Modules.Auth;
-using PhysioAssist.Api.Modules.Auth.Entities;
-using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Persistence;
+using PhysioAssist.Api.Shared.Authorization;
+using PhysioAssist.Api.Shared.Configuration;
+using PhysioAssist.Api.Shared.Email;
 using PhysioAssist.Api.Shared.Interfaces;
-using PhysioAssist.Api.Shared.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
 
@@ -16,31 +17,29 @@ namespace PhysioAssist.Api;
 
 public static class DependancyInjection
 {
-    public static IServiceCollection AddServicesRegistration(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddGlobalServicesRegistration(this IServiceCollection services, IConfiguration configuration)
     {
-
         services
             .AddSwaggerGen()
+            .AddHttpContextAccessor()
             .AddFluentValidationConfig()
             .AddMapsterConfiguration()
-            .AddServicesConfiguration()
-            .AddCorsConfiguration(configuration)
             .AddDbContextConfiguration(configuration)
-            .AddCloudinaryImageHosting(configuration);
+            .AddCorsConfiguration(configuration)
+            .AddCloudinaryImageHosting(configuration)
+            .AddPermissionAuthorization()
+            .AddMailConfig(configuration)
+            .AddHangfireBGJobs(configuration);
 
-        //adding modules registration
-
-        services
-            .AddAuthModule(configuration);
+        services.AddAuthModule(configuration);
 
         return services;
-
     }
 
     private static IServiceCollection AddCorsConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddCors(options =>
-            options.AddPolicy("AllowAngular", build =>  // ← named instead of default
+            options.AddPolicy("AllowAngular", build =>
                 build
                     .AllowAnyMethod()
                     .AllowAnyHeader()
@@ -50,54 +49,58 @@ public static class DependancyInjection
 
         return services;
     }
+
     private static IServiceCollection AddFluentValidationConfig(this IServiceCollection services)
     {
-        services.AddFluentValidationAutoValidation()
-           .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+        services
+            .AddFluentValidationAutoValidation()
+            .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
         return services;
     }
+
     private static IServiceCollection AddDbContextConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection") ??
-            throw new InvalidOperationException("Default Connection is not found");
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Default connection string is not found");
 
         services.AddDbContext<ApplicationDbContext>(options =>
-                    options.UseSqlServer(connectionString));
-
-        services.Configure<IdentityOptions>(options =>
-        {
-            options.Password.RequiredLength = 1;
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequireNonAlphanumeric = false;
-            options.SignIn.RequireConfirmedEmail = true;
-            options.User.RequireUniqueEmail = true;
-        });
-
-        services.AddIdentity<ApplicationUser, IdentityRole>()
-             .AddEntityFrameworkStores<ApplicationDbContext>()
-             .AddDefaultTokenProviders();
-
-        services.AddHttpContextAccessor();
+            options.UseSqlServer(connectionString));
 
         return services;
     }
+
     private static IServiceCollection AddMapsterConfiguration(this IServiceCollection services)
     {
-        var MappingConfig = TypeAdapterConfig.GlobalSettings;
-        MappingConfig.Scan(Assembly.GetExecutingAssembly());
+        var mappingConfig = TypeAdapterConfig.GlobalSettings;
+        mappingConfig.Scan(Assembly.GetExecutingAssembly());
 
-        services.AddSingleton<IMapper>(new Mapper(MappingConfig));
+        services.AddSingleton<IMapper>(new Mapper(mappingConfig));
+
         return services;
     }
-    private static IServiceCollection AddServicesConfiguration(this IServiceCollection services)
+
+    private static IServiceCollection AddPermissionAuthorization(this IServiceCollection services)
     {
-        services.AddTransient<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IAuthService, AuthService>();
+        services.AddAuthorization();
+        services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        services.AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
+
         return services;
     }
+
+    private static IServiceCollection AddMailConfig(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<MailSettings>()
+            .BindConfiguration(nameof(MailSettings))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddTransient<ICustomEmailService, EmailService>();
+
+        return services;
+    }
+
     private static IServiceCollection AddCloudinaryImageHosting(this IServiceCollection services, IConfiguration configuration)
     {
         var cloudinarySettings = configuration.GetSection("Cloudinary");
@@ -107,9 +110,22 @@ public static class DependancyInjection
             cloudinarySettings["ApiKey"],
             cloudinarySettings["ApiSecret"]
         );
-        services.AddSingleton(new Cloudinary(account));
 
-        services.AddScoped<ICloudinaryService, CloudinaryService>();
+        services.AddSingleton(new Cloudinary(account));
+        services.AddScoped<IMediaStorageService, CloudinaryService>();
+
+        return services;
+    }
+    public static IServiceCollection AddHangfireBGJobs(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(configuration.GetConnectionString("HangfireConnection")));
+
+        services.AddHangfireServer();
+
         return services;
     }
 }
