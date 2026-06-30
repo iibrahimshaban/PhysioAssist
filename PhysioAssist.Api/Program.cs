@@ -1,3 +1,5 @@
+using Hangfire;
+using HangfireBasicAuthenticationFilter;
 using PhysioAssist.Api;
 using PhysioAssist.Api.Shared.Helpers;
 
@@ -7,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddServicesRegistration(builder.Configuration);
+builder.Services.AddGlobalServicesRegistration(builder.Configuration);
 
 var app = builder.Build();
 
@@ -18,11 +20,27 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.UseDeveloperExceptionPage();
 }
-app.UseCors("AllowAngular");
+
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowAngular");
+
+app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseHangfireDashboard("/jobs", new DashboardOptions
+{
+    Authorization =
+    [
+        new HangfireCustomBasicAuthenticationFilter
+        {
+            User = app.Configuration.GetValue<string>("HangfireSettings:Username"),
+            Pass = app.Configuration.GetValue<string>("HangfireSettings:password")
+        }
+    ],
+    DashboardTitle = "PhysioAssist dashboard"
+});
 
 app.MapControllers();
 

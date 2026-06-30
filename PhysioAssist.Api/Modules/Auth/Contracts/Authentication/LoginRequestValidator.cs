@@ -1,6 +1,6 @@
 ﻿using PhysioAssist.Api.Shared.Consts;
 
-namespace PhysioAssist.Api.Modules.Auth.Contracts;
+namespace PhysioAssist.Api.Modules.Auth.Contracts.Authentication;
 
 public class LoginRequestValidator : AbstractValidator<LoginRequest>
 {

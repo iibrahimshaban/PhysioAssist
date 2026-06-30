@@ -1,9 +1,10 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using PhysioAssist.Api.Shared.Interfaces;
 
 namespace PhysioAssist.Api.Infrastructure.CloudinaryClient;
 
-public class CloudinaryService(Cloudinary cloudinary) : ICloudinaryService
+public class CloudinaryService(Cloudinary cloudinary) : IMediaStorageService
 {
     private readonly Cloudinary _cloudinary = cloudinary;
 

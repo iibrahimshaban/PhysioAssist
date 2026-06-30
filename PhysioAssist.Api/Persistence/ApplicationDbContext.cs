@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using PhysioAssist.Api.Modules.Auth.Entities;
-using PhysioAssist.Api.Modules.Auth.Extensions;
 using PhysioAssist.Api.Modules.InitialReportModule.Entities;
 using PhysioAssist.Api.Modules.Intake.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.Scheduling.Entities;
 using PhysioAssist.Api.Modules.SessionModule.Entities;
 using PhysioAssist.Api.Shared.Entities;
+using PhysioAssist.Api.Shared.Extensions;
 using System.Reflection;
 
 namespace PhysioAssist.Api.Persistence;

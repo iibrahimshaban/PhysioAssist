@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using PhysioAssist.Api.Shared.Authorization;
+using PhysioAssist.Api.Shared.Consts;
 
 namespace PhysioAssist.Api.Controllers;
 
@@ -12,6 +14,7 @@ public class WeatherForecastController : ControllerBase
     ];
 
     [HttpGet(Name = "GetWeatherForecast")]
+    [HasPermission(Permissions.GetUsers)]
     public IEnumerable<WeatherForecast> Get()
     {
         return Enumerable.Range(1, 5).Select(index => new WeatherForecast
