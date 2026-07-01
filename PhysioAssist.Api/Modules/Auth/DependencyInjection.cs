@@ -26,7 +26,8 @@ public static class DependencyInjection
 
     private static IServiceCollection AddAuthOptions(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddOptions<JwtOptions>()
+        services
+            .AddOptions<JwtOptions>()
             .BindConfiguration(JwtOptions.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
