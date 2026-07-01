@@ -12,4 +12,5 @@ public interface IAuthService
     Task<Result> SendResetPasswordCodeAsync(ForgetPasswordRequest request, CancellationToken cancellationToken = default);
     Task<Result> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default);
     Task<Result<AuthResponse>> GetRefreshTokenAsync(RefreshTokenRequest request,CancellationToken cancellation= default);
+    Task<Result> VerifyResetOtpAsync(VerifyResetOtpRequest request, CancellationToken cancellationToken = default);
 }

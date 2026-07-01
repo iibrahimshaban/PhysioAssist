@@ -339,6 +339,23 @@ public class AuthService(
 
         return Result.Success();
     }
+    public async Task<Result> VerifyResetOtpAsync(VerifyResetOtpRequest request, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user is null) return Result.Failure(UserErrors.InvalidCode);
+
+        var otp = await _context.OtpEntries
+            .Where(x => x.UserId == user.Id
+                     && x.Purpose == OtpPurpose.PasswordReset
+                     && !x.IsUsed)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (otp is null || otp.IsExpired || otp.Code != request.Otp)
+            return Result.Failure(UserErrors.InvalidCode);
+
+        return Result.Success();
+    }
     private static string GenerateRefreshToken()
     {
         return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
