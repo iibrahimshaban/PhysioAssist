@@ -32,8 +32,8 @@ public sealed class GeminiTranscriptionClient : IAudioTranscriptionService
         var mimeType = ResolveMimeType(request.FileName);
 
         var systemInstruction = string.IsNullOrWhiteSpace(request.Prompt)
-            ? TranscriptionPrompts.GeminiMedicalTranscription
-            : $"{TranscriptionPrompts.GeminiMedicalTranscription}\n\nAdditional context: {request.Prompt}";
+            ? TranscriptionPrompts.GeminiInitialReportTranscription  
+            : request.Prompt;
 
         var payload = new
         {
