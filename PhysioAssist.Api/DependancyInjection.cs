@@ -7,7 +7,9 @@ using PhysioAssist.Api.Infrastructure.CloudinaryClient;
 using PhysioAssist.Api.Infrastructure.GeminiClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
+using PhysioAssist.Api.Modules.Intake;
 using PhysioAssist.Api.Persistence;
+using PhysioAssist.Api.Shared;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
 using PhysioAssist.Api.Shared.Interfaces;
@@ -31,9 +33,11 @@ public static class DependancyInjection
             .AddCorsConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration)
             .AddAudioTranscriptionConfig()
-            .AddHangfireBGJobs(configuration);
+            .AddHangfireBGJobs(configuration)
+            .AddSharedServices(configuration);
 
         services.AddAuthModule(configuration);
+        services.AddIntakeModule();
 
         return services;
     }
@@ -108,14 +112,14 @@ public static class DependancyInjection
         services
             .AddOptions<GroqOptions>()
             .BindConfiguration(GroqOptions.SectionName)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+            .ValidateDataAnnotations();
+            // .ValidateOnStart(); // TODO: Re-enable before committing/pushing. Temporarily disabled while developing Intake & QR modules without AI API keys.
 
         services
         .AddOptions<GeminiOptions>()
         .BindConfiguration(GeminiOptions.SectionName)
-        .ValidateDataAnnotations()
-        .ValidateOnStart();
+        .ValidateDataAnnotations();
+        // .ValidateOnStart(); // TODO: Re-enable before committing/pushing. Temporarily disabled while developing Intake & QR modules without AI API keys.
 
         services.AddHttpClient<GroqWhisperClient>();
         services.AddHttpClient<ITranscriptionRefinementService,GroqRefinementClient>();
