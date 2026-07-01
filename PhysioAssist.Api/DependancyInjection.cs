@@ -13,6 +13,7 @@ using PhysioAssist.Api.Shared.Email;
 using PhysioAssist.Api.Shared.Interfaces;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
+using PhysioAssist.Api.Modules.SessionModule;
 
 namespace PhysioAssist.Api;
 
@@ -34,7 +35,7 @@ public static class DependancyInjection
             .AddHangfireBGJobs(configuration);
 
         services.AddAuthModule(configuration);
-
+        services.AddSessionModule();
         return services;
     }
 
