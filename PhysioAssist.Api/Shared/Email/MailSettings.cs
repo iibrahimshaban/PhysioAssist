@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PhysioAssist.Api.Shared.Configuration;
+namespace PhysioAssist.Api.Shared.Email;
 
 public class MailSettings
 {
+    public const string SectionName = "MailSettings";
     [Required, EmailAddress]
     public string Mail { get; set; } = string.Empty;
     [Required]

@@ -4,10 +4,11 @@ using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
+using PhysioAssist.Api.Infrastructure.GeminiClient;
+using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Authorization;
-using PhysioAssist.Api.Shared.Configuration;
 using PhysioAssist.Api.Shared.Email;
 using PhysioAssist.Api.Shared.Interfaces;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
@@ -24,11 +25,12 @@ public static class DependancyInjection
             .AddHttpContextAccessor()
             .AddFluentValidationConfig()
             .AddMapsterConfiguration()
+            .AddPermissionAuthorization()
+            .AddMailConfig()
             .AddDbContextConfiguration(configuration)
             .AddCorsConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration)
-            .AddPermissionAuthorization()
-            .AddMailConfig(configuration)
+            .AddAudioTranscriptionConfig()
             .AddHangfireBGJobs(configuration);
 
         services.AddAuthModule(configuration);
@@ -89,14 +91,44 @@ public static class DependancyInjection
         return services;
     }
 
-    private static IServiceCollection AddMailConfig(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddMailConfig(this IServiceCollection services)
     {
-        services.AddOptions<MailSettings>()
-            .BindConfiguration(nameof(MailSettings))
+        services
+            .AddOptions<MailSettings>()
+            .BindConfiguration(MailSettings.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.AddTransient<ICustomEmailService, EmailService>();
+
+        return services;
+    }
+    private static IServiceCollection AddAudioTranscriptionConfig(this IServiceCollection services)
+    {
+        services
+            .AddOptions<GroqOptions>()
+            .BindConfiguration(GroqOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services
+        .AddOptions<GeminiOptions>()
+        .BindConfiguration(GeminiOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        services.AddHttpClient<GroqWhisperClient>();
+        services.AddHttpClient<ITranscriptionRefinementService,GroqRefinementClient>();
+
+        //register whisper 
+        //services.AddScoped<IAudioTranscriptionService>(sp =>
+        //    new RefinedTranscriptionService(
+        //        sp.GetRequiredService<GroqWhisperClient>(),
+        //        sp.GetRequiredService<ITranscriptionRefinementService>()
+        //    ));
+
+        //register gemini flash 
+        services.AddHttpClient<IAudioTranscriptionService, GeminiTranscriptionClient>();
 
         return services;
     }

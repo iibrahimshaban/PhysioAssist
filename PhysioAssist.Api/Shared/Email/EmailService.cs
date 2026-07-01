@@ -2,7 +2,6 @@
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using PhysioAssist.Api.Shared.Configuration;
 using PhysioAssist.Api.Shared.Interfaces;
 
 namespace PhysioAssist.Api.Shared.Email;
