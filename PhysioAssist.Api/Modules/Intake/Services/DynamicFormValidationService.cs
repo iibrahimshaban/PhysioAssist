@@ -1,4 +1,3 @@
-using System.Text.Json;
 using PhysioAssist.Api.Modules.Intake.DTOs.DynamicForms;
 using PhysioAssist.Api.Modules.Intake.Errors;
 
@@ -6,26 +5,8 @@ namespace PhysioAssist.Api.Modules.Intake.Services;
 
 public class DynamicFormValidationService : IDynamicFormValidationService
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    public Result ValidateSchema(DynamicFormSchemaDto schema)
     {
-        PropertyNameCaseInsensitive = true
-    };
-
-    public Result ValidateSchemaJson(string schemaJson)
-    {
-        if (string.IsNullOrWhiteSpace(schemaJson))
-            return Result.Failure(IntakeErrors.InvalidSchema);
-
-        DynamicFormSchemaDto? schema;
-        try
-        {
-            schema = JsonSerializer.Deserialize<DynamicFormSchemaDto>(schemaJson, JsonOptions);
-        }
-        catch (JsonException)
-        {
-            return Result.Failure(IntakeErrors.InvalidSchema);
-        }
-
         if (schema is null)
             return Result.Failure(IntakeErrors.InvalidSchema);
 
@@ -36,27 +17,25 @@ public class DynamicFormValidationService : IDynamicFormValidationService
         return Result.Success();
     }
 
-    public Result ValidateSubmissionJson(string submissionJson)
+    public Result ValidateSubmissionAgainstSchema(DynamicFormSchemaDto schema, DynamicFormSubmissionDto submission)
     {
-        if (string.IsNullOrWhiteSpace(submissionJson))
-            return Result.Failure(IntakeErrors.InvalidSubmission);
-
-        DynamicFormSubmissionDto? submission;
-        try
-        {
-            submission = JsonSerializer.Deserialize<DynamicFormSubmissionDto>(submissionJson, JsonOptions);
-        }
-        catch (JsonException)
-        {
-            return Result.Failure(IntakeErrors.InvalidSubmission);
-        }
+        if (schema is null)
+            return Result.Failure(IntakeErrors.InvalidSchema);
 
         if (submission is null)
             return Result.Failure(IntakeErrors.InvalidSubmission);
 
-        var validationResult = ValidateSubmissionStructure(submission);
-        if (validationResult.IsFailure)
-            return validationResult;
+        var schemaValidationResult = ValidateSchemaStructure(schema);
+        if (schemaValidationResult.IsFailure)
+            return Result.Failure(IntakeErrors.InvalidSchema);
+
+        var submissionStructureResult = ValidateSubmissionStructure(submission);
+        if (submissionStructureResult.IsFailure)
+            return submissionStructureResult;
+
+        var crossReferenceResult = ValidateSubmissionAgainstSchemaStructure(schema, submission);
+        if (crossReferenceResult.IsFailure)
+            return crossReferenceResult;
 
         return Result.Success();
     }
@@ -291,6 +270,72 @@ public class DynamicFormValidationService : IDynamicFormValidationService
         return Result.Success();
     }
 
+    private static Result ValidateSubmissionAgainstSchemaStructure(DynamicFormSchemaDto schema, DynamicFormSubmissionDto submission)
+    {
+        var schemaIndex = BuildSchemaIndex(schema);
+
+        foreach (var submissionSection in submission.Sections)
+        {
+            if (!schemaIndex.SectionIds.Contains(submissionSection.SectionId))
+                return Result.Failure(IntakeErrors.InvalidSubmission);
+
+            if (!schemaIndex.SectionGroupMap.TryGetValue(submissionSection.SectionId, out var validGroupIds))
+                return Result.Failure(IntakeErrors.InvalidSubmission);
+
+            foreach (var submissionGroup in submissionSection.Groups)
+            {
+                if (!validGroupIds.Contains(submissionGroup.GroupId))
+                    return Result.Failure(IntakeErrors.InvalidSubmission);
+
+                var groupKey = $"{submissionSection.SectionId}:{submissionGroup.GroupId}";
+                if (!schemaIndex.GroupQuestionMap.TryGetValue(groupKey, out var validQuestionIds))
+                    return Result.Failure(IntakeErrors.InvalidSubmission);
+
+                foreach (var submissionAnswer in submissionGroup.Answers)
+                {
+                    if (!validQuestionIds.Contains(submissionAnswer.QuestionId))
+                        return Result.Failure(IntakeErrors.InvalidSubmission);
+                }
+            }
+        }
+
+        return Result.Success();
+    }
+
+    private static SchemaIndex BuildSchemaIndex(DynamicFormSchemaDto schema)
+    {
+        var index = new SchemaIndex
+        {
+            SectionIds = new HashSet<string>(),
+            SectionGroupMap = new Dictionary<string, HashSet<string>>(),
+            GroupQuestionMap = new Dictionary<string, HashSet<string>>()
+        };
+
+        foreach (var section in schema.Sections)
+        {
+            index.SectionIds.Add(section.SectionId);
+
+            var groupIds = new HashSet<string>();
+            foreach (var group in section.Groups)
+            {
+                groupIds.Add(group.GroupId);
+
+                var questionIds = new HashSet<string>();
+                foreach (var question in group.Questions)
+                {
+                    questionIds.Add(question.QuestionId);
+                }
+
+                var groupKey = $"{section.SectionId}:{group.GroupId}";
+                index.GroupQuestionMap[groupKey] = questionIds;
+            }
+
+            index.SectionGroupMap[section.SectionId] = groupIds;
+        }
+
+        return index;
+    }
+
     private static class QuestionTypes
     {
         private static readonly HashSet<string> SupportedTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -343,5 +388,12 @@ public class DynamicFormValidationService : IDynamicFormValidationService
         };
 
         public static bool IsSupported(string operatorType) => SupportedOperators.Contains(operatorType);
+    }
+
+    private class SchemaIndex
+    {
+        public HashSet<string> SectionIds { get; init; } = new();
+        public Dictionary<string, HashSet<string>> SectionGroupMap { get; init; } = new();
+        public Dictionary<string, HashSet<string>> GroupQuestionMap { get; init; } = new();
     }
 }
