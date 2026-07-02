@@ -32,4 +32,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Modules\PatientModule\Controllers\" />
+    <Folder Include="Modules\PatientModule\Services\" />
+    <Folder Include="Shared\Configuration\" />
+  </ItemGroup>
+
 </Project>
