@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.Auth.Contracts.Authentication;
-using PhysioAssist.Api.Modules.Auth.Errors;
 using PhysioAssist.Api.Modules.Auth.Services;
 
 namespace PhysioAssist.Api.Modules.Auth.Controllers;
@@ -65,6 +64,12 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         var result = await _authService.ResetPasswordAsync(request);
 
+        return result.IsSuccess ? NoContent() : result.ToProblem();
+    }
+    [HttpPost("verify-reset-otp")]
+    public async Task<IActionResult> VerifyResetOtp([FromBody] VerifyResetOtpRequest request)
+    {
+        var result = await _authService.VerifyResetOtpAsync(request);
         return result.IsSuccess ? NoContent() : result.ToProblem();
     }
 }
