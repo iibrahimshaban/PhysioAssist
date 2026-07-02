@@ -10,7 +10,7 @@ public class PreVisitIntake
     public string? PatientEmail { get; set; }
     public string? PatientPhone { get; set; }
     public string FormSubmissionData { get; set; } = string.Empty;
-    public string PainPointsData { get; set; } = string.Empty;
+    public string? PainPointsData { get; set; }
     public IntakeStatus Status { get; set; } = IntakeStatus.Pending;
     public Guid? ConvertedToPatientId { get; set; }
     public string? AccessTokenHash { get; set; }
