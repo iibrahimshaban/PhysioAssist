@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.Intake.DTOs.FormSchemas;
 using PhysioAssist.Api.Modules.Intake.DTOs.PublicAccess;
+using PhysioAssist.Api.Modules.Intake.DTOs.Submissions;
 using PhysioAssist.Api.Modules.Intake.Services;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Consts;
@@ -80,6 +81,36 @@ public class IntakeController(IIntakeService intakeService) : ControllerBase
     {
         var doctorId = Guid.Parse(User.GetUserId()!);
         var result = await _intakeService.GenerateIntakeQrLinkAsync(id, request, doctorId, cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+
+    [HttpGet("submissions")]
+    [HasPermission(Permissions.IntakeReview)]
+    public async Task<IActionResult> GetSubmissions([FromQuery] IntakeStatus? status, CancellationToken cancellationToken)
+    {
+        var doctorId = Guid.Parse(User.GetUserId()!);
+        var result = await _intakeService.GetSubmissionsAsync(doctorId, status, cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+
+    [HttpGet("submissions/{id:guid}")]
+    [HasPermission(Permissions.IntakeReview)]
+    public async Task<IActionResult> GetSubmissionDetails(Guid id, CancellationToken cancellationToken)
+    {
+        var doctorId = Guid.Parse(User.GetUserId()!);
+        var result = await _intakeService.GetSubmissionDetailsAsync(id, doctorId, cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+
+    [HttpPatch("submissions/{id:guid}/status")]
+    [HasPermission(Permissions.IntakeReview)]
+    public async Task<IActionResult> UpdateIntakeStatus(Guid id, [FromBody] UpdateIntakeStatusRequest request, CancellationToken cancellationToken)
+    {
+        var doctorId = Guid.Parse(User.GetUserId()!);
+        var result = await _intakeService.UpdateStatusAsync(id, request, doctorId, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }

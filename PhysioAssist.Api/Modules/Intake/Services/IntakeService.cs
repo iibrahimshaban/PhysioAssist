@@ -275,6 +275,46 @@ public class IntakeService(
         return Result.Success(response);
     }
 
+    public async Task<Result<IReadOnlyList<PreVisitIntakeResponse>>> GetSubmissionsAsync(Guid doctorId, IntakeStatus? status, CancellationToken cancellationToken = default)
+    {
+        var intakes = await _preVisitIntakeRepository.GetByDoctorAsync(doctorId, status, cancellationToken);
+        var responses = _mapper.Map<IReadOnlyList<PreVisitIntakeResponse>>(intakes);
+        return Result.Success(responses);
+    }
+
+    public async Task<Result<PreVisitIntakeDetailsResponse>> GetSubmissionDetailsAsync(Guid id, Guid doctorId, CancellationToken cancellationToken = default)
+    {
+        var intake = await _preVisitIntakeRepository.GetDetailsByIdAsync(id, cancellationToken);
+        if (intake is null)
+            return Result.Failure<PreVisitIntakeDetailsResponse>(IntakeErrors.IntakeNotFound);
+
+        if (intake.DoctorId != doctorId)
+            return Result.Failure<PreVisitIntakeDetailsResponse>(IntakeErrors.UnauthorizedDoctor);
+
+        var response = _mapper.Map<PreVisitIntakeDetailsResponse>(intake);
+        return Result.Success(response);
+    }
+
+    public async Task<Result<PreVisitIntakeResponse>> UpdateStatusAsync(Guid id, UpdateIntakeStatusRequest request, Guid doctorId, CancellationToken cancellationToken = default)
+    {
+        var intake = await _preVisitIntakeRepository.GetByIdAsync(id, cancellationToken);
+        if (intake is null)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.IntakeNotFound);
+
+        if (intake.DoctorId != doctorId)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.UnauthorizedDoctor);
+
+        intake.Status = request.NewStatus;
+        intake.ReviewedAt = DateTime.UtcNow;
+        intake.ReviewedByDoctorId = doctorId;
+
+        _preVisitIntakeRepository.Update(intake);
+        await _unitOfWork.SaveAsync(cancellationToken);
+
+        var response = _mapper.Map<PreVisitIntakeResponse>(intake);
+        return Result.Success(response);
+    }
+
     private static DynamicFormSubmissionDto? DeserializeSubmissionJson(string submissionJson)
     {
         try
