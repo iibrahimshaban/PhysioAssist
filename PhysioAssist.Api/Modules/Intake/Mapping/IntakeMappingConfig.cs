@@ -1,5 +1,6 @@
 using Mapster;
 using PhysioAssist.Api.Modules.Intake.DTOs.FormSchemas;
+using PhysioAssist.Api.Modules.Intake.DTOs.PublicAccess;
 using PhysioAssist.Api.Modules.Intake.DTOs.Submissions;
 using PhysioAssist.Api.Modules.Intake.Entities;
 
@@ -82,5 +83,18 @@ public class IntakeMappingConfig : IRegister
             .Map(dest => dest.PatientPhone, src => src.PatientPhone)
             .Map(dest => dest.FormSubmissionData, src => src.FormSubmissionData)
             .Map(dest => dest.PainPointsData, src => src.PainPointsData);
+
+        // Public Access Mappings
+        config.NewConfig<PatientFormSchema, PublicIntakeFormResponse>()
+            .Map(dest => dest.FormSchemaId, src => src.Id)
+            .Map(dest => dest.FormName, src => src.Name)
+            .Map(dest => dest.FormDescription, src => src.Description)
+            .Map(dest => dest.SchemaJson, src => src.SchemaJson)
+            .Map(dest => dest.Version, src => src.Version);
+
+        config.NewConfig<PreVisitIntake, PublicIntakeSubmissionResponse>()
+            .Map(dest => dest.SubmissionId, src => src.Id)
+            .Map(dest => dest.SubmittedAt, src => src.SubmittedAt)
+            .Ignore(dest => dest.Message);
     }
 }

@@ -1,5 +1,6 @@
 using PhysioAssist.Api.Modules.Intake.DTOs.FormSchemas;
 using PhysioAssist.Api.Modules.Intake.DTOs.PublicAccess;
+using PhysioAssist.Api.Modules.Intake.DTOs.Submissions;
 
 namespace PhysioAssist.Api.Modules.Intake.Services;
 
@@ -16,4 +17,8 @@ public interface IIntakeService
     Task<Result<IReadOnlyList<FormSchemaSummaryResponse>>> GetFormSchemasByDoctorAsync(Guid doctorId, CancellationToken cancellationToken = default);
     Task<Result<FormSchemaResponse>> GetDefaultFormSchemaAsync(Guid doctorId, CancellationToken cancellationToken = default);
     Task<Result<GenerateIntakeQrLinkResponse>> GenerateIntakeQrLinkAsync(Guid schemaId, GenerateIntakeQrLinkRequest request, Guid doctorId, CancellationToken cancellationToken = default);
+
+    // Public Anonymous Access
+    Task<Result<PublicIntakeFormResponse>> GetPublicFormAsync(string token, CancellationToken cancellationToken = default);
+    Task<Result<PublicIntakeSubmissionResponse>> SubmitPublicIntakeAsync(string token, SubmitPreVisitIntakeRequest request, CancellationToken cancellationToken = default);
 }

@@ -5,6 +5,7 @@ using MapsterMapper;
 using PhysioAssist.Api.Modules.Intake.DTOs.DynamicForms;
 using PhysioAssist.Api.Modules.Intake.DTOs.FormSchemas;
 using PhysioAssist.Api.Modules.Intake.DTOs.PublicAccess;
+using PhysioAssist.Api.Modules.Intake.DTOs.Submissions;
 using PhysioAssist.Api.Modules.Intake.Entities;
 using PhysioAssist.Api.Modules.Intake.Errors;
 using PhysioAssist.Api.Modules.Intake.Repositories;
@@ -216,6 +217,74 @@ public class IntakeService(
         };
 
         return Result.Success(response);
+    }
+
+    public async Task<Result<PublicIntakeFormResponse>> GetPublicFormAsync(string token, CancellationToken cancellationToken = default)
+    {
+        var tokenValidationResult = _qrService.ValidateToken(token, QRTokenPurpose.Intake);
+        if (tokenValidationResult.IsFailure)
+            return Result.Failure<PublicIntakeFormResponse>(tokenValidationResult.Error);
+
+        var payload = tokenValidationResult.Value;
+        var schema = await _patientFormSchemaRepository.GetPublishedByIdAsync(payload.TargetId, cancellationToken);
+        if (schema is null)
+            return Result.Failure<PublicIntakeFormResponse>(IntakeErrors.SchemaNotFound);
+
+        var response = _mapper.Map<PublicIntakeFormResponse>(schema);
+        return Result.Success(response);
+    }
+
+    public async Task<Result<PublicIntakeSubmissionResponse>> SubmitPublicIntakeAsync(string token, SubmitPreVisitIntakeRequest request, CancellationToken cancellationToken = default)
+    {
+        var tokenValidationResult = _qrService.ValidateToken(token, QRTokenPurpose.Intake);
+        if (tokenValidationResult.IsFailure)
+            return Result.Failure<PublicIntakeSubmissionResponse>(tokenValidationResult.Error);
+
+        var payload = tokenValidationResult.Value;
+        var schema = await _patientFormSchemaRepository.GetPublishedByIdAsync(payload.TargetId, cancellationToken);
+        if (schema is null)
+            return Result.Failure<PublicIntakeSubmissionResponse>(IntakeErrors.SchemaNotFound);
+
+        var schemaDto = DeserializeSchemaJson(schema.SchemaJson);
+        if (schemaDto is null)
+            return Result.Failure<PublicIntakeSubmissionResponse>(IntakeErrors.InvalidSchema);
+
+        var submissionDto = DeserializeSubmissionJson(request.FormSubmissionData);
+        if (submissionDto is null)
+            return Result.Failure<PublicIntakeSubmissionResponse>(IntakeErrors.InvalidSubmission);
+
+        var validationResult = _dynamicFormValidationService.ValidateSubmissionAgainstSchema(schemaDto, submissionDto);
+        if (validationResult.IsFailure)
+            return Result.Failure<PublicIntakeSubmissionResponse>(validationResult.Error);
+
+        var intake = _mapper.Map<PreVisitIntake>(request);
+        intake.DoctorId = schema.DoctorId;
+        intake.FormSchemaId = schema.Id;
+        intake.FormSchemaVersion = schema.Version;
+        intake.Status = IntakeStatus.Pending;
+        intake.SubmittedAt = DateTime.UtcNow;
+        intake.AccessTokenHash = null;
+        intake.ExpiresAt = null;
+
+        await _preVisitIntakeRepository.AddAsync(intake, cancellationToken);
+        await _unitOfWork.SaveAsync(cancellationToken);
+
+        var response = _mapper.Map<PublicIntakeSubmissionResponse>(intake);
+        response = response with { Message = "Your intake form has been submitted successfully." };
+
+        return Result.Success(response);
+    }
+
+    private static DynamicFormSubmissionDto? DeserializeSubmissionJson(string submissionJson)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<DynamicFormSubmissionDto>(submissionJson);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     private static DynamicFormSchemaDto? DeserializeSchemaJson(string schemaJson)
