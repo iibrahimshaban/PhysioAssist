@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Consts;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
@@ -9,13 +10,14 @@ namespace PhysioAssist.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class WeatherForecastController(IAudioTranscriptionService transcriptionService) : ControllerBase
+public class WeatherForecastController(IAudioTranscriptionService transcriptionService, ISessionEmbeddingService sessionEmbeddingService) : ControllerBase
 {
     private static readonly string[] Summaries =
     [
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
     ];
     private readonly IAudioTranscriptionService _transcriptionService = transcriptionService;
+    private readonly ISessionEmbeddingService _sessionEmbeddingService = sessionEmbeddingService;
 
     [HttpGet(Name = "GetWeatherForecast")]
     [HasPermission(Permissions.GetUsers)]
@@ -84,6 +86,20 @@ public class WeatherForecastController(IAudioTranscriptionService transcriptionS
 
         return Ok(new { raw = result.Value.RawText });
     }
+    [HttpPost("generate/{sessionTranscriptionId:guid}")]
+    public async Task<IActionResult> GenerateEmbeddings(
+        Guid sessionTranscriptionId,
+        [FromBody] ChunkPreviewRequest request,
+        CancellationToken ct)
+    {
+        var result = await _sessionEmbeddingService.GenerateAndStoreEmbeddingAsync(
+            sessionTranscriptionId, request.Text, ct);
 
+        return result.IsSuccess
+            ? Ok(new { Message = "Embeddings generated and stored." })
+            : result.ToProblem(); // matches your existing Result -> ProblemDetails pattern
+    }
+
+    public record ChunkPreviewRequest(string Text);
 
 }
