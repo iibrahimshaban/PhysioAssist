@@ -20,27 +20,26 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         base.OnModelCreating(builder);
     }
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var entries = ChangeTracker.Entries<AuditableEntity>();
 
-        foreach (var entityEntery in entries)
+        foreach (var entityEntry in entries)
         {
-            var CurrentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
+            var currentUserId = _httpContextAccessor.HttpContext?.User.GetUserId();
 
-            if (entityEntery.State == EntityState.Added)
-                entityEntery.Property(x => x.CreatedById).CurrentValue = CurrentUserId!;
+            if (entityEntry.State == EntityState.Added)
+                entityEntry.Property(x => x.CreatedById).CurrentValue = currentUserId ?? string.Empty;
 
-            if (entityEntery.State == EntityState.Modified)
+            if (entityEntry.State == EntityState.Modified)
             {
-                entityEntery.Property(x => x.UpdatedById).CurrentValue = CurrentUserId;
-                entityEntery.Property(x => x.UpdatedAt).CurrentValue = DateTime.UtcNow;
+                entityEntry.Property(x => x.UpdatedById).CurrentValue = currentUserId;
+                entityEntry.Property(x => x.UpdatedAt).CurrentValue = DateTime.UtcNow;
             }
         }
 
-        return base.SaveChangesAsync(cancellationToken);
+        return await base.SaveChangesAsync(cancellationToken);
     }
-
     //Auth
     public DbSet<OtpEntry> OtpEntries { get; set; }
     public DbSet<Doctor> Doctors { get; set; }
