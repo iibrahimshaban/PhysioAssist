@@ -33,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Data\" />
     <Folder Include="Modules\PatientModule\Controllers\" />
     <Folder Include="Modules\PatientModule\Services\" />
     <Folder Include="Shared\Configuration\" />

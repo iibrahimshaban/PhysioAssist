@@ -14,6 +14,8 @@ using PhysioAssist.Api.Shared.Interfaces;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
 using PhysioAssist.Api.Modules.SessionModule;
+using PhysioAssist.Api.Infrastructure.AutoComplete;
+using PhysioAssist.Api.Shared.AutoComplete;
 
 namespace PhysioAssist.Api;
 
@@ -28,11 +30,13 @@ public static class DependancyInjection
             .AddMapsterConfiguration()
             .AddPermissionAuthorization()
             .AddMailConfig()
+            .AddAutoCompleteService()
             .AddDbContextConfiguration(configuration)
             .AddCorsConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration)
             .AddAudioTranscriptionConfig()
             .AddHangfireBGJobs(configuration);
+
 
         services.AddAuthModule(configuration);
         services.AddSessionModule();
@@ -158,6 +162,27 @@ public static class DependancyInjection
             .UseSqlServerStorage(configuration.GetConnectionString("HangfireConnection")));
 
         services.AddHangfireServer();
+
+        return services;
+    }
+
+
+    // Autocomplete services
+    public static IServiceCollection AddAutoCompleteService(this IServiceCollection services)
+    {
+        services.AddSingleton<VocabularyLoader>();
+
+        services.AddSingleton<Trie>(sp =>
+        {
+            var loader = sp.GetRequiredService<VocabularyLoader>();
+            return loader.LoadAsync().GetAwaiter().GetResult();
+        });
+
+        services.AddSingleton<IAutoCompleteService, AutoCompleteService>();
+
+
+        // Application is allowed to cache HTTP responses.
+        services.AddResponseCaching();
 
         return services;
     }
