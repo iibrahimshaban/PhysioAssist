@@ -9,8 +9,12 @@ public class SessionTranscriptionChunk
     public int ChunkIndex { get; set; }
     public string ChunkText { get; set; } = string.Empty;
     public SqlVector<float> Embedding { get; set; }
-    public int? StartOffsetSeconds { get; set; }
-    public int? EndOffsetSeconds { get; set; }
+    public string Diagnosis { get; set; } = string.Empty;
+    public string Recommendations { get; set; } = string.Empty;
+    public string RecommendationDetails { get; set; } = string.Empty;
+    public string? PatientResponse { get; set; }
+    public string NextSessionFocus { get; set; } = string.Empty;     
+    public string? Notes { get; set; }
     public DateTime CreatedAt { get; set; }
     public SessionTranscription Transcription { get; set; } = default!;
 }

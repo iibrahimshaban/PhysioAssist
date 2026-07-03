@@ -5,15 +5,17 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
 using PhysioAssist.Api.Infrastructure.GeminiClient;
+using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
+using PhysioAssist.Api.Modules.SessionModule;
+using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
 using PhysioAssist.Api.Shared.Interfaces;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
-using PhysioAssist.Api.Modules.SessionModule;
 
 namespace PhysioAssist.Api;
 
@@ -28,10 +30,11 @@ public static class DependancyInjection
             .AddMapsterConfiguration()
             .AddPermissionAuthorization()
             .AddMailConfig()
+            .AddEmbeddingConfig()
+            .AddAudioTranscriptionConfig()
             .AddDbContextConfiguration(configuration)
             .AddCorsConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration)
-            .AddAudioTranscriptionConfig()
             .AddHangfireBGJobs(configuration);
 
         services.AddAuthModule(configuration);
@@ -101,6 +104,27 @@ public static class DependancyInjection
             .ValidateOnStart();
 
         services.AddTransient<ICustomEmailService, EmailService>();
+
+        return services;
+    }
+    private static IServiceCollection AddEmbeddingConfig(this IServiceCollection services)
+    {
+        services.AddOptions<GitHubModelsEmbeddingOptions>()
+            .BindConfiguration(GitHubModelsEmbeddingOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IEmbeddingService, GitHubModelsEmbeddingService>();
+        services.AddScoped<ISessionEmbeddingService, SessionEmbeddingService>();
+
+        services.AddOptions<GitHubModelsChatOptions>()
+        .BindConfiguration(GitHubModelsChatOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        services.AddHttpClient<ITranscriptChunkingService, GitHubModelsChunkingService>();
+
+        
 
         return services;
     }
