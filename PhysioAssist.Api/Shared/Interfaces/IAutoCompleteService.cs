@@ -4,6 +4,6 @@ namespace PhysioAssist.Api.Shared.Interfaces
 {
     public interface IAutoCompleteService
     {
-        IReadOnlyList<Suggestion> GetSuggestions(string prefix, int limit = 8);
+        Task<IReadOnlyList<Suggestion>> GetSuggestionsAsync(string prefix, int limit, CancellationToken ct);
     }
 }

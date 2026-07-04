@@ -42,15 +42,21 @@
         // Public of how many distinct terms.
         public int Count => _wordCount;
 
-        public void Insert(string term, int baseWeight = 1, string? category = null)
+        public void Insert(string displayTerm, Language language, int baseWeight = 1, string? category = null)
         {
-            if (string.IsNullOrWhiteSpace(term)) return;
+            if (string.IsNullOrWhiteSpace(displayTerm)) return;
+
+
+            // Normalize the term for the trie path.
+            var normalized = TextNormalizer.Normalize(displayTerm, language);
+            if (string.IsNullOrEmpty(normalized)) return;
 
 
             // Normalize for INSERTION path (lowercase, trimmed).
             // This ensures "Quadriceps", "quadriceps", and " QUADRICEPS " all
             // land at the same trie node — case-insensitive looku
-            var normalized = term.Trim().ToLowerInvariant();
+            //var normalized = displayTerm.Trim().ToLowerInvariant();
+
 
             // Start at root, walk down the tree letter by letter.
             var node = _root;
@@ -75,7 +81,7 @@
 
             
             node.IsWordEnd = true; // Mark this node as a valid word terminator.
-            node.Term = term.Trim(); // Store original (untrimmed only) casing for display back to the user.
+            node.DisplayTerm = displayTerm.Trim(); // Store original (untrimmed only) casing for display back to the user.
 
             // If the term was inserted twice with different weights, keep the higher one.
             // (Alternative: sum them — depends on your semantics. Max is safer.)
@@ -83,22 +89,31 @@
 
             // Store category metadata (last write wins if duplicated).
             node.Category = category;
+
+            node.NormalizedTerm = normalized; // Normalized form for reference
+            node.Language = language;
         }
 
         /// <summary>
         /// Returns all terms matching the given prefix, ordered by weight desc.
         /// </summary>
-        public IReadOnlyList<TrieMatch> Search(string prefix, int limit = 10)
+        public IReadOnlyList<TrieMatch> Search(string prefix, Language language, int limit = 10)
         {
             // Defensive: reject invalid input. Returning Array.Empty avoids allocations.
             if (string.IsNullOrWhiteSpace(prefix) || limit <= 0)
                 return Array.Empty<TrieMatch>();
 
 
+            var normalized = TextNormalizer.Normalize(prefix, language);
+
+            if (string.IsNullOrEmpty(normalized)) 
+                return Array.Empty<TrieMatch>();
+
             // Normalize prefix the same way we normalized during insert.
             // Critical: if you insert lowercase but search uppercase without normalizing,
             // you get zero results — a very common bug.
-            var normalized = prefix.Trim().ToLowerInvariant();
+            //var normalized = prefix.Trim().ToLowerInvariant();
+
             var node = _root;
 
             // Walk down the trie following the prefix characters.
@@ -111,39 +126,47 @@
                 node = next;
             }
 
-            // Now `node` sits at the end of the prefix path.
+            // Now node sits at the end of the prefix path.
             // Everything in its subtree is a valid completion of that prefix.
             var results = new List<TrieMatch>();
-            CollectTerms(node, results);
+
+            // Early termination: cap collection to prevent slow searches on very short prefixes
+            // like "ا" (Arabic Alif) which could match millions of terms.
+            // Performance Optimization
+            CollectTerms(node, results, maxCandidates: limit * 20);
 
             // Sort by weight (higher = more important), then alphabetically as tiebreaker.
             // .Take(limit) at the end caps result set size.
-            // NOTE: For huge subtrees, a min-heap would be O(N log K) instead of O(N log N).
-            //       Optimize later if profiling shows this as a bottleneck.
+            // NOTE: For huge subtrees, a min-heap would be O(N log K) instead of O(N log N). Optimize later if profiling shows this as a bottleneck.
             // TO-DO: Optimize later if profiling shows this as a bottleneck.
             return results.OrderByDescending(r => r.BaseWeight)
-                          .ThenBy(r => r.Term, StringComparer.OrdinalIgnoreCase)
+                          .ThenBy(r => r.Term, StringComparer.Ordinal)
                           .Take(limit)
                           .ToList();
         }
 
         // Recursive DFS to collect every word terminator under a subtree.
         // Marked static because it doesn't need instance state — cleaner and slightly faster.
-        private static void CollectTerms(TrieNode node, List<TrieMatch> results)
+        private static void CollectTerms(TrieNode node, List<TrieMatch> results, int maxCandidates)
         {
+            // Early exit — critical when prefix has huge subtree (e.g., 1-letter Arabic prefix).
+            if (results.Count >= maxCandidates) return;
+
             // If this node marks a word, add it to results.
-            if (node.IsWordEnd && node.Term is not null)
+            if (node.IsWordEnd && node.DisplayTerm is not null)
             {
-                results.Add(new TrieMatch(node.Term, node.BaseWeight, node.Category));
+                results.Add(new TrieMatch(node.DisplayTerm, node.BaseWeight, node.Category));
             }
 
             // Recurse into every child. In a well-balanced trie this is very fast.
             // Worst case is when a single prefix has thousands of completions —
             // in that case we should add early termination once we have enough candidates.
-            // TO-DO: add early termination once we have enough candidates. 
             foreach (var child in node.Children.Values)
             {
-                CollectTerms(child, results);
+                if (results.Count >= maxCandidates) 
+                    return;
+
+                CollectTerms(child, results, maxCandidates);
             }
         }
     }

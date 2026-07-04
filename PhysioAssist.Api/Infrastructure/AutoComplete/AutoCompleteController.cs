@@ -17,14 +17,12 @@ namespace PhysioAssist.Api.Infrastructure.AutoComplete
 
         [HttpGet("suggest")]
         [ResponseCache(Duration = 60, VaryByQueryKeys = new[] { "prefix", "limit" })]
-        public ActionResult<IReadOnlyList<Suggestion>> Suggest(
-            [FromQuery] string prefix,
-            [FromQuery] int limit = 8)
+        public async Task<ActionResult<IReadOnlyList<Suggestion>>> Suggest([FromQuery] string prefix,[FromQuery] int limit = 8, CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(prefix))
                 return Ok(Array.Empty<Suggestion>());
 
-            var suggestions = _service.GetSuggestions(prefix, limit);
+            var suggestions = await _service.GetSuggestionsAsync(prefix, limit, ct);
             return Ok(suggestions);
         }
     }

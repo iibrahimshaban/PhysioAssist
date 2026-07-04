@@ -30,7 +30,7 @@ public static class DependancyInjection
             .AddMapsterConfiguration()
             .AddPermissionAuthorization()
             .AddMailConfig()
-            .AddAutoCompleteService()
+            .AddAutoCompleteService(configuration)
             .AddDbContextConfiguration(configuration)
             .AddCorsConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration)
@@ -168,15 +168,22 @@ public static class DependancyInjection
 
 
     // Autocomplete services
-    public static IServiceCollection AddAutoCompleteService(this IServiceCollection services)
+    public static IServiceCollection AddAutoCompleteService(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<VocabularyLoader>();
+        services.Configure<VocabularySources>(configuration.GetSection("VocabularySources"));
 
-        services.AddSingleton<Trie>(sp =>
-        {
-            var loader = sp.GetRequiredService<VocabularyLoader>();
-            return loader.LoadAsync().GetAwaiter().GetResult();
-        });
+        services.AddSingleton<MultiLanguageTrieRegistry>();
+        services.AddSingleton<MultiLanguageVocabularyLoader>();
+        //services.AddSingleton<VocabularyLoader>();
+        //services.AddSingleton<Trie>(sp =>
+        //{
+        //    var loader = sp.GetRequiredService<VocabularyLoader>();
+        //    return loader.LoadAsync().GetAwaiter().GetResult();
+        //});
+
+
+        // Bootstrap as IHostedService — runs before app accepts requests.
+        services.AddHostedService<VocabularyBootstrapService>();
 
         services.AddSingleton<IAutoCompleteService, AutoCompleteService>();
 

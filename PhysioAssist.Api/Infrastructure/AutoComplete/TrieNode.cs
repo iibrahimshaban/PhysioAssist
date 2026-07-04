@@ -21,7 +21,12 @@
          * Stores the original term (preserving casing like "ACL" or "McMurray").
          * We normalize to lowercase for LOOKUP, but store the display form here.
          * Nullable because non-terminal nodes have no term.*/
-        public string? Term { get; set; }
+        public string? DisplayTerm { get; set; }
+
+
+        // The NORMALIZED term (lowercase, no diacritics, unified Alif, etc.)
+        // Kept for debugging and duplicate-detection during insert.
+        public string? NormalizedTerm { get; set; }
 
 
         /* Base frequency/priority from the seed dataset
@@ -32,5 +37,9 @@
         /*Semantic tag: "muscle", "diagnosis", "modality", etc.
          * Enables UI grouping ("Show category badges") and future context-aware ranking.*/
         public string? Category { get; set; }
+
+
+        // language tag on the node itself, useful for mixed-language tries too.
+        public Language Language { get; set; } = Language.Unknown;
     }
 }
