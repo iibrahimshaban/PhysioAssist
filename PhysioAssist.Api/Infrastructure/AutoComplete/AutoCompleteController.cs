@@ -22,8 +22,12 @@ namespace PhysioAssist.Api.Infrastructure.AutoComplete
             if (string.IsNullOrWhiteSpace(prefix))
                 return Ok(Array.Empty<Suggestion>());
 
-            var suggestions = await _service.GetSuggestionsAsync(prefix, limit, ct);
-            return Ok(suggestions);
+            var result = await _service.GetSuggestionsAsync(prefix, limit, ct);
+
+            if(result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { value = Array.Empty<Suggestion>(), error = result.Error});
         }
     }
 }

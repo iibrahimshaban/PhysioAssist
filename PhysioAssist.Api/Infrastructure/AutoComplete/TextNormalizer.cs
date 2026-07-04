@@ -15,9 +15,8 @@ namespace PhysioAssist.Api.Infrastructure.AutoComplete
     // Static class — pure functions, no state, thread-safe by design.
     public class TextNormalizer
     {
-        // ============================================================
         // ARABIC NORMALIZATION
-        // ============================================================
+
 
         // Regex to strip Arabic diacritics (Tashkeel).
         // Unicode range: U+064B to U+065F covers Fatha, Damma, Kasra, Sukun, Shadda, etc.
@@ -87,9 +86,7 @@ namespace PhysioAssist.Api.Infrastructure.AutoComplete
 
 
 
-        // ============================================================
         // ENGLISH NORMALIZATION
-        // ============================================================
 
         /// <summary>
         /// Normalize English (and other Latin-script) text.
@@ -123,9 +120,7 @@ namespace PhysioAssist.Api.Infrastructure.AutoComplete
         }
 
 
-        // ============================================================
         // LANGUAGE DETECTION
-        // ============================================================
 
         /// <summary>
         /// Detect language from the first meaningful character.

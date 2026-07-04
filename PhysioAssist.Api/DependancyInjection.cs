@@ -15,7 +15,6 @@ using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
 using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Infrastructure.AutoComplete;
-using PhysioAssist.Api.Shared.AutoComplete;
 
 namespace PhysioAssist.Api;
 
