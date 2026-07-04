@@ -22,6 +22,8 @@ using PhysioAssist.Api.Shared.Email;
 using PhysioAssist.Api.Shared.Interfaces;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
+using PhysioAssist.Api.Modules.SessionModule;
+using PhysioAssist.Api.Infrastructure.AutoComplete;
 
 namespace PhysioAssist.Api;
 
@@ -36,12 +38,14 @@ public static class DependancyInjection
             .AddMapsterConfiguration()
             .AddPermissionAuthorization()
             .AddMailConfig()
+            .AddAutoCompleteService(configuration)
             .AddEmbeddingConfig()
             .AddAudioTranscriptionConfig()
             .AddDbContextConfiguration(configuration)
             .AddCorsConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration)
             .AddHangfireBGJobs(configuration);
+
 
         services.AddAuthModule(configuration);
         services.AddSessionModule();
@@ -197,6 +201,34 @@ public static class DependancyInjection
             .UseSqlServerStorage(configuration.GetConnectionString("HangfireConnection")));
 
         services.AddHangfireServer();
+
+        return services;
+    }
+
+
+    // Autocomplete services
+    public static IServiceCollection AddAutoCompleteService(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<VocabularySources>(configuration.GetSection("VocabularySources"));
+
+        services.AddSingleton<MultiLanguageTrieRegistry>();
+        services.AddSingleton<MultiLanguageVocabularyLoader>();
+        //services.AddSingleton<VocabularyLoader>();
+        //services.AddSingleton<Trie>(sp =>
+        //{
+        //    var loader = sp.GetRequiredService<VocabularyLoader>();
+        //    return loader.LoadAsync().GetAwaiter().GetResult();
+        //});
+
+
+        // Bootstrap as IHostedService — runs before app accepts requests.
+        services.AddHostedService<VocabularyBootstrapService>();
+
+        services.AddSingleton<IAutoCompleteService, AutoCompleteService>();
+
+
+        // Application is allowed to cache HTTP responses.
+        services.AddResponseCaching();
 
         return services;
     }
