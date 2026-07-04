@@ -8,6 +8,12 @@ using PhysioAssist.Api.Infrastructure.GeminiClient;
 using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
+using PhysioAssist.Api.Modules.Auth.Entities;
+using PhysioAssist.Api.Modules.Auth.Services;
+using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
+using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
+using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
+using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Persistence;
@@ -97,6 +103,15 @@ public static class DependancyInjection
 
     private static IServiceCollection AddMailConfig(this IServiceCollection services)
     {
+       
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IScheduleSlotRepository, ScheduleSlotRepository>();
+        services.AddScoped<IWorkingScheduleRepository, WorkingScheduleRepository>();
+        services.AddScoped<IWorkingScheduleDayRepository, WorkingScheduleDayRepository>();
+        services.AddScoped<IAppointmentValidator, AppointmentValidator>();
+        services.AddScoped<IAppointmentService, AppointmentService>();
+        services.AddScoped<IWorkingScheduleService, WorkingScheduleService>();
         services
             .AddOptions<MailSettings>()
             .BindConfiguration(MailSettings.SectionName)

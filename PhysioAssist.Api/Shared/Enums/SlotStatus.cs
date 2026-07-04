@@ -2,8 +2,8 @@
 
 public enum SlotStatus
 {
-    Available = 0,
-    Booked = 1,
+    Booked = 0,
+    Completed = 1,
     Cancelled = 2,
-    Completed = 3
+    NoShow = 3
 }

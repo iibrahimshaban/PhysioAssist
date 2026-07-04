@@ -4,6 +4,7 @@ using Microsoft.Data.SqlTypes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PhysioAssist.Api.Persistence;
 
@@ -12,9 +13,11 @@ using PhysioAssist.Api.Persistence;
 namespace PhysioAssist.Api.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260702171748_scheduleModuel v3")]
+    partial class scheduleModuelv3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -270,9 +273,6 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("datetime2");
@@ -771,33 +771,17 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Diagnosis")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<SqlVector<float>>("Embedding")
                         .HasColumnType("VECTOR(1536)");
 
-                    b.Property<string>("NextSessionFocus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PatientResponse")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RecommendationDetails")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Recommendations")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("EndOffsetSeconds")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("SessionTranscriptionId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("StartOffsetSeconds")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
