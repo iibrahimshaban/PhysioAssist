@@ -5,8 +5,17 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
 using PhysioAssist.Api.Infrastructure.GeminiClient;
+using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
+using PhysioAssist.Api.Modules.Auth.Entities;
+using PhysioAssist.Api.Modules.Auth.Services;
+using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
+using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
+using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
+using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Modules.SessionModule;
+using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
@@ -30,10 +39,11 @@ public static class DependancyInjection
             .AddPermissionAuthorization()
             .AddMailConfig()
             .AddAutoCompleteService(configuration)
+            .AddEmbeddingConfig()
+            .AddAudioTranscriptionConfig()
             .AddDbContextConfiguration(configuration)
             .AddCorsConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration)
-            .AddAudioTranscriptionConfig()
             .AddHangfireBGJobs(configuration);
 
 
@@ -97,6 +107,15 @@ public static class DependancyInjection
 
     private static IServiceCollection AddMailConfig(this IServiceCollection services)
     {
+       
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IScheduleSlotRepository, ScheduleSlotRepository>();
+        services.AddScoped<IWorkingScheduleRepository, WorkingScheduleRepository>();
+        services.AddScoped<IWorkingScheduleDayRepository, WorkingScheduleDayRepository>();
+        services.AddScoped<IAppointmentValidator, AppointmentValidator>();
+        services.AddScoped<IAppointmentService, AppointmentService>();
+        services.AddScoped<IWorkingScheduleService, WorkingScheduleService>();
         services
             .AddOptions<MailSettings>()
             .BindConfiguration(MailSettings.SectionName)
@@ -104,6 +123,27 @@ public static class DependancyInjection
             .ValidateOnStart();
 
         services.AddTransient<ICustomEmailService, EmailService>();
+
+        return services;
+    }
+    private static IServiceCollection AddEmbeddingConfig(this IServiceCollection services)
+    {
+        services.AddOptions<GitHubModelsEmbeddingOptions>()
+            .BindConfiguration(GitHubModelsEmbeddingOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IEmbeddingService, GitHubModelsEmbeddingService>();
+        services.AddScoped<ISessionEmbeddingService, SessionEmbeddingService>();
+
+        services.AddOptions<GitHubModelsChatOptions>()
+        .BindConfiguration(GitHubModelsChatOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        services.AddHttpClient<ITranscriptChunkingService, GitHubModelsChunkingService>();
+
+        
 
         return services;
     }
