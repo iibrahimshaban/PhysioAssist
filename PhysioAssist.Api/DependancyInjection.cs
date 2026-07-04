@@ -6,6 +6,10 @@ using PhysioAssist.Api.Infrastructure.CloudinaryClient;
 using PhysioAssist.Api.Modules.Auth;
 using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.Auth.Services;
+using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
+using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
+using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
+using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Interfaces;
 using PhysioAssist.Api.Shared.Repositories;
@@ -94,8 +98,15 @@ public static class DependancyInjection
     }
     private static IServiceCollection AddServicesConfiguration(this IServiceCollection services)
     {
-        services.AddTransient<IUnitOfWork, UnitOfWork>();
+       
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IScheduleSlotRepository, ScheduleSlotRepository>();
+        services.AddScoped<IWorkingScheduleRepository, WorkingScheduleRepository>();
+        services.AddScoped<IWorkingScheduleDayRepository, WorkingScheduleDayRepository>();
+        services.AddScoped<IAppointmentValidator, AppointmentValidator>();
+        services.AddScoped<IAppointmentService, AppointmentService>();
+        services.AddScoped<IWorkingScheduleService, WorkingScheduleService>();
         return services;
     }
     private static IServiceCollection AddCloudinaryImageHosting(this IServiceCollection services, IConfiguration configuration)

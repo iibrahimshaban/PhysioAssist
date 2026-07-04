@@ -4,6 +4,7 @@ using Microsoft.Data.SqlTypes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PhysioAssist.Api.Persistence;
 
@@ -12,9 +13,11 @@ using PhysioAssist.Api.Persistence;
 namespace PhysioAssist.Api.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260702003145_ScheduleModule v1")]
+    partial class ScheduleModulev1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -577,7 +580,7 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<Guid>("DoctorId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("PatientId")
+                    b.Property<Guid?>("PatientId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("SlotEnd")
@@ -595,14 +598,20 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<string>("UpdatedById")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<Guid?>("WorkingScheduleId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("UpdatedById");
 
-                    b.HasIndex("DoctorId", "SlotStart", "SlotEnd")
-                        .HasDatabaseName("IX_ScheduleSlot_DoctorId_SlotStart_SlotEnd");
+                    b.HasIndex("WorkingScheduleId");
+
+                    b.HasIndex("DoctorId", "SlotStart")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ScheduleSlot_DoctorId_SlotStart_Unique");
 
                     b.ToTable("ScheduleSlot", "scheduling");
                 });
@@ -610,6 +619,7 @@ namespace PhysioAssist.Api.Persistence.Migrations
             modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.WorkingSchedule", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("DoctorId")
@@ -618,19 +628,18 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int>("SlotDurationMinutes")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("DoctorId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_WorkingSchedule_DoctorId_ActiveOnly")
-                        .HasFilter("[IsActive] = 1");
-
-                    b.ToTable("WorkingSchedule", "scheduling");
+                    b.ToTable("WorkingSchedule");
                 });
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.WorkingScheduleDay", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Day")
@@ -647,11 +656,9 @@ namespace PhysioAssist.Api.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("WorkingScheduleId", "Day")
-                        .IsUnique()
-                        .HasDatabaseName("IX_WorkingScheduleDay_Schedule_Day_Unique");
+                    b.HasIndex("WorkingScheduleId");
 
-                    b.ToTable("WorkingScheduleDay", "scheduling");
+                    b.ToTable("WorkingScheduleDay");
                 });
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.SessionModule.Entities.Session", b =>
@@ -991,9 +998,16 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("UpdatedById");
 
+                    b.HasOne("PhysioAssist.Api.Modules.Scheduling.Entities.WorkingSchedule", "WorkingSchedule")
+                        .WithMany()
+                        .HasForeignKey("WorkingScheduleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("CreatedBy");
 
                     b.Navigation("UpdatedBy");
+
+                    b.Navigation("WorkingSchedule");
                 });
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.WorkingScheduleDay", b =>
