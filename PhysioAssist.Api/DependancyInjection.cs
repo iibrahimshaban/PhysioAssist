@@ -1,8 +1,12 @@
 ﻿using CloudinaryDotNet;
+using Hangfire;
 using Mapster;
 using MapsterMapper;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
+using PhysioAssist.Api.Infrastructure.GeminiClient;
+using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
+using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
 using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.Auth.Services;
@@ -10,9 +14,12 @@ using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
 using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Modules.SessionModule;
+using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Persistence;
+using PhysioAssist.Api.Shared.Authorization;
+using PhysioAssist.Api.Shared.Email;
 using PhysioAssist.Api.Shared.Interfaces;
-using PhysioAssist.Api.Shared.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
 
@@ -20,31 +27,31 @@ namespace PhysioAssist.Api;
 
 public static class DependancyInjection
 {
-    public static IServiceCollection AddServicesRegistration(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddGlobalServicesRegistration(this IServiceCollection services, IConfiguration configuration)
     {
-
         services
             .AddSwaggerGen()
+            .AddHttpContextAccessor()
             .AddFluentValidationConfig()
             .AddMapsterConfiguration()
-            .AddServicesConfiguration()
-            .AddCorsConfiguration(configuration)
+            .AddPermissionAuthorization()
+            .AddMailConfig()
+            .AddEmbeddingConfig()
+            .AddAudioTranscriptionConfig()
             .AddDbContextConfiguration(configuration)
-            .AddCloudinaryImageHosting(configuration);
+            .AddCorsConfiguration(configuration)
+            .AddCloudinaryImageHosting(configuration)
+            .AddHangfireBGJobs(configuration);
 
-        //adding modules registration
-
-        services
-            .AddAuthModule(configuration);
-
+        services.AddAuthModule(configuration);
+        services.AddSessionModule();
         return services;
-
     }
 
     private static IServiceCollection AddCorsConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddCors(options =>
-            options.AddPolicy("AllowAngular", build =>  // ← named instead of default
+            options.AddPolicy("AllowAngular", build =>
                 build
                     .AllowAnyMethod()
                     .AllowAnyHeader()
@@ -54,49 +61,47 @@ public static class DependancyInjection
 
         return services;
     }
+
     private static IServiceCollection AddFluentValidationConfig(this IServiceCollection services)
     {
-        services.AddFluentValidationAutoValidation()
-           .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+        services
+            .AddFluentValidationAutoValidation()
+            .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
         return services;
     }
+
     private static IServiceCollection AddDbContextConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection") ??
-            throw new InvalidOperationException("Default Connection is not found");
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Default connection string is not found");
 
         services.AddDbContext<ApplicationDbContext>(options =>
-                    options.UseSqlServer(connectionString));
-
-        services.Configure<IdentityOptions>(options =>
-        {
-            options.Password.RequiredLength = 1;
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequireNonAlphanumeric = false;
-            options.SignIn.RequireConfirmedEmail = true;
-            options.User.RequireUniqueEmail = true;
-        });
-
-        services.AddIdentity<ApplicationUser, IdentityRole>()
-             .AddEntityFrameworkStores<ApplicationDbContext>()
-             .AddDefaultTokenProviders();
-
-        services.AddHttpContextAccessor();
+            options.UseSqlServer(connectionString));
 
         return services;
     }
+
     private static IServiceCollection AddMapsterConfiguration(this IServiceCollection services)
     {
-        var MappingConfig = TypeAdapterConfig.GlobalSettings;
-        MappingConfig.Scan(Assembly.GetExecutingAssembly());
+        var mappingConfig = TypeAdapterConfig.GlobalSettings;
+        mappingConfig.Scan(Assembly.GetExecutingAssembly());
 
-        services.AddSingleton<IMapper>(new Mapper(MappingConfig));
+        services.AddSingleton<IMapper>(new Mapper(mappingConfig));
+
         return services;
     }
-    private static IServiceCollection AddServicesConfiguration(this IServiceCollection services)
+
+    private static IServiceCollection AddPermissionAuthorization(this IServiceCollection services)
+    {
+        services.AddAuthorization();
+        services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        services.AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddMailConfig(this IServiceCollection services)
     {
        
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -107,8 +112,67 @@ public static class DependancyInjection
         services.AddScoped<IAppointmentValidator, AppointmentValidator>();
         services.AddScoped<IAppointmentService, AppointmentService>();
         services.AddScoped<IWorkingScheduleService, WorkingScheduleService>();
+        services
+            .AddOptions<MailSettings>()
+            .BindConfiguration(MailSettings.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddTransient<ICustomEmailService, EmailService>();
+
         return services;
     }
+    private static IServiceCollection AddEmbeddingConfig(this IServiceCollection services)
+    {
+        services.AddOptions<GitHubModelsEmbeddingOptions>()
+            .BindConfiguration(GitHubModelsEmbeddingOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IEmbeddingService, GitHubModelsEmbeddingService>();
+        services.AddScoped<ISessionEmbeddingService, SessionEmbeddingService>();
+
+        services.AddOptions<GitHubModelsChatOptions>()
+        .BindConfiguration(GitHubModelsChatOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        services.AddHttpClient<ITranscriptChunkingService, GitHubModelsChunkingService>();
+
+        
+
+        return services;
+    }
+    private static IServiceCollection AddAudioTranscriptionConfig(this IServiceCollection services)
+    {
+        services
+            .AddOptions<GroqOptions>()
+            .BindConfiguration(GroqOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services
+        .AddOptions<GeminiOptions>()
+        .BindConfiguration(GeminiOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        services.AddHttpClient<GroqWhisperClient>();
+        services.AddHttpClient<ITranscriptionRefinementService,GroqRefinementClient>();
+
+        //register whisper 
+        //services.AddScoped<IAudioTranscriptionService>(sp =>
+        //    new RefinedTranscriptionService(
+        //        sp.GetRequiredService<GroqWhisperClient>(),
+        //        sp.GetRequiredService<ITranscriptionRefinementService>()
+        //    ));
+
+        //register gemini flash 
+        services.AddHttpClient<IAudioTranscriptionService, GeminiTranscriptionClient>();
+
+        return services;
+    }
+
     private static IServiceCollection AddCloudinaryImageHosting(this IServiceCollection services, IConfiguration configuration)
     {
         var cloudinarySettings = configuration.GetSection("Cloudinary");
@@ -118,9 +182,22 @@ public static class DependancyInjection
             cloudinarySettings["ApiKey"],
             cloudinarySettings["ApiSecret"]
         );
-        services.AddSingleton(new Cloudinary(account));
 
-        services.AddScoped<ICloudinaryService, CloudinaryService>();
+        services.AddSingleton(new Cloudinary(account));
+        services.AddScoped<IMediaStorageService, CloudinaryService>();
+
+        return services;
+    }
+    public static IServiceCollection AddHangfireBGJobs(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(configuration.GetConnectionString("HangfireConnection")));
+
+        services.AddHangfireServer();
+
         return services;
     }
 }

@@ -8,6 +8,7 @@ public class OtpEntry
     public string Code { get; set; } = string.Empty;
     public OtpPurpose Purpose { get; set; }
     public DateTime ExpiresAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool IsUsed { get; set; }
     public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
 }

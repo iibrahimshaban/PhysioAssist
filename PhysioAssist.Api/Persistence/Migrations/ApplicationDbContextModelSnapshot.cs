@@ -271,6 +271,9 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("datetime2");
 
@@ -768,17 +771,33 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Diagnosis")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<SqlVector<float>>("Embedding")
                         .HasColumnType("VECTOR(1536)");
 
-                    b.Property<int?>("EndOffsetSeconds")
-                        .HasColumnType("int");
+                    b.Property<string>("NextSessionFocus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PatientResponse")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecommendationDetails")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Recommendations")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("SessionTranscriptionId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<int?>("StartOffsetSeconds")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

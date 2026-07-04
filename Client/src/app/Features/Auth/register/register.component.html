@@ -1,0 +1,153 @@
+<div class="flex h-screen">
+
+  <!-- ─── Left panel ──────────────────────────────────────────────────────── -->
+  <div class="hidden lg:flex w-[52%] flex-col justify-between p-10"
+       style="background: linear-gradient(145deg, #1a7fd4 0%, #0eb8a0 100%)">
+
+    <div class="flex items-center gap-2 text-white">
+      <i class="pi pi-heart-fill text-xl"></i>
+      <span class="font-semibold text-lg tracking-tight">PhysioAssist</span>
+    </div>
+
+    <div class="text-white">
+      <h1 class="text-4xl font-bold leading-tight mb-4">
+        Built for solo<br>physiotherapists.
+      </h1>
+      <p class="text-white/75 text-base max-w-sm leading-relaxed">
+        Onboard patients faster, document sessions with your<br>
+        voice, and keep everything in one place.
+      </p>
+    </div>
+
+    <p class="text-white/50 text-sm">© PhysioAssist · v1</p>
+  </div>
+
+  <!-- ─── Right panel ─────────────────────────────────────────────────────── -->
+  <div class="flex-1 flex items-center justify-center bg-gray-50 px-6 py-10 overflow-y-auto">
+
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-100 p-10">
+
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-1">Create your account</h2>
+        <p class="text-gray-500 text-sm">Set up your clinic in under a minute.</p>
+      </div>
+
+      <!-- Hidden file input -->
+      <input
+        #fileInput
+        type="file"
+        accept="image/*"
+        class="hidden"
+        (change)="onPhotoSelected($event)"
+      />
+
+      <!-- Avatar upload -->
+      <div class="flex items-center gap-4 mb-6">
+        <div class="relative">
+          <!-- Preview or placeholder -->
+          @if (photoPreview()) {
+            <img [src]="photoPreview()" alt="Profile photo"
+                 class="w-16 h-16 rounded-full object-cover border-2 border-blue-200"/>
+            <!-- Remove button -->
+            <button type="button"
+                    (click)="removePhoto()"
+                    class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center cursor-pointer">
+              <i class="pi pi-times text-white" style="font-size: 8px"></i>
+            </button>
+          } @else {
+            <div class="w-16 h-16 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
+              <i class="pi pi-user text-gray-400 text-xl"></i>
+            </div>
+          }
+        </div>
+
+        <div>
+          <button type="button"
+                  (click)="fileInput.click()"
+                  class="text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer">
+            {{ photoPreview() ? 'Change photo' : 'Upload photo' }}
+          </button>
+          <p class="text-xs text-gray-400 mt-1">Optional · JPG or PNG</p>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5" novalidate>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-gray-700">Full name</label>
+          <input pInputText type="text" formControlName="fullName"
+                 placeholder="Dr. Sarah Ahmed" class="w-full"
+                 [class.ng-invalid]="isInvalid('fullName')"
+                 [class.ng-dirty]="isInvalid('fullName')"/>
+          @if (isInvalid('fullName')) {
+            <span class="text-xs text-red-500">{{ getFieldError('fullName') }}</span>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-gray-700">Clinic name</label>
+          <input pInputText type="text" formControlName="clinicName"
+                 placeholder="Cairo Physio Center" class="w-full"
+                 [class.ng-invalid]="isInvalid('clinicName')"
+                 [class.ng-dirty]="isInvalid('clinicName')"/>
+          @if (isInvalid('clinicName')) {
+            <span class="text-xs text-red-500">{{ getFieldError('clinicName') }}</span>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-gray-700">Email</label>
+          <input pInputText type="email" formControlName="email"
+                 placeholder="you@clinic.eg" class="w-full"
+                 [class.ng-invalid]="isInvalid('email')"
+                 [class.ng-dirty]="isInvalid('email')"/>
+          @if (isInvalid('email')) {
+            <span class="text-xs text-red-500">{{ getFieldError('email') }}</span>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-gray-700">Password</label>
+          <p-password formControlName="password" [feedback]="false" [toggleMask]="true"
+                      styleClass="w-full" inputStyleClass="w-full"
+                      placeholder="At least 8 characters"
+                      [class.ng-invalid]="isInvalid('password')"
+                      [class.ng-dirty]="isInvalid('password')"/>
+          @if (isInvalid('password')) {
+            <span class="text-xs text-red-500">{{ getFieldError('password') }}</span>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2">
+            <p-checkbox formControlName="agreed" [binary]="true" inputId="agreed"/>
+            <label for="agreed" class="text-sm text-gray-600 cursor-pointer select-none">
+              I agree to the
+              <a href="#" class="text-blue-600 hover:text-blue-700 font-medium">Terms</a>
+              and
+              <a href="#" class="text-blue-600 hover:text-blue-700 font-medium">Privacy Policy.</a>
+            </label>
+          </div>
+          @if (isInvalid('agreed')) {
+            <span class="text-xs text-red-500 ml-6">{{ getFieldError('agreed') }}</span>
+          }
+        </div>
+
+        <p-button type="submit" label="Create account" styleClass="w-full"
+                  [loading]="loading()" [disabled]="loading()"/>
+
+      </form>
+
+      <p class="text-center text-sm text-gray-500 mt-6">
+        Already have an account?
+        <a routerLink="/auth/login"
+           class="font-medium text-blue-600 hover:text-blue-700 transition-colors">
+          Sign in
+        </a>
+      </p>
+
+    </div>
+  </div>
+
+</div>

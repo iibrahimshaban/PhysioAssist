@@ -1,4 +1,4 @@
-﻿namespace PhysioAssist.Api.Modules.Auth.Contracts;
+﻿namespace PhysioAssist.Api.Modules.Auth.Contracts.Authentication;
 
 public record LoginRequest(
     string Email,
