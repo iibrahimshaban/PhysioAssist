@@ -9,6 +9,25 @@ public class SessionTranscriptionChunkConfiguration : IEntityTypeConfiguration<S
 
         builder.ToTable("SessionTranscriptionChunk", schema: "session");
 
+        builder.Property(c => c.Recommendations)
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(c => c.RecommendationDetails)
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(c => c.PatientResponse)
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(c => c.NextSessionFocus)
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(c => c.Diagnosis)
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(c => c.Notes)
+            .HasColumnType("nvarchar(max)");
+
+
         builder.Property(c => c.ChunkText)
                .HasColumnType("nvarchar(max)");
 
