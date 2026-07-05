@@ -33,7 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Modules\PatientModule\Controllers\" />
     <Folder Include="Shared\Configuration\" />
   </ItemGroup>
 

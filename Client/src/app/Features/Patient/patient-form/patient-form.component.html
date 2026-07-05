@@ -1,0 +1,40 @@
+<div class="container mt-4">
+  <h2>{{ isEditMode ? 'Edit Patient' : 'Add Patient' }}</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="mb-3">
+      <label class="form-label">Full Name</label>
+      <input class="form-control" formControlName="fullName" />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Date of Birth</label>
+      <input type="date" class="form-control" formControlName="dateOfBirth" />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Phone Number</label>
+      <input class="form-control" formControlName="phoneNumber" />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Gender</label>
+      <select class="form-select" formControlName="gender">
+        <option value="0">Male</option>
+        <option value="1">Female</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Email Address</label>
+      <input type="email" class="form-control" formControlName="emailAddress" />
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+        {{ isEditMode ? 'Update' : 'Create' }}
+      </button>
+      <button type="button" class="btn btn-secondary" (click)="goBack()">Cancel</button>
+    </div>
+  </form>
+</div>

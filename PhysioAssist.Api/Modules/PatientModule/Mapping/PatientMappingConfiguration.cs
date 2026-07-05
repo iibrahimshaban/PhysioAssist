@@ -1,6 +1,14 @@
-﻿namespace PhysioAssist.Api.Modules.PatientModule.Mapping
+﻿using Mapster;
+using PhysioAssist.Api.Modules.PatientModule.DTOs;
+using PhysioAssist.Api.Modules.PatientModule.Entities;
+
+namespace PhysioAssist.Api.Modules.PatientModule.Mapping;
+
+public class PatientMappingConfiguration : IRegister
 {
-    public class PatientMappingConfiguration
+    public void Register(TypeAdapterConfig config)
     {
+        config.NewConfig<PatientRequest, Patient>();
+        config.NewConfig<Patient, PatientResponse>();
     }
 }

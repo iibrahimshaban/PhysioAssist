@@ -7,13 +7,14 @@ using PhysioAssist.Api.Infrastructure.CloudinaryClient;
 using PhysioAssist.Api.Infrastructure.GeminiClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
+using PhysioAssist.Api.Modules.PatientModule;
+using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
 using PhysioAssist.Api.Shared.Interfaces;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
-using PhysioAssist.Api.Modules.SessionModule;
 
 namespace PhysioAssist.Api;
 
@@ -36,6 +37,7 @@ public static class DependancyInjection
 
         services.AddAuthModule(configuration);
         services.AddSessionModule();
+        services.AddPatientModule();
         return services;
     }
 
