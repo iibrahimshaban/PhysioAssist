@@ -41,6 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Shared\Configuration\" />
     <Folder Include="Modules\PatientModule\Controllers\" />
     <Folder Include="Modules\PatientModule\Services\" />
   </ItemGroup>

@@ -8,6 +8,8 @@ using PhysioAssist.Api.Infrastructure.GeminiClient;
 using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
+using PhysioAssist.Api.Modules.PatientModule;
+using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
@@ -49,6 +51,7 @@ public static class DependancyInjection
 
         services.AddAuthModule(configuration);
         services.AddSessionModule();
+        services.AddPatientModule();
         return services;
     }
 
