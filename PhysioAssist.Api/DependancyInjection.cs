@@ -8,21 +8,21 @@ using PhysioAssist.Api.Infrastructure.GeminiClient;
 using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
+using PhysioAssist.Api.Modules.PatientModule;
+using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
 using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
-using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
 using PhysioAssist.Api.Infrastructure.AutoComplete;
-using PhysioAssist.Api.Shared.Repositories;
 using PhysioAssist.Api.Modules.PatientModule.Services;
 using PhysioAssist.Api.Modules.QueryModule;
 
@@ -48,11 +48,11 @@ public static class DependancyInjection
             .AddCloudinaryImageHosting(configuration)
             .AddHangfireBGJobs(configuration);
 
-
         services
            .AddAuthModule(configuration)
            .AddSessionModule()
-           .AddQueryModuleConfig(configuration);
+           .AddQueryModuleConfig(configuration)
+           .AddPatientModule();
 
         return services;
     }
@@ -169,7 +169,7 @@ public static class DependancyInjection
         .ValidateOnStart();
 
         services.AddHttpClient<GroqWhisperClient>();
-        services.AddHttpClient<ITranscriptionRefinementService,GroqRefinementClient>();
+        services.AddHttpClient<ITranscriptionRefinementService, GroqRefinementClient>();
 
         //register whisper 
         //services.AddScoped<IAudioTranscriptionService>(sp =>
