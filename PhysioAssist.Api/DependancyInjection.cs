@@ -7,13 +7,15 @@ using PhysioAssist.Api.Infrastructure.CloudinaryClient;
 using PhysioAssist.Api.Infrastructure.GeminiClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
+using PhysioAssist.Api.Modules.InitialReportModule;
+using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
 using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
-using PhysioAssist.Api.Modules.SessionModule;
 
 namespace PhysioAssist.Api;
 
@@ -34,8 +36,11 @@ public static class DependancyInjection
             .AddAudioTranscriptionConfig()
             .AddHangfireBGJobs(configuration);
 
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
         services.AddAuthModule(configuration);
         services.AddSessionModule();
+        services.AddInitialReportModule();
         return services;
     }
 
@@ -119,7 +124,7 @@ public static class DependancyInjection
         .ValidateOnStart();
 
         services.AddHttpClient<GroqWhisperClient>();
-        services.AddHttpClient<ITranscriptionRefinementService,GroqRefinementClient>();
+        services.AddHttpClient<ITranscriptionRefinementService, GroqRefinementClient>();
 
         //register whisper 
         //services.AddScoped<IAudioTranscriptionService>(sp =>
