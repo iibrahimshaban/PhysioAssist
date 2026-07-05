@@ -5,4 +5,5 @@ namespace PhysioAssist.Api.Shared.Interfaces;
 public interface ITranscriptChunkingService
 {
     Task<List<ExtractedChunk>> ExtractChunksAsync(string text, CancellationToken ct = default);
+
 }

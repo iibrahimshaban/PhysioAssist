@@ -10,23 +10,21 @@ using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
 using PhysioAssist.Api.Modules.PatientModule;
 using PhysioAssist.Api.Modules.SessionModule;
-using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
 using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
-using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
-using PhysioAssist.Api.Shared.Interfaces;
 using PhysioAssist.Api.Shared.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
-using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Infrastructure.AutoComplete;
+using PhysioAssist.Api.Modules.PatientModule.Services;
+using PhysioAssist.Api.Modules.QueryModule;
 
 namespace PhysioAssist.Api;
 
@@ -41,6 +39,7 @@ public static class DependancyInjection
             .AddMapsterConfiguration()
             .AddPermissionAuthorization()
             .AddMailConfig()
+            .AddExposedServicesConfig()
             .AddAutoCompleteService(configuration)
             .AddEmbeddingConfig()
             .AddAudioTranscriptionConfig()
@@ -49,10 +48,12 @@ public static class DependancyInjection
             .AddCloudinaryImageHosting(configuration)
             .AddHangfireBGJobs(configuration);
 
+        services
+           .AddAuthModule(configuration)
+           .AddSessionModule()
+           .AddQueryModuleConfig(configuration)
+           .AddPatientModule();
 
-        services.AddAuthModule(configuration);
-        services.AddSessionModule();
-        services.AddPatientModule();
         return services;
     }
 
@@ -146,8 +147,10 @@ public static class DependancyInjection
         .ValidateOnStart();
 
         services.AddHttpClient<ITranscriptChunkingService, GitHubModelsChunkingService>();
+        services.AddHttpClient<IQueryTranslationService, GitHubModelsQueryTranslationService>();
+        services.AddScoped<ISessionChunkSearchService, SessionChunkSearchService>();
 
-        
+
 
         return services;
     }
@@ -234,6 +237,11 @@ public static class DependancyInjection
         // Application is allowed to cache HTTP responses.
         services.AddResponseCaching();
 
+        return services;
+    }
+    private static IServiceCollection AddExposedServicesConfig(this IServiceCollection services)
+    {
+        services.AddScoped<IPatientQueryService, PatientQueryService>();
         return services;
     }
 }

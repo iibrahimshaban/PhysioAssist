@@ -1,0 +1,67 @@
+﻿using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Agents;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
+using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
+using PhysioAssist.Api.Modules.QueryModule.Plugin;
+using PhysioAssist.Api.Modules.QueryModule.Prompts;
+using PhysioAssist.Api.Shared.Options;
+using System.Net.Http.Headers;
+
+namespace PhysioAssist.Api.Modules.QueryModule;
+
+public static class DependancyInjection
+{
+    public static IServiceCollection AddQueryModuleConfig(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<TavilyOptions>(
+            // reuse the same config section if Tavily is already configured app-wide,
+            // otherwise bind a PhysioAssist-specific section
+            configuration.GetRequiredSection(TavilyOptions.SectionName));
+
+        services.AddHttpClient(nameof(WebSearchPlugin), (sp, client) =>
+        {
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
+        });
+
+        services.AddScoped<PatientLookupPlugin>();
+        services.AddScoped<SessionSearchPlugin>();
+
+        services.AddScoped<ChatCompletionAgent>(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<GitHubModelsChatOptions>>().Value;
+            var patientPlugin = sp.GetRequiredService<PatientLookupPlugin>();
+            var searchPlugin = sp.GetRequiredService<SessionSearchPlugin>();
+            var tavilyOptions = sp.GetRequiredService<IOptions<TavilyOptions>>();
+            var tavilyClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(WebSearchPlugin));
+
+            var kernel = Kernel.CreateBuilder()
+                .AddOpenAIChatCompletion(
+                    modelId: options.ChatModel,
+                    apiKey: options.Token,
+                    endpoint: new Uri("https://models.inference.ai.azure.com"))
+                .Build();
+
+            var webSearchPlugin = new WebSearchPlugin(tavilyClient, tavilyOptions);
+
+            kernel.Plugins.AddFromObject(patientPlugin, "PatientLookup");
+            kernel.Plugins.AddFromObject(searchPlugin, "SessionSearch");
+            kernel.Plugins.AddFromObject(webSearchPlugin, "WebSearch");
+
+            return new ChatCompletionAgent
+            {
+                Name = "QueryAgent",
+                Instructions = QueryAgentPrompts.AgentInstructions,
+                Kernel = kernel,
+                Arguments = new KernelArguments(new OpenAIPromptExecutionSettings
+                {
+                    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+                })
+            };
+        });
+
+        return services;
+    }
+}
