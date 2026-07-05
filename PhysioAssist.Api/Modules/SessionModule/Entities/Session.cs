@@ -2,6 +2,7 @@
 
 public class Session : AuditableEntity
 {
+    //atachment
     public Guid Id { get; set; } = Guid.CreateVersion7();
     public string? Summary { get; set; }
     public SessionStatus Status { get; set; } = SessionStatus.Scheduled;
@@ -9,4 +10,5 @@ public class Session : AuditableEntity
     public Guid PatientId { get; set; }
     public Guid? ScheduleSlotId { get; set; }
     public SessionTranscription? Transcription { get; set; }
+    public ICollection<SessionAttachment> Attachments { get; set; } = [];
 }
