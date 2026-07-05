@@ -1,0 +1,39 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Patients</h2>
+    <button class="btn btn-primary" (click)="goToCreate()">Add Patient</button>
+  </div>
+
+  <div *ngIf="isLoading">Loading...</div>
+
+  <table class="table table-bordered" *ngIf="!isLoading">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Gender</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let patient of patients">
+        <td>{{ patient.fullName }}</td>
+        <td>{{ patient.phoneNumber }}</td>
+        <td>{{ patient.gender }}</td>
+        <td>
+          <span [class]="patient.status === 0 ? 'badge bg-success' : 'badge bg-danger'">
+            {{ patient.status === 0 ? 'Active' : 'Discharged' }}
+          </span>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-info" (click)="goToDetail(patient.id)">View</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!isLoading && patients.length === 0">
+    No patients found.
+  </div>
+</div>

@@ -5,10 +5,19 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
 using PhysioAssist.Api.Infrastructure.GeminiClient;
+using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
-using PhysioAssist.Api.Modules.InitialReportModule;
+using PhysioAssist.Api.Modules.PatientModule;
 using PhysioAssist.Api.Modules.SessionModule;
+using PhysioAssist.Api.Modules.Auth.Entities;
+using PhysioAssist.Api.Modules.Auth.Services;
+using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
+using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
+using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
+using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Modules.SessionModule;
+using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
@@ -16,6 +25,8 @@ using PhysioAssist.Api.Shared.Interfaces;
 using PhysioAssist.Api.Shared.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
+using PhysioAssist.Api.Modules.SessionModule;
+using PhysioAssist.Api.Infrastructure.AutoComplete;
 
 namespace PhysioAssist.Api;
 
@@ -30,17 +41,18 @@ public static class DependancyInjection
             .AddMapsterConfiguration()
             .AddPermissionAuthorization()
             .AddMailConfig()
+            .AddAutoCompleteService(configuration)
+            .AddEmbeddingConfig()
+            .AddAudioTranscriptionConfig()
             .AddDbContextConfiguration(configuration)
             .AddCorsConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration)
-            .AddAudioTranscriptionConfig()
             .AddHangfireBGJobs(configuration);
 
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddAuthModule(configuration);
         services.AddSessionModule();
-        services.AddInitialReportModule();
+        services.AddPatientModule();
         return services;
     }
 
@@ -99,6 +111,15 @@ public static class DependancyInjection
 
     private static IServiceCollection AddMailConfig(this IServiceCollection services)
     {
+       
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IScheduleSlotRepository, ScheduleSlotRepository>();
+        services.AddScoped<IWorkingScheduleRepository, WorkingScheduleRepository>();
+        services.AddScoped<IWorkingScheduleDayRepository, WorkingScheduleDayRepository>();
+        services.AddScoped<IAppointmentValidator, AppointmentValidator>();
+        services.AddScoped<IAppointmentService, AppointmentService>();
+        services.AddScoped<IWorkingScheduleService, WorkingScheduleService>();
         services
             .AddOptions<MailSettings>()
             .BindConfiguration(MailSettings.SectionName)
@@ -106,6 +127,27 @@ public static class DependancyInjection
             .ValidateOnStart();
 
         services.AddTransient<ICustomEmailService, EmailService>();
+
+        return services;
+    }
+    private static IServiceCollection AddEmbeddingConfig(this IServiceCollection services)
+    {
+        services.AddOptions<GitHubModelsEmbeddingOptions>()
+            .BindConfiguration(GitHubModelsEmbeddingOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IEmbeddingService, GitHubModelsEmbeddingService>();
+        services.AddScoped<ISessionEmbeddingService, SessionEmbeddingService>();
+
+        services.AddOptions<GitHubModelsChatOptions>()
+        .BindConfiguration(GitHubModelsChatOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        services.AddHttpClient<ITranscriptChunkingService, GitHubModelsChunkingService>();
+
+        
 
         return services;
     }
@@ -163,6 +205,34 @@ public static class DependancyInjection
             .UseSqlServerStorage(configuration.GetConnectionString("HangfireConnection")));
 
         services.AddHangfireServer();
+
+        return services;
+    }
+
+
+    // Autocomplete services
+    public static IServiceCollection AddAutoCompleteService(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<VocabularySources>(configuration.GetSection("VocabularySources"));
+
+        services.AddSingleton<MultiLanguageTrieRegistry>();
+        services.AddSingleton<MultiLanguageVocabularyLoader>();
+        //services.AddSingleton<VocabularyLoader>();
+        //services.AddSingleton<Trie>(sp =>
+        //{
+        //    var loader = sp.GetRequiredService<VocabularyLoader>();
+        //    return loader.LoadAsync().GetAwaiter().GetResult();
+        //});
+
+
+        // Bootstrap as IHostedService — runs before app accepts requests.
+        services.AddHostedService<VocabularyBootstrapService>();
+
+        services.AddSingleton<IAutoCompleteService, AutoCompleteService>();
+
+
+        // Application is allowed to cache HTTP responses.
+        services.AddResponseCaching();
 
         return services;
     }

@@ -1,0 +1,31 @@
+<div class="container mt-4">
+  <div *ngIf="isLoading">Loading...</div>
+
+  <div *ngIf="!isLoading && patient">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>{{ patient.fullName }}</h2>
+      <div>
+        <button class="btn btn-secondary me-2" (click)="goBack()">Back</button>
+        <button class="btn btn-warning me-2" (click)="goToEdit()">Edit</button>
+        <button class="btn btn-danger" (click)="delete()">Delete</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <p><strong>Phone:</strong> {{ patient.phoneNumber }}</p>
+        <p><strong>Gender:</strong> {{ patient.gender }}</p>
+        <p><strong>Date of Birth:</strong> {{ patient.dateOfBirth | date }}</p>
+        <p><strong>Status:</strong>
+          <span [class]="patient.status === 0 ? 'badge bg-success' : 'badge bg-danger'">
+            {{ patient.status === 0 ? 'Active' : 'Discharged' }}
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && !patient">
+    Patient not found.
+  </div>
+</div>
