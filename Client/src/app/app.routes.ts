@@ -79,15 +79,17 @@ export const routes: Routes = [
         path: 'account',
         loadComponent: () =>
           import('./Features/account/account.component').then((m) => m.AccountComponent),
-      },
-      {
-        path: 'patients',
-        canActivate: [permissionGuard],
-        data: { permissions: ['User:create'] },
-        loadComponent: () =>
-          import('./Features/weather/weather.component').then((m) => m.WeatherComponent),
+      },{
+       path: 'patients',
+          children: [
+          { path: '', loadComponent: () => import('./Features/Patient/patient-list/patient-list.component').then(m => m.PatientListComponent) },
+          { path: 'create', loadComponent: () => import('./Features/Patient/patient-form/patient-form.component').then(m => m.PatientFormComponent) },
+          { path: 'edit/:id', loadComponent: () => import('./Features/Patient/patient-form/patient-form.component').then(m => m.PatientFormComponent) },
+          { path: ':id', loadComponent: () => import('./Features/Patient/patient-detail/patient-detail.component').then(m => m.PatientDetailComponent) },
+        ]
       },
       { path: 'session', component: SessionComponent },
+      { path: 'initial-report', loadComponent: () => import('./Features/initial-report/initial-report.component').then(m => m.InitialReportComponent) }
     ],
   },
 

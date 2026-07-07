@@ -65,6 +65,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     // Scheduling
     public DbSet<ScheduleSlot> ScheduleSlots { get; set; }
+    public DbSet<WorkingSchedule> workingSchedules { get; set; }
+    public DbSet<WorkingScheduleDay> workingScheduleDays { get; set; }
 
     // Shared
     public DbSet<Notification> Notifications { get; set; }

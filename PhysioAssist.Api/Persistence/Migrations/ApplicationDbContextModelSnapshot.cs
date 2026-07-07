@@ -244,14 +244,29 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("About")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ClinicAddress")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.Property<string>("ClinicName")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("Title")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("YearsOfExperience")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -580,7 +595,7 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<Guid>("DoctorId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("PatientId")
+                    b.Property<Guid>("PatientId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("SlotEnd")
@@ -604,9 +619,57 @@ namespace PhysioAssist.Api.Persistence.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.HasIndex("DoctorId", "SlotStart");
+                    b.HasIndex("DoctorId", "SlotStart", "SlotEnd")
+                        .HasDatabaseName("IX_ScheduleSlot_DoctorId_SlotStart_SlotEnd");
 
                     b.ToTable("ScheduleSlot", "scheduling");
+                });
+
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.WorkingSchedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("DoctorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_WorkingSchedule_DoctorId_ActiveOnly")
+                        .HasFilter("[IsActive] = 1");
+
+                    b.ToTable("WorkingSchedule", "scheduling");
+                });
+
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.WorkingScheduleDay", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<Guid>("WorkingScheduleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkingScheduleId", "Day")
+                        .IsUnique()
+                        .HasDatabaseName("IX_WorkingScheduleDay_Schedule_Day_Unique");
+
+                    b.ToTable("WorkingScheduleDay", "scheduling");
                 });
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.SessionModule.Entities.Session", b =>
@@ -1014,6 +1077,17 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Navigation("UpdatedBy");
                 });
 
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.WorkingScheduleDay", b =>
+                {
+                    b.HasOne("PhysioAssist.Api.Modules.Scheduling.Entities.WorkingSchedule", "WorkingSchedule")
+                        .WithMany("Days")
+                        .HasForeignKey("WorkingScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WorkingSchedule");
+                });
+
             modelBuilder.Entity("PhysioAssist.Api.Modules.SessionModule.Entities.Session", b =>
                 {
                     b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "CreatedBy")
@@ -1109,6 +1183,11 @@ namespace PhysioAssist.Api.Persistence.Migrations
             modelBuilder.Entity("PhysioAssist.Api.Modules.PatientModule.Entities.Patient", b =>
                 {
                     b.Navigation("DoctorPatients");
+                });
+
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.WorkingSchedule", b =>
+                {
+                    b.Navigation("Days");
                 });
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.SessionModule.Entities.Session", b =>

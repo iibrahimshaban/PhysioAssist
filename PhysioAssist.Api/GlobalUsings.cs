@@ -4,4 +4,5 @@ global using PhysioAssist.Api.Shared.ResultPattern;
 global using FluentValidation;
 global using PhysioAssist.Api.Shared.Common;
 global using PhysioAssist.Api.Shared.Enums;
+global using PhysioAssist.Api.Shared.Interfaces;
 

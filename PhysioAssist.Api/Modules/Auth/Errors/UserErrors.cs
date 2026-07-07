@@ -19,6 +19,8 @@ public static class UserErrors
 
     public static readonly Error DuplicatedEmail =
         new("User.DuplicatedEmail", "An account with this email address already exists.", StatusCodes.Status409Conflict);
+    public static readonly Error DoublicatedUserName =
+        new("User.DoublicatedUserName", "An account with this username already exists.", StatusCodes.Status409Conflict);
 
     public static readonly Error DuplicatedConfirmation =
         new("User.DuplicatedConfirmation", "This email address has already been confirmed.", StatusCodes.Status409Conflict);

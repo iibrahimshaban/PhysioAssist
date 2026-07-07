@@ -32,6 +32,18 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
             return await _context.Patients.FindAsync(id);
         }
 
+        public async Task<Patient?> GetByEmailAsync(string email)
+        {
+            return await _context.Patients.FirstOrDefaultAsync(p => p.EmailAddress == email);
+        }
+
+        public async Task<Patient?> GetByPhoneAsync(string phoneNumber)
+        {
+            return await _context.Patients
+                .FirstOrDefaultAsync(p => p.PhoneNumber == phoneNumber);
+        }
+
+
         //public IQueryable<Patient> GetPatients_Ordered()
         //{
         //    _context.Patients.OrderBy(p => p.FullName);
