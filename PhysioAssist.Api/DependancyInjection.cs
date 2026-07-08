@@ -1,30 +1,24 @@
-﻿using CloudinaryDotNet;
+using CloudinaryDotNet;
 using Hangfire;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
 using PhysioAssist.Api.Infrastructure.GeminiClient;
-using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
-using PhysioAssist.Api.Modules.PatientModule;
+using PhysioAssist.Api.Modules.InitialReportModule;
 using PhysioAssist.Api.Modules.SessionModule;
-using PhysioAssist.Api.Modules.Auth.Services;
-using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
-using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
-using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
-using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
-using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
+using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.NotificationService;
+using PhysioAssist.Api.Shared.PdfService;
+using PhysioAssist.Api.Shared.QRService;
 using PhysioAssist.Api.Shared.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
-using PhysioAssist.Api.Infrastructure.AutoComplete;
-using PhysioAssist.Api.Modules.PatientModule.Services;
-using PhysioAssist.Api.Modules.QueryModule;
 
 namespace PhysioAssist.Api;
 
@@ -32,6 +26,8 @@ public static class DependancyInjection
 {
     public static IServiceCollection AddGlobalServicesRegistration(this IServiceCollection services, IConfiguration configuration)
     {
+        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
         services
             .AddSwaggerGen()
             .AddHttpContextAccessor()
@@ -39,20 +35,33 @@ public static class DependancyInjection
             .AddMapsterConfiguration()
             .AddPermissionAuthorization()
             .AddMailConfig()
-            .AddExposedServicesConfig()
-            .AddAutoCompleteService(configuration)
-            .AddEmbeddingConfig()
-            .AddAudioTranscriptionConfig()
             .AddDbContextConfiguration(configuration)
             .AddCorsConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration)
+            .AddAudioTranscriptionConfig()
             .AddHangfireBGJobs(configuration);
 
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        services.AddQrCodeConfig(configuration);
+        services.AddScoped<IPdfService, PdfService>();
+        services.AddScoped<INotificationService, PhysioAssist.Api.Shared.NotificationService.NotificationService>();
+
+        services.AddAuthModule(configuration);
+        services.AddSessionModule();
+        services.AddInitialReportModule();
+        return services;
+    }
+
+    private static IServiceCollection AddQrCodeConfig(this IServiceCollection services, IConfiguration configuration)
+    {
         services
-           .AddAuthModule(configuration)
-           .AddSessionModule()
-           .AddQueryModuleConfig(configuration)
-           .AddPatientModule();
+            .AddOptions<QrSettings>()
+            .BindConfiguration(QrSettings.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddScoped<IQRService, QRService>();
 
         return services;
     }
@@ -112,15 +121,6 @@ public static class DependancyInjection
 
     private static IServiceCollection AddMailConfig(this IServiceCollection services)
     {
-       
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IScheduleSlotRepository, ScheduleSlotRepository>();
-        services.AddScoped<IWorkingScheduleRepository, WorkingScheduleRepository>();
-        services.AddScoped<IWorkingScheduleDayRepository, WorkingScheduleDayRepository>();
-        services.AddScoped<IAppointmentValidator, AppointmentValidator>();
-        services.AddScoped<IAppointmentService, AppointmentService>();
-        services.AddScoped<IWorkingScheduleService, WorkingScheduleService>();
         services
             .AddOptions<MailSettings>()
             .BindConfiguration(MailSettings.SectionName)
@@ -128,29 +128,6 @@ public static class DependancyInjection
             .ValidateOnStart();
 
         services.AddTransient<ICustomEmailService, EmailService>();
-
-        return services;
-    }
-    private static IServiceCollection AddEmbeddingConfig(this IServiceCollection services)
-    {
-        services.AddOptions<GitHubModelsEmbeddingOptions>()
-            .BindConfiguration(GitHubModelsEmbeddingOptions.SectionName)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        services.AddHttpClient<IEmbeddingService, GitHubModelsEmbeddingService>();
-        services.AddScoped<ISessionEmbeddingService, SessionEmbeddingService>();
-
-        services.AddOptions<GitHubModelsChatOptions>()
-        .BindConfiguration(GitHubModelsChatOptions.SectionName)
-        .ValidateDataAnnotations()
-        .ValidateOnStart();
-
-        services.AddHttpClient<ITranscriptChunkingService, GitHubModelsChunkingService>();
-        services.AddHttpClient<IQueryTranslationService, GitHubModelsQueryTranslationService>();
-        services.AddScoped<ISessionChunkSearchService, SessionChunkSearchService>();
-
-
 
         return services;
     }
@@ -169,7 +146,7 @@ public static class DependancyInjection
         .ValidateOnStart();
 
         services.AddHttpClient<GroqWhisperClient>();
-        services.AddHttpClient<ITranscriptionRefinementService, GroqRefinementClient>();
+        services.AddHttpClient<ITranscriptionRefinementService,GroqRefinementClient>();
 
         //register whisper 
         //services.AddScoped<IAudioTranscriptionService>(sp =>
@@ -209,39 +186,6 @@ public static class DependancyInjection
 
         services.AddHangfireServer();
 
-        return services;
-    }
-
-
-    // Autocomplete services
-    public static IServiceCollection AddAutoCompleteService(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.Configure<VocabularySources>(configuration.GetSection("VocabularySources"));
-
-        services.AddSingleton<MultiLanguageTrieRegistry>();
-        services.AddSingleton<MultiLanguageVocabularyLoader>();
-        //services.AddSingleton<VocabularyLoader>();
-        //services.AddSingleton<Trie>(sp =>
-        //{
-        //    var loader = sp.GetRequiredService<VocabularyLoader>();
-        //    return loader.LoadAsync().GetAwaiter().GetResult();
-        //});
-
-
-        // Bootstrap as IHostedService — runs before app accepts requests.
-        services.AddHostedService<VocabularyBootstrapService>();
-
-        services.AddSingleton<IAutoCompleteService, AutoCompleteService>();
-
-
-        // Application is allowed to cache HTTP responses.
-        services.AddResponseCaching();
-
-        return services;
-    }
-    private static IServiceCollection AddExposedServicesConfig(this IServiceCollection services)
-    {
-        services.AddScoped<IPatientQueryService, PatientQueryService>();
         return services;
     }
 }

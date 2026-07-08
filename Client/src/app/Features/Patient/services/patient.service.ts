@@ -13,7 +13,7 @@ export class PatientService {
     return this.http.get<any[]>(this.apiUrl);
   }
 
-  getById(id: number) {
+  getById(id: string | number) {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 

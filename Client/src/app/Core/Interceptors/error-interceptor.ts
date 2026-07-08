@@ -15,19 +15,25 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       } else {
         const body = err.error;
 
-        // FluentValidation
         if (body?.errors && !Array.isArray(body.errors) && typeof body.errors === 'object') {
           Object.values(body.errors as Record<string, string[]>)
             .flat()
             .forEach(msg => snackbar.error(msg));
 
-        // Result pattern
         } else if (body?.detail) {
-          snackbar.error(body.detail);  // "Invalid email/password"
+          snackbar.error(body.detail);
 
-        // Fallback
+        } else if (body?.title) {
+          snackbar.error(body.title);
+
+        } else if (typeof body === 'string') {
+          snackbar.error(body);
+
+        } else if (err.statusText) {
+          snackbar.error(`${err.status} ${err.statusText}`);
+
         } else {
-          snackbar.error(body?.title ?? 'Unexpected error');
+          snackbar.error('Unexpected error');
         }
       }
 

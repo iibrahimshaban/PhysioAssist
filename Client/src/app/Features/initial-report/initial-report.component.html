@@ -120,7 +120,7 @@
       <div class="text-sm font-semibold text-gray-700">ATTACHMENTS (OPTIONAL)</div>
       <div class="mt-3 attach-container">
         <label class="attach-dropzone" (drop)="onDrop($event)" (dragover)="onDragOver($event)">
-          <input type="file" multiple class="hidden" (change)="onFilesSelected($event)" />
+          <input type="file" accept="image/*,.pdf" multiple class="hidden" (change)="onFilesSelected($event)" />
           <div class="attach-inner">
             <i class="pi pi-paperclip attach-icon"></i>
             <div class="attach-text">Drag & drop X-rays, photos, PDFs — or click to upload</div>
