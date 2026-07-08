@@ -2,7 +2,7 @@
 {
     public class AvailableIntervalDto
     {
-        public DateTime Start { get; init; }
-        public DateTime End { get; init; }
+        public DateTimeOffset Start { get; init; }
+        public DateTimeOffset End { get; init; }
     }
 }

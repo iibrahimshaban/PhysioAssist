@@ -1,0 +1,44 @@
+@if (isOpen() && appointment(); as a) {
+  <div class="drawer-backdrop" (click)="closeRequested.emit()"></div>
+  <div class="drawer">
+    <div class="drawer__header">
+      <h2 class="drawer__title">Appointment Details</h2>
+      <button type="button" class="drawer__close" (click)="closeRequested.emit()">✕</button>
+    </div>
+
+    <div class="drawer__section">
+      <span class="drawer__label">Patient</span>
+      <span class="drawer__value">Patient {{ shortId(a.patientId) }}</span>
+    </div>
+
+    <div class="drawer__section">
+      <span class="drawer__label">Start</span>
+      <span class="drawer__value">{{ formatDateTime(a.slotStart) }}</span>
+    </div>
+
+    <div class="drawer__section">
+      <span class="drawer__label">End</span>
+      <span class="drawer__value">{{ formatDateTime(a.slotEnd) }}</span>
+    </div>
+
+    <div class="drawer__section">
+      <span class="drawer__label">Duration</span>
+      <span class="drawer__value">{{ durationLabel() }}</span>
+    </div>
+
+    <div class="drawer__section">
+      <span class="drawer__label">Status</span>
+      <span class="status-pill" [class]="'status-pill--' + a.status.toLowerCase()">{{ a.status }}</span>
+    </div>
+
+    <div class="drawer__actions">
+      @if (a.status === 'Booked') {
+        <button type="button" class="drawer-btn drawer-btn--success" (click)="completeRequested.emit(a.id)">Complete</button>
+        <button type="button" class="drawer-btn" (click)="rescheduleRequested.emit(a)">Reschedule</button>
+        <button type="button" class="drawer-btn drawer-btn--warning" (click)="noShowRequested.emit(a.id)">Mark No Show</button>
+        <button type="button" class="drawer-btn drawer-btn--danger" (click)="cancelRequested.emit(a.id)">Cancel</button>
+      }
+      <button type="button" class="drawer-btn drawer-btn--outline-danger" (click)="deleteRequested.emit(a.id)">Delete</button>
+    </div>
+  </div>
+}

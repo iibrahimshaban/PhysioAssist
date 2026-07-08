@@ -62,6 +62,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Session> Sessions { get; set; }
     public DbSet<SessionTranscription> SessionTranscriptions { get; set; }
     public DbSet<SessionTranscriptionChunk> SessionTranscriptionChunks { get; set; }
+    public DbSet<SessionAttachment> SessionAttachments { get; set; }
 
     // Scheduling
     public DbSet<ScheduleSlot> ScheduleSlots { get; set; }

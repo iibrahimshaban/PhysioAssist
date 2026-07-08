@@ -16,5 +16,10 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
 
         builder.Property(s => s.Status)
                .HasConversion<int>();
+        builder
+    .HasMany(s => s.Attachments)
+    .WithOne(a => a.Session)
+    .HasForeignKey(a => a.SessionId)
+    .OnDelete(DeleteBehavior.Cascade);
     }
 }
