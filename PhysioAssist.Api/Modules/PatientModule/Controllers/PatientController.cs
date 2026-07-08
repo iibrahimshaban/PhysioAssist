@@ -19,7 +19,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetPatientById(int id)
+        public async Task<IActionResult> GetPatientById(Guid id)
         {
             var result = await _patientService.GetByIdAsync(id);
             return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
@@ -33,21 +33,21 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePatient(int id,[FromBody] PatientRequest request)
+        public async Task<IActionResult> UpdatePatient(Guid id,[FromBody] PatientRequest request)
         {
             var result = await _patientService.UpdateAsync(id,request);
             return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePatient(int id)
+        public async Task<IActionResult> DeletePatient(Guid id)
         {
             var result = await _patientService.DeleteAsync(id);
             return result.IsSuccess ? NoContent() : result.ToProblem();
         }
 
         [HttpPut("{id}/status")]
-        public async Task<IActionResult> UpdateStatus(int id, [FromBody] PatientStatus status)
+        public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] PatientStatus status)
         {
             var result = await _patientService.UpdateStatusAsync(id, status);
             return result.IsSuccess ? NoContent() : result.ToProblem();

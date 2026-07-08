@@ -7,16 +7,7 @@
     <UserSecretsId>4afe5434-e92c-4a54-b4e0-783ab1c4122a</UserSecretsId>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="Modules\PatientModule\Controllers\**" />
-    <Compile Remove="Shared\Configuration\**" />
-    <Content Remove="Modules\PatientModule\Controllers\**" />
-    <Content Remove="Shared\Configuration\**" />
-    <EmbeddedResource Remove="Modules\PatientModule\Controllers\**" />
-    <EmbeddedResource Remove="Shared\Configuration\**" />
-    <None Remove="Modules\PatientModule\Controllers\**" />
-    <None Remove="Shared\Configuration\**" />
-  </ItemGroup>
+  
 
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.29.2" />
