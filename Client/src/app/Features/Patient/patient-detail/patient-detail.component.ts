@@ -23,7 +23,7 @@ export class PatientDetailComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isLoading = true;
-      this.patientService.getById(+id).subscribe({
+      this.patientService.getById(id).subscribe({
         next: (data) => {
           this.patient = data;
           this.isLoading = false;

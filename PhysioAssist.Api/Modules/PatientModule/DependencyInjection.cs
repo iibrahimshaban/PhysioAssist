@@ -1,6 +1,5 @@
 ﻿using PhysioAssist.Api.Modules.PatientModule.Repositories;
 using PhysioAssist.Api.Modules.PatientModule.Services;
-using PhysioAssist.Api.Shared.Interfaces;
 using PhysioAssist.Api.Shared.Repositories;
 
 namespace PhysioAssist.Api.Modules.PatientModule

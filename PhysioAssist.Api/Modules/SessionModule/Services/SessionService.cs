@@ -40,7 +40,7 @@ public class SessionService(
             PatientId = session.PatientId,
             DoctorId = session.DoctorId,
             ScheduleSlotId = session.ScheduleSlotId,
-            Summary = session.Summary,
+            Summary = session.SummaryText,
             Status = session.Status
         };
 

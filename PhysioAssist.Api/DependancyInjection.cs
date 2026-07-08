@@ -11,6 +11,7 @@ using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
 using PhysioAssist.Api.Modules.Auth.Services;
+using PhysioAssist.Api.Modules.DocumentationModule;
 using PhysioAssist.Api.Modules.PatientModule;
 using PhysioAssist.Api.Modules.PatientModule.Services;
 using PhysioAssist.Api.Modules.QueryModule;
@@ -42,6 +43,7 @@ public static class DependancyInjection
             .AddPermissionAuthorization()
             .AddMailConfig()
             .AddExposedServicesConfig()
+            .AddDocumentationSummarizationConfig()
             .AddAutoCompleteService(configuration)
             .AddEmbeddingConfig()
             .AddAudioTranscriptionConfig()
@@ -54,7 +56,8 @@ public static class DependancyInjection
            .AddAuthModule(configuration)
            .AddSessionModule()
            .AddQueryModuleConfig(configuration)
-           .AddPatientModule();
+           .AddPatientModule()
+           .AddDocumentationModule();
 
         return services;
     }
@@ -158,6 +161,32 @@ public static class DependancyInjection
             .ValidateOnStart();
 
         services.AddTransient<ICustomEmailService, EmailService>();
+
+        return services;
+    }
+    private static IServiceCollection AddDocumentationSummarizationConfig(this IServiceCollection services)
+    {
+
+        services.AddOptions<GitHubModelsDocumentationOptions>()
+             .BindConfiguration(GitHubModelsDocumentationOptions.SectionName)
+             .ValidateDataAnnotations()
+             .ValidateOnStart();
+
+        services.AddHttpClient<IDocumentationExtractionService, GitHubModelsDocumentationExtractionService>();
+
+        services.AddOptions<GroqSummarizationOptions>()
+            .BindConfiguration(GroqSummarizationOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<ISessionSummarizationService, GroqSessionSummarizationService>();
+
+        services.AddOptions<GroqRollupSummarizationOptions>()
+            .BindConfiguration(GroqRollupSummarizationOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IRollupSummarizationService, GroqRollupSummarizationService>();
 
         return services;
     }

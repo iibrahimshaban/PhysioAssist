@@ -23,4 +23,11 @@ public class PatientQueryService : IPatientQueryService
             .Select(p => new PatientLookupResult(p.Id, p.FullName))
             .ToListAsync(ct);
     }
+    public async Task<PatientCategory?> GetPatientCategoryAsync(Guid doctorId, Guid patientId, CancellationToken ct = default)
+    {
+        return await _dbContext.Set<DoctorPatient>()
+            .Where(dp => dp.DoctorId == doctorId && dp.PatientId == patientId)
+            .Select(dp => (PatientCategory?)dp.Category)
+            .FirstOrDefaultAsync(ct);
+    }
 }
