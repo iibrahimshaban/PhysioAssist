@@ -1,0 +1,32 @@
+// components/reschedule-dialog/reschedule-dialog.component.scss
+:host { display: contents; }
+.drawer-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.35); z-index: 40; }
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 380px; background: var(--color-surface);
+  box-shadow: -8px 0 24px rgba(15, 23, 42, 0.12); z-index: 50; padding: 24px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 18px; animation: slideIn 0.2s ease-out;
+}
+@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.drawer__header { display: flex; justify-content: space-between; align-items: center; }
+.drawer__title { margin: 0; font-size: 18px; font-weight: 700; color: var(--color-text-primary); }
+.drawer__close { border: none; background: transparent; font-size: 16px; cursor: pointer; color: var(--color-text-secondary); }
+.drawer__section { display: flex; flex-direction: column; gap: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--color-border); }
+.drawer__label { font-size: 12px; color: var(--color-text-secondary); font-weight: 500; }
+.drawer__value { font-size: 14px; color: var(--color-text-primary); font-weight: 600; }
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+.form-field__label { font-size: 12.5px; font-weight: 600; color: var(--color-text-secondary); }
+.form-field__input {
+  height: 38px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 13.5px;
+}
+.interval-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.interval-btn {
+  height: 36px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface);
+  font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--color-text-secondary);
+  &--active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+}
+.drawer__actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+.drawer-btn {
+  height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--color-surface);
+  font-size: 13.5px; font-weight: 600; cursor: pointer; color: var(--color-text-primary);
+  &--primary { background: var(--color-primary); color: #fff; border-color: var(--color-primary); &:disabled { opacity: 0.5; cursor: not-allowed; } }
+}

@@ -14,8 +14,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations
 
         public Task<bool> HasOverlapAsync(
         Guid doctorId,
-        DateTime slotStart,
-        DateTime slotEnd,
+        DateTimeOffset slotStart,
+        DateTimeOffset slotEnd,
         Guid? excludeAppointmentId = null,
         CancellationToken cancellationToken = default)
         {
@@ -33,7 +33,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations
 
         public async Task<List<ScheduleSlot>> GetDoctorAppointmentsForDayAsync(
             Guid doctorId,
-            DateTime date,
+            DateTimeOffset date,
             CancellationToken cancellationToken = default)
         {
             var dayStart = date.Date;
@@ -50,8 +50,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations
 
         public async Task<List<ScheduleSlot>> GetDoctorAppointmentsAsync(
             Guid doctorId,
-            DateTime from,
-            DateTime to,
+            DateTimeOffset from,
+            DateTimeOffset to,
             CancellationToken cancellationToken = default)
         {
             return await _context.Set<ScheduleSlot>()

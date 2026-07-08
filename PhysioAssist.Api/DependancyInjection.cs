@@ -20,6 +20,7 @@ using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
 using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
 

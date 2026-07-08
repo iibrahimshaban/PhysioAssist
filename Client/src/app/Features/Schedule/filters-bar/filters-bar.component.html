@@ -1,0 +1,21 @@
+<div class="filters-bar">
+  <input
+    class="filters-bar__search"
+    type="text"
+    placeholder="Search patient..."
+    [value]="filters().patientSearch"
+    (input)="onSearchChange($event)"
+  />
+
+  <div class="filters-bar__statuses">
+    @for (status of statusOptions; track status) {
+      <button type="button" class="filter-chip" [class.filter-chip--active]="isActive(status)"
+        (click)="onToggleStatus(status)">{{ status }}</button>
+    }
+  </div>
+
+  <button type="button" class="filter-chip" [class.filter-chip--active]="filters().showOnlyToday"
+    (click)="onToggleToday()">Today Only</button>
+
+  <button type="button" class="filters-bar__clear" (click)="clearRequested.emit()">Clear Filters</button>
+</div>

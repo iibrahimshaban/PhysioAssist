@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.Scheduling.DTO;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Shared.ResultPattern;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Controllers
 {
@@ -46,7 +47,11 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
             CancellationToken cancellationToken)
         {
             var result = await _workingScheduleService.CreateAsync(request, cancellationToken);
-            return CreatedAtAction(nameof(GetActiveByDoctor), new { doctorId = result.DoctorId }, result);
+
+            if (result.IsFailure)
+                return result.ToProblem();
+
+            return CreatedAtAction(nameof(GetActiveByDoctor), new { doctorId = result.Value.DoctorId }, result.Value);
         }
 
         /// <summary>
@@ -62,7 +67,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         public async Task<ActionResult<WorkingScheduleDto>> GetActiveByDoctor(Guid doctorId, CancellationToken cancellationToken)
         {
             var result = await _workingScheduleService.GetActiveByDoctorAsync(doctorId, cancellationToken);
-            return result is null ? NotFound() : Ok(result);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
 
         /// <summary>
@@ -90,7 +96,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
             CancellationToken cancellationToken)
         {
             var result = await _workingScheduleService.UpdateDaysAsync(id, request, cancellationToken);
-            return Ok(result);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
 
 
@@ -109,8 +116,32 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
         {
-            await _workingScheduleService.DeactivateAsync(id, cancellationToken);
-            return NoContent();
+            var result = await _workingScheduleService.DeactivateAsync(id, cancellationToken);
+
+            return result.IsFailure ? result.ToProblem() : NoContent();
+        }
+
+        /// <summary>
+        /// Permanently deletes a working schedule and its associated working days.
+        /// </summary>
+        /// <remarks>
+        /// This is a hard delete, unlike <see cref="Deactivate"/> — the row is removed
+        /// entirely and no history is kept. Prefer <see cref="Deactivate"/> for the normal
+        /// "doctor stopped using this schedule" flow; use this only when the schedule
+        /// should be erased outright (e.g. it was created by mistake).
+        /// </remarks>
+        /// <param name="id">The WorkingSchedule ID to delete.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <response code="204">Working schedule deleted successfully.</response>
+        /// <response code="404">No WorkingSchedule exists with the given ID.</response>
+        [HttpDelete("{id:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+        {
+            var result = await _workingScheduleService.DeleteAsync(id, cancellationToken);
+
+            return result.IsFailure ? result.ToProblem() : NoContent();
         }
     }
 }

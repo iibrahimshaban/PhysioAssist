@@ -1,0 +1,6 @@
+.skeleton { display: flex; flex-direction: column; gap: 16px; padding: 24px; }
+.skeleton__row { display: flex; align-items: center; gap: 12px; }
+.skeleton__label, .skeleton__bar { background: var(--color-border); border-radius: var(--radius-sm); animation: pulse 1.4s ease-in-out infinite; }
+.skeleton__label { width: 60px; height: 14px; flex-shrink: 0; }
+.skeleton__bar { height: 40px; }
+@keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }

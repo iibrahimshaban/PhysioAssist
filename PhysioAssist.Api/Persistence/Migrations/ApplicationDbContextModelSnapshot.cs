@@ -570,39 +570,22 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedById")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<Guid>("DoctorId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("SlotEnd")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("SlotEnd")
+                        .HasColumnType("datetimeoffset");
 
-                    b.Property<DateTime>("SlotStart")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("SlotStart")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedById")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("CreatedById");
-
-                    b.HasIndex("UpdatedById");
 
                     b.HasIndex("DoctorId", "SlotStart", "SlotEnd")
                         .HasDatabaseName("IX_ScheduleSlot_DoctorId_SlotStart_SlotEnd");
@@ -982,23 +965,6 @@ namespace PhysioAssist.Api.Persistence.Migrations
                 });
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.PatientModule.Entities.Patient", b =>
-                {
-                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "UpdatedBy")
-                        .WithMany()
-                        .HasForeignKey("UpdatedById");
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("UpdatedBy");
-                });
-
-            modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.ScheduleSlot", b =>
                 {
                     b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "CreatedBy")
                         .WithMany()
