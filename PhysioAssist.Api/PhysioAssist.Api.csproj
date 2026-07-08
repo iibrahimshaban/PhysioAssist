@@ -8,13 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Shared\Configuration\**" />
-    <Content Remove="Shared\Configuration\**" />
-    <EmbeddedResource Remove="Shared\Configuration\**" />
-    <None Remove="Shared\Configuration\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.29.2" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
@@ -35,14 +28,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.77.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.77.0" />
     <PackageReference Include="MimeKit" Version="4.17.0" />
     <PackageReference Include="SharpGrip.FluentValidation.AutoValidation.Mvc" Version="2.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Modules\PatientModule\Controllers\" />
-    <Folder Include="Modules\PatientModule\Services\" />
   </ItemGroup>
 
 </Project>

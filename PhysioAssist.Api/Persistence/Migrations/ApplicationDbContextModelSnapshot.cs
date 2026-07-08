@@ -244,14 +244,29 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("About")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ClinicAddress")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.Property<string>("ClinicName")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("Title")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("YearsOfExperience")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -682,6 +697,53 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.ToTable("Session", "session");
                 });
 
+            modelBuilder.Entity("PhysioAssist.Api.Modules.SessionModule.Entities.SessionAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("SessionId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("SessionAttachment", "session");
+                });
+
             modelBuilder.Entity("PhysioAssist.Api.Modules.SessionModule.Entities.SessionTranscription", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1009,6 +1071,31 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Navigation("UpdatedBy");
                 });
 
+            modelBuilder.Entity("PhysioAssist.Api.Modules.SessionModule.Entities.SessionAttachment", b =>
+                {
+                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PhysioAssist.Api.Modules.SessionModule.Entities.Session", "Session")
+                        .WithMany("Attachments")
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Session");
+
+                    b.Navigation("UpdatedBy");
+                });
+
             modelBuilder.Entity("PhysioAssist.Api.Modules.SessionModule.Entities.SessionTranscription", b =>
                 {
                     b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "CreatedBy")
@@ -1071,6 +1158,8 @@ namespace PhysioAssist.Api.Persistence.Migrations
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.SessionModule.Entities.Session", b =>
                 {
+                    b.Navigation("Attachments");
+
                     b.Navigation("Transcription");
                 });
 
