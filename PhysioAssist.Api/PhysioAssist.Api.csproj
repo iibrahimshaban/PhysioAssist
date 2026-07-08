@@ -6,7 +6,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>4afe5434-e92c-4a54-b4e0-783ab1c4122a</UserSecretsId>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.29.2" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />

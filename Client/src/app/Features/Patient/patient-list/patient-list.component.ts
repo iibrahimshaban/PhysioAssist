@@ -2,10 +2,11 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { PatientService } from '../services/patient.service';
+import { GenderPipe } from '../../../Shared/Pipes/gender-pipe';
 
 @Component({
   selector: 'app-patient-list',
-  imports: [CommonModule],
+  imports: [CommonModule, GenderPipe],
   templateUrl: './patient-list.component.html',
   styleUrl: './patient-list.component.css',
 })

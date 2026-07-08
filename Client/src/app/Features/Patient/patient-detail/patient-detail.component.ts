@@ -1,11 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PatientService } from '../services/patient.service';
+import { GenderPipe } from '../../../Shared/Pipes/gender-pipe';
+
 
 @Component({
   selector: 'app-patient-detail',
-  imports: [CommonModule],
+  imports: [CommonModule, GenderPipe],
   templateUrl: './patient-detail.component.html',
   styleUrl: './patient-detail.component.css',
 })
@@ -16,7 +18,8 @@ export class PatientDetailComponent implements OnInit {
   constructor(
     private patientService: PatientService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -27,21 +30,23 @@ export class PatientDetailComponent implements OnInit {
         next: (data) => {
           this.patient = data;
           this.isLoading = false;
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error(err);
           this.isLoading = false;
+          this.cdr.detectChanges();
         }
       });
     }
   }
 
   goBack() {
-    this.router.navigate(['/app/patients']);
+    this.router.navigate(['/patients']);
   }
 
   goToEdit() {
-    this.router.navigate(['/app/patients/edit', this.patient.id]);
+    this.router.navigate(['/patients/edit', this.patient.id]);
   }
 
   delete() {
