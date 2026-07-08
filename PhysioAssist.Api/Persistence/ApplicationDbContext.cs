@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using PhysioAssist.Api.Modules.Auth.Entities;
+using PhysioAssist.Api.Modules.DocumentationModule.Entities;
 using PhysioAssist.Api.Modules.InitialReportModule.Entities;
 using PhysioAssist.Api.Modules.Intake.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
@@ -61,11 +62,17 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Session> Sessions { get; set; }
     public DbSet<SessionTranscription> SessionTranscriptions { get; set; }
     public DbSet<SessionTranscriptionChunk> SessionTranscriptionChunks { get; set; }
+    public DbSet<SessionAttachment> SessionAttachments { get; set; }
 
     // Scheduling
     public DbSet<ScheduleSlot> ScheduleSlots { get; set; }
     public DbSet<WorkingSchedule> workingSchedules { get; set; }
     public DbSet<WorkingScheduleDay> workingScheduleDays { get; set; }
+    //documentation 
+    public DbSet<DocumentationSummary> DocumentationSummaries { get; set; }
+    public DbSet<DocumentationTemplate> DocumentationTemplates { get; set; }
+    public DbSet<DoctorDocumentationPreference> DoctorDocumentationPreferences { get; set; }
+    public DbSet<SessionProgressNote> SessionProgressNotes { get; set; }
 
     // Shared
     public DbSet<Notification> Notifications { get; set; }

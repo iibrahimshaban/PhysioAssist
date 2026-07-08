@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.Scheduling.DTO;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Shared.ResultPattern;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Controllers
 {
@@ -43,7 +44,11 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
             CancellationToken cancellationToken)
         {
             var result = await _appointmentService.CreateAsync(request, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+
+            if (result.IsFailure)
+                return result.ToProblem();
+
+            return CreatedAtAction(nameof(GetById), new { id = result.Value.Id }, result.Value);
         }
 
         /// <summary>
@@ -59,7 +64,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         public async Task<ActionResult<ScheduleSlotDto>> GetById(Guid id, CancellationToken cancellationToken)
         {
             var result = await _appointmentService.GetByIdAsync(id, cancellationToken);
-            return result is null ? NotFound() : Ok(result);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
 
         /// <summary>
@@ -76,7 +82,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         [HttpGet("doctor/{doctorId:guid}")]
         public async Task<ActionResult<IReadOnlyList<ScheduleSlotDto>>> GetDoctorAppointments(
             Guid doctorId,
-            [FromQuery] DateTime date,
+            [FromQuery] DateTimeOffset date,
             CancellationToken cancellationToken)
         {
             var result = await _appointmentService.GetDoctorAppointmentsAsync(doctorId, date, cancellationToken);
@@ -101,7 +107,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<AvailableIntervalDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IReadOnlyList<AvailableIntervalDto>>> GetAvailability(
             Guid doctorId,
-            [FromQuery] DateTime date,
+            [FromQuery] DateTimeOffset date,
             CancellationToken cancellationToken)
         {
             var result = await _appointmentService.GetAvailabilityAsync(doctorId, date, cancellationToken);
@@ -130,7 +136,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         public async Task<ActionResult<ScheduleSlotDto>> Cancel(Guid id, CancellationToken cancellationToken)
         {
             var result = await _appointmentService.CancelAsync(id, cancellationToken);
-            return Ok(result);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
 
         /// <summary>
@@ -159,7 +166,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
             CancellationToken cancellationToken)
         {
             var result = await _appointmentService.RescheduleAsync(id, request, cancellationToken);
-            return Ok(result);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
 
         /// <summary>
@@ -177,7 +185,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         public async Task<ActionResult<ScheduleSlotDto>> Complete(Guid id, CancellationToken cancellationToken)
         {
             var result = await _appointmentService.CompleteAsync(id, cancellationToken);
-            return Ok(result);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
 
         /// <summary>
@@ -195,7 +204,31 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         public async Task<ActionResult<ScheduleSlotDto>> MarkNoShow(Guid id, CancellationToken cancellationToken)
         {
             var result = await _appointmentService.MarkNoShowAsync(id, cancellationToken);
-            return Ok(result);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
+        }
+
+        /// <summary>
+        /// Permanently deletes an appointment record.
+        /// </summary>
+        /// <remarks>
+        /// This is a hard delete, unlike <see cref="Cancel"/> — the row is removed entirely
+        /// and no history is kept, regardless of the appointment's current status. Prefer
+        /// <see cref="Cancel"/> for the normal "appointment called off" flow; use this only
+        /// when the record itself should be erased (e.g. it was created by mistake).
+        /// </remarks>
+        /// <param name="id">The appointment ID to delete.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <response code="204">Appointment deleted successfully.</response>
+        /// <response code="404">No appointment exists with the given ID.</response>
+        [HttpDelete("{id:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+        {
+            var result = await _appointmentService.DeleteAsync(id, cancellationToken);
+
+            return result.IsFailure ? result.ToProblem() : NoContent();
         }
     }
 }

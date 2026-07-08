@@ -42,6 +42,9 @@ public class AuthService(
         if (user.IsDisabled)
             return Result.Failure<AuthResponse>(UserErrors.DisabledUser);
 
+        if (!user.EmailConfirmed)
+            return Result.Failure<AuthResponse>(UserErrors.EmailNotConfirmed);
+
         var result = await _signInManager.PasswordSignInAsync(user, request.Password, false, true);
 
         if (result.Succeeded)
@@ -105,6 +108,7 @@ public class AuthService(
 
         await _context.Doctors.AddAsync(new Doctor
         {
+            Id = userId,
             UserId = userId.ToString(),
             ClinicName = request.ClinicName,
         }, cancellationToken);

@@ -1,0 +1,22 @@
+:host { display: block; flex: 1; min-height: 0; }
+.calendar-grid {
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow-sm);
+}
+.calendar-grid__body { display: flex; overflow-y: auto; flex: 1; scroll-behavior: smooth; position: relative; }
+.timeline { flex-shrink: 0; border-right: 1px solid var(--color-border); position: sticky; left: 0; z-index: 15; background: var(--color-surface); }
+.timeline__hour { position: relative; border-bottom: 1px solid var(--color-border); &:last-child { border-bottom: none; } }
+.timeline__label { position: absolute; top: -7px; right: 8px; font-size: 11px; color: var(--color-text-muted); }
+.day-column { flex: 1; position: relative; border-right: 1px solid var(--color-border); &:last-child { border-right: none; } }
+.day-column__hour-line { border-bottom: 1px solid var(--color-border); &:last-child { border-bottom: none; } }
+.day-column__off {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  color: var(--color-text-muted); font-size: 13px;
+  background: repeating-linear-gradient(45deg, transparent, transparent 10px, var(--color-bg-page) 10px, var(--color-bg-page) 20px);
+}
+.current-time-line {
+  position: absolute; left: 0; right: 0; height: 2px; background: var(--color-danger); z-index: 10; pointer-events: none;
+}
+.current-time-line__dot {
+  position: absolute; left: -4px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--color-danger);
+}

@@ -1,0 +1,46 @@
+<!-- components/reschedule-dialog/reschedule-dialog.component.html -->
+@if (isOpen() && appointment(); as a) {
+  <div class="drawer-backdrop" (click)="onClose()"></div>
+  <div class="drawer">
+    <div class="drawer__header">
+      <h2 class="drawer__title">Reschedule Appointment</h2>
+      <button type="button" class="drawer__close" (click)="onClose()">✕</button>
+    </div>
+
+    <div class="drawer__section">
+      <span class="drawer__label">Current Time</span>
+      <span class="drawer__value">
+        {{ a.slotStart | date:'EEE, MMM d · h:mm a' }} – {{ a.slotEnd | date:'h:mm a' }}
+      </span>
+    </div>
+
+    <label class="form-field">
+      <span class="form-field__label">New Date</span>
+      <input type="date" class="form-field__input" (change)="onDateChange($event)" />
+    </label>
+
+    <div class="form-field">
+      <span class="form-field__label">Available Times</span>
+      @if (loadingIntervals()) {
+        <span class="drawer__value">Loading...</span>
+      } @else if (availableIntervals().length === 0) {
+        <span class="drawer__value">No availability on this day.</span>
+      } @else {
+        <div class="interval-grid">
+          @for (interval of availableIntervals(); track interval.start.getTime()) {
+            <button type="button" class="interval-btn"
+              [class.interval-btn--active]="selectedInterval()?.start?.getTime() === interval.start.getTime()"
+              (click)="onSelectInterval(interval)">
+              {{ interval.start | date:'h:mm a' }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="drawer__actions">
+      <button type="button" class="drawer-btn drawer-btn--primary" [disabled]="!selectedInterval()" (click)="onConfirm()">Confirm</button>
+      <button type="button" class="drawer-btn" (click)="onClose()">Cancel</button>
+    </div>
+  </div>
+}

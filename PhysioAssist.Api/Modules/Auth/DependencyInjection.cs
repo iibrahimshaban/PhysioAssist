@@ -19,6 +19,7 @@ public static class DependencyInjection
             .AddJwtBearerConfig(configuration);
 
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAccountService, AccountService>();
         services.AddSingleton<IJwtProvider, JwtProvider>();
 
         return services;

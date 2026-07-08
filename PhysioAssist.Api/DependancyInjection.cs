@@ -3,28 +3,31 @@ using Hangfire;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi;
+using PhysioAssist.Api.Infrastructure.AutoComplete;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
 using PhysioAssist.Api.Infrastructure.GeminiClient;
 using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
-using PhysioAssist.Api.Modules.PatientModule;
-using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Modules.Auth.Services;
+using PhysioAssist.Api.Modules.DocumentationModule;
+using PhysioAssist.Api.Modules.PatientModule;
+using PhysioAssist.Api.Modules.PatientModule.Services;
+using PhysioAssist.Api.Modules.QueryModule;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
 using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
+using PhysioAssist.Api.Shared.Interfaces;
 using PhysioAssist.Api.Shared.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
-using PhysioAssist.Api.Infrastructure.AutoComplete;
-using PhysioAssist.Api.Modules.PatientModule.Services;
-using PhysioAssist.Api.Modules.QueryModule;
 
 namespace PhysioAssist.Api;
 
@@ -33,13 +36,14 @@ public static class DependancyInjection
     public static IServiceCollection AddGlobalServicesRegistration(this IServiceCollection services, IConfiguration configuration)
     {
         services
-            .AddSwaggerGen()
+            .AddSwaggerConfiguration()
             .AddHttpContextAccessor()
             .AddFluentValidationConfig()
             .AddMapsterConfiguration()
             .AddPermissionAuthorization()
             .AddMailConfig()
             .AddExposedServicesConfig()
+            .AddDocumentationSummarizationConfig()
             .AddAutoCompleteService(configuration)
             .AddEmbeddingConfig()
             .AddAudioTranscriptionConfig()
@@ -52,7 +56,8 @@ public static class DependancyInjection
            .AddAuthModule(configuration)
            .AddSessionModule()
            .AddQueryModuleConfig(configuration)
-           .AddPatientModule();
+           .AddPatientModule()
+           .AddDocumentationModule();
 
         return services;
     }
@@ -67,6 +72,34 @@ public static class DependancyInjection
                     .WithOrigins(configuration.GetSection("AllowedOrigins").Get<string[]>()!)
             )
         );
+
+        return services;
+    }
+    private static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)
+    {
+        services.AddSwaggerGen(options =>
+        {
+            const string schemeId = "Bearer";
+
+            options.AddSecurityDefinition(schemeId, new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "Bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter your JWT token below (no need to type \"Bearer \" — Swagger adds it automatically)."
+            });
+
+            options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecuritySchemeReference(schemeId, document),
+                    new List<string>()
+                }
+            });
+        });
+
 
         return services;
     }
@@ -128,6 +161,32 @@ public static class DependancyInjection
             .ValidateOnStart();
 
         services.AddTransient<ICustomEmailService, EmailService>();
+
+        return services;
+    }
+    private static IServiceCollection AddDocumentationSummarizationConfig(this IServiceCollection services)
+    {
+
+        services.AddOptions<GitHubModelsDocumentationOptions>()
+             .BindConfiguration(GitHubModelsDocumentationOptions.SectionName)
+             .ValidateDataAnnotations()
+             .ValidateOnStart();
+
+        services.AddHttpClient<IDocumentationExtractionService, GitHubModelsDocumentationExtractionService>();
+
+        services.AddOptions<GroqSummarizationOptions>()
+            .BindConfiguration(GroqSummarizationOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<ISessionSummarizationService, GroqSessionSummarizationService>();
+
+        services.AddOptions<GroqRollupSummarizationOptions>()
+            .BindConfiguration(GroqRollupSummarizationOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IRollupSummarizationService, GroqRollupSummarizationService>();
 
         return services;
     }

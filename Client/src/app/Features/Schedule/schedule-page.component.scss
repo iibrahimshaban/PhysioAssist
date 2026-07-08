@@ -1,0 +1,53 @@
+:host {
+  display: block;
+  height: 100%;
+
+  --color-primary: #2563EB;
+  --color-primary-light: #3B82F6;
+  --color-primary-dark: #1D4ED8;
+  --color-secondary: #14B8A6;
+  --color-secondary-dark: #0D9488;
+  --color-bg-page: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94A3B8;
+  --color-border: #E2E8F0;
+  --color-border-strong: #CBD5E1;
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-accent-tint: #EFF6FF;
+
+  --status-booked-bg: #DBEAFE; --status-booked-border: #3B82F6; --status-booked-text: #1D4ED8;
+  --status-completed-bg: #DCFCE7; --status-completed-border: #22C55E; --status-completed-text: #15803D;
+  --status-cancelled-bg: #FEE2E2; --status-cancelled-border: #EF4444; --status-cancelled-text: #B91C1C;
+  --status-noshow-bg: #FEF3C7; --status-noshow-border: #F59E0B; --status-noshow-text: #92400E;
+  --status-available-bg: #ECFDF5; --status-available-border: #10B981;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+
+  background: var(--color-bg-page);
+}
+
+.schedule-page {
+  display: flex; flex-direction: column; height: 100%; padding: 24px 32px; gap: 16px; box-sizing: border-box;
+}
+.schedule-page__toolbar-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.schedule-page__error {
+  background: var(--status-cancelled-bg); color: var(--status-cancelled-text); border: 1px solid var(--status-cancelled-border);
+  border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px;
+}
+.toast-stack {
+  position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 100;
+}
+.toast {
+  background: var(--color-text-primary); color: #fff; padding: 10px 16px; border-radius: var(--radius-sm);
+  font-size: 13.5px; box-shadow: var(--shadow-md); animation: slideUp 0.2s ease-out;
+  &--error { background: var(--color-danger); }
+}
+@keyframes slideUp { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
