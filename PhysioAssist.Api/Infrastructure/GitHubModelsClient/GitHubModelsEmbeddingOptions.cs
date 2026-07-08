@@ -4,7 +4,7 @@ namespace PhysioAssist.Api.Infrastructure.GitHubModelsClient;
 
 public class GitHubModelsEmbeddingOptions
 {
-    public const string SectionName = "GitHubModels";
+    public const string SectionName = "GitHubEmbeddingModels";
     [Required]
     public string Endpoint { get; init; } = "https://models.github.ai/inference/embeddings";
     [Required]

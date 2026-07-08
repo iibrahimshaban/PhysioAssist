@@ -108,6 +108,7 @@ public class AuthService(
 
         await _context.Doctors.AddAsync(new Doctor
         {
+            Id = userId,
             UserId = userId.ToString(),
             ClinicName = request.ClinicName,
         }, cancellationToken);
