@@ -4,7 +4,7 @@
     {
         public Guid DoctorId { get; init; }
         public Guid PatientId { get; init; }
-        public DateTime SlotStart { get; init; }
-        public DateTime SlotEnd { get; init; }
+        public DateTimeOffset SlotStart { get; init; }
+        public DateTimeOffset SlotEnd { get; init; }
     }
 }

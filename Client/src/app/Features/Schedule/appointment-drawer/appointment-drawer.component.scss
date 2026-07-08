@@ -1,0 +1,31 @@
+:host { display: contents; }
+.drawer-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.35); z-index: 40; }
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 380px; background: var(--color-surface);
+  box-shadow: -8px 0 24px rgba(15, 23, 42, 0.12); z-index: 50; padding: 24px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 18px; animation: slideIn 0.2s ease-out;
+}
+@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.drawer__header { display: flex; justify-content: space-between; align-items: center; }
+.drawer__title { margin: 0; font-size: 18px; font-weight: 700; color: var(--color-text-primary); }
+.drawer__close { border: none; background: transparent; font-size: 16px; cursor: pointer; color: var(--color-text-secondary); }
+.drawer__section { display: flex; flex-direction: column; gap: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--color-border); }
+.drawer__label { font-size: 12px; color: var(--color-text-secondary); font-weight: 500; }
+.drawer__value { font-size: 14px; color: var(--color-text-primary); font-weight: 600; }
+.status-pill {
+  align-self: flex-start; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  &--booked { background: var(--status-booked-bg); color: var(--status-booked-text); }
+  &--completed { background: var(--status-completed-bg); color: var(--status-completed-text); }
+  &--cancelled { background: var(--status-cancelled-bg); color: var(--status-cancelled-text); }
+  &--noshow { background: var(--status-noshow-bg); color: var(--status-noshow-text); }
+}
+.drawer__actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+.drawer-btn {
+  height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--color-surface);
+  font-size: 13.5px; font-weight: 600; cursor: pointer; color: var(--color-text-primary); transition: background 0.15s;
+  &:hover { background: var(--color-bg-page); }
+  &--success { background: var(--color-success); color: #fff; border-color: var(--color-success); &:hover { opacity: 0.9; } }
+  &--warning { background: var(--color-warning); color: #fff; border-color: var(--color-warning); &:hover { opacity: 0.9; } }
+  &--danger { background: var(--color-danger); color: #fff; border-color: var(--color-danger); &:hover { opacity: 0.9; } }
+  &--outline-danger { color: var(--color-danger); border-color: var(--color-danger); background: transparent; }
+}

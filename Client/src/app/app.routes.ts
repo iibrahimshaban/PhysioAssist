@@ -74,6 +74,30 @@ export const routes: Routes = [
   {
     path: 'app', // ← protected routes now live under /app
     canActivate: [authGuard],
+     children: [
+    {
+      path: 'account',
+      loadComponent: () =>
+        import('./Features/account/account.component')
+          .then(m => m.AccountComponent)
+    },
+
+    {
+      path: 'patients',
+      canActivate: [permissionGuard],
+      data: { permissions: ['User:create'] },
+      loadComponent: () =>
+        import('./Features/weather/weather.component')
+          .then(m => m.WeatherComponent),
+    },
+
+    {
+      path: 'schedule',
+      loadComponent: () =>
+        import('./Features/Schedule/schedule-page.component')
+          .then(m => m.SchedulePageComponent),
+    },
+  ],
     children: [
       {
         path: 'account',

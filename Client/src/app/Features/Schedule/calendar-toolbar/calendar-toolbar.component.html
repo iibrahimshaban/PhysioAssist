@@ -1,0 +1,20 @@
+<div class="toolbar">
+  <div class="toolbar__heading">
+    <h1 class="toolbar__title">Schedule</h1>
+    <p class="toolbar__subtitle">{{ dateRangeLabel() }}</p>
+  </div>
+  <div class="toolbar__controls">
+    <div class="view-switch">
+      @for (option of viewOptions; track option.mode) {
+        <button type="button" class="view-switch__btn"
+          [class.view-switch__btn--active]="viewMode() === option.mode"
+          (click)="onViewModeSelect(option.mode)">{{ option.label }}</button>
+      }
+    </div>
+    <div class="date-nav">
+      <button type="button" class="date-nav__btn" (click)="onPrevious()" aria-label="Previous">‹</button>
+      <button type="button" class="date-nav__today" (click)="onToday()">Today</button>
+      <button type="button" class="date-nav__btn" (click)="onNext()" aria-label="Next">›</button>
+    </div>
+  </div>
+</div>

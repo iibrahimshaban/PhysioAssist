@@ -5,10 +5,21 @@ namespace PhysioAssist.Api.Modules.Scheduling.helpers
 {
     public static class AvailabilityCalculator
     {
-        public static List<AvailableIntervalDto> CalculateFreeIntervals(DateOnly date,WorkingScheduleDay workingDay,List<ScheduleSlot> existingAppointments)
+        public static List<AvailableIntervalDto> CalculateFreeIntervals(
+            DateOnly date,
+            WorkingScheduleDay workingDay,
+            List<ScheduleSlot> existingAppointments)
         {
-            var windowStart = date.ToDateTime(workingDay.StartTime);
-            var windowEnd = date.ToDateTime(workingDay.EndTime);
+            // Build the working window in UTC
+            var windowStart = new DateTimeOffset(
+                DateTime.SpecifyKind(
+                    date.ToDateTime(workingDay.StartTime),
+                    DateTimeKind.Utc));
+
+            var windowEnd = new DateTimeOffset(
+                DateTime.SpecifyKind(
+                    date.ToDateTime(workingDay.EndTime),
+                    DateTimeKind.Utc));
 
             var result = new List<AvailableIntervalDto>();
             var cursor = windowStart;
@@ -17,16 +28,26 @@ namespace PhysioAssist.Api.Modules.Scheduling.helpers
             {
                 if (appointment.SlotStart > cursor)
                 {
-                    result.Add(new AvailableIntervalDto { Start = cursor, End = appointment.SlotStart });
+                    result.Add(new AvailableIntervalDto
+                    {
+                        Start = cursor,
+                        End = appointment.SlotStart
+                    });
                 }
 
                 if (appointment.SlotEnd > cursor)
+                {
                     cursor = appointment.SlotEnd;
+                }
             }
 
             if (cursor < windowEnd)
             {
-                result.Add(new AvailableIntervalDto { Start = cursor, End = windowEnd });
+                result.Add(new AvailableIntervalDto
+                {
+                    Start = cursor,
+                    End = windowEnd
+                });
             }
 
             return result;

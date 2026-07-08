@@ -1,8 +1,9 @@
 ﻿using PhysioAssist.Api.Modules.Scheduling.DTO;
 using PhysioAssist.Api.Modules.Scheduling.Entities;
-using PhysioAssist.Api.Modules.Scheduling.helpers;
+using PhysioAssist.Api.Modules.Scheduling.Errors;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.ResultPattern;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations
 {
@@ -10,14 +11,16 @@ namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-        public async Task<WorkingScheduleDto> CreateAsync(CreateWorkingScheduleRequest request, CancellationToken cancellationToken = default)
+        public async Task<Result<WorkingScheduleDto>> CreateAsync(CreateWorkingScheduleRequest request, CancellationToken cancellationToken = default)
         {
-            ValidateDays(request.Days);
+            var validation = ValidateDays(request.Days);
+            if (validation.IsFailure)
+                return Result.Failure<WorkingScheduleDto>(validation.Error);
 
             var hasActive = await _unitOfWork.WorkingSchedules.HasActiveScheduleAsync(request.DoctorId, cancellationToken);
 
             if (hasActive)
-                throw new SchedulingConflictException("This doctor already has an active working schedule. Deactivate it before creating a new one.");
+                return Result.Failure<WorkingScheduleDto>(WorkingScheduleErrors.ActiveScheduleAlreadyExists);
 
             var schedule = new WorkingSchedule
             {
@@ -36,23 +39,28 @@ namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations
             await _unitOfWork.WorkingSchedules.AddAsync(schedule);
             await _unitOfWork.SaveAsync(cancellationToken);
 
-            return MapToDto(schedule);
+            return Result.Success(MapToDto(schedule));
         }
 
-        public async Task<WorkingScheduleDto?> GetActiveByDoctorAsync(Guid doctorId, CancellationToken cancellationToken = default)
+        public async Task<Result<WorkingScheduleDto>> GetActiveByDoctorAsync(Guid doctorId, CancellationToken cancellationToken = default)
         {
             var schedule = await _unitOfWork.WorkingSchedules.GetActiveScheduleWithDaysAsync(doctorId, cancellationToken);
-            return schedule is null ? null : MapToDto(schedule);
+
+            return schedule is null
+                ? Result.Failure<WorkingScheduleDto>(WorkingScheduleErrors.NoActiveScheduleFound(doctorId))
+                : Result.Success(MapToDto(schedule));
         }
 
-        public async Task<WorkingScheduleDto> UpdateDaysAsync(Guid workingScheduleId, UpdateWorkingScheduleDaysRequest request, CancellationToken cancellationToken = default)
+        public async Task<Result<WorkingScheduleDto>> UpdateDaysAsync(Guid workingScheduleId, UpdateWorkingScheduleDaysRequest request, CancellationToken cancellationToken = default)
         {
-            ValidateDays(request.Days);
+            var validation = ValidateDays(request.Days);
+            if (validation.IsFailure)
+                return Result.Failure<WorkingScheduleDto>(validation.Error);
 
             var schedule = await _unitOfWork.WorkingSchedules.GetByIdWithDaysAsync(workingScheduleId, cancellationToken);
 
             if (schedule is null)
-                throw new SchedulingNotFoundException($"WorkingSchedule {workingScheduleId} was not found.");
+                return Result.Failure<WorkingScheduleDto>(WorkingScheduleErrors.NotFound(workingScheduleId));
 
             // Replace the day set entirely — simplest correct approach for V1.
             // NOTE: this does NOT touch already-booked ScheduleSlots. Per our earlier
@@ -75,36 +83,53 @@ namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations
 
             await _unitOfWork.SaveAsync(cancellationToken);
 
-            return MapToDto(schedule);
+            return Result.Success(MapToDto(schedule));
         }
 
-        public async Task DeactivateAsync(Guid workingScheduleId, CancellationToken cancellationToken = default)
+        public async Task<Result> DeactivateAsync(Guid workingScheduleId, CancellationToken cancellationToken = default)
         {
             var schedule = await _unitOfWork.WorkingSchedules.GetByIdWithDaysAsync(workingScheduleId, cancellationToken);
 
             if (schedule is null)
-                throw new SchedulingNotFoundException($"WorkingSchedule {workingScheduleId} was not found.");
+                return Result.Failure(WorkingScheduleErrors.NotFound(workingScheduleId));
 
             schedule.IsActive = false;
 
             await _unitOfWork.SaveAsync(cancellationToken);
+
+            return Result.Success();
         }
 
-        private static void ValidateDays(List<WorkingScheduleDayRequest> days)
+        public async Task<Result> DeleteAsync(Guid workingScheduleId, CancellationToken cancellationToken = default)
+        {
+            var schedule = await _unitOfWork.WorkingSchedules.GetByIdWithDaysAsync(workingScheduleId, cancellationToken);
+
+            if (schedule is null)
+                return Result.Failure(WorkingScheduleErrors.NotFound(workingScheduleId));
+
+            _unitOfWork.WorkingSchedules.Delete(schedule);
+            await _unitOfWork.SaveAsync(cancellationToken);
+
+            return Result.Success();
+        }
+
+        private static Result ValidateDays(List<WorkingScheduleDayRequest> days)
         {
             if (days.Count == 0)
-                throw new ArgumentException("At least one working day is required.");
+                return Result.Failure(WorkingScheduleErrors.NoWorkingDaysProvided);
 
             foreach (var day in days)
             {
                 if (day.EndTime <= day.StartTime)
-                    throw new ArgumentException($"{day.Day}: end time must be after start time.");
+                    return Result.Failure(WorkingScheduleErrors.InvalidDayTimeRange(day.Day));
             }
 
             var duplicates = days.GroupBy(d => d.Day).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
 
             if (duplicates.Count > 0)
-                throw new ArgumentException($"Duplicate day(s) in request: {string.Join(", ", duplicates)}");
+                return Result.Failure(WorkingScheduleErrors.DuplicateDays(duplicates));
+
+            return Result.Success();
         }
 
         private static WorkingScheduleDto MapToDto(WorkingSchedule schedule) => new()
