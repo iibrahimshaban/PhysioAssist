@@ -90,20 +90,7 @@ export const routes: Routes = [
         import('./Features/weather/weather.component')
           .then(m => m.WeatherComponent),
     },
-
-    {
-      path: 'schedule',
-      loadComponent: () =>
-        import('./Features/Schedule/schedule-page.component')
-          .then(m => m.SchedulePageComponent),
-    },
-  ],
-    children: [
-      {
-        path: 'account',
-        loadComponent: () =>
-          import('./Features/account/account.component').then((m) => m.AccountComponent),
-      },{
+       {
        path: 'patients',
           children: [
           { path: '', loadComponent: () => import('./Features/Patient/patient-list/patient-list.component').then(m => m.PatientListComponent) },
@@ -112,6 +99,12 @@ export const routes: Routes = [
           { path: ':id', loadComponent: () => import('./Features/Patient/patient-detail/patient-detail.component').then(m => m.PatientDetailComponent) },
         ]
       },
+      {
+      path: 'schedule',
+      loadComponent: () =>
+        import('./Features/Schedule/schedule-page.component')
+          .then(m => m.SchedulePageComponent),
+    },
       { path: 'session', component: SessionComponent },
       { path: 'initial-report', loadComponent: () => import('./Features/initial-report/initial-report.component').then(m => m.InitialReportComponent) }
     ],
