@@ -4,7 +4,6 @@ using PhysioAssist.Api.Modules.PatientModule.DTOs;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Errors;
 using PhysioAssist.Api.Modules.PatientModule.Repositories;
-using PhysioAssist.Api.Shared.Interfaces;
 
 namespace PhysioAssist.Api.Modules.PatientModule.Services
 {
@@ -12,14 +11,12 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
     {
         private readonly IPatientRepo _patientRepo;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
         private readonly IDoctorPatientRepo _doctorPatientRepo;
 
-        public PatientService(IPatientRepo patientRepo, IUnitOfWork unitOfWork, IMapper mapper, IDoctorPatientRepo doctorPatientRepo)
+        public PatientService(IPatientRepo patientRepo, IUnitOfWork unitOfWork, IDoctorPatientRepo doctorPatientRepo)
         {
             _patientRepo = patientRepo;
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
             _doctorPatientRepo = doctorPatientRepo;
         }
 
