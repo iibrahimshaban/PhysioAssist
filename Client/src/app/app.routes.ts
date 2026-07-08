@@ -6,31 +6,73 @@ import { TestprimengComponent } from './Features/testprimeng/testprimeng.compone
 import { noAuthGuard } from './Core/Guards/no-auth-guard';
 import { authGuard } from './Core/Guards/auth-guard';
 import { permissionGuard } from './Core/Guards/permission-guard';
+import { SessionComponent } from './Features/session/session.component';
 
 export const routes: Routes = [
-  { path: '', loadComponent: () => import('./Features/home/home.component').then(m => m.HomeComponent) },
+  {
+    path: '',
+    loadComponent: () => import('./Features/home/home.component').then((m) => m.HomeComponent),
+  },
 
   { path: 'test-error', component: TestErrorComponent },
   { path: 'not-found', component: NotFoundComponent },
   { path: 'prime', component: TestprimengComponent },
   { path: 'server-error', component: ServerErrorComponent },
-  { path: 'unauthorized', loadComponent: () => import('./Shared/Components/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent) },
+  {
+    path: 'unauthorized',
+    loadComponent: () =>
+      import('./Shared/Components/unauthorized/unauthorized.component').then(
+        (m) => m.UnauthorizedComponent,
+      ),
+  },
 
   {
     path: 'auth',
     canActivate: [noAuthGuard],
     children: [
-      { path: 'login',           loadComponent: () => import('./Features/Auth/login/login.component').then(m => m.LoginComponent) },
-      { path: 'register',        loadComponent: () => import('./Features/Auth/register/register.component').then(m => m.RegisterComponent) },
-      { path: 'confirm-email',   loadComponent: () => import('./Features/Auth/confirm-email/confirm-email.component').then(m => m.ConfirmEmailComponent) },
-      { path: 'forgot-password', loadComponent: () => import('./Features/Auth/forget-password/forget-password.component').then(m => m.ForgotPasswordComponent) },
-      { path: 'reset-password',  loadComponent: () => import('./Features/Auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
-      { path: 'verify-otp',      loadComponent: () => import('./Features/Auth/verify-otp/verify-otp.component').then(m => m.VerifyOtpComponent) },
+      {
+        path: 'login',
+        loadComponent: () =>
+          import('./Features/Auth/login/login.component').then((m) => m.LoginComponent),
+      },
+      {
+        path: 'register',
+        loadComponent: () =>
+          import('./Features/Auth/register/register.component').then((m) => m.RegisterComponent),
+      },
+      {
+        path: 'confirm-email',
+        loadComponent: () =>
+          import('./Features/Auth/confirm-email/confirm-email.component').then(
+            (m) => m.ConfirmEmailComponent,
+          ),
+      },
+      {
+        path: 'forgot-password',
+        loadComponent: () =>
+          import('./Features/Auth/forget-password/forget-password.component').then(
+            (m) => m.ForgotPasswordComponent,
+          ),
+      },
+      {
+        path: 'reset-password',
+        loadComponent: () =>
+          import('./Features/Auth/reset-password/reset-password.component').then(
+            (m) => m.ResetPasswordComponent,
+          ),
+      },
+      {
+        path: 'verify-otp',
+        loadComponent: () =>
+          import('./Features/Auth/verify-otp/verify-otp.component').then(
+            (m) => m.VerifyOtpComponent,
+          ),
+      },
     ],
   },
 
   {
-    path: 'app',          // ← protected routes now live under /app
+    path: 'app', // ← protected routes now live under /app
     canActivate: [authGuard],
      children: [
     {
@@ -48,16 +90,25 @@ export const routes: Routes = [
         import('./Features/weather/weather.component')
           .then(m => m.WeatherComponent),
     },
-
-    {
+       {
+       path: 'patients',
+          children: [
+          { path: '', loadComponent: () => import('./Features/Patient/patient-list/patient-list.component').then(m => m.PatientListComponent) },
+          { path: 'create', loadComponent: () => import('./Features/Patient/patient-form/patient-form.component').then(m => m.PatientFormComponent) },
+          { path: 'edit/:id', loadComponent: () => import('./Features/Patient/patient-form/patient-form.component').then(m => m.PatientFormComponent) },
+          { path: ':id', loadComponent: () => import('./Features/Patient/patient-detail/patient-detail.component').then(m => m.PatientDetailComponent) },
+        ]
+      },
+      {
       path: 'schedule',
       loadComponent: () =>
         import('./Features/Schedule/schedule-page.component')
           .then(m => m.SchedulePageComponent),
     },
-  ],
+      { path: 'session', component: SessionComponent },
+      { path: 'initial-report', loadComponent: () => import('./Features/initial-report/initial-report.component').then(m => m.InitialReportComponent) }
+    ],
   },
 
   { path: '**', redirectTo: 'not-found' },
 ];
-

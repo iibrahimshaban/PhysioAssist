@@ -1,4 +1,5 @@
-﻿using PhysioAssist.Api.Modules.PatientModule.Entities;
+﻿using PhysioAssist.Api.Modules.PatientModule.DTOs;
+using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Shared.Interfaces;
 
 namespace PhysioAssist.Api.Modules.PatientModule.Repositories
@@ -9,7 +10,8 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
         //Task UpdatePatientAsync(Patient patient);
         //Task DeletePatientAsync(Patient patient);
         //Task AddPatientAsync(Patient patient);
-
+        Task<Patient> GetByEmailAsync(string email);
+        Task<Patient?> GetByPhoneAsync(string phoneNumber);
         //IQueryable<Patient> GetPatients_Ordered();
     }
 }

@@ -3,13 +3,17 @@ using Hangfire;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi;
+using PhysioAssist.Api.Infrastructure.AutoComplete;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
 using PhysioAssist.Api.Infrastructure.GeminiClient;
 using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
-using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.Auth.Services;
+using PhysioAssist.Api.Modules.PatientModule;
+using PhysioAssist.Api.Modules.PatientModule.Services;
+using PhysioAssist.Api.Modules.QueryModule;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
 using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
@@ -31,12 +35,14 @@ public static class DependancyInjection
     public static IServiceCollection AddGlobalServicesRegistration(this IServiceCollection services, IConfiguration configuration)
     {
         services
-            .AddSwaggerGen()
+            .AddSwaggerConfiguration()
             .AddHttpContextAccessor()
             .AddFluentValidationConfig()
             .AddMapsterConfiguration()
             .AddPermissionAuthorization()
             .AddMailConfig()
+            .AddExposedServicesConfig()
+            .AddAutoCompleteService(configuration)
             .AddEmbeddingConfig()
             .AddAudioTranscriptionConfig()
             .AddDbContextConfiguration(configuration)
@@ -44,8 +50,12 @@ public static class DependancyInjection
             .AddCloudinaryImageHosting(configuration)
             .AddHangfireBGJobs(configuration);
 
-        services.AddAuthModule(configuration);
-        services.AddSessionModule();
+        services
+           .AddAuthModule(configuration)
+           .AddSessionModule()
+           .AddQueryModuleConfig(configuration)
+           .AddPatientModule();
+
         return services;
     }
 
@@ -59,6 +69,34 @@ public static class DependancyInjection
                     .WithOrigins(configuration.GetSection("AllowedOrigins").Get<string[]>()!)
             )
         );
+
+        return services;
+    }
+    private static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)
+    {
+        services.AddSwaggerGen(options =>
+        {
+            const string schemeId = "Bearer";
+
+            options.AddSecurityDefinition(schemeId, new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "Bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter your JWT token below (no need to type \"Bearer \" — Swagger adds it automatically)."
+            });
+
+            options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecuritySchemeReference(schemeId, document),
+                    new List<string>()
+                }
+            });
+        });
+
 
         return services;
     }
@@ -139,8 +177,10 @@ public static class DependancyInjection
         .ValidateOnStart();
 
         services.AddHttpClient<ITranscriptChunkingService, GitHubModelsChunkingService>();
+        services.AddHttpClient<IQueryTranslationService, GitHubModelsQueryTranslationService>();
+        services.AddScoped<ISessionChunkSearchService, SessionChunkSearchService>();
 
-        
+
 
         return services;
     }
@@ -159,7 +199,7 @@ public static class DependancyInjection
         .ValidateOnStart();
 
         services.AddHttpClient<GroqWhisperClient>();
-        services.AddHttpClient<ITranscriptionRefinementService,GroqRefinementClient>();
+        services.AddHttpClient<ITranscriptionRefinementService, GroqRefinementClient>();
 
         //register whisper 
         //services.AddScoped<IAudioTranscriptionService>(sp =>
@@ -199,6 +239,39 @@ public static class DependancyInjection
 
         services.AddHangfireServer();
 
+        return services;
+    }
+
+
+    // Autocomplete services
+    public static IServiceCollection AddAutoCompleteService(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<VocabularySources>(configuration.GetSection("VocabularySources"));
+
+        services.AddSingleton<MultiLanguageTrieRegistry>();
+        services.AddSingleton<MultiLanguageVocabularyLoader>();
+        //services.AddSingleton<VocabularyLoader>();
+        //services.AddSingleton<Trie>(sp =>
+        //{
+        //    var loader = sp.GetRequiredService<VocabularyLoader>();
+        //    return loader.LoadAsync().GetAwaiter().GetResult();
+        //});
+
+
+        // Bootstrap as IHostedService — runs before app accepts requests.
+        services.AddHostedService<VocabularyBootstrapService>();
+
+        services.AddSingleton<IAutoCompleteService, AutoCompleteService>();
+
+
+        // Application is allowed to cache HTTP responses.
+        services.AddResponseCaching();
+
+        return services;
+    }
+    private static IServiceCollection AddExposedServicesConfig(this IServiceCollection services)
+    {
+        services.AddScoped<IPatientQueryService, PatientQueryService>();
         return services;
     }
 }
