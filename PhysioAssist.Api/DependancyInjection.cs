@@ -60,7 +60,8 @@ public static class DependancyInjection
            .AddSessionModule()
            .AddQueryModuleConfig(configuration)
            .AddPatientModule()
-           .AddDocumentationModule();
+           .AddDocumentationModule()
+           .AddSharedServices(configuration);
 
         return services;
     }
