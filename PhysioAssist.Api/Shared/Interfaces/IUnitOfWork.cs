@@ -1,6 +1,17 @@
-﻿namespace PhysioAssist.Api.Shared.Interfaces;
+﻿using PhysioAssist.Api.Modules.Scheduling.Entities;
+using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
 
-public interface IUnitOfWork : IDisposable
+namespace PhysioAssist.Api.Shared.Interfaces;
+
+public interface IUnitOfWork 
 {
+    public IBaseRepository<TEntity> Repository<TEntity>() where TEntity : class;
+
+    IScheduleSlotRepository ScheduleSlots { get; }
+
+    IWorkingScheduleRepository WorkingSchedules { get; }
+
+    IWorkingScheduleDayRepository WorkingScheduleDays { get; }
+
     Task SaveAsync(CancellationToken cancellationToken= default);
 }

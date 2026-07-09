@@ -20,11 +20,11 @@
     "@fortawesome/fontawesome-free": "^7.3.0",
     "@primeuix/themes": "^2.0.3",
     "@tailwindcss/postcss": "^4.3.1",
-    "@types/qrcode": "^1.5.6",
+    "jwt-decode": "^4.0.0",
+    "ngx-image-cropper": "^9.1.6",
     "postcss": "^8.5.15",
     "primeicons": "^7.0.0",
     "primeng": "^21.1.9",
-    "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
     "tailwindcss": "^4.3.1",
     "tslib": "^2.3.0"

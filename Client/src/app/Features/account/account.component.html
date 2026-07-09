@@ -1,0 +1,254 @@
+@if (profile(); as p) {
+  <div class="max-w-5xl mx-auto p-6">
+
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h1 class="text-3xl font-bold">Profile</h1>
+        <p class="text-gray-500 text-sm">Your doctor profile and public info</p>
+      </div>
+      <div class="flex gap-2">
+        @if (!isEditMode()) {
+          <p-button label="Settings" icon="pi pi-cog" severity="secondary" [outlined]="true" (onClick)="openPasswordDialog()" />
+          <p-button label="Edit profile" (onClick)="enterEditMode()" />
+        } @else {
+          <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="cancelEdit()" />
+          <p-button label="Save" [loading]="isSaving()" (onClick)="save()" />
+        }
+      </div>
+    </div>
+
+    <!-- Profile completion progress bar -->
+    @if (p.profileCompletionPercentage < 100) {
+      <div class="mb-6 bg-white rounded-xl border p-4">
+        <div class="flex justify-between text-sm mb-1">
+          <span class="font-medium">Complete your profile</span>
+          <span class="text-gray-500">{{ p.profileCompletionPercentage }}%</span>
+        </div>
+        <p-progressBar [value]="p.profileCompletionPercentage" [showValue]="false" styleClass="h-2" />
+      </div>
+    }
+
+    <!-- Banner + avatar -->
+    <div class="bg-white rounded-xl border overflow-hidden mb-6">
+      <div class="relative h-32 bg-gradient-to-r from-blue-500 to-teal-400">
+        <div class="absolute -bottom-10 left-6">
+          <div class="relative">
+            <div class="w-20 h-20 rounded-full bg-teal-500 text-white flex items-center justify-center text-xl font-bold border-4 border-white overflow-hidden shadow-sm">
+              @if (photoPreviewUrl()) {
+                <img [src]="photoPreviewUrl()" class="w-full h-full object-cover" alt="Profile photo" />
+              } @else {
+                {{ initials }}
+              }
+            </div>
+            @if (isEditMode()) {
+              <label class="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center cursor-pointer border-2 border-white">
+                <input type="file" accept="image/jpeg,image/png" class="hidden" (change)="onPhotoSelected($event)" />
+                <i class="pi pi-camera text-xs"></i>
+              </label>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-12 pb-6 px-6 flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold">{{ p.firstName }} {{ p.lastName }}</h2>
+          <p class="text-gray-500 text-sm">{{ p.title ?? 'Add your title' }}</p>
+        </div>
+        @if (isEditMode() && photoPreviewUrl()) {
+          <p-button label="Remove photo" [text]="true" severity="danger" (onClick)="removePhoto()" />
+        }
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Personal information -->
+      <div class="md:col-span-2 bg-white rounded-xl border p-6">
+        <h3 class="text-xs font-semibold text-gray-400 tracking-wide mb-4">PERSONAL INFORMATION</h3>
+
+        @if (!isEditMode()) {
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-gray-400">Full name</p>
+              <p class="font-medium">{{ p.firstName }} {{ p.lastName }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-400">Title</p>
+              <p class="font-medium">{{ p.title ?? '—' }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-400">Email</p>
+              <p class="font-medium">{{ p.email }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-400">Phone</p>
+              <p class="font-medium">{{ p.phoneNumber ?? '—' }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-400">Clinic</p>
+              <p class="font-medium">{{ p.clinicName ?? '—' }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-400">Clinic address</p>
+              <p class="font-medium">{{ p.clinicAddress ?? '—' }}</p>
+            </div>
+            <div class="col-span-2">
+              <p class="text-sm text-gray-400">About</p>
+              <p class="font-medium">{{ p.about ?? '—' }}</p>
+            </div>
+          </div>
+        } @else {
+          <form [formGroup]="form" class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-gray-500">Username</label>
+              <input pInputText formControlName="userName" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-gray-500">Title</label>
+              <input pInputText formControlName="title" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-gray-500">First name</label>
+              <input pInputText formControlName="firstName" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-gray-500">Last name</label>
+              <input pInputText formControlName="lastName" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-gray-500">Phone</label>
+              <input pInputText formControlName="phoneNumber" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-gray-500">Years of experience</label>
+              <p-inputNumber formControlName="yearsOfExperience" [min]="0" [max]="70" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-gray-500">Clinic name</label>
+              <input pInputText formControlName="clinicName" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-gray-500">Clinic address</label>
+              <input pInputText formControlName="clinicAddress" />
+            </div>
+            <div class="col-span-2 flex flex-col gap-1">
+              <label class="text-sm text-gray-500">About</label>
+              <textarea pTextarea formControlName="about" rows="3"></textarea>
+            </div>
+          </form>
+        }
+      </div>
+
+      <!-- At a glance -->
+      @if (!isEditMode()) {
+      <div class="bg-white rounded-xl border p-6">
+        <h3 class="text-xs font-semibold text-gray-400 tracking-wide mb-4">AT A GLANCE</h3>
+        <div class="space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+              <i class="pi pi-envelope"></i>
+            </div>
+            <div>
+              <p class="text-sm text-gray-400">Email</p>
+              <p class="font-medium">{{ p.email }}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+              <i class="pi pi-phone"></i>
+            </div>
+            <div>
+              <p class="text-sm text-gray-400">Phone</p>
+              <p class="font-medium">{{ p.phoneNumber ?? '—' }}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+              <i class="pi pi-map-marker"></i>
+            </div>
+            <div>
+              <p class="text-sm text-gray-400">Address</p>
+              <p class="font-medium">{{ p.clinicAddress ?? '—' }}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+              <i class="pi pi-calendar"></i>
+            </div>
+            <div>
+              <p class="text-sm text-gray-400">Experience</p>
+              <p class="font-medium">{{ p.yearsOfExperience ? p.yearsOfExperience + ' years' : '—' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+    </div>
+  </div>
+}
+
+<!-- Change password dialog -->
+<p-dialog
+  header="Change password"
+  [(visible)]="isPasswordDialogOpen"
+  [modal]="true"
+  [style]="{ width: '28rem' }">
+
+  <form [formGroup]="passwordForm" class="flex flex-col gap-4">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm text-gray-500">Current password</label>
+      <p-password formControlName="currentPassword" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
+      @if (passwordForm.get('currentPassword')?.touched && passwordForm.get('currentPassword')?.hasError('required')) {
+        <span class="text-red-500 text-xs">Current password is required.</span>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm text-gray-500">New password</label>
+      <p-password formControlName="newPassword" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
+      @if (passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.hasError('minlength')) {
+        <span class="text-red-500 text-xs">Password must be at least 8 characters.</span>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm text-gray-500">Confirm new password</label>
+      <p-password formControlName="confirmPassword" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
+      @if (passwordForm.touched && passwordForm.hasError('passwordsMismatch')) {
+        <span class="text-red-500 text-xs">Passwords do not match.</span>
+      }
+    </div>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="closePasswordDialog()" />
+    <p-button label="Change password" [loading]="isChangingPassword()" (onClick)="submitPasswordChange()" />
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Crop your photo"
+  [(visible)]="isCropperOpen"
+  [modal]="true"
+  [style]="{ width: '28rem' }">
+
+  @if (imageToCrop()) {
+    <image-cropper
+      [imageBase64]="imageToCrop()!"
+      [maintainAspectRatio]="true"
+      [aspectRatio]="1"
+      [roundCropper]="true"
+      format="png"
+      (imageCropped)="onImageCropped($event)">
+    </image-cropper>
+  }
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="cancelCrop()" />
+    <p-button label="Use photo" (onClick)="confirmCrop()" />
+  </ng-template>
+</p-dialog>

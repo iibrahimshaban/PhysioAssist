@@ -1,17 +1,26 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.SemanticKernel.Agents;
+using Microsoft.SemanticKernel.ChatCompletion;
+using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Consts;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
-using PhysioAssist.Api.Shared.Interfaces;
 using PhysioAssist.Api.Shared.SystemPrompts;
 
 namespace PhysioAssist.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class WeatherForecastController(IAudioTranscriptionService transcriptionService) : ControllerBase
+public class WeatherForecastController(
+    IAudioTranscriptionService transcriptionService, 
+    ISessionEmbeddingService sessionEmbeddingService, 
+    ISessionChunkSearchService searchService,
+    ChatCompletionAgent chatCompletionAgent) : ControllerBase
 {
     private readonly IAudioTranscriptionService _transcriptionService = transcriptionService;
+    private readonly ISessionEmbeddingService _sessionEmbeddingService = sessionEmbeddingService;
+    private readonly ISessionChunkSearchService _searchService = searchService;
+    private readonly ChatCompletionAgent _agent = chatCompletionAgent;
 
     [HttpPost("voice-text/initial-report")]
     [RequestSizeLimit(25 * 1024 * 1024)]
@@ -68,6 +77,42 @@ public class WeatherForecastController(IAudioTranscriptionService transcriptionS
 
         return Ok(new { raw = result.Value.RawText });
     }
+    //[HttpPost("generate/{sessionTranscriptionId:guid}")]
+    //public async Task<IActionResult> GenerateEmbeddings(
+    //    Guid sessionTranscriptionId,
+    //    [FromBody] ChunkPreviewRequest request,
+    //    CancellationToken ct)
+    //{
+    //    var result = await _sessionEmbeddingService.GenerateAndStoreEmbeddingAsync(
+    //        sessionTranscriptionId, request.Text, ct);
 
+    //    return result.IsSuccess
+    //        ? Ok(new { Message = "Embeddings generated and stored." })
+    //        : result.ToProblem(); // matches your existing Result -> ProblemDetails pattern
+    //}
+
+    [HttpGet("ask")]
+    public async Task<IActionResult> Ask([FromQuery] string question, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(question))
+            return BadRequest("Question is required.");
+
+        var history = new ChatHistory();
+        history.AddUserMessage(question);
+
+        var responses = new List<string>();
+        await foreach (var item in _agent.InvokeAsync(history, cancellationToken: ct))
+        {
+            var message = item.Message;
+            if (!string.IsNullOrWhiteSpace(message.Content))
+                responses.Add(message.Content);
+        }
+
+        return Ok(new
+        {
+            Question = question,
+            Answer = string.Join("\n", responses)
+        });
+    }
 
 }

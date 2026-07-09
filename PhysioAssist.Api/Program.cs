@@ -1,6 +1,7 @@
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
 using PhysioAssist.Api;
+using PhysioAssist.Api.Modules.DocumentationModule.Seed;
 using PhysioAssist.Api.Shared.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddGlobalServicesRegistration(builder.Configuration);
+
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 var app = builder.Build();
 
@@ -25,6 +28,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowAngular");
+
+app.UseResponseCaching();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -45,5 +50,6 @@ app.UseHangfireDashboard("/jobs", new DashboardOptions
 app.MapControllers();
 
 await DataSeeder.SeedAsync(app.Services);
+await TestDataSeeder.SeedAsync(app.Services);
 
 app.Run();

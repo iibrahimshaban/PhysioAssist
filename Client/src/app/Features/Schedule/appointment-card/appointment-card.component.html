@@ -1,0 +1,26 @@
+<div
+  class="appointment-card"
+  [class.appointment-card--booked]="appointment().status === 'Booked'"
+  [class.appointment-card--completed]="appointment().status === 'Completed'"
+  [class.appointment-card--cancelled]="appointment().status === 'Cancelled'"
+  [class.appointment-card--noshow]="appointment().status === 'NoShow'"
+  [class.appointment-card--dragging]="dragging()"
+  [style.top.px]="top()"
+  [style.height.px]="height()"
+  (click)="onCardClick()"
+  (pointerdown)="onDragHandlePointerDown($event)"
+>
+  <div class="appointment-card__body">
+    <span class="appointment-card__name">Patient {{ shortId(appointment().patientId) }}</span>
+    <span class="appointment-card__meta">{{ timeLabel }} · {{ durationLabel }} · {{ appointment().status }}</span>
+  </div>
+
+  <div class="appointment-card__hover-actions">
+    @if (appointment().status === 'Booked') {
+      <button type="button" class="hover-action hover-action--success" (click)="onQuickComplete($event)" title="Complete">✓</button>
+      <button type="button" class="hover-action hover-action--danger" (click)="onQuickCancel($event)" title="Cancel">✕</button>
+    }
+  </div>
+
+  <div class="appointment-card__resize-handle" (pointerdown)="onResizeHandlePointerDown($event)"></div>
+</div>

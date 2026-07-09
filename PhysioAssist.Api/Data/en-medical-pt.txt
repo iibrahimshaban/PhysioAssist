@@ -1,0 +1,42 @@
+quadriceps|100|muscle
+quadriceps femoris|60|muscle
+quadratus lumborum|55|muscle
+hamstring|100|muscle
+hamstrings|95|muscle
+gastrocnemius|85|muscle
+gluteus maximus|80|muscle
+gluteus medius|75|muscle
+gluteus minimus|60|muscle
+rotator cuff|90|anatomy
+rhomboid|70|muscle
+range of motion|100|assessment
+resistance training|85|intervention
+straight leg raise|80|test
+supraspinatus|75|muscle
+subscapularis|70|muscle
+ACL tear|95|diagnosis
+ACL reconstruction|85|procedure
+adhesive capsulitis|70|diagnosis
+achilles tendinopathy|75|diagnosis
+plantar fasciitis|85|diagnosis
+patellofemoral pain syndrome|80|diagnosis
+lateral epicondylitis|75|diagnosis
+frozen shoulder|85|diagnosis
+sciatica|90|diagnosis
+scoliosis|80|diagnosis
+proprioception|70|concept
+proprioceptive neuromuscular facilitation|60|technique
+manual therapy|85|intervention
+therapeutic exercise|85|intervention
+neuromuscular re-education|70|intervention
+gait training|85|intervention
+balance training|85|intervention
+transfer training|70|intervention
+electrical stimulation|75|modality
+ultrasound therapy|65|modality
+cryotherapy|70|modality
+thermotherapy|65|modality
+kinesio taping|75|technique
+dry needling|75|technique
+soft tissue mobilization|75|technique
+joint mobilization|80|technique

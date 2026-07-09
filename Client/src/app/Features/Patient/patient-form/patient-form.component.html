@@ -1,0 +1,68 @@
+<div class="page-container mx-auto p-6">
+
+  <!-- Header -->
+  <div class="mb-6 flex items-center gap-4">
+    <button (click)="goBack()"
+      class="inline-flex items-center gap-1 text-gray-400 hover:text-gray-600 transition-colors text-sm">
+      <i class="pi pi-arrow-left"></i> Back
+    </button>
+    <div>
+      <h1 class="text-3xl font-bold">{{ isEditMode ? 'Edit Patient' : 'Add Patient' }}</h1>
+      <p class="text-gray-500 mt-1 text-sm">{{ isEditMode ? 'Update patient information.' : 'Register a new patient.' }}</p>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="bg-white rounded-lg shadow p-6 space-y-5">
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">Full Name <span class="text-red-500">*</span></label>
+        <input formControlName="fullName" type="text" placeholder="Enter full name"
+          class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" />
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">Date of Birth <span class="text-red-500">*</span></label>
+        <input formControlName="dateOfBirth" type="date"
+          class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" />
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">Phone Number <span class="text-red-500">*</span></label>
+        <input formControlName="phoneNumber" type="tel" placeholder="Enter phone number"
+          class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" />
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">Gender <span class="text-red-500">*</span></label>
+        <select formControlName="gender"
+          class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100">
+          <option value="0">Male</option>
+          <option value="1">Female</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">Email Address</label>
+        <input formControlName="emailAddress" type="email" placeholder="Enter email address"
+          class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" />
+      </div>
+
+    </div>
+
+    <div class="flex gap-4 mt-6">
+      <button type="submit" [disabled]="isLoading"
+        class="inline-flex items-center gap-2 px-8 py-3 rounded-lg text-white font-semibold text-sm transition-opacity hover:opacity-90"
+        style="background: linear-gradient(135deg, #1a7fd4, #0eb8a0)">
+        <i class="pi pi-check"></i>
+        {{ isEditMode ? 'Update Patient' : 'Create Patient' }}
+      </button>
+      <button type="button" (click)="goBack()"
+        class="inline-flex items-center gap-2 px-8 py-3 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+        Cancel
+      </button>
+    </div>
+
+  </form>
+
+</div>

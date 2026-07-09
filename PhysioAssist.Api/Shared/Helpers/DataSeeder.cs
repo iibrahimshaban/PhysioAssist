@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using PhysioAssist.Api.Modules.Auth.Entities;
+using PhysioAssist.Api.Modules.DocumentationModule.Seed;
+using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Consts;
 using System.Security.Claims;
 
@@ -13,10 +15,13 @@ public static class DataSeeder
 
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         await SeedRolesAsync(roleManager);
         await SeedAdminUserAsync(userManager);
         await SeedAdminPermissionsAsync(roleManager);
+        await DocumentationTemplateSeeder.SeedAsync(context);
+        
     }
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)

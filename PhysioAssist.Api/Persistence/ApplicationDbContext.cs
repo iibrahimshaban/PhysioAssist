@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using PhysioAssist.Api.Modules.Auth.Entities;
+using PhysioAssist.Api.Modules.DocumentationModule.Entities;
 using PhysioAssist.Api.Modules.InitialReportModule.Entities;
 using PhysioAssist.Api.Modules.Intake.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
@@ -20,27 +21,26 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         base.OnModelCreating(builder);
     }
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var entries = ChangeTracker.Entries<AuditableEntity>();
 
-        foreach (var entityEntery in entries)
+        foreach (var entityEntry in entries)
         {
-            var CurrentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
+            var currentUserId = _httpContextAccessor.HttpContext?.User.GetUserId();
 
-            if (entityEntery.State == EntityState.Added)
-                entityEntery.Property(x => x.CreatedById).CurrentValue = CurrentUserId!;
+            if (entityEntry.State == EntityState.Added)
+                entityEntry.Property(x => x.CreatedById).CurrentValue = currentUserId ?? string.Empty;
 
-            if (entityEntery.State == EntityState.Modified)
+            if (entityEntry.State == EntityState.Modified)
             {
-                entityEntery.Property(x => x.UpdatedById).CurrentValue = CurrentUserId;
-                entityEntery.Property(x => x.UpdatedAt).CurrentValue = DateTime.UtcNow;
+                entityEntry.Property(x => x.UpdatedById).CurrentValue = currentUserId;
+                entityEntry.Property(x => x.UpdatedAt).CurrentValue = DateTime.UtcNow;
             }
         }
 
-        return base.SaveChangesAsync(cancellationToken);
+        return await base.SaveChangesAsync(cancellationToken);
     }
-
     //Auth
     public DbSet<OtpEntry> OtpEntries { get; set; }
     public DbSet<Doctor> Doctors { get; set; }
@@ -62,9 +62,17 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Session> Sessions { get; set; }
     public DbSet<SessionTranscription> SessionTranscriptions { get; set; }
     public DbSet<SessionTranscriptionChunk> SessionTranscriptionChunks { get; set; }
+    public DbSet<SessionAttachment> SessionAttachments { get; set; }
 
     // Scheduling
     public DbSet<ScheduleSlot> ScheduleSlots { get; set; }
+    public DbSet<WorkingSchedule> workingSchedules { get; set; }
+    public DbSet<WorkingScheduleDay> workingScheduleDays { get; set; }
+    //documentation 
+    public DbSet<DocumentationSummary> DocumentationSummaries { get; set; }
+    public DbSet<DocumentationTemplate> DocumentationTemplates { get; set; }
+    public DbSet<DoctorDocumentationPreference> DoctorDocumentationPreferences { get; set; }
+    public DbSet<SessionProgressNote> SessionProgressNotes { get; set; }
 
     // Shared
     public DbSet<Notification> Notifications { get; set; }

@@ -1,0 +1,89 @@
+<div class="schedule-page">
+  <div class="schedule-page__toolbar-row">
+    <app-calendar-toolbar
+      [dateRangeLabel]="dateRangeLabel()"
+      [viewMode]="scheduleService.currentView()"
+      (previousClicked)="onPrevious()"
+      (nextClicked)="onNext()"
+      (todayClicked)="onToday()"
+      (viewModeChanged)="scheduleService.setView($event)"
+    />
+    <app-doctor-selector
+      [doctors]="doctors"
+      [selectedDoctorId]="scheduleService.selectedDoctorId()"
+      (doctorSelected)="onDoctorSelected($event)"
+    />
+  </div>
+
+  @if (scheduleService.selectedDoctorId()) {
+    <app-statistics-panel
+      [statistics]="scheduleService.statistics()"
+      [upcomingAppointment]="scheduleService.upcomingAppointment()"
+      [nextAvailableSlot]="scheduleService.nextAvailableSlot()"
+      [workingHours]="scheduleService.workingHoursForSelectedDate()"
+    />
+
+    <app-filters-bar
+      [filters]="scheduleService.filters()"
+      (filtersChanged)="onFiltersChanged($event)"
+      (clearRequested)="scheduleService.clearFilters()"
+    />
+  }
+
+  @if (scheduleService.errorMessage(); as error) {
+    <div class="schedule-page__error">{{ error }}</div>
+  }
+
+  @if (scheduleService.loading()) {
+    <app-loading-skeleton />
+  } @else if (emptyStateKind(); as kind) {
+    <app-empty-state [kind]="kind" />
+  } @else {
+    <app-calendar-grid
+      [selectedDate]="scheduleService.selectedDate()"
+      [viewMode]="scheduleService.currentView()"
+      [appointments]="scheduleService.filteredAppointments()"
+      [availability]="scheduleService.availability()"
+      [workingDays]="scheduleService.workingDays()"
+      (appointmentClicked)="onAppointmentClicked($event)"
+      (intervalClicked)="onIntervalClicked($event)"
+      (rescheduleRequested)="onReschedule($event)"
+      (quickComplete)="onQuickComplete($event)"
+      (quickCancel)="onQuickCancel($event)"
+    />
+  }
+
+  <app-appointment-drawer
+    [appointment]="scheduleService.selectedAppointment()"
+    [isOpen]="scheduleService.isDetailsDrawerOpen()"
+    (closeRequested)="scheduleService.closeDetailsDrawer()"
+    (completeRequested)="onDrawerComplete($event)"
+    (cancelRequested)="onDrawerCancel($event)"
+    (noShowRequested)="onDrawerNoShow($event)"
+    (deleteRequested)="onDrawerDelete($event)"
+    (rescheduleRequested)="onDrawerReschedule($event)"
+  />
+
+  <app-reschedule-dialog
+  [isOpen]="isRescheduleDialogOpen()"
+  [appointment]="reschedulingAppointment()"
+  [workingDays]="scheduleService.workingDays()"
+  (closeRequested)="isRescheduleDialogOpen.set(false)"
+  (confirmRequested)="onRescheduleConfirm($event)"
+  />
+
+  <app-create-appointment-drawer
+    [isOpen]="scheduleService.isCreateDrawerOpen()"
+    [doctorId]="scheduleService.selectedDoctorId()"
+    [prefillStart]="scheduleService.createDrawerPrefill()?.start ?? null"
+    [prefillEnd]="scheduleService.createDrawerPrefill()?.end ?? null"
+    (closeRequested)="scheduleService.closeCreateDrawer()"
+    (createRequested)="onCreateSubmit($event)"
+  />
+
+  <div class="toast-stack">
+    @for (toast of scheduleService.toasts(); track toast.id) {
+      <div class="toast" [class.toast--error]="toast.kind === 'error'">{{ toast.text }}</div>
+    }
+  </div>
+</div>

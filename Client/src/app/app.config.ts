@@ -8,23 +8,19 @@ import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { errorInterceptor } from './Core/Interceptors/error-interceptor';
 import { loadingInterceptor } from './Core/Interceptors/loading-interceptor';
-import { tokenInterceptor } from './Core/Interceptors/token-interceptor';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
+import { authInterceptor } from './Core/Interceptors/ath-interceptor';
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideZonelessChangeDetection(),
-    provideHttpClient(withInterceptors([errorInterceptor, loadingInterceptor, tokenInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor,errorInterceptor, loadingInterceptor])),
     providePrimeNG({
       theme: {
         preset: Aura,
-        options: {
-          prefix: 'p',
-          darkModeSelector: '.dark-mode',
-          cssLayer: false
-        }
       },
     }),
   ],

@@ -3,7 +3,7 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
-    "analytics": false
+    "analytics": "5e6548a5-fb6c-40af-9067-d9d62368daf4"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -35,7 +35,6 @@
             ],
             "styles": [
               "./node_modules/@fortawesome/fontawesome-free/css/all.min.css",
-              "./node_modules/primeicons/primeicons.css",
               "src/styles.css"
             ],
             "scripts": []
@@ -50,8 +49,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "8kB",
-                  "maximumError": "16kB"
+                  "maximumWarning": "4kB",
+                  "maximumError": "10kB"
                 }
               ],
               "outputHashing": "all"
