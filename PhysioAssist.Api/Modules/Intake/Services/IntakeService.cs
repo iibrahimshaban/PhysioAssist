@@ -10,7 +10,7 @@ using PhysioAssist.Api.Modules.Intake.Entities;
 using PhysioAssist.Api.Modules.Intake.Errors;
 using PhysioAssist.Api.Modules.Intake.Repositories;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
-using PhysioAssist.Api.Persistence;
+using PhysioAssist.Api.Modules.PatientModule.Repositories;
 using PhysioAssist.Api.Shared.Enums;
 using PhysioAssist.Api.Shared.Interfaces;
 using PhysioAssist.Api.Shared.QR;
@@ -26,7 +26,8 @@ public class IntakeService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ILogger<IntakeService> logger,
-    ApplicationDbContext context) : IIntakeService
+    IPatientRepo patientRepo,
+    IDoctorPatientRepo doctorPatientRepo) : IIntakeService
 {
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -71,7 +72,8 @@ public class IntakeService(
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IMapper _mapper = mapper;
     private readonly ILogger<IntakeService> _logger = logger;
-    private readonly ApplicationDbContext _context = context;
+    private readonly IPatientRepo _patientRepo = patientRepo;
+    private readonly IDoctorPatientRepo _doctorPatientRepo = doctorPatientRepo;
 
     public async Task<Result> EnsureSchemaBelongsToDoctorAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default)
     {
@@ -407,7 +409,8 @@ public class IntakeService(
             Status = PatientStatus.Active
         };
 
-        _context.Patients.Add(patient);
+        await _patientRepo.AddAsync(patient);
+        await _unitOfWork.SaveAsync(cancellationToken);
 
         var doctorPatient = new DoctorPatient
         {
@@ -419,7 +422,8 @@ public class IntakeService(
             Status = DoctorPatientStatus.Active
         };
 
-        _context.DoctorPatients.Add(doctorPatient);
+        await _doctorPatientRepo.AddAsync(doctorPatient);
+        await _unitOfWork.SaveAsync(cancellationToken);
 
         intake.ConvertedToPatientId = patient.Id;
         intake.Status = IntakeStatus.Converted;
