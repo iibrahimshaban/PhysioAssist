@@ -1,21 +1,32 @@
-<div class="error-page">
-  @if(error(); as e) {
-    <h2>Internal server error</h2>
+<div class="error-page animate-fade-in">
+  <div class="error-card">
+    <div class="error-icon-wrapper">
+      <i class="pi pi-exclamation-triangle"></i>
+    </div>
+    <h1 class="error-title">Internal Server Error</h1>
+    <p class="error-description">Something went wrong on our end. Please try again or contact support if the problem persists.</p>
 
-    <p class="error-message">Error: {{ e.message }}</p>
-    <p class="error-origin">This error comes from the server, not Angular</p>
+    @if(error(); as e) {
+      <div class="error-details">
+        <div class="error-detail-row">
+          <span class="error-detail-label">Error</span>
+          <span class="error-detail-value">{{ e.message }}</span>
+        </div>
+        <div class="error-detail-row">
+          <span class="error-detail-label">Origin</span>
+          <span class="error-detail-value">This error comes from the server, not Angular</span>
+        </div>
 
-    <p class="what-next">What to do next?</p>
-    <ol>
-      <li>Check the network tab in chrome dev tools</li>
-      <li>Reproduce the error in postman. If same error, don't waste time troubleshooting angular code</li>
-    </ol>
+        <details class="error-stack-details">
+          <summary class="error-stack-summary">Stack Trace</summary>
+          <code class="error-stack">{{ e.details }}</code>
+        </details>
+      </div>
+    }
 
-    <h4>Stack trace</h4>
-    <code class="stack-trace">{{ e.details }}</code>
-  }
-
-  <button (click)="reload()" class="btn btn-secondary">
-    <i class="ti ti-refresh"></i> Try again
-  </button>
+    <button class="error-button" (click)="reload()">
+      <i class="pi pi-refresh"></i>
+      Try Again
+    </button>
+  </div>
 </div>

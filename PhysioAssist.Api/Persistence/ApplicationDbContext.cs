@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.DocumentationModule.Entities;
 using PhysioAssist.Api.Modules.InitialReportModule.Entities;
@@ -30,7 +30,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             var currentUserId = _httpContextAccessor.HttpContext?.User.GetUserId();
 
             if (entityEntry.State == EntityState.Added)
-                entityEntry.Property(x => x.CreatedById).CurrentValue = currentUserId ?? string.Empty;
+                entityEntry.Entity.CreatedById = currentUserId ?? entityEntry.Entity.CreatedById;
 
             if (entityEntry.State == EntityState.Modified)
             {

@@ -12,6 +12,7 @@ using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
 using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Modules.DocumentationModule;
+using PhysioAssist.Api.Modules.Intake;
 using PhysioAssist.Api.Modules.PatientModule;
 using PhysioAssist.Api.Modules.PatientModule.Services;
 using PhysioAssist.Api.Modules.QueryModule;
@@ -22,6 +23,7 @@ using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Persistence;
+using PhysioAssist.Api.Shared;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
 using PhysioAssist.Api.Shared.Interfaces;
@@ -54,10 +56,12 @@ public static class DependancyInjection
 
         services
            .AddAuthModule(configuration)
+           .AddIntakeModule()
            .AddSessionModule()
            .AddQueryModuleConfig(configuration)
            .AddPatientModule()
-           .AddDocumentationModule();
+           .AddDocumentationModule()
+           .AddSharedServices(configuration);
 
         return services;
     }
@@ -218,26 +222,16 @@ public static class DependancyInjection
         services
             .AddOptions<GroqOptions>()
             .BindConfiguration(GroqOptions.SectionName)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+            .ValidateDataAnnotations();
 
         services
         .AddOptions<GeminiOptions>()
         .BindConfiguration(GeminiOptions.SectionName)
-        .ValidateDataAnnotations()
-        .ValidateOnStart();
+        .ValidateDataAnnotations();
 
         services.AddHttpClient<GroqWhisperClient>();
         services.AddHttpClient<ITranscriptionRefinementService, GroqRefinementClient>();
 
-        //register whisper 
-        //services.AddScoped<IAudioTranscriptionService>(sp =>
-        //    new RefinedTranscriptionService(
-        //        sp.GetRequiredService<GroqWhisperClient>(),
-        //        sp.GetRequiredService<ITranscriptionRefinementService>()
-        //    ));
-
-        //register gemini flash 
         services.AddHttpClient<IAudioTranscriptionService, GeminiTranscriptionClient>();
 
         return services;
@@ -279,21 +273,11 @@ public static class DependancyInjection
 
         services.AddSingleton<MultiLanguageTrieRegistry>();
         services.AddSingleton<MultiLanguageVocabularyLoader>();
-        //services.AddSingleton<VocabularyLoader>();
-        //services.AddSingleton<Trie>(sp =>
-        //{
-        //    var loader = sp.GetRequiredService<VocabularyLoader>();
-        //    return loader.LoadAsync().GetAwaiter().GetResult();
-        //});
 
-
-        // Bootstrap as IHostedService — runs before app accepts requests.
         services.AddHostedService<VocabularyBootstrapService>();
 
         services.AddSingleton<IAutoCompleteService, AutoCompleteService>();
 
-
-        // Application is allowed to cache HTTP responses.
         services.AddResponseCaching();
 
         return services;

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.SessionModule.Entities;
@@ -136,7 +136,8 @@ public static class TestDataSeeder
                     AudioFileUrl = string.Empty,
                     Language = AudioLanguage.Mixed,
                     DurationSeconds = 300,
-                    Status = TranscriptionStatus.Completed
+                    Status = TranscriptionStatus.Completed,
+                    CreatedById = DefaultUsers.UserId
                 }
             });
         }

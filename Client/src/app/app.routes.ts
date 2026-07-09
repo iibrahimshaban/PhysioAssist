@@ -1,22 +1,15 @@
 import { Routes } from '@angular/router';
 import { NotFoundComponent } from './Shared/Components/not-found/not-found.component';
 import { ServerErrorComponent } from './Shared/Components/server-error/server-error.component';
-import { TestErrorComponent } from './Features/test-error/test-error.component';
-import { TestprimengComponent } from './Features/testprimeng/testprimeng.component';
 import { noAuthGuard } from './Core/Guards/no-auth-guard';
 import { authGuard } from './Core/Guards/auth-guard';
-import { permissionGuard } from './Core/Guards/permission-guard';
-import { SessionComponent } from './Features/session/session.component';
 
 export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./Features/home/home.component').then((m) => m.HomeComponent),
   },
-
-  { path: 'test-error', component: TestErrorComponent },
   { path: 'not-found', component: NotFoundComponent },
-  { path: 'prime', component: TestprimengComponent },
   { path: 'server-error', component: ServerErrorComponent },
   {
     path: 'unauthorized',
@@ -25,7 +18,6 @@ export const routes: Routes = [
         (m) => m.UnauthorizedComponent,
       ),
   },
-
   {
     path: 'auth',
     canActivate: [noAuthGuard],
@@ -70,14 +62,14 @@ export const routes: Routes = [
       },
     ],
   },
-
   {
-    path: 'app',          // ← protected routes now live under /app
+    path: 'app',
     canActivate: [authGuard],
     children: [
+      { path: 'intake', loadChildren: () => import('./Features/intake/intake.routes').then(m => m.intakeRoutes) },
       { path: 'account', loadComponent: () => import('./Features/account/account.component').then(m => m.AccountComponent) },
       {
-      path: 'patients',
+        path: 'patients',
         children: [
           { path: '', loadComponent: () => import('./Features/Patient/patient-list/patient-list.component').then(m => m.PatientListComponent) },
           { path: 'create', loadComponent: () => import('./Features/Patient/patient-form/patient-form.component').then(m => m.PatientFormComponent) },
@@ -87,16 +79,17 @@ export const routes: Routes = [
       },
       { path: 'initial-report', loadComponent: () => import('./Features/initial-report/initial-report.component').then(m => m.InitialReportComponent) },
       {
-      path: 'schedule',
-      loadComponent: () =>
-        import('./Features/Schedule/schedule-page.component')
-          .then(m => m.SchedulePageComponent),
-    },
-      { path: 'session', component: SessionComponent },
-      { path: 'initial-report', loadComponent: () => import('./Features/initial-report/initial-report.component').then(m => m.InitialReportComponent) }
+        path: 'schedule',
+        loadComponent: () =>
+          import('./Features/Schedule/schedule-page.component')
+            .then(m => m.SchedulePageComponent),
+      },
+      { path: 'session', loadComponent: () => import('./Features/session/session.component').then(m => m.SessionComponent) },
     ],
   },
-
-
+  {
+    path: 'public',
+    loadChildren: () => import('./Features/intake/intake.routes').then(m => m.publicIntakeRoutes)
+  },
   { path: '**', redirectTo: 'not-found' },
 ];
