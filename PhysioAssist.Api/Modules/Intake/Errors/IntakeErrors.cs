@@ -47,11 +47,6 @@ public static class IntakeErrors
         "This intake has already been converted to a patient record.",
         StatusCodes.Status409Conflict);
 
-    public static readonly Error ConversionDependencyMissing = new(
-        "Intake.ConversionDependencyMissing",
-        "Patient conversion service is not available. Cannot convert intake to patient.",
-        StatusCodes.Status503ServiceUnavailable);
-
     public static readonly Error SubmissionNotFound = new(
         "Intake.SubmissionNotFound",
         "The requested intake submission was not found.",

@@ -11,24 +11,8 @@ namespace PhysioAssist.Api.Controllers;
 [Route("api/[controller]")]
 public class WeatherForecastController(IAudioTranscriptionService transcriptionService) : ControllerBase
 {
-    private static readonly string[] Summaries =
-    [
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    ];
     private readonly IAudioTranscriptionService _transcriptionService = transcriptionService;
 
-    [HttpGet(Name = "GetWeatherForecast")]
-    [HasPermission(Permissions.GetUsers)]
-    public IEnumerable<WeatherForecast> Get()
-    {
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-        {
-            Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            TemperatureC = Random.Shared.Next(-20, 55),
-            Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-        })
-        .ToArray();
-    }
     [HttpPost("voice-text/initial-report")]
     [RequestSizeLimit(25 * 1024 * 1024)]
     public async Task<IActionResult> TranscribeInitialReport(

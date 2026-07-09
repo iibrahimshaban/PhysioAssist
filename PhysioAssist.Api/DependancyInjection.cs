@@ -23,7 +23,34 @@ public static class DependancyInjection
     public static IServiceCollection AddGlobalServicesRegistration(this IServiceCollection services, IConfiguration configuration)
     {
         services
-            .AddSwaggerGen()
+            .AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
+                {
+                    Title = "PhysioAssist API",
+                    Version = "v1",
+                    Description = "PhysioAssist Backend API"
+                });
+
+                options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = Microsoft.OpenApi.SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = Microsoft.OpenApi.ParameterLocation.Header,
+                    Description = "Enter your JWT token"
+                });
+
+                options.AddSecurityRequirement(doc =>
+                {
+                    var requirement = new Microsoft.OpenApi.OpenApiSecurityRequirement
+                    {
+                        [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", doc)] = []
+                    };
+                    return requirement;
+                });
+            })
             .AddHttpContextAccessor()
             .AddFluentValidationConfig()
             .AddMapsterConfiguration()

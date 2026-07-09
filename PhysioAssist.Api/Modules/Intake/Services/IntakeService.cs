@@ -9,8 +9,12 @@ using PhysioAssist.Api.Modules.Intake.DTOs.Submissions;
 using PhysioAssist.Api.Modules.Intake.Entities;
 using PhysioAssist.Api.Modules.Intake.Errors;
 using PhysioAssist.Api.Modules.Intake.Repositories;
+using PhysioAssist.Api.Modules.PatientModule.Entities;
+using PhysioAssist.Api.Persistence;
+using PhysioAssist.Api.Shared.Enums;
 using PhysioAssist.Api.Shared.Interfaces;
 using PhysioAssist.Api.Shared.QR;
+using Microsoft.Extensions.Logging;
 
 namespace PhysioAssist.Api.Modules.Intake.Services;
 
@@ -20,14 +24,54 @@ public class IntakeService(
     IDynamicFormValidationService dynamicFormValidationService,
     IQRService qrService,
     IUnitOfWork unitOfWork,
-    IMapper mapper) : IIntakeService
+    IMapper mapper,
+    ILogger<IntakeService> logger,
+    ApplicationDbContext context) : IIntakeService
 {
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    private static readonly HashSet<(IntakeStatus, IntakeStatus)> _allowedStatusTransitions = new()
+    {
+        // Pending can go to review states or be rejected/expired
+        (IntakeStatus.Pending, IntakeStatus.InReview),
+        (IntakeStatus.Pending, IntakeStatus.Approved),
+        (IntakeStatus.Pending, IntakeStatus.Rejected),
+        (IntakeStatus.Pending, IntakeStatus.Expired),
+
+        // Submitted can go to review states or be rejected/expired
+        (IntakeStatus.Submitted, IntakeStatus.InReview),
+        (IntakeStatus.Submitted, IntakeStatus.Approved),
+        (IntakeStatus.Submitted, IntakeStatus.Rejected),
+        (IntakeStatus.Submitted, IntakeStatus.Expired),
+
+        // InReview can be approved or rejected (terminal review)
+        (IntakeStatus.InReview, IntakeStatus.Approved),
+        (IntakeStatus.InReview, IntakeStatus.Rejected),
+        (IntakeStatus.InReview, IntakeStatus.Expired),
+
+        // Approved can be converted (via separate endpoint), rejected, or expired
+        (IntakeStatus.Approved, IntakeStatus.Rejected),
+        (IntakeStatus.Approved, IntakeStatus.Expired),
+
+        // Rejected can be re-opened for review or re-approved
+        (IntakeStatus.Rejected, IntakeStatus.InReview),
+        (IntakeStatus.Rejected, IntakeStatus.Approved),
+        (IntakeStatus.Rejected, IntakeStatus.Expired),
+
+        // Converted and Expired are terminal - no transitions allowed
+    };
+
     private readonly IPatientFormSchemaRepository _patientFormSchemaRepository = patientFormSchemaRepository;
     private readonly IPreVisitIntakeRepository _preVisitIntakeRepository = preVisitIntakeRepository;
     private readonly IDynamicFormValidationService _dynamicFormValidationService = dynamicFormValidationService;
     private readonly IQRService _qrService = qrService;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IMapper _mapper = mapper;
+    private readonly ILogger<IntakeService> _logger = logger;
+    private readonly ApplicationDbContext _context = context;
 
     public async Task<Result> EnsureSchemaBelongsToDoctorAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default)
     {
@@ -304,6 +348,17 @@ public class IntakeService(
         if (intake.DoctorId != doctorId)
             return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.UnauthorizedDoctor);
 
+        if (intake.Status == request.NewStatus)
+            return Result.Success(_mapper.Map<PreVisitIntakeResponse>(intake));
+
+        if (!_allowedStatusTransitions.Contains((intake.Status, request.NewStatus)))
+        {
+            _logger.LogWarning("Invalid status transition attempted: {CurrentStatus} -> {RequestedStatus} for intake {IntakeId} by doctor {DoctorId}",
+                intake.Status, request.NewStatus, id, doctorId);
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidStatusTransition);
+        }
+
+        var oldStatus = intake.Status;
         intake.Status = request.NewStatus;
         intake.ReviewedAt = DateTime.UtcNow;
         intake.ReviewedByDoctorId = doctorId;
@@ -311,15 +366,81 @@ public class IntakeService(
         _preVisitIntakeRepository.Update(intake);
         await _unitOfWork.SaveAsync(cancellationToken);
 
+        _logger.LogInformation("Intake {IntakeId} status changed from {OldStatus} to {NewStatus} by doctor {DoctorId}",
+            id, oldStatus, request.NewStatus, doctorId);
+
         var response = _mapper.Map<PreVisitIntakeResponse>(intake);
         return Result.Success(response);
     }
 
-    private static DynamicFormSubmissionDto? DeserializeSubmissionJson(string submissionJson)
+    public async Task<Result<PreVisitIntakeResponse>> ConvertToPatientAsync(Guid id, ConvertIntakeToPatientRequest request, Guid doctorId, CancellationToken cancellationToken = default)
+    {
+        var intake = await _preVisitIntakeRepository.GetByIdAsync(id, cancellationToken);
+        if (intake is null)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.IntakeNotFound);
+
+        if (intake.DoctorId != doctorId)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.UnauthorizedDoctor);
+
+        if (intake.ConvertedToPatientId is not null)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.AlreadyConverted);
+
+        if (intake.Status != IntakeStatus.Approved)
+        {
+            _logger.LogWarning("Convert-to-patient attempted on intake {IntakeId} with status {Status} (requires Approved) by doctor {DoctorId}",
+                id, intake.Status, doctorId);
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidStatusTransition);
+        }
+
+        var token = $"patient-qr-{Guid.NewGuid():N}";
+
+        var email = string.IsNullOrWhiteSpace(intake.PatientEmail)
+            ? $"converted-{Guid.NewGuid():N}@physioassist.local"
+            : intake.PatientEmail;
+
+        var patient = new Patient
+        {
+            FullName = intake.PatientName,
+            EmailAddress = email,
+            PhoneNumber = intake.PatientPhone ?? string.Empty,
+            QRCodeToken = token,
+            Status = PatientStatus.Active
+        };
+
+        _context.Patients.Add(patient);
+
+        var doctorPatient = new DoctorPatient
+        {
+            DoctorId = doctorId,
+            PatientId = patient.Id,
+            IsPrimary = true,
+            AssignedAt = DateTime.UtcNow,
+            AccessLevel = AccessLevel.FullAccess,
+            Status = DoctorPatientStatus.Active
+        };
+
+        _context.DoctorPatients.Add(doctorPatient);
+
+        intake.ConvertedToPatientId = patient.Id;
+        intake.Status = IntakeStatus.Converted;
+        intake.ReviewedAt = DateTime.UtcNow;
+        intake.ReviewedByDoctorId = doctorId;
+
+        _preVisitIntakeRepository.Update(intake);
+        await _unitOfWork.SaveAsync(cancellationToken);
+
+        _logger.LogInformation("Intake {IntakeId} converted to patient {PatientId} by doctor {DoctorId}",
+            id, patient.Id, doctorId);
+
+        var response = _mapper.Map<PreVisitIntakeResponse>(intake);
+        return Result.Success(response);
+    }
+
+    private DynamicFormSubmissionDto? DeserializeSubmissionJson(string submissionJson)
     {
         try
         {
-            return JsonSerializer.Deserialize<DynamicFormSubmissionDto>(submissionJson);
+            return JsonSerializer.Deserialize<DynamicFormSubmissionDto>(submissionJson, _jsonOptions);
         }
         catch (JsonException)
         {
@@ -327,11 +448,11 @@ public class IntakeService(
         }
     }
 
-    private static DynamicFormSchemaDto? DeserializeSchemaJson(string schemaJson)
+    private DynamicFormSchemaDto? DeserializeSchemaJson(string schemaJson)
     {
         try
         {
-            return JsonSerializer.Deserialize<DynamicFormSchemaDto>(schemaJson);
+            return JsonSerializer.Deserialize<DynamicFormSchemaDto>(schemaJson, _jsonOptions);
         }
         catch (JsonException)
         {

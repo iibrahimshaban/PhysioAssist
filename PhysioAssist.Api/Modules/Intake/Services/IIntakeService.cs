@@ -26,4 +26,7 @@ public interface IIntakeService
     Task<Result<IReadOnlyList<PreVisitIntakeResponse>>> GetSubmissionsAsync(Guid doctorId, IntakeStatus? status, CancellationToken cancellationToken = default);
     Task<Result<PreVisitIntakeDetailsResponse>> GetSubmissionDetailsAsync(Guid id, Guid doctorId, CancellationToken cancellationToken = default);
     Task<Result<PreVisitIntakeResponse>> UpdateStatusAsync(Guid id, UpdateIntakeStatusRequest request, Guid doctorId, CancellationToken cancellationToken = default);
+
+    // Intake Conversion
+    Task<Result<PreVisitIntakeResponse>> ConvertToPatientAsync(Guid id, ConvertIntakeToPatientRequest request, Guid doctorId, CancellationToken cancellationToken = default);
 }

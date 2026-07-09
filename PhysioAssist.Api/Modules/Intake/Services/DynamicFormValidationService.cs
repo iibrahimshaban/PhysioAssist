@@ -229,7 +229,7 @@ public class DynamicFormValidationService : IDynamicFormValidationService
                 if (string.IsNullOrWhiteSpace(group.GroupId))
                     return Result.Failure(IntakeErrors.InvalidSubmission);
 
-                if (group.Answers is null || group.Answers.Count == 0)
+                if (group.Answers is null)
                     return Result.Failure(IntakeErrors.InvalidSubmission);
 
                 foreach (var answer in group.Answers)
@@ -346,12 +346,17 @@ public class DynamicFormValidationService : IDynamicFormValidationService
             "email",
             "phone",
             "date",
+            "datetime",
             "select",
             "multiselect",
             "radio",
             "checkbox",
+            "boolean",
             "file",
-            "painpoint"
+            "fileupload",
+            "painpoint",
+            "painscale",
+            "bodyselector"
         };
 
         public static bool IsSupported(string type) => SupportedTypes.Contains(type);

@@ -1,15 +1,65 @@
-<nav class="flex gap-3 uppercase text-lg">
-  <a
-    class="no-underline hover:underline"
-    routerLink="/"
-    routerLinkActive="active"
-    [routerLinkActiveOptions]="{ exact: true }"
-    >Home</a
-  >
-  <a class="no-underline hover:underline" routerLink="/test-error" routerLinkActive="active"
-    >test error</a
-  >
-  <a class="no-underline hover:underline" routerLink="/not-found">notfound</a>
-  <a class="no-underline hover:underline" routerLink="/weather">weather</a>
-  <a class="no-underline hover:underline" routerLink="/prime">weather</a>
-</nav>
+<!-- Top gradient accent line -->
+<div class="header-accent"></div>
+
+<header class="header">
+  <div class="header-inner">
+    <!-- Brand -->
+    <a routerLink="/" class="brand" (click)="closeMobileMenu()">
+      <div class="brand-icon">
+        <i class="pi pi-heart-fill"></i>
+      </div>
+      <span class="brand-text">Physio<span class="brand-highlight">Assist</span></span>
+    </a>
+
+    <!-- Desktop Nav -->
+    <nav class="nav-desktop" aria-label="Main navigation">
+      <a
+        routerLink="/intake/schemas"
+        routerLinkActive="nav-active"
+        class="nav-link"
+        (click)="closeMobileMenu()">
+        <i class="pi pi-file-edit"></i>
+        <span>Schemas</span>
+      </a>
+      <a
+        routerLink="/intake/submissions"
+        routerLinkActive="nav-active"
+        class="nav-link"
+        (click)="closeMobileMenu()">
+        <i class="pi pi-inbox"></i>
+        <span>Submissions</span>
+      </a>
+    </nav>
+
+    <!-- Mobile Menu Toggle -->
+    <button
+      class="mobile-toggle"
+      (click)="toggleMobileMenu()"
+      [attr.aria-expanded]="mobileMenuOpen()"
+      aria-label="Toggle navigation menu">
+      <i class="pi" [class.pi-bars]="!mobileMenuOpen()" [class.pi-times]="mobileMenuOpen()"></i>
+    </button>
+  </div>
+
+  <!-- Mobile Nav -->
+  @if (mobileMenuOpen()) {
+    <nav class="nav-mobile" aria-label="Mobile navigation">
+      <a
+        routerLink="/intake/schemas"
+        routerLinkActive="nav-active"
+        class="nav-link-mobile"
+        (click)="closeMobileMenu()">
+        <i class="pi pi-file-edit"></i>
+        <span>Schemas</span>
+      </a>
+      <a
+        routerLink="/intake/submissions"
+        routerLinkActive="nav-active"
+        class="nav-link-mobile"
+        (click)="closeMobileMenu()">
+        <i class="pi pi-inbox"></i>
+        <span>Submissions</span>
+      </a>
+    </nav>
+  }
+</header>

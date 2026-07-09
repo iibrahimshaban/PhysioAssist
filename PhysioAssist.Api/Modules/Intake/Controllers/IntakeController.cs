@@ -114,4 +114,14 @@ public class IntakeController(IIntakeService intakeService) : ControllerBase
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
+
+    [HttpPost("submissions/{id:guid}/convert-to-patient")]
+    [HasPermission(Permissions.IntakeConvert)]
+    public async Task<IActionResult> ConvertToPatient(Guid id, [FromBody] ConvertIntakeToPatientRequest request, CancellationToken cancellationToken)
+    {
+        var doctorId = Guid.Parse(User.GetUserId()!);
+        var result = await _intakeService.ConvertToPatientAsync(id, request, doctorId, cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
 }
