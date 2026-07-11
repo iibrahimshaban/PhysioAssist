@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.SemanticKernel.Agents;
-using Microsoft.SemanticKernel.ChatCompletion;
 using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Consts;
@@ -14,8 +12,7 @@ namespace PhysioAssist.Api.Controllers;
 public class WeatherForecastController(
     IAudioTranscriptionService transcriptionService, 
     ISessionEmbeddingService sessionEmbeddingService, 
-    ISessionChunkSearchService searchService,
-    ChatCompletionAgent chatCompletionAgent) : ControllerBase
+    ISessionChunkSearchService searchService) : ControllerBase
 {
     private static readonly string[] Summaries =
     [
@@ -24,7 +21,6 @@ public class WeatherForecastController(
     private readonly IAudioTranscriptionService _transcriptionService = transcriptionService;
     private readonly ISessionEmbeddingService _sessionEmbeddingService = sessionEmbeddingService;
     private readonly ISessionChunkSearchService _searchService = searchService;
-    private readonly ChatCompletionAgent _agent = chatCompletionAgent;
 
     [HttpGet(Name = "GetWeatherForecast")]
     [HasPermission(Permissions.GetUsers)]
@@ -106,29 +102,4 @@ public class WeatherForecastController(
     //        ? Ok(new { Message = "Embeddings generated and stored." })
     //        : result.ToProblem(); // matches your existing Result -> ProblemDetails pattern
     //}
-
-    [HttpGet("ask")]
-    public async Task<IActionResult> Ask([FromQuery] string question, CancellationToken ct)
-    {
-        if (string.IsNullOrWhiteSpace(question))
-            return BadRequest("Question is required.");
-
-        var history = new ChatHistory();
-        history.AddUserMessage(question);
-
-        var responses = new List<string>();
-        await foreach (var item in _agent.InvokeAsync(history, cancellationToken: ct))
-        {
-            var message = item.Message;
-            if (!string.IsNullOrWhiteSpace(message.Content))
-                responses.Add(message.Content);
-        }
-
-        return Ok(new
-        {
-            Question = question,
-            Answer = string.Join("\n", responses)
-        });
-    }
-
 }
