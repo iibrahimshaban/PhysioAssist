@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.SemanticKernel.Agents;
+using Microsoft.SemanticKernel.ChatCompletion;
 using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
 using PhysioAssist.Api.Shared.SystemPrompts;
@@ -7,10 +9,6 @@ using PhysioAssist.Api.Shared.SystemPrompts;
 namespace PhysioAssist.Api.Modules.Auth.Controllers;
 
 [Route("api/[controller]")]
-public class WeatherForecastController(
-    IAudioTranscriptionService transcriptionService,
-    ISessionEmbeddingService sessionEmbeddingService,
-    ISessionChunkSearchService searchService) : ControllerBase
 [ApiController]
 public class TestController(IAudioTranscriptionService transcriptionService,
     ISessionEmbeddingService sessionEmbeddingService,
@@ -20,6 +18,7 @@ public class TestController(IAudioTranscriptionService transcriptionService,
     private readonly IAudioTranscriptionService _transcriptionService = transcriptionService;
     private readonly ISessionEmbeddingService _sessionEmbeddingService = sessionEmbeddingService;
     private readonly ISessionChunkSearchService _searchService = searchService;
+    private readonly ChatCompletionAgent _agent = chatCompletionAgent;
 
     [HttpPost("voice-text/initial-report")]
     [RequestSizeLimit(25 * 1024 * 1024)]
