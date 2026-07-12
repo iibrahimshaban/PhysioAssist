@@ -4,7 +4,9 @@ using PhysioAssist.Api.Modules.PatientModule.DTOs;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Errors;
 using PhysioAssist.Api.Modules.PatientModule.Repositories;
+using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Interfaces;
+using System.Security.Claims;
 
 namespace PhysioAssist.Api.Modules.PatientModule.Services
 {
@@ -14,13 +16,26 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IDoctorPatientRepo _doctorPatientRepo;
+        private readonly IScheduleSlotQueryService _scheduleSlotQueryService;
+        private readonly ApplicationDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PatientService(IPatientRepo patientRepo, IUnitOfWork unitOfWork, IMapper mapper, IDoctorPatientRepo doctorPatientRepo)
+        public PatientService(
+            IPatientRepo patientRepo,
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IDoctorPatientRepo doctorPatientRepo,
+            IScheduleSlotQueryService scheduleSlotQueryService,
+            ApplicationDbContext context,
+            IHttpContextAccessor httpContextAccessor)
         {
             _patientRepo = patientRepo;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _doctorPatientRepo = doctorPatientRepo;
+            _scheduleSlotQueryService = scheduleSlotQueryService;
+            _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<Result<PatientResponse>> CreateAsync(PatientRequest request)
@@ -137,6 +152,50 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             await _unitOfWork.SaveAsync(CancellationToken.None);
 
             return Result.Success();
+        }
+
+        public async Task<Result<IEnumerable<PatientWithNextSlotResponse>>> GetPatientsWithSlotsAsync(CancellationToken ct = default)
+        {
+            // 1. Get userId from JWT sub claim
+            var userId = _httpContextAccessor.HttpContext?.User
+    .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Result.Failure<IEnumerable<PatientWithNextSlotResponse>>(PatientErrors.Unauthorized);
+
+            // 2. Resolve userId → doctorId
+            var doctor = await _context.Doctors
+                .FirstOrDefaultAsync(d => d.UserId == userId, ct);
+
+            if (doctor is null)
+                return Result.Failure<IEnumerable<PatientWithNextSlotResponse>>(PatientErrors.NotADoctor);
+
+            // 3. Get today's slots for this doctor
+            var slots = await _scheduleSlotQueryService.GetTodaySlotsForDoctorAsync(doctor.Id, ct);
+
+            // 4. Get all patients
+            var patients = await _patientRepo.GetAllAsync();
+
+            // 5. Build slot lookup
+            var slotLookup = slots.ToDictionary(s => s.PatientId);
+
+            // 6. Merge and order
+            var result = patients
+                .Select(p =>
+                {
+                    var response = p.Adapt<PatientWithNextSlotResponse>();
+                    if (slotLookup.TryGetValue(p.Id, out var slot))
+                    {
+                        response.SlotStart = slot.SlotStart;
+                        response.SlotEnd = slot.SlotEnd;
+                    }
+                    return response;
+                })
+                .OrderBy(p => p.SlotStart.HasValue ? 0 : 1)
+                .ThenBy(p => p.SlotStart)
+                .ToList();
+
+            return Result.Success<IEnumerable<PatientWithNextSlotResponse>>(result);
         }
     }
 }
