@@ -613,15 +613,44 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<Guid>("DoctorId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsDefault")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SchemaHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("SchemaJson")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ShowPainMap")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -629,11 +658,25 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<string>("UpdatedById")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("UpdatedById");
+
+                    b.HasIndex("DoctorId", "IsDefault")
+                        .HasDatabaseName("IX_PatientFormSchema_DoctorId_IsDefault");
+
+                    b.HasIndex("DoctorId", "Name")
+                        .HasDatabaseName("IX_PatientFormSchema_DoctorId_Name");
+
+                    b.HasIndex("DoctorId", "Status")
+                        .HasDatabaseName("IX_PatientFormSchema_DoctorId_Status");
 
                     b.ToTable("PatientFormSchema", "intake");
                 });
@@ -641,8 +684,11 @@ namespace PhysioAssist.Api.Persistence.Migrations
             modelBuilder.Entity("PhysioAssist.Api.Modules.Intake.Entities.PreVisitIntake", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccessTokenHash")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<Guid?>("ConvertedToPatientId")
                         .HasColumnType("uniqueidentifier");
@@ -650,26 +696,51 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<Guid>("DoctorId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("FormSchemaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("FormSchemaVersion")
+                        .HasColumnType("int");
+
                     b.Property<string>("FormSubmissionData")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PainPointsData")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PatientName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("SubmittedAt")
+                    b.Property<DateTime?>("ReviewedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("ReviewedByDoctorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("AccessTokenHash")
+                        .HasDatabaseName("IX_PreVisitIntake_AccessTokenHash");
+
+                    b.HasIndex("ConvertedToPatientId")
+                        .HasDatabaseName("IX_PreVisitIntake_ConvertedToPatientId");
+
+                    b.HasIndex("FormSchemaId")
+                        .HasDatabaseName("IX_PreVisitIntake_FormSchemaId");
+
+                    b.HasIndex("DoctorId", "Status", "SubmittedAt")
+                        .HasDatabaseName("IX_PreVisitIntake_DoctorId_Status_SubmittedAt");
 
                     b.ToTable("PreVisitIntake", "intake");
                 });
@@ -716,7 +787,7 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<DateTime>("DateOfBirth")
+                    b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("EmailAddress")
@@ -734,8 +805,10 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<string>("Occupation")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -1271,6 +1344,17 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Navigation("CreatedBy");
 
                     b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Intake.Entities.PreVisitIntake", b =>
+                {
+                    b.HasOne("PhysioAssist.Api.Modules.Intake.Entities.PatientFormSchema", "FormSchema")
+                        .WithMany()
+                        .HasForeignKey("FormSchemaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FormSchema");
                 });
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.PatientModule.Entities.DoctorPatient", b =>

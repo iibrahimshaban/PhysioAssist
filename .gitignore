@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Visual Studio Code workspace
+.vscode/
+
+# Environment-specific settings (may contain secrets)
+appsettings.Development.json

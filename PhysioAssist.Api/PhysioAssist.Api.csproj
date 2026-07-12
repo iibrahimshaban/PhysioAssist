@@ -6,6 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>4afe5434-e92c-4a54-b4e0-783ab1c4122a</UserSecretsId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Modules\QueryModule\Entities\**" />
+    <Content Remove="Modules\QueryModule\Entities\**" />
+    <EmbeddedResource Remove="Modules\QueryModule\Entities\**" />
+    <None Remove="Modules\QueryModule\Entities\**" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.29.2" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
@@ -26,15 +33,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.77.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.77.0" />
     <PackageReference Include="MimeKit" Version="4.17.0" />
     <PackageReference Include="QuestPDF" Version="2026.7.0" />
     <PackageReference Include="SharpGrip.FluentValidation.AutoValidation.Mvc" Version="2.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Modules\QueryModule\Entities\" />
   </ItemGroup>
 
 </Project>
