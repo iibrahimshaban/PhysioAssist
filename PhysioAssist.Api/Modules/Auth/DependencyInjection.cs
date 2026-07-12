@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddSingleton<IJwtProvider, JwtProvider>();
+        services.AddScoped<IAuthQueryService, AuthQueryService>();
 
         return services;
     }

@@ -4,7 +4,6 @@ using PhysioAssist.Api.Modules.PatientModule.DTOs;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Errors;
 using PhysioAssist.Api.Modules.PatientModule.Repositories;
-using PhysioAssist.Api.Shared.Interfaces;
 
 namespace PhysioAssist.Api.Modules.PatientModule.Services
 {
@@ -12,14 +11,12 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
     {
         private readonly IPatientRepo _patientRepo;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
         private readonly IDoctorPatientRepo _doctorPatientRepo;
 
-        public PatientService(IPatientRepo patientRepo, IUnitOfWork unitOfWork, IMapper mapper, IDoctorPatientRepo doctorPatientRepo)
+        public PatientService(IPatientRepo patientRepo, IUnitOfWork unitOfWork, IDoctorPatientRepo doctorPatientRepo)
         {
             _patientRepo = patientRepo;
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
             _doctorPatientRepo = doctorPatientRepo;
         }
 
@@ -44,7 +41,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             return Result.Success(result.Adapt<IEnumerable<PatientResponse>>());
         }
 
-        public async Task<Result<PatientResponse>> GetByIdAsync(int patientId)
+        public async Task<Result<PatientResponse>> GetByIdAsync(Guid patientId)
         {
             var patient = await _patientRepo.GetByIdAsync(patientId);
             if (patient is null)
@@ -53,7 +50,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             return Result.Success(patient.Adapt<PatientResponse>());
         }
 
-        public async Task<Result<PatientResponse>> UpdateAsync(int patientId, PatientRequest request)
+        public async Task<Result<PatientResponse>> UpdateAsync(Guid patientId, PatientRequest request)
         {
             var patient = await _patientRepo.GetByIdAsync(patientId);
             if (patient is null)
@@ -66,7 +63,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             return Result.Success(patient.Adapt<PatientResponse>());
         }
 
-        public async Task<Result> DeleteAsync(int patientId)
+        public async Task<Result> DeleteAsync(Guid patientId)
         {
             var patient = await _patientRepo.GetByIdAsync(patientId);
             if (patient is null)
@@ -78,7 +75,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             return Result.Success();
         }
 
-        public async Task<Result> UpdateStatusAsync(int patientId, PatientStatus status)
+        public async Task<Result> UpdateStatusAsync(Guid patientId, PatientStatus status)
         {
             var patient = await _patientRepo.GetByIdAsync(patientId);
             if (patient is null)

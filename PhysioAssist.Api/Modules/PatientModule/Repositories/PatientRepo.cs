@@ -27,7 +27,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
             return await _context.Patients.ToListAsync();
         }
 
-        public async Task<Patient?> GetByIdAsync(int id)
+        public async Task<Patient?> GetByIdAsync(Guid id)
         {
             return await _context.Patients.FindAsync(id);
         }

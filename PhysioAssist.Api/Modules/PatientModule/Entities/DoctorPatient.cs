@@ -8,5 +8,6 @@ public class DoctorPatient
     public DateTime AssignedAt { get; set; }
     public AccessLevel AccessLevel { get; set; }
     public DoctorPatientStatus Status { get; set; } = DoctorPatientStatus.Active;
+    public PatientCategory Category { get; set; } 
     public Patient Patient { get; set; } = default!;
 }

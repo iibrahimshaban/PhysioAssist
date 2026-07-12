@@ -14,6 +14,14 @@ public static class Permissions
 
     public const string Results = "results:Read";
 
+    public const string IntakeRead = "Intake:Read";
+    public const string IntakeManageForms = "Intake:ManageForms";
+    public const string IntakeReview = "Intake:Review";
+    public const string IntakeConvert = "Intake:Convert";
+
+    public const string QRGenerate = "QR:Generate";
+    public const string QRValidate = "QR:Validate";
+
     public static IList<string?> GetAllPermissions() =>
         [.. typeof(Permissions).GetFields().Select(field => field.GetValue(field) as string)];
 }
