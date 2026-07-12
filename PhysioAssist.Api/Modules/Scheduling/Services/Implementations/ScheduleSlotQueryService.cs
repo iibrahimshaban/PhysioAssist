@@ -8,17 +8,13 @@ public class ScheduleSlotQueryService(ApplicationDbContext context) : IScheduleS
 {
     private readonly ApplicationDbContext _context = context;
 
-    public async Task<List<ScheduleSlotResult>> GetTodaySlotsForDoctorAsync(Guid doctorId, CancellationToken ct = default)
+    public async Task<List<ScheduleSlotResult>> GetUpcomingSlotsForDoctorAsync(Guid doctorId, CancellationToken ct = default)
     {
-        var today = DateTime.UtcNow.Date;
-        var tomorrow = today.AddDays(1);
-
         return await _context.ScheduleSlots
             .Where(s =>
                 s.DoctorId == doctorId &&
-                s.SlotStart >= today &&
-                s.SlotStart < tomorrow &&
-                (s.Status == SlotStatus.Booked || s.Status == SlotStatus.Completed))
+                s.SlotStart >= DateTime.UtcNow &&
+                s.Status == SlotStatus.Booked)
             .OrderBy(s => s.SlotStart)
             .Select(s => new ScheduleSlotResult(s.PatientId, s.SlotStart, s.SlotEnd))
             .ToListAsync(ct);

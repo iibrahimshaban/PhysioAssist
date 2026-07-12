@@ -4,5 +4,5 @@ public record ScheduleSlotResult(Guid PatientId, DateTime SlotStart, DateTime Sl
 
 public interface IScheduleSlotQueryService
 {
-    Task<List<ScheduleSlotResult>> GetTodaySlotsForDoctorAsync(Guid doctorId, CancellationToken ct = default);
+    Task<List<ScheduleSlotResult>> GetUpcomingSlotsForDoctorAsync(Guid doctorId, CancellationToken ct = default);
 }

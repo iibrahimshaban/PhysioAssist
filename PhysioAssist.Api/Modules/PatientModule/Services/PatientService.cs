@@ -171,7 +171,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
                 return Result.Failure<IEnumerable<PatientWithNextSlotResponse>>(PatientErrors.NotADoctor);
 
             // 3. Get today's slots for this doctor
-            var slots = await _scheduleSlotQueryService.GetTodaySlotsForDoctorAsync(doctor.Id, ct);
+            var slots = await _scheduleSlotQueryService.GetUpcomingSlotsForDoctorAsync(doctor.Id, ct);
 
             // 4. Get all patients
             var patients = await _patientRepo.GetAllAsync();

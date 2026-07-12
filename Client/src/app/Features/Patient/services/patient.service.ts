@@ -44,4 +44,9 @@ export class PatientService {
   updateStatus(id: string, status: number) {
     return this.http.put(`${this.apiUrl}/${id}/status`, status);
   }
+
+  getWithSlots() {
+  return this.http.get<any[]>(`${this.apiUrl}/with-slots`);
+}
+  
 }

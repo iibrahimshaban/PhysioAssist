@@ -26,7 +26,7 @@ export class PatientListComponent implements OnInit {
 
   loadPatients() {
     this.isLoading = true;
-    this.patientService.getAll().subscribe({
+    this.patientService.getWithSlots().subscribe({
       next: (data) => {
         this.patients = data;
         this.isLoading = false;
@@ -40,7 +40,12 @@ export class PatientListComponent implements OnInit {
     });
   }
 
-  goToDetail(id: number) {
+  getInitials(fullName: string): string {
+    if (!fullName) return '?';
+    return fullName.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+  }
+
+  goToDetail(id: string) {
     this.router.navigate(['/patients', id]);
   }
 
