@@ -10,6 +10,7 @@ public class PatientFormSchema : AuditableEntity
     public int Version { get; set; } = 1;
     public FormSchemaStatus Status { get; set; } = FormSchemaStatus.Draft;
     public bool IsDefault { get; set; }
+    public bool ShowPainMap { get; set; } = true;
     public string SchemaHash { get; set; } = string.Empty;
     public DateTime? PublishedAt { get; set; }
 }

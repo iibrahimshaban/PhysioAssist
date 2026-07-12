@@ -13,7 +13,6 @@ import { ConfirmationService } from 'primeng/api';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { DynamicFormEngineService } from '../../services/dynamic-form-engine.service';
-import { BodySvgComponent } from '../../components/body-svg/body-svg.component';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
 import {
   PreVisitIntakeDetailsResponse,
@@ -39,7 +38,6 @@ import {
     ConfirmDialogModule,
     DialogModule,
     DrawerModule,
-    BodySvgComponent,
   ],
   providers: [ConfirmationService],
   template: `
@@ -340,12 +338,12 @@ import {
 
               <div class="p-5">
                 <div class="flex flex-col sm:flex-row gap-6 items-start">
-                  <div class="w-44 sm:w-52 shrink-0 mx-auto sm:mx-0">
+                  <!-- <div class="w-44 sm:w-52 shrink-0 mx-auto sm:mx-0">
                     <app-body-svg
                       [view]="painPointView()"
                       [points]="painPoints()"
                       (viewChange)="painPointView.set($event)" />
-                  </div>
+                  </div> -->
                   <div class="flex-1 w-full">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       @for (point of painPoints(); track $index) {

@@ -1,30 +1,22 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { SelectButtonModule } from 'primeng/selectbutton';
-import { BodySvgComponent } from '../body-svg/body-svg.component';
+import { SliderModule } from 'primeng/slider';
+import { BodySvgComponent, MuscleRegionClick } from '../body-svg/body-svg.component';
 import { PainPointService } from '../../services/pain-point.service';
 import { PainPointDto } from '../../models';
 
 @Component({
   selector: 'app-body-selector',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ButtonModule,
-    InputNumberModule,
-    SelectButtonModule,
-    BodySvgComponent
-  ],
+  imports: [CommonModule, FormsModule, ButtonModule, SliderModule, BodySvgComponent],
   template: `
     <div class="flex flex-col lg:flex-row gap-4" role="group" aria-label="Body pain point selector">
       <div class="w-full lg:w-48 shrink-0">
         <app-body-svg
           [view]="currentView()"
-          [points]="painPointService.painPoints()"
+          [points]="pointsForCurrentView()"
           [selectedIndex]="selectedIndex()"
           (areaClick)="onBodyClick($event)"
           (regionClick)="onRegionClick($event)"
@@ -35,13 +27,13 @@ import { PainPointDto } from '../../models';
         @if (painPointService.painPoints().length === 0) {
           <div class="text-center py-8 lg:py-12 text-surface-400 border-2 border-dashed border-surface-200 rounded-lg" role="status">
             <i class="pi pi-hand-pointer text-2xl mb-2 block"></i>
-            <p class="text-sm">Click on the body diagram to mark pain areas</p>
+            <p class="text-sm">Tap the body diagram to mark where it hurts</p>
           </div>
         }
 
         @if (painPointService.painPoints().length > 0) {
           <div>
-            <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center justify-between mb-3">
               <h4 class="font-semibold text-sm m-0" id="pain-points-heading">
                 Pain Points ({{ painPointService.painPoints().length }})
               </h4>
@@ -56,7 +48,7 @@ import { PainPointDto } from '../../models';
             </div>
 
             @for (point of painPointService.painPoints(); track $index) {
-              <div class="flex flex-wrap items-center gap-2 mb-2 p-2 border border-surface-200 rounded-md bg-white"
+              <div class="flex flex-col gap-2 mb-3 p-3 border border-surface-200 rounded-lg bg-white"
                    role="listitem"
                    [class.ring-2]="$index === selectedIndex()"
                    [class.ring-primary-400]="$index === selectedIndex()"
@@ -65,51 +57,48 @@ import { PainPointDto } from '../../models';
                    (focusin)="selectedIndex.set($index)"
                    (focusout)="selectedIndex.set(null)"
                    tabindex="0">
-                <span class="inline-block w-3 h-3 rounded-full shrink-0"
-                      [style.background-color]="getIntensityColor(point.intensity)"
-                      [attr.aria-hidden]="true">
-                </span>
-                <span class="text-xs text-surface-600 w-28 shrink-0" aria-label="Position">
-                  {{ getPointSummary(point) }} ({{ point.x }}, {{ point.y }})
-                </span>
-                <label class="text-xs text-surface-500 shrink-0" [attr.for]="'intensity-' + $index">Intensity:</label>
-                <p-inputNumber
-                  [inputId]="'intensity-' + $index"
-                  [(ngModel)]="point.intensity"
-                  [min]="1"
-                  [max]="10"
-                  [showButtons]="true"
-                  styleClass="!w-28"
-                  (onInput)="updateIntensity($index, $event.value ?? 5)"
-                  [attr.aria-label]="'Intensity for pain point ' + ($index + 1) + ', current value ' + point.intensity" />
-                <div class="flex flex-wrap items-center gap-2 flex-1 min-w-[220px]">
-                  <input
-                    type="text"
-                    pInputText
-                    [ngModel]="point.anatomicalRegion || point.bodyPart || ''"
-                    (ngModelChange)="updatePointDetail($index, 'anatomicalRegion', $event)"
-                    placeholder="Anatomical region"
-                    class="w-40 text-xs" />
-                  <p-selectButton
-                    [options]="sideOptions"
-                    [ngModel]="point.side || 'bilateral'"
-                    (ngModelChange)="updatePointDetail($index, 'side', $event)"
-                    styleClass="p-selectbutton-sm" />
-                  <input
-                    type="text"
-                    pInputText
-                    [ngModel]="point.specificLocation || ''"
-                    (ngModelChange)="updatePointDetail($index, 'specificLocation', $event)"
-                    placeholder="Location detail"
-                    class="w-36 text-xs" />
+
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-surface-400 shrink-0">
+                      {{ point.bodyPart === 'front' ? 'Front' : 'Back' }}
+                    </span>
+                    @if (point.anatomicalRegion) {
+                      <span class="font-semibold text-sm text-surface-800 truncate">{{ point.anatomicalRegion }}</span>
+                    } @else {
+                      <input
+                        type="text"
+                        pInputText
+                        [ngModel]="point.specificLocation || ''"
+                        (ngModelChange)="updatePointDetail($index, 'specificLocation', $event)"
+                        placeholder="Add a label (optional)"
+                        class="text-sm font-medium w-full" />
+                    }
+                  </div>
+                  <p-button
+                    icon="pi pi-times"
+                    [text]="true"
+                    severity="danger"
+                    size="small"
+                    (onClick)="removePoint($index)"
+                    [attr.aria-label]="'Remove pain point ' + ($index + 1)" />
                 </div>
-                <p-button
-                  icon="pi pi-times"
-                  [text]="true"
-                  severity="danger"
-                  size="small"
-                  (onClick)="removePoint($index)"
-                  [attr.aria-label]="'Remove pain point ' + ($index + 1)" />
+
+                <div class="flex items-center gap-3">
+                  <span class="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+                        [style.background-color]="getIntensityColor(point.intensity)"
+                        [attr.aria-hidden]="true"></span>
+                  <p-slider
+                    [ngModel]="point.intensity"
+                    (ngModelChange)="updateIntensity($index, $event)"
+                    [min]="0"
+                    [max]="10"
+                    styleClass="flex-1"
+                    [attr.aria-label]="'Intensity for ' + (point.anatomicalRegion || 'pain point ' + ($index + 1)) + ', current value ' + point.intensity" />
+                  <span class="text-sm font-semibold w-10 text-right shrink-0" [style.color]="getIntensityColor(point.intensity)">
+                    {{ point.intensity }}/10
+                  </span>
+                </div>
               </div>
             }
           </div>
@@ -117,9 +106,7 @@ import { PainPointDto } from '../../models';
       </div>
     </div>
   `,
-  styles: [`
-    :host { display: block; }
-  `]
+  styles: [`:host { display: block; }`]
 })
 export class BodySelectorComponent {
   protected readonly painPointService = inject(PainPointService);
@@ -127,51 +114,52 @@ export class BodySelectorComponent {
 
   readonly currentView = signal<'front' | 'back'>('front');
   readonly selectedIndex = signal<number | null>(null);
-  readonly sideOptions = [
-    { label: 'Left', value: 'left' },
-    { label: 'Right', value: 'right' },
-    { label: 'Both', value: 'bilateral' },
-    { label: 'Midline', value: 'midline' }
-  ];
+
+  readonly pointsForCurrentView = computed(() =>
+    this.painPointService.painPoints().filter(p => p.bodyPart === this.currentView())
+  );
 
   onBodyClick(coords: { x: number; y: number }): void {
     this.painPointService.addPoint({
       x: coords.x,
       y: coords.y,
       intensity: 5,
-      anatomicalRegion: this.currentView() === 'front' ? 'Anterior' : 'Posterior',
-      side: 'bilateral',
-      specificLocation: 'Marked on body map',
       bodyPart: this.currentView()
+      // no anatomicalRegion — free tap, patient can optionally label it
     });
-    this.selectedIndex.set(this.painPointService.painPoints().length - 1);
+    this.selectedIndex.set(this.pointsForCurrentView().length - 1);
     this.emitChange();
   }
 
-  onRegionClick(muscleId: string): void {
+  onRegionClick(region: MuscleRegionClick): void {
     const view = this.currentView();
-    const regionName = muscleId.replace(/_l$|_r$/i, '').replace(/_/g, ' ');
     this.painPointService.addPoint({
-      x: view === 'front' ? 100 : 100,
-      y: view === 'front' ? 160 : 160,
+      x: region.x,
+      y: region.y,
       intensity: 5,
-      anatomicalRegion: regionName.charAt(0).toUpperCase() + regionName.slice(1),
-      side: muscleId.endsWith('_l') ? 'left' : muscleId.endsWith('_r') ? 'right' : 'bilateral',
-      specificLocation: muscleId,
+      anatomicalRegion: region.name,
+      side: region.id.endsWith('_l') ? 'left' : region.id.endsWith('_r') ? 'right' : undefined,
+      specificLocation: region.id,
       bodyPart: view
     });
-    this.selectedIndex.set(this.painPointService.painPoints().length - 1);
+    this.selectedIndex.set(this.pointsForCurrentView().length - 1);
     this.emitChange();
   }
 
-  removePoint(index: number): void {
-    this.painPointService.removePoint(index);
+  removePoint(viewIndex: number): void {
+    const point = this.pointsForCurrentView()[viewIndex];
+    const globalIndex = this.painPointService.painPoints().indexOf(point);
+    if (globalIndex === -1) return;
+    this.painPointService.removePoint(globalIndex);
     this.selectedIndex.set(null);
     this.emitChange();
   }
 
-  updateIntensity(index: number, intensity: number): void {
-    this.painPointService.updateIntensity(index, intensity);
+  updateIntensity(viewIndex: number, intensity: number): void {
+    const point = this.pointsForCurrentView()[viewIndex];
+    const globalIndex = this.painPointService.painPoints().indexOf(point);
+    if (globalIndex === -1) return;
+    this.painPointService.updateIntensity(globalIndex, intensity);
     this.emitChange();
   }
 
@@ -181,22 +169,17 @@ export class BodySelectorComponent {
     this.emitChange();
   }
 
-  updatePointDetail(index: number, field: 'anatomicalRegion' | 'side' | 'specificLocation', value: string): void {
-    const current = this.painPointService.painPoints()[index];
+  updatePointDetail(viewIndex: number, field: 'anatomicalRegion' | 'specificLocation', value: string): void {
+    const current = this.pointsForCurrentView()[viewIndex];
     if (!current) return;
-    this.painPointService.updatePoint(index, { ...current, [field]: value });
+    const globalIndex = this.painPointService.painPoints().indexOf(current);
+    if (globalIndex === -1) return;
+    this.painPointService.updatePoint(globalIndex, { ...current, [field]: value });
     this.emitChange();
   }
 
   private emitChange(): void {
     this.painPointsChange.emit(this.painPointService.painPoints());
-  }
-
-  getPointSummary(point: PainPointDto): string {
-    const region = point.anatomicalRegion || point.bodyPart || 'Anatomical region';
-    const side = point.side ? ` • ${point.side}` : '';
-    const location = point.specificLocation ? ` • ${point.specificLocation}` : '';
-    return `${region}${side}${location}`;
   }
 
   getIntensityColor(intensity: number): string {

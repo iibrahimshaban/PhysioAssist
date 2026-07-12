@@ -49,7 +49,7 @@ export class PatientFormComponent implements OnInit {
 
     if (this.isEditMode && this.patientId) {
       this.patientService.update(this.patientId, this.form.value).subscribe({
-        next: () => this.router.navigate(['/patients']),
+        next: () => this.router.navigate(['app/patients']),
         error: (err) => {
           console.error(err);
           this.isLoading = false;
@@ -57,7 +57,7 @@ export class PatientFormComponent implements OnInit {
       });
     } else {
       this.patientService.create(this.form.value).subscribe({
-        next: () => this.router.navigate(['/patients']),
+        next: () => this.router.navigate(['app/patients']),
         error: (err) => {
           console.error(err);
           this.isLoading = false;
@@ -67,6 +67,6 @@ export class PatientFormComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/patients']);
+    this.router.navigate(['app/patients']);
   }
 }

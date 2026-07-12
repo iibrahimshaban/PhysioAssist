@@ -19,6 +19,7 @@ public class IntakeMappingConfig : IRegister
             .Map(dest => dest.Version, src => src.Version)
             .Map(dest => dest.Status, src => src.Status)
             .Map(dest => dest.IsDefault, src => src.IsDefault)
+            .Map(dest => dest.ShowPainMap, src => src.ShowPainMap) // ADDED
             .Map(dest => dest.SchemaHash, src => src.SchemaHash)
             .Map(dest => dest.PublishedAt, src => src.PublishedAt)
             .Map(dest => dest.CreatedAt, src => src.CreatedAt)
@@ -39,9 +40,6 @@ public class IntakeMappingConfig : IRegister
             .Map(dest => dest.DoctorId, src => src.DoctorId)
             .Map(dest => dest.FormSchemaId, src => src.FormSchemaId)
             .Map(dest => dest.FormSchemaVersion, src => src.FormSchemaVersion)
-            .Map(dest => dest.PatientName, src => src.PatientName)
-            .Map(dest => dest.PatientEmail, src => src.PatientEmail)
-            .Map(dest => dest.PatientPhone, src => src.PatientPhone)
             .Map(dest => dest.Status, src => src.Status)
             .Map(dest => dest.ConvertedToPatientId, src => src.ConvertedToPatientId)
             .Map(dest => dest.SubmittedAt, src => src.SubmittedAt)
@@ -53,9 +51,6 @@ public class IntakeMappingConfig : IRegister
             .Map(dest => dest.DoctorId, src => src.DoctorId)
             .Map(dest => dest.FormSchemaId, src => src.FormSchemaId)
             .Map(dest => dest.FormSchemaVersion, src => src.FormSchemaVersion)
-            .Map(dest => dest.PatientName, src => src.PatientName)
-            .Map(dest => dest.PatientEmail, src => src.PatientEmail)
-            .Map(dest => dest.PatientPhone, src => src.PatientPhone)
             .Map(dest => dest.FormSubmissionData, src => src.FormSubmissionData)
             .Map(dest => dest.PainPointsData, src => src.PainPointsData)
             .Map(dest => dest.Status, src => src.Status)
@@ -69,18 +64,17 @@ public class IntakeMappingConfig : IRegister
             .Map(dest => dest.Name, src => src.Name)
             .Map(dest => dest.Description, src => src.Description)
             .Map(dest => dest.SchemaJson, src => src.SchemaJson)
-            .Map(dest => dest.IsDefault, src => src.IsDefault);
+            .Map(dest => dest.IsDefault, src => src.IsDefault)
+            .Map(dest => dest.ShowPainMap, src => src.ShowPainMap); // ADDED
 
         config.NewConfig<UpdateFormSchemaRequest, PatientFormSchema>()
             .Map(dest => dest.Name, src => src.Name)
             .Map(dest => dest.Description, src => src.Description)
             .Map(dest => dest.SchemaJson, src => src.SchemaJson)
-            .Map(dest => dest.IsDefault, src => src.IsDefault);
+            .Map(dest => dest.IsDefault, src => src.IsDefault)
+            .Map(dest => dest.ShowPainMap, src => src.ShowPainMap); // ADDED
 
         config.NewConfig<SubmitPreVisitIntakeRequest, PreVisitIntake>()
-            .Map(dest => dest.PatientName, src => src.PatientName)
-            .Map(dest => dest.PatientEmail, src => src.PatientEmail)
-            .Map(dest => dest.PatientPhone, src => src.PatientPhone)
             .Map(dest => dest.FormSubmissionData, src => src.FormSubmissionData)
             .Map(dest => dest.PainPointsData, src => src.PainPointsData);
 
@@ -90,7 +84,8 @@ public class IntakeMappingConfig : IRegister
             .Map(dest => dest.FormName, src => src.Name)
             .Map(dest => dest.FormDescription, src => src.Description)
             .Map(dest => dest.SchemaJson, src => src.SchemaJson)
-            .Map(dest => dest.Version, src => src.Version);
+            .Map(dest => dest.Version, src => src.Version)
+            .Map(dest => dest.ShowPainMap, src => src.ShowPainMap); 
 
         config.NewConfig<PreVisitIntake, PublicIntakeSubmissionResponse>()
             .Map(dest => dest.SubmissionId, src => src.Id)

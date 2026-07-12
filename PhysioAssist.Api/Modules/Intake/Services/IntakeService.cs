@@ -8,13 +8,12 @@ using PhysioAssist.Api.Modules.Intake.DTOs.PublicAccess;
 using PhysioAssist.Api.Modules.Intake.DTOs.Submissions;
 using PhysioAssist.Api.Modules.Intake.Entities;
 using PhysioAssist.Api.Modules.Intake.Errors;
+using PhysioAssist.Api.Modules.Intake.Helpers;
 using PhysioAssist.Api.Modules.Intake.Repositories;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Repositories;
-using PhysioAssist.Api.Shared.Enums;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Consts;
 using PhysioAssist.Api.Shared.QR;
-using Microsoft.Extensions.Logging;
 
 namespace PhysioAssist.Api.Modules.Intake.Services;
 
@@ -118,6 +117,8 @@ public class IntakeService(
         var schema = _mapper.Map<PatientFormSchema>(request);
         schema.DoctorId = doctorId;
         schema.SchemaHash = ComputeSchemaHash(request.SchemaJson);
+        schema.CreatedById = DefaultUsers.UserId;
+        schema.CreatedAt = DateTime.UtcNow;
 
         if (request.IsDefault)
         {
@@ -321,11 +322,22 @@ public class IntakeService(
         return Result.Success(response);
     }
 
-    public async Task<Result<IReadOnlyList<PreVisitIntakeResponse>>> GetSubmissionsAsync(Guid doctorId, IntakeStatus? status, CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<PreVisitIntakeResponse>>> GetSubmissionsAsync(
+    Guid doctorId, IntakeStatus? status, CancellationToken cancellationToken = default)
     {
         var intakes = await _preVisitIntakeRepository.GetByDoctorAsync(doctorId, status, cancellationToken);
-        var responses = _mapper.Map<IReadOnlyList<PreVisitIntakeResponse>>(intakes);
-        return Result.Success(responses);
+
+        var responses = intakes.Select(intake =>
+        {
+            var response = _mapper.Map<PreVisitIntakeResponse>(intake);
+            return response with
+            {
+                PatientName = ExtractInputValuesHelper.ExtractPatientNameSafe(intake.FormSubmissionData),
+                PainRegionCount = ExtractInputValuesHelper.CountPainRegions(intake.PainPointsData)
+            };
+        }).ToList();
+
+        return Result.Success<IReadOnlyList<PreVisitIntakeResponse>>(responses);
     }
 
     public async Task<Result<PreVisitIntakeDetailsResponse>> GetSubmissionDetailsAsync(Guid id, Guid doctorId, CancellationToken cancellationToken = default)
@@ -394,17 +406,34 @@ public class IntakeService(
             return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidStatusTransition);
         }
 
+        // ADDED: pull patient fields out of the dynamic form submission instead of
+        // reading intake.PatientName/PatientEmail/PatientPhone (removed from the entity).
+        var submission = DeserializeSubmissionJson(intake.FormSubmissionData);
+        if (submission is null)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSubmission); // TODO: verify this error constant exists
+
+        var fullName = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_full_name", "text");
+        var email = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_email", "email");
+        var phone = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_phone", "phone");
+        var gender = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_gender", "radio");
+        var dateOfBirth = ExtractInputValuesHelper.ExtractAnswerDate(submission, "question_default_dob", "date");
+
+        if (string.IsNullOrWhiteSpace(fullName))
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSubmission); // TODO: verify this error constant exists — Patient.FullName has no default
+
         var token = $"patient-qr-{Guid.NewGuid():N}";
 
-        var email = string.IsNullOrWhiteSpace(intake.PatientEmail)
+        var resolvedEmail = string.IsNullOrWhiteSpace(email)
             ? $"converted-{Guid.NewGuid():N}@physioassist.local"
-            : intake.PatientEmail;
+            : email;
 
         var patient = new Patient
         {
-            FullName = intake.PatientName,
-            EmailAddress = email,
-            PhoneNumber = intake.PatientPhone ?? string.Empty,
+            FullName = fullName,
+            EmailAddress = resolvedEmail,
+            PhoneNumber = phone ?? string.Empty,
+            Gender = gender ?? string.Empty,
+            DateOfBirth = dateOfBirth, // null when not present in the submission — fine, now nullable
             QRCodeToken = token,
             Status = PatientStatus.Active
         };
