@@ -6,9 +6,6 @@ public class PreVisitIntake
     public Guid DoctorId { get; set; }
     public Guid FormSchemaId { get; set; }
     public int FormSchemaVersion { get; set; }
-    public string PatientName { get; set; } = string.Empty;
-    public string? PatientEmail { get; set; }
-    public string? PatientPhone { get; set; }
     public string FormSubmissionData { get; set; } = string.Empty;
     public string? PainPointsData { get; set; }
     public IntakeStatus Status { get; set; } = IntakeStatus.Pending;

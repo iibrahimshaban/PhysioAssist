@@ -1,0 +1,169 @@
+<section
+  class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6"
+  aria-label="Patient information">
+  <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+    <i class="pi pi-user text-indigo-500 text-xs"></i>
+    Patient Details
+  </h2>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <!-- Full name (required) -->
+    <div class="sm:col-span-2">
+      <label for="patient-name" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+        Full Name <span class="text-rose-500" aria-label="required">*</span>
+      </label>
+      <input
+        id="patient-name"
+        type="text"
+        [ngModel]="fullName()"
+        (ngModelChange)="onFullNameChange($event)"
+        (blur)="onFullNameBlur()"
+        placeholder="e.g. John Doe"
+        [attr.aria-required]="true"
+        [attr.aria-invalid]="nameInvalid()"
+        class="w-full text-sm px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+        [class.border-rose-300]="nameInvalid()"
+        [class.border-slate-200]="!nameInvalid()" />
+      @if (nameInvalid()) {
+        <p class="text-xs text-rose-500 mt-1.5 font-medium flex items-center gap-1 m-0" role="alert">
+          <i class="pi pi-exclamation-circle text-xs"></i>
+          Full name is required to submit your intake.
+        </p>
+      }
+    </div>
+
+    <!-- Date of birth -->
+    <div>
+      <label for="patient-dob" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+        Date of Birth
+      </label>
+      <input
+        id="patient-dob"
+        type="date"
+        [ngModel]="dateOfBirth()"
+        (ngModelChange)="onDateOfBirthChange($event)"
+        [attr.max]="todayIso"
+        class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400" />
+    </div>
+
+    <!-- Gender -->
+    <div>
+      <label for="patient-gender" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+        Gender
+      </label>
+      <select
+        id="patient-gender"
+        [ngModel]="gender()"
+        (ngModelChange)="onGenderChange($event)"
+        class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400">
+        <option value="">Prefer not to say</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+    </div>
+
+    <!-- Email -->
+    <div>
+      <label for="patient-email" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+        Email Address
+      </label>
+      <input
+        id="patient-email"
+        type="email"
+        [ngModel]="email()"
+        (ngModelChange)="onEmailChange($event)"
+        placeholder="john@example.com"
+        class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400" />
+    </div>
+
+    <!-- Phone -->
+    <div>
+      <label for="patient-phone" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+        Phone Number
+      </label>
+      <input
+        id="patient-phone"
+        type="tel"
+        [ngModel]="phone()"
+        (ngModelChange)="onPhoneChange($event)"
+        placeholder="(555) 000-0000"
+        class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400" />
+    </div>
+
+    <!-- Job / occupation -->
+    <div>
+      <label for="patient-job" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+        Job / Occupation
+      </label>
+      <input
+        id="patient-job"
+        type="text"
+        [ngModel]="job()"
+        (ngModelChange)="onJobChange($event)"
+        placeholder="e.g. Software Engineer"
+        class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400" />
+    </div>
+
+    <!-- Address / city -->
+    <div>
+      <label for="patient-address" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+        Address / City
+      </label>
+      <input
+        id="patient-address"
+        type="text"
+        [ngModel]="addressCity()"
+        (ngModelChange)="onAddressCityChange($event)"
+        placeholder="e.g. Giza, Egypt"
+        class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400" />
+    </div>
+
+    <!-- Free time for schedule -->
+    <div class="sm:col-span-2">
+      <label for="patient-free-time" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+        Free Time for Scheduling
+      </label>
+      <input
+        id="patient-free-time"
+        type="text"
+        [ngModel]="freeTime()"
+        (ngModelChange)="onFreeTimeChange($event)"
+        placeholder="e.g. Weekdays after 5pm, weekends anytime"
+        class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400" />
+    </div>
+
+    <!-- Marital status -->
+    <div class="sm:col-span-2">
+      <span class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+        Marital Status
+      </span>
+      <label class="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          [ngModel]="isMarried()"
+          (ngModelChange)="onMarriedChange($event)"
+          class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/30" />
+        Married
+      </label>
+    </div>
+
+    <!-- How did you know us -->
+    <div class="sm:col-span-2">
+      <span class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+        How Did You Know Us?
+      </span>
+      <div class="flex flex-wrap gap-x-5 gap-y-2">
+        @for (option of referralOptions; track option) {
+          <label class="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              [ngModel]="isReferralSelected(option)"
+              (ngModelChange)="toggleReferralSource(option, $event)"
+              class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/30" />
+            {{ option }}
+          </label>
+        }
+      </div>
+    </div>
+  </div>
+</section>

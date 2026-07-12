@@ -20,6 +20,8 @@ public static class DataSeeder
         await SeedRolesAsync(roleManager);
         await SeedAdminUserAsync(userManager);
         await SeedAdminPermissionsAsync(roleManager);
+        await SeedSoloDoctorPermissionsAsync(roleManager);
+
         await DocumentationTemplateSeeder.SeedAsync(context);
         
     }
@@ -77,6 +79,35 @@ public static class DataSeeder
 
             if (!alreadyExists)
                 await roleManager.AddClaimAsync(adminRole, new Claim(Permissions.Type, permission));
+        }
+    }
+    private static async Task SeedSoloDoctorPermissionsAsync(RoleManager<IdentityRole> roleManager)
+    {
+        var soloDoctorRole = await roleManager.FindByNameAsync(DefaultRoles.SoloDoctor);
+
+        if (soloDoctorRole is null) return;
+
+        var existingClaims = await roleManager.GetClaimsAsync(soloDoctorRole);
+
+        var soloDoctorPermissions = new[]
+        {
+        Permissions.IntakeRead,
+        Permissions.IntakeManageForms,
+        Permissions.IntakeReview,
+        Permissions.IntakeConvert,
+        Permissions.QRGenerate,
+        Permissions.QRValidate,
+    };
+
+        foreach (var permission in soloDoctorPermissions)
+        {
+            if (string.IsNullOrEmpty(permission)) continue;
+
+            var alreadyExists = existingClaims.Any(c =>
+                c.Type == Permissions.Type && c.Value == permission);
+
+            if (!alreadyExists)
+                await roleManager.AddClaimAsync(soloDoctorRole, new Claim(Permissions.Type, permission));
         }
     }
 }

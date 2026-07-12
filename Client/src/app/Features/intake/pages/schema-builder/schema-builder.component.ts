@@ -1323,7 +1323,7 @@ export class SchemaBuilderComponent implements OnInit {
           this.schemaVersion.set(created.version);
           this.saving.set(false);
           this.snackbar.success('Schema saved', ['Draft created successfully']);
-          this.router.navigate(['/intake/schemas/edit', created.id], { replaceUrl: true });
+          this.router.navigate(['app/intake/schemas/edit', created.id], { replaceUrl: true });
         },
         error: (err: any) => {
           this.saving.set(false);
@@ -1387,7 +1387,7 @@ export class SchemaBuilderComponent implements OnInit {
         this.schemaVersion.set(published.version);
         this.publishing.set(false);
         this.snackbar.success('Schema published', ['Form schema is now live']);
-        this.router.navigate(['/intake/schemas']);
+        this.router.navigate(['app/intake/schemas']);
       },
       error: (err: any) => {
         this.publishing.set(false);
@@ -1397,6 +1397,6 @@ export class SchemaBuilderComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/intake/schemas']);
+    this.router.navigate(['app/intake/schemas']);
   }
 }

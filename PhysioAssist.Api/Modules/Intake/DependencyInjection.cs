@@ -11,6 +11,8 @@ public static class DependencyInjection
         services.AddScoped<IPreVisitIntakeRepository, PreVisitIntakeRepository>();
         services.AddScoped<IDynamicFormValidationService, DynamicFormValidationService>();
         services.AddScoped<IIntakeService, IntakeService>();
+        services.AddScoped<IPatientFormSchemaSeedingService, PatientFormSchemaSeedingService>(); 
+
 
         return services;
     }

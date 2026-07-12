@@ -41,10 +41,10 @@ export class PatientListComponent implements OnInit {
   }
 
   goToDetail(id: number) {
-    this.router.navigate(['/patients', id]);
+    this.router.navigate(['app/patients', id]);
   }
 
   goToCreate() {
-    this.router.navigate(['/patients/create']);
+    this.router.navigate(['app/patients/create']);
   }
 }

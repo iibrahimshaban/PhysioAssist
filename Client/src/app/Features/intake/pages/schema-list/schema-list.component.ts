@@ -429,7 +429,7 @@ export class SchemaListComponent implements OnInit {
   }
 
   createSchema(): void {
-    this.router.navigate(['/intake/schemas/new']);
+    this.router.navigate(['app/intake/schemas/new']);
   }
 
   handleActionClick(event: Event | undefined, callback: () => void): void {
@@ -439,7 +439,7 @@ export class SchemaListComponent implements OnInit {
   }
 
   editSchema(id: string): void {
-    this.router.navigate(['/intake/schemas/edit', id]);
+    this.router.navigate(['app/intake/schemas/edit', id]);
   }
 
   publishSchema(schema: FormSchemaSummaryResponse): void {

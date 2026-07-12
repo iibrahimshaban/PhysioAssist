@@ -2,13 +2,7 @@ import { Component, inject, OnInit, signal, computed, DestroyRef } from '@angula
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { TagModule } from 'primeng/tag';
-import { CardModule } from 'primeng/card';
-import { MessageModule } from 'primeng/message';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
@@ -20,35 +14,16 @@ import { PreVisitIntakeResponse, IntakeStatus } from '../../models';
   imports: [
     CommonModule,
     FormsModule,
-    TableModule,
-    ButtonModule,
-    InputTextModule,
-    SelectModule,
-    TagModule,
-    CardModule,
-    MessageModule
+    ButtonModule
   ],
   template: `
-    <div class="page-container animate-fade-in" aria-live="polite">
+    <div class="max-w-3xl mx-auto py-6 px-4" aria-live="polite">
 
       <!-- Page Header -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-               style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);">
-            <i class="pi pi-inbox text-white text-lg"></i>
-          </div>
-          <div>
-            <h1 class="page-title" id="submissions-heading">Intake Submissions</h1>
-            <p class="page-subtitle">
-              Review and manage patient intake forms
-              @if (!loading() && !error()) {
-                <span class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-surface-100 text-surface-600">
-                  {{ filteredSubmissions().length }} total
-                </span>
-              }
-            </p>
-          </div>
+        <div>
+          <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Reception queue</h1>
+          <p class="text-sm text-slate-500 mt-1">Patients who completed the pre-visit intake form</p>
         </div>
         <p-button
           label="Refresh"
@@ -61,152 +36,130 @@ import { PreVisitIntakeResponse, IntakeStatus } from '../../models';
         </p-button>
       </div>
 
-      <p-card>
-        <ng-template pTemplate="content">
+      <!-- Error State -->
+      @if (error()) {
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 text-center" role="alert">
+          <div class="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-4 text-2xl">
+            <i class="pi pi-exclamation-triangle"></i>
+          </div>
+          <h3 class="text-base font-bold text-slate-900 mb-1">Failed to load submissions</h3>
+          <p class="text-sm text-slate-500 mb-4">{{ error() }}</p>
+          <p-button label="Try Again" icon="pi pi-refresh" severity="warn" (onClick)="loadSubmissions()" />
+        </div>
+      }
 
-          <!-- Error State -->
-          @if (error()) {
-            <div class="empty-state py-12 animate-fade-in-up" role="alert">
-              <div class="empty-state-icon" style="background: #fef2f2; color: #ef4444; width: 5rem; height: 5rem; font-size: 2rem;">
-                <i class="pi pi-exclamation-triangle"></i>
-              </div>
-              <h3 class="empty-state-title">Failed to load submissions</h3>
-              <p class="empty-state-text">{{ error() }}</p>
-              <p-button label="Try Again" icon="pi pi-refresh" severity="warn" (onClick)="loadSubmissions()" />
+      @if (!error()) {
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
+
+          <!-- Summary row -->
+          @if (!loading() && submissions().length > 0) {
+            <div class="flex flex-wrap gap-2 mb-5">
+              <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+                {{ submissions().length }} total
+              </span>
+              @if (pendingCount() > 0) {
+                <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">
+                  {{ pendingCount() }} pending review
+                </span>
+              }
+              @if (approvedCount() > 0) {
+                <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">
+                  {{ approvedCount() }} approved
+                </span>
+              }
             </div>
           }
 
-          @if (!error()) {
-            <!-- Filters Bar -->
-            <div class="mb-5 flex flex-col sm:flex-row gap-3" role="search" aria-label="Filter submissions">
-              <div class="relative flex-1">
-                <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 text-sm"></i>
-                <input
-                  pInputText
-                  type="search"
-                  [(ngModel)]="searchTerm"
-                  (input)="onSearch()"
-                  placeholder="Search by patient name or email..."
-                  class="w-full !pl-10"
-                  style="padding-left: 2.5rem !important;"
-                  aria-label="Search submissions" />
-              </div>
-              <p-select
-                [options]="statusOptions"
-                [(ngModel)]="selectedStatus"
-                (ngModelChange)="onStatusChange()"
-                placeholder="All statuses"
-                class="w-full sm:w-52"
-                aria-label="Filter by status">
-              </p-select>
+          <!-- Filters -->
+          <div class="mb-5 flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-1">
+              <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+              <input
+                type="search"
+                [ngModel]="searchTerm()"
+                (ngModelChange)="onSearch($event)"
+                placeholder="Search by patient name..."
+                class="w-full text-sm pl-9 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+                aria-label="Search submissions" />
             </div>
+            <select
+              [ngModel]="selectedStatus()"
+              (ngModelChange)="onStatusChange($event)"
+              class="w-full sm:w-52 text-sm px-3 py-2 border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+              aria-label="Filter by status">
+              @for (opt of statusOptions; track opt.label) {
+                <option [ngValue]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
 
-            <!-- Loading Skeleton -->
-            @if (loading()) {
-              <div class="stagger-children">
-                @for (i of [1,2,3,4,5]; track i) {
-                  <div class="skeleton-row">
-                    <div class="flex items-center gap-3" style="width: 200px;">
-                      <div class="skeleton skeleton-circle" style="width: 32px; height: 32px;"></div>
-                      <div class="skeleton skeleton-text" style="width: 120px;"></div>
+          <!-- Loading Skeleton -->
+          @if (loading()) {
+            <div class="space-y-3">
+              @for (i of [1,2,3]; track i) {
+                <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 h-[72px] animate-pulse"></div>
+              }
+            </div>
+          }
+
+          <!-- Card list -->
+          @if (!loading()) {
+            @if (filteredSubmissions().length === 0) {
+              <div class="text-center py-10">
+                <div class="w-16 h-16 rounded-full bg-slate-50 text-slate-300 flex items-center justify-center mx-auto mb-4 text-2xl">
+                  <i class="pi pi-inbox"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 mb-1">
+                  @if (searchTerm() || selectedStatus()) { No matching submissions } @else { No submissions yet }
+                </h3>
+                <p class="text-sm text-slate-500 mb-4">
+                  @if (searchTerm() || selectedStatus()) {
+                    Try adjusting your search or filter criteria.
+                  } @else {
+                    Patient submissions will appear here once forms are completed.
+                  }
+                </p>
+                @if (searchTerm() || selectedStatus()) {
+                  <p-button label="Clear Filters" icon="pi pi-filter-slash" [text]="true" (onClick)="clearFilters()" />
+                }
+              </div>
+            } @else {
+              <div class="space-y-3">
+                @for (row of filteredSubmissions(); track row.id) {
+                  <button
+                    type="button"
+                    (click)="viewSubmission(row)"
+                    class="w-full text-left bg-slate-50 rounded-xl border border-slate-100 p-4 flex items-start sm:items-center justify-between gap-3 hover:border-indigo-200 hover:bg-white hover:shadow-sm transition">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 text-[11px] sm:text-xs font-bold">
+                        {{ getInitials(row.patientName) }}
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <span class="font-bold text-slate-900 capitalize text-sm sm:text-base truncate">{{ row.patientName || 'Unnamed patient' }}</span>
+                          <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+                                [ngClass]="getStatusPillClass(row.status)">
+                            {{ getQueueStatusLabel(row.status) }}
+                          </span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 m-0">
+                          <span class="inline-flex items-center gap-1 whitespace-nowrap">
+                            <i class="pi pi-clock text-[10px]"></i>
+                            Checked in {{ timeAgo(row.submittedAt) }}
+                          </span>
+                          <span class="hidden sm:inline">·</span>
+                          <span class="whitespace-nowrap">{{ row.painRegionCount }} pain region(s)</span>
+                        </p>
+                      </div>
                     </div>
-                    <div class="skeleton skeleton-text" style="width: 160px;"></div>
-                    <div class="skeleton skeleton-text" style="width: 100px;"></div>
-                    <div class="skeleton" style="width: 80px; height: 24px; border-radius: 9999px;"></div>
-                    <div class="skeleton skeleton-text" style="width: 90px;"></div>
-                  </div>
+                    <i class="pi pi-chevron-right text-slate-300 shrink-0 mt-1 sm:mt-0" aria-hidden="true"></i>
+                  </button>
                 }
               </div>
             }
-
-            <!-- Table -->
-            @if (!loading()) {
-              <p-table
-                [value]="filteredSubmissions()"
-                [paginator]="true"
-                [rows]="10"
-                [showCurrentPageReport]="true"
-                currentPageReportTemplate="Showing {first} to {last} of {totalRecords} submissions"
-                [rowHover]="true"
-                styleClass="p-datatable-sm cursor-pointer"
-                [tableStyle]="{ 'min-width': '40rem' }">
-
-                <ng-template pTemplate="header">
-                  <tr>
-                    <th scope="col">Patient</th>
-                    <th scope="col" class="hide-on-mobile">Email</th>
-                    <th scope="col" class="hide-on-mobile">Phone</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Submitted</th>
-                  </tr>
-                </ng-template>
-
-                <ng-template pTemplate="body" let-row>
-                  <tr class="cursor-pointer animate-fade-in" (click)="viewSubmission(row)">
-                    <td>
-                      <div class="flex items-center gap-2.5">
-                        <!-- Patient avatar -->
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white"
-                             [style.background]="getAvatarGradient(row.patientName)">
-                          {{ getInitials(row.patientName) }}
-                        </div>
-                        <span class="font-semibold text-surface-800">{{ row.patientName }}</span>
-                      </div>
-                    </td>
-                    <td class="hide-on-mobile">
-                      <span class="text-surface-500 text-sm">{{ row.patientEmail || '—' }}</span>
-                    </td>
-                    <td class="hide-on-mobile">
-                      <span class="text-surface-500 text-sm">{{ row.patientPhone || '—' }}</span>
-                    </td>
-                    <td>
-                      <div class="flex items-center gap-1.5">
-                        <span class="status-dot" [class]="'status-dot-' + getStatusDotColor(row.status)"></span>
-                        <p-tag
-                          [value]="getStatusLabel(row.status)"
-                          [severity]="getStatusSeverity(row.status)" />
-                      </div>
-                    </td>
-                    <td>
-                      <span class="text-sm text-surface-500">{{ row.submittedAt | date:'MMM d, y' }}</span>
-                    </td>
-                  </tr>
-                </ng-template>
-
-                <ng-template pTemplate="emptymessage">
-                  <tr>
-                    <td colspan="5">
-                      <div class="empty-state py-12">
-                        <div class="empty-state-icon" style="width: 5rem; height: 5rem; font-size: 2rem;">
-                          <i class="pi pi-inbox"></i>
-                        </div>
-                        <h3 class="empty-state-title">
-                          @if (searchTerm() || selectedStatus()) {
-                            No matching submissions
-                          } @else {
-                            No submissions yet
-                          }
-                        </h3>
-                        <p class="empty-state-text">
-                          @if (searchTerm() || selectedStatus()) {
-                            Try adjusting your search or filter criteria.
-                          } @else {
-                            Patient submissions will appear here once forms are completed.
-                          }
-                        </p>
-                        @if (searchTerm() || selectedStatus()) {
-                          <p-button label="Clear Filters" icon="pi pi-filter-slash" [text]="true" (onClick)="clearFilters()" />
-                        }
-                      </div>
-                    </td>
-                  </tr>
-                </ng-template>
-              </p-table>
-            }
           }
-
-        </ng-template>
-      </p-card>
+        </div>
+      }
     </div>
   `,
   styles: [`
@@ -240,10 +193,19 @@ export class SubmissionListComponent implements OnInit {
     const term = this.searchTerm().toLowerCase().trim();
     if (!term) return this.submissions();
     return this.submissions().filter(s =>
-      s.patientName.toLowerCase().includes(term) ||
-      (s.patientEmail?.toLowerCase().includes(term) ?? false)
+      (s.patientName ?? '').toLowerCase().includes(term)
     );
   });
+
+  readonly pendingCount = computed(() =>
+    this.submissions().filter(s =>
+      s.status === IntakeStatus.Pending || s.status === IntakeStatus.Submitted || s.status === IntakeStatus.InReview
+    ).length
+  );
+
+  readonly approvedCount = computed(() =>
+    this.submissions().filter(s => s.status === IntakeStatus.Approved || s.status === IntakeStatus.Converted).length
+  );
 
   ngOnInit(): void {
     this.loadSubmissions();
@@ -266,11 +228,13 @@ export class SubmissionListComponent implements OnInit {
     });
   }
 
-  onSearch(): void {
-    // Filtering is reactive via computed signal
+  onSearch(term: string): void {
+    this.searchTerm.set(term);
+    // Filtering itself is reactive via the filteredSubmissions computed signal.
   }
 
-  onStatusChange(): void {
+  onStatusChange(status: IntakeStatus | null): void {
+    this.selectedStatus.set(status);
     this.loadSubmissions();
   }
 
@@ -281,42 +245,26 @@ export class SubmissionListComponent implements OnInit {
   }
 
   viewSubmission(submission: PreVisitIntakeResponse): void {
-    this.router.navigate(['/intake/submissions', submission.id]);
+    this.router.navigate(['app/intake/submissions', submission.id]);
   }
 
-  getInitials(name: string): string {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  getInitials(name: string | undefined): string {
+    if (!name) return '?';
+    return name.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2);
   }
 
-  getAvatarGradient(name: string): string {
-    const gradients = [
-      'linear-gradient(135deg, #6366f1, #8b5cf6)',
-      'linear-gradient(135deg, #ec4899, #f43f5e)',
-      'linear-gradient(135deg, #14b8a6, #06b6d4)',
-      'linear-gradient(135deg, #f59e0b, #ef4444)',
-      'linear-gradient(135deg, #22c55e, #16a34a)',
-      'linear-gradient(135deg, #3b82f6, #6366f1)',
-    ];
-    const index = name.charCodeAt(0) % gradients.length;
-    return gradients[index];
-  }
-
-  getStatusDotColor(status: IntakeStatus): string {
+  /**
+   * Collapses Pending/Submitted/InReview into a single "Pending review" pill to
+   * match the reception-queue design — this is a queue view, so anything not yet
+   * finalized reads the same way. Adjust the status list here if you want a finer
+   * split (e.g. show "In Review" separately).
+   */
+  getQueueStatusLabel(status: IntakeStatus): string {
     switch (status) {
-      case IntakeStatus.Approved: return 'success';
-      case IntakeStatus.Converted: return 'success';
-      case IntakeStatus.InReview: return 'warning';
-      case IntakeStatus.Rejected: return 'danger';
-      case IntakeStatus.Expired: return 'danger';
-      default: return 'info';
-    }
-  }
-
-  getStatusLabel(status: IntakeStatus): string {
-    switch (status) {
-      case IntakeStatus.Pending: return 'Pending';
-      case IntakeStatus.Submitted: return 'Submitted';
-      case IntakeStatus.InReview: return 'In Review';
+      case IntakeStatus.Pending:
+      case IntakeStatus.Submitted:
+      case IntakeStatus.InReview:
+        return 'Pending review';
       case IntakeStatus.Approved: return 'Approved';
       case IntakeStatus.Rejected: return 'Rejected';
       case IntakeStatus.Converted: return 'Converted';
@@ -325,16 +273,33 @@ export class SubmissionListComponent implements OnInit {
     }
   }
 
-  getStatusSeverity(status: IntakeStatus): 'info' | 'warn' | 'success' | 'danger' | 'secondary' | 'contrast' {
+  getStatusPillClass(status: IntakeStatus): string {
     switch (status) {
-      case IntakeStatus.Pending: return 'info';
-      case IntakeStatus.Submitted: return 'info';
-      case IntakeStatus.InReview: return 'warn';
-      case IntakeStatus.Approved: return 'success';
-      case IntakeStatus.Rejected: return 'secondary';
-      case IntakeStatus.Converted: return 'success';
-      case IntakeStatus.Expired: return 'secondary';
-      default: return 'info';
+      case IntakeStatus.Pending:
+      case IntakeStatus.Submitted:
+      case IntakeStatus.InReview:
+        return 'bg-amber-50 text-amber-700';
+      case IntakeStatus.Approved:
+      case IntakeStatus.Converted:
+        return 'bg-emerald-50 text-emerald-700';
+      case IntakeStatus.Rejected:
+      case IntakeStatus.Expired:
+        return 'bg-rose-50 text-rose-700';
+      default:
+        return 'bg-slate-100 text-slate-600';
     }
+  }
+
+  /** "Checked in Xd ago" style relative time, matching the reception-queue design. */
+  timeAgo(isoDate: string): string {
+    const diffMs = Date.now() - new Date(isoDate).getTime();
+    const minutes = Math.floor(diffMs / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (minutes < 1) return 'just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
   }
 }

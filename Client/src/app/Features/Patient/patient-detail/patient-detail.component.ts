@@ -42,11 +42,11 @@ export class PatientDetailComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/patients']);
+    this.router.navigate(['app/patients']);
   }
 
   goToEdit() {
-    this.router.navigate(['/patients/edit', this.patient.id]);
+    this.router.navigate(['app/patients/edit', this.patient.id]);
   }
 
   delete() {
