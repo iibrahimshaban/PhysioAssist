@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using PhysioAssist.Api.Modules.Auth.Entities;
+using PhysioAssist.Api.Modules.DocumentationModule.Seed;
+using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Consts;
 using System.Security.Claims;
 
@@ -13,10 +15,15 @@ public static class DataSeeder
 
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         await SeedRolesAsync(roleManager);
         await SeedAdminUserAsync(userManager);
         await SeedAdminPermissionsAsync(roleManager);
+        await SeedSoloDoctorPermissionsAsync(roleManager);
+
+        await DocumentationTemplateSeeder.SeedAsync(context);
+        
     }
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
@@ -72,6 +79,35 @@ public static class DataSeeder
 
             if (!alreadyExists)
                 await roleManager.AddClaimAsync(adminRole, new Claim(Permissions.Type, permission));
+        }
+    }
+    private static async Task SeedSoloDoctorPermissionsAsync(RoleManager<IdentityRole> roleManager)
+    {
+        var soloDoctorRole = await roleManager.FindByNameAsync(DefaultRoles.SoloDoctor);
+
+        if (soloDoctorRole is null) return;
+
+        var existingClaims = await roleManager.GetClaimsAsync(soloDoctorRole);
+
+        var soloDoctorPermissions = new[]
+        {
+        Permissions.IntakeRead,
+        Permissions.IntakeManageForms,
+        Permissions.IntakeReview,
+        Permissions.IntakeConvert,
+        Permissions.QRGenerate,
+        Permissions.QRValidate,
+    };
+
+        foreach (var permission in soloDoctorPermissions)
+        {
+            if (string.IsNullOrEmpty(permission)) continue;
+
+            var alreadyExists = existingClaims.Any(c =>
+                c.Type == Permissions.Type && c.Value == permission);
+
+            if (!alreadyExists)
+                await roleManager.AddClaimAsync(soloDoctorRole, new Claim(Permissions.Type, permission));
         }
     }
 }

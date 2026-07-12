@@ -27,7 +27,7 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class
         return await _entry.ToListAsync();
     }
 
-    public async Task<T?> GetByIdAsync(int id)
+    public async Task<T?> GetByIdAsync(Guid id)
     {
         return await _entry.FindAsync(id);
     }

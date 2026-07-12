@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
 using PhysioAssist.Api.Shared.Interfaces;
 using System.Net.Http.Headers;
@@ -43,7 +43,6 @@ public sealed class GroqWhisperClient : IAudioTranscriptionService
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
 
         // Debugging snippet
-        Console.WriteLine($"Requesting: {_httpClient.BaseAddress}{httpRequest.RequestUri}");
 
         HttpResponseMessage response;
         try

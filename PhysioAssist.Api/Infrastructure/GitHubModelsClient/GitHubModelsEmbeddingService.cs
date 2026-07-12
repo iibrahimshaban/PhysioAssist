@@ -31,7 +31,7 @@ public class GitHubModelsEmbeddingService : IEmbeddingService
 
         var result = await response.Content.ReadFromJsonAsync<EmbeddingResponse>(cancellationToken: ct);
 
-        return new SqlVector<float>(result.Data[0].Embedding);
+        return new SqlVector<float>(result!.Data[0].Embedding);
     }
 
     private sealed record EmbeddingResponse(EmbeddingData[] Data);
