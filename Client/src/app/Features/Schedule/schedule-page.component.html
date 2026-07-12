@@ -7,6 +7,7 @@
       (nextClicked)="onNext()"
       (todayClicked)="onToday()"
       (viewModeChanged)="scheduleService.setView($event)"
+      
     />
     <app-doctor-selector
       [doctors]="doctors"
@@ -48,6 +49,7 @@
       (appointmentClicked)="onAppointmentClicked($event)"
       (intervalClicked)="onIntervalClicked($event)"
       (rescheduleRequested)="onReschedule($event)"
+      (invalidDropAttempted)="scheduleService.showToast('Doctor doesn\'t work that day.', 'error')"
       (quickComplete)="onQuickComplete($event)"
       (quickCancel)="onQuickCancel($event)"
     />
@@ -64,13 +66,13 @@
     (rescheduleRequested)="onDrawerReschedule($event)"
   />
 
-  <app-reschedule-dialog
+  <!-- schedule-page.component.html — fix -->
+<app-reschedule-dialog
   [isOpen]="isRescheduleDialogOpen()"
   [appointment]="reschedulingAppointment()"
-  [workingDays]="scheduleService.workingDays()"
   (closeRequested)="isRescheduleDialogOpen.set(false)"
   (confirmRequested)="onRescheduleConfirm($event)"
-  />
+/>
 
   <app-create-appointment-drawer
     [isOpen]="scheduleService.isCreateDrawerOpen()"

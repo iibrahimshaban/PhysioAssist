@@ -1,0 +1,248 @@
+.ws-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  background: #f8fafc;
+}
+
+.ws-page-header {
+  text-align: center;
+}
+
+.ws-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.ws-page-header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ws-page-header p {
+  margin: 8px 0 0;
+  font-size: 1rem;
+  color: #475569;
+}
+
+.ws-status-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgb(15 23 42 / 0.06);
+  color: #475569;
+}
+
+.ws-status-badge--active {
+  background: rgb(34 197 94 / 0.12);
+  color: #22c55e;
+}
+
+.ws-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 16px rgb(15 23 42 / 0.06),
+              0 1px 3px rgb(15 23 42 / 0.08);
+}
+
+.ws-section + .ws-section {
+  margin-top: 28px;
+}
+
+.ws-section-eyebrow {
+  margin: 0 0 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.ws-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ws-preset-btn {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #0f172a;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease,
+              color 0.15s ease,
+              background-color 0.15s ease;
+}
+
+.ws-preset-btn:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.ws-preset-btn--ghost {
+  color: #475569;
+}
+
+.ws-preset-btn--ghost:hover {
+  border-color: #475569;
+  color: #0f172a;
+}
+
+.ws-summary-line {
+  margin: 24px 0 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #475569;
+  text-align: center;
+}
+
+.ws-actions {
+  margin-top: 16px;
+  padding-top: 24px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ws-secondary-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.ws-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease,
+              border-color 0.15s ease,
+              opacity 0.15s ease;
+}
+
+.ws-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ws-btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+  min-width: 200px;
+  box-shadow: 0 2px 8px rgb(37 99 235 / 0.25);
+}
+
+.ws-btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.ws-btn-ghost {
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.ws-btn-ghost:hover:not(:disabled) {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.ws-btn-danger-ghost {
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  color: #ef4444;
+}
+
+.ws-btn-danger-ghost:hover:not(:disabled) {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+.ws-skeleton-row {
+  height: 64px;
+  border-radius: 14px;
+  background: linear-gradient(
+    90deg,
+    #f8fafc 25%,
+    #eef2f7 37%,
+    #f8fafc 63%
+  );
+  background-size: 400% 100%;
+  animation: ws-skeleton-shimmer 1.4s ease infinite;
+}
+
+.ws-skeleton-row + .ws-skeleton-row {
+  margin-top: 10px;
+}
+
+@keyframes ws-skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-skeleton-row {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .ws-page {
+    padding: 32px 16px 64px;
+    gap: 24px;
+  }
+
+  .ws-card {
+    padding: 20px;
+  }
+
+  .ws-title-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ws-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ws-btn {
+    width: 100%;
+  }
+
+  .ws-secondary-actions {
+    flex-direction: column;
+  }
+
+  .ws-presets {
+    flex-direction: column;
+  }
+
+  .ws-preset-btn {
+    text-align: center;
+  }
+}

@@ -10,7 +10,7 @@ import { FiltersBarComponent } from './filters-bar/filters-bar.component';
 import { LoadingSkeletonComponent } from './loading-skeleton/loading-skeleton.component';
 import { Doctor, Appointment, AvailableInterval, CreateAppointmentRequest, ScheduleFilters, AvailableIntervalDto } from './schedule.models';
 import { StatisticsPanelComponent } from './statistics-panel/statistics-panel.component';
-import { SchedulePageService } from '../../Core/Services/schedule-page.service';
+import { SchedulePageService, toIsoWithOffset } from '../../Core/Services/schedule-page.service';
 import { firstValueFrom } from 'rxjs';
 import { RescheduleDialogComponent } from "./reschedule-dialog/reschedule-dialog.component";
 
@@ -35,7 +35,8 @@ export class SchedulePageComponent {
   // TEMPORARY placeholder — no real Doctor endpoint provided yet.
   protected readonly doctors: Doctor[] = [
     { id: '11111111-1111-1111-1111-111111111111', displayLabel: 'Doctor 1111-1111' },
-    { id: '22222222-2222-2222-2222-222222222222', displayLabel: 'Doctor 2222-2222' }
+    { id: '22222222-2222-2222-2222-222222222222', displayLabel: 'Doctor 2222-2222' },
+    { id: '019e220e-ff37-7a97-9f65-0a8fa4861efb', displayLabel: 'Doctor Admin' }
   ];
 
   protected readonly dateRangeLabel = computed(() => {
@@ -97,8 +98,8 @@ protected readonly emptyStateKind = computed(() => {
     this.scheduleService.optimisticallyMoveAppointment(e.appointment.id, e.newStart, e.newEnd);
     try {
       await this.scheduleService.rescheduleAppointment(e.appointment.id, {
-        newSlotStart: e.newStart.toISOString(),
-        newSlotEnd: e.newEnd.toISOString()
+        newSlotStart: toIsoWithOffset(e.newStart),
+        newSlotEnd: toIsoWithOffset(e.newEnd)
       });
       this.scheduleService.showToast('Appointment rescheduled.', 'success');
     } catch {
