@@ -13,6 +13,44 @@ using System.Net.Http.Headers;
 
 namespace PhysioAssist.Api.Modules.QueryModule;
 
+//public class ModelLoggingHandler : DelegatingHandler
+//{
+//    private readonly ILogger<ModelLoggingHandler> _logger;
+
+//    public ModelLoggingHandler(ILogger<ModelLoggingHandler> logger)
+//    {
+//        _logger = logger;
+//    }
+
+//    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+//    {
+//        string? model = null;
+
+//        if (request.Content is not null)
+//        {
+//            var body = await request.Content.ReadAsStringAsync(cancellationToken);
+//            try
+//            {
+//                using var doc = JsonDocument.Parse(body);
+//                if (doc.RootElement.TryGetProperty("model", out var modelProp))
+//                    model = modelProp.GetString();
+//            }
+//            catch (JsonException)
+//            {
+//                // not a JSON body, ignore
+//            }
+//        }
+
+//        _logger.LogInformation("→ Outgoing request to {Url} using model: {Model}", request.RequestUri, model ?? "unknown");
+
+//        var response = await base.SendAsync(request, cancellationToken);
+
+//        _logger.LogInformation("← Response status {Status} for model: {Model}", (int)response.StatusCode, model ?? "unknown");
+
+//        return response;
+//    }
+//}
+
 public static class DependancyInjection
 {
     public static IServiceCollection AddQueryModuleConfig(this IServiceCollection services, IConfiguration configuration)
@@ -22,7 +60,27 @@ public static class DependancyInjection
             // otherwise bind a PhysioAssist-specific section
             configuration.GetRequiredSection(TavilyOptions.SectionName));
 
+
+        //services.AddTransient<ModelLoggingHandler>();
+        //services.AddHttpClient("ModelTrackedClient").AddHttpMessageHandler<ModelLoggingHandler>();
+
+
         services.AddSingleton<IChatHistoryStore, SessionChatHistoryStore>();
+
+        services.AddKeyedSingleton<IChatCompletionService>("summarizationAI",(sp,_) =>
+        {
+            var summarizationAI = sp.GetRequiredService<IOptions<GitHubModelsDocumentationOptions>>().Value;
+            //var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient("ModelTrackedClient");
+
+            #pragma warning disable SKEXP0010
+            return new OpenAIChatCompletionService(
+                    modelId: summarizationAI.ChatModel,
+                    apiKey: summarizationAI.Token,
+                    endpoint: new Uri("https://models.inference.ai.azure.com"));
+        });
+
+
+
 
         services.AddHttpClient(nameof(WebSearchPlugin), (sp, client) =>
         {
@@ -41,6 +99,9 @@ public static class DependancyInjection
             var searchPlugin = sp.GetRequiredService<SessionSearchPlugin>();
             var tavilyOptions = sp.GetRequiredService<IOptions<TavilyOptions>>();
             var tavilyClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(WebSearchPlugin));
+            var summarizationService = sp.GetRequiredKeyedService<IChatCompletionService>("summarizationAI");
+
+            //var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient("ModelTrackedClient");
 
             var kernel = Kernel.CreateBuilder()
                 .AddOpenAIChatCompletion(
@@ -67,7 +128,7 @@ public static class DependancyInjection
                 }),
                 //TODO: USE CHEAPER MODEL FOR SUMMARIZATION LIKE GPT4O-MINI or Something
                 HistoryReducer = new ChatHistorySummarizationReducer(
-                    service: kernel.GetRequiredService<IChatCompletionService>(),
+                    service: summarizationService,
                     targetCount: 10,
                     thresholdCount: 15)
             };
