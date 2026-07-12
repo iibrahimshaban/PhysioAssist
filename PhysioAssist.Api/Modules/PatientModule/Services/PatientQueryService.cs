@@ -1,4 +1,6 @@
-﻿using PhysioAssist.Api.Modules.PatientModule.Entities;
+﻿using Mapster;
+using PhysioAssist.Api.Modules.PatientModule.Entities;
+using PhysioAssist.Api.Modules.PatientModule.Errors;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Dtos.Patient;
 
@@ -29,5 +31,19 @@ public class PatientQueryService : IPatientQueryService
             .Where(dp => dp.DoctorId == doctorId && dp.PatientId == patientId)
             .Select(dp => (PatientCategory?)dp.Category)
             .FirstOrDefaultAsync(ct);
+    }
+    public async Task<Result<PatientResponse>> GetPatientAsync(Guid patientId, CancellationToken ct = default)
+    {
+        var patient = await _dbContext.Patients.FindAsync(patientId, ct);
+
+        if (patient == null)
+        {
+            return Result.Failure<PatientResponse>(PatientErrors.NotFound);
+        }
+
+        var response = patient.Adapt<PatientResponse>();
+
+        return Result.Success(response);
+
     }
 }
