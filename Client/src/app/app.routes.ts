@@ -100,6 +100,12 @@ export const routes: Routes = [
         ]
       },
       {
+        path: 'working-schedule',
+        loadComponent: () =>
+          import('./Features/WorkingSchedule/working-schedule.component')
+            .then(m => m.WorkingScheduleComponent),
+        },
+      {
       path: 'schedule',
       loadComponent: () =>
         import('./Features/Schedule/schedule-page.component')

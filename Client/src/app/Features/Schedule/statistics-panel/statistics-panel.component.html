@@ -3,7 +3,7 @@
     <span class="stat-card__label">Appointments Today</span>
     <span class="stat-card__value">{{ statistics().appointmentsToday }}</span>
   </div>
-  <div class="stat-card stat-card--success">
+  <!-- <div class="stat-card stat-card--success">
     <span class="stat-card__label">Completed</span>
     <span class="stat-card__value">{{ statistics().completedToday }}</span>
   </div>
@@ -14,7 +14,7 @@
   <div class="stat-card stat-card--warning">
     <span class="stat-card__label">No Shows</span>
     <span class="stat-card__value">{{ statistics().noShowToday }}</span>
-  </div>
+  </div> -->
   <div class="stat-card">
     <span class="stat-card__label">Working Hours</span>
     <span class="stat-card__value stat-card__value--small">{{ workingHoursLabel }}</span>
@@ -23,14 +23,14 @@
     <span class="stat-card__label">Free Time Remaining</span>
     <span class="stat-card__value">{{ statistics().freeMinutesRemaining }} min</span>
   </div>
-  <div class="stat-card">
+  <!-- <div class="stat-card">
     <span class="stat-card__label">Occupancy</span>
     <span class="stat-card__value">{{ statistics().occupancyPercent }}%</span>
-  </div>
-  <div class="stat-card">
+  </div> -->
+  <!-- <div class="stat-card">
     <span class="stat-card__label">Avg. Duration</span>
     <span class="stat-card__value">{{ statistics().averageDurationMinutes }} min</span>
-  </div>
+  </div> -->
   @if (upcomingAppointment(); as next) {
     <div class="stat-card stat-card--highlight">
       <span class="stat-card__label">Upcoming Appointment</span>

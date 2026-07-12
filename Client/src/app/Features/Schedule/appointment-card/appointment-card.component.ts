@@ -15,7 +15,7 @@ export class AppointmentCardComponent {
   dragging = input<boolean>(false);
 
   cardClicked = output<Appointment>();
-  dragStarted = output<{ appointment: Appointment; clientY: number }>();
+  dragStarted = output<{ appointment: Appointment; clientY: number ; clientX:number}>();
   resizeStarted = output<{ appointment: Appointment; clientY: number }>();
   quickComplete = output<Appointment>();
   quickCancel = output<Appointment>();
@@ -35,10 +35,15 @@ export class AppointmentCardComponent {
     this.cardClicked.emit(this.appointment());
   }
 
-  protected onDragHandlePointerDown(event: PointerEvent): void {
-    event.stopPropagation();
-    this.dragStarted.emit({ appointment: this.appointment(), clientY: event.clientY });
-  }
+// Only this method changes — everything else in the file stays as-is.
+protected onDragHandlePointerDown(event: PointerEvent): void {
+  event.stopPropagation();
+  this.dragStarted.emit({
+    appointment: this.appointment(),
+    clientY: event.clientY,
+    clientX: event.clientX // added — needed for horizontal (day-to-day) drag resolution
+  });
+}
 
   protected onResizeHandlePointerDown(event: PointerEvent): void {
     event.stopPropagation();

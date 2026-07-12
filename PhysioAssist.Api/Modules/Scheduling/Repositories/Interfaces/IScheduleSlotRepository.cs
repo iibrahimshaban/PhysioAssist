@@ -23,5 +23,21 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces
             DateTimeOffset from,
             DateTimeOffset to,
             CancellationToken cancellationToken = default);
+
+        Task<List<ScheduleSlot>> GetCancelledAppointmentsAsync(
+            Guid doctorId,
+            DateTimeOffset? from,
+            DateTimeOffset? to,
+            CancellationToken cancellationToken = default);
+
+        Task<List<ScheduleSlot>> GetBookedAppointmentsAsync(
+            Guid doctorId,
+            CancellationToken cancellationToken = default);
+
+        
+        Task<List<ScheduleSlot>> GetFutureBookedAppointmentsAsync(
+            Guid doctorId,
+            DateTimeOffset from,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -96,12 +96,12 @@ public class SessionService(
 
                 SlotStart = _context.ScheduleSlots
                     .Where(slot => slot.Id == s.ScheduleSlotId)
-                    .Select(slot => (DateTime?)slot.SlotStart)
+                    .Select(slot => (DateTimeOffset?)slot.SlotStart)
                     .FirstOrDefault(),
 
                 SlotEnd = _context.ScheduleSlots
                     .Where(slot => slot.Id == s.ScheduleSlotId)
-                    .Select(slot => (DateTime?)slot.SlotEnd)
+                    .Select(slot => (DateTimeOffset?)slot.SlotEnd)
                     .FirstOrDefault(),
 
                 DurationInMinutes = _context.ScheduleSlots

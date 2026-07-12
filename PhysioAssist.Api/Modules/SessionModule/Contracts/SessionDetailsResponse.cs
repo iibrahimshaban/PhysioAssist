@@ -4,8 +4,8 @@
     {
         public Guid Id { get; set; }
         public string PatientName { get; set; } = string.Empty;
-        public DateTime? SlotStart { get; set; }
-        public DateTime? SlotEnd { get; set; }
+        public DateTimeOffset? SlotStart { get; set; }
+        public DateTimeOffset? SlotEnd { get; set; }
         public int DurationInMinutes { get; set; }
         public SessionStatus Status { get; set; }
         public string? EditedTranscript { get; set; }

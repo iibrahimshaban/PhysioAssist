@@ -79,3 +79,41 @@ export interface ToastMessage { id: number; text: string; kind: 'success' | 'err
 export function shortId(id: string): string {
   return id.slice(0, 8).toUpperCase();
 }
+
+// schedule.models.ts — additions
+
+export interface AvailableIntervalDto {
+  start: string; // "HH:mm:ss" — time only, combine with parent DailyAvailabilityDto.date
+  end: string;   // "HH:mm:ss" — time only, combine with parent DailyAvailabilityDto.date
+}
+
+export interface DailyAvailabilityDto {
+  date: string; // "YYYY-MM-DD" from DateOnly
+  intervals: AvailableIntervalDto[];
+}
+export interface DailyAvailability {
+  date: Date;
+  intervals: AvailableInterval[];
+}
+
+
+// BEFORE
+interface DragState {
+  appointment: Appointment;
+  originalStart: Date;
+  originalEnd: Date;
+  startClientY: number;
+  mode: 'move' | 'resize';
+}
+
+// AFTER — add startClientX, originalDayIndex, colWidth
+interface DragState {
+  appointment: Appointment;
+  originalStart: Date;
+  originalEnd: Date;
+  startClientY: number;
+  startClientX: number;   // NEW — needed to compute horizontal drag distance
+  originalDayIndex: number; // NEW — which column the appointment started in
+  colWidth: number;        // NEW — cached column width, so we don't re-measure the DOM on every pointermove
+  mode: 'move' | 'resize';
+}

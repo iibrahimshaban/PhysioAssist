@@ -68,5 +68,22 @@ namespace PhysioAssist.Api.Modules.Scheduling.Errors
             "Appointment.InvalidStatusForReschedule",
             $"Cannot reschedule an appointment in status {status}.",
             StatusCodes.Status409Conflict);
+
+        // --- Availability range errors ---
+
+        public static Error RangeEndBeforeStart => new(
+            "Appointment.RangeEndBeforeStart",
+            "The 'to' date must be on or after the 'from' date.",
+            StatusCodes.Status400BadRequest);
+
+        public static Error RangeIncomplete => new(
+            "Appointment.RangeIncomplete",
+            "Both 'from' and 'to' must be provided together, or omitted together.",
+            StatusCodes.Status400BadRequest);
+
+        public static Error RangeTooLarge(int maxDays) => new(
+            "Appointment.RangeTooLarge",
+            $"The requested range cannot exceed {maxDays} days.",
+            StatusCodes.Status400BadRequest);
     }
 }

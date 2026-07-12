@@ -30,8 +30,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.helpers
                 {
                     result.Add(new AvailableIntervalDto
                     {
-                        Start = cursor,
-                        End = appointment.SlotStart
+                        Start = TimeOnly.FromDateTime(cursor.UtcDateTime),
+                        End = TimeOnly.FromDateTime(appointment.SlotStart.UtcDateTime),
                     });
                 }
 
@@ -45,8 +45,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.helpers
             {
                 result.Add(new AvailableIntervalDto
                 {
-                    Start = cursor,
-                    End = windowEnd
+                    Start = TimeOnly.FromDateTime(cursor.UtcDateTime),
+                    End = TimeOnly.FromDateTime(windowEnd.UtcDateTime)
                 });
             }
 
