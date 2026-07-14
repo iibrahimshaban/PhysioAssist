@@ -31,4 +31,9 @@ public class InitialReportRepository : BaseRepository<InitialReport>, IInitialRe
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
     }
+    public async Task<InitialReport?> GetReportByPatientIdAsync(Guid patientId)
+    {
+        return await _context.InitialReports
+            .FirstOrDefaultAsync(r => r.PatientId == patientId);
+    }
 }

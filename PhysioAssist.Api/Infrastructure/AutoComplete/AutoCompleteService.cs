@@ -1,5 +1,5 @@
 ﻿using PhysioAssist.Api.Infrastructure.AutoComplete.Models;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Infrastructure.AutoComplete
 {

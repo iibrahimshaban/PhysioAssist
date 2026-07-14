@@ -5,6 +5,7 @@ using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.Auth.JwtService;
 using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Persistence;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
 using System.Text;
 
 namespace PhysioAssist.Api.Modules.Auth;

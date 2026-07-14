@@ -1,6 +1,6 @@
 ﻿using PhysioAssist.Api.Infrastructure.AutoComplete.Models;
 
-namespace PhysioAssist.Api.Shared.Interfaces
+namespace PhysioAssist.Api.Shared.Interfaces.Common
 {
     public interface IAutoCompleteService
     {

@@ -4,6 +4,7 @@ using PhysioAssist.Api.Modules.Auth.Contracts.Account;
 using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.Auth.Errors;
 using PhysioAssist.Api.Persistence;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Modules.Auth.Services;
 

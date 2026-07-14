@@ -2,6 +2,7 @@
 using PhysioAssist.Api.Modules.DocumentationModule.Errors;
 using PhysioAssist.Api.Modules.DocumentationModule.Helpers;
 using PhysioAssist.Api.Persistence;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 using System.Text.Json;
 
 namespace PhysioAssist.Api.Modules.DocumentationModule.Services;

@@ -47,4 +47,15 @@ export class PatientListComponent implements OnInit {
   goToCreate() {
     this.router.navigate(['app/patients/create']);
   }
+  goToInitialReport(patient: any): void {
+    this.router.navigate(['/app/initial-report', patient.id], {
+      state: {
+        patient: {
+          id: patient.id,
+          name: patient.fullName,
+          gender: patient.gender,
+        }
+      }
+    });
+  }
 }

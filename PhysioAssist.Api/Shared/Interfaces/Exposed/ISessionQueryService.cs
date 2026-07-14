@@ -1,6 +1,6 @@
 ﻿using PhysioAssist.Api.Shared.Dtos.Session;
 
-namespace PhysioAssist.Api.Shared.Interfaces;
+namespace PhysioAssist.Api.Shared.Interfaces.Exposed;
 
 public interface ISessionQueryService
 {

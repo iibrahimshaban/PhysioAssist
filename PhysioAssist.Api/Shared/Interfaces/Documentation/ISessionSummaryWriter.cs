@@ -1,4 +1,4 @@
-﻿namespace PhysioAssist.Api.Shared.Interfaces;
+﻿namespace PhysioAssist.Api.Shared.Interfaces.Documentation;
 
 public interface ISessionSummaryWriter
 {

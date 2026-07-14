@@ -1,5 +1,6 @@
 ﻿using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Dtos.Session;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
 
 namespace PhysioAssist.Api.Modules.SessionModule.Services;
 

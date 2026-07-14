@@ -4,7 +4,7 @@ using PhysioAssist.Api.Modules.SessionModule.Errors;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Enums;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Modules.SessionModule.Services;
 

@@ -1,6 +1,6 @@
 ﻿using PhysioAssist.Api.Shared.Dtos.Transcription;
 
-namespace PhysioAssist.Api.Shared.Interfaces;
+namespace PhysioAssist.Api.Shared.Interfaces.Common;
 
 public interface IAudioTranscriptionService
 {

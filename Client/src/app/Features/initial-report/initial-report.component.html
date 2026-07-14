@@ -1,152 +1,175 @@
 <div class="page-container mx-auto p-6">
-  <div class="mb-6">
-    <div class="header-row flex flex-wrap items-center justify-between gap-4">
-      <div>
-        <h1 class="text-3xl font-bold">Initial report</h1>
-        <p class="header-subtitle mt-2">Create the initial assessment report with a guided review for the patient.</p>
-      </div>
+  @if (noPatientSelected) {
+    <div class="max-w-lg mx-auto mt-12 text-center bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+      <i class="pi pi-user text-3xl text-slate-300 mb-3"></i>
+      <h2 class="text-lg font-bold text-slate-800 mb-2">No patient selected</h2>
+      <p class="text-sm text-slate-500 mb-6">Open this page from a patient in the list to create their initial report.</p>
+      <button type="button" class="btn-submit px-6 py-2.5 rounded-lg text-white inline-flex items-center gap-2" (click)="goToPatients()">
+        <i class="pi pi-arrow-left"></i>
+        Go to patients
+      </button>
     </div>
-    <div class="patient-card-frame">
-      <div class="patient-card">
-        <div class="patient-card-top">
-          <div class="patient-avatar">
-            <span>{{ patientName.split(' ').map(n => n[0]).join('') }}</span>
-            <span class="status-dot"></span>
-          </div>
-          <div class="patient-info">
-            <div class="patient-name-row">
-              <div class="patient-name">{{ patientName }}</div>
-              <span class="patient-badge">Patient #PT-2841</span>
+  } @else {
+    <div class="mb-6">
+      <div class="header-row flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold">Initial report</h1>
+          <p class="header-subtitle mt-2">Create the initial assessment report with a guided review for the patient.</p>
+        </div>
+      </div>
+      <div class="patient-card-frame">
+        <div class="patient-card">
+          <div class="patient-card-top">
+            <div class="patient-avatar">
+              <span>{{ patientInitials() }}</span>
+              <span class="status-dot"></span>
             </div>
-            <div class="patient-summary">
-              <div class="patient-summary-title">Chief complaint</div>
-              <div class="patient-summary-text">Lower back pain radiating to right leg for 3 weeks.</div>
-            </div>
-          </div>
-        </div>
-        <div class="patient-details-row">
-        <div class="detail-box">
-          <div class="detail-title">AGE</div>
-          <div class="detail-value">34 yrs</div>
-        </div>
-        <div class="detail-box">
-          <div class="detail-title">GENDER</div>
-          <div class="detail-value">Female</div>
-        </div>
-        <div class="detail-box">
-          <div class="detail-title">INJURY</div>
-          <div class="detail-value">Lower back pain</div>
-        </div>
-        <div class="detail-box">
-          <div class="detail-title">DATE OF INJURY</div>
-          <div class="detail-value">for 3 weeks.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div *ngIf="listening" class="recording-box shadow-md bg-white rounded-3xl border border-blue-100 p-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-    <div>
-      <div class="text-sm text-blue-700 font-semibold">Recording {{ recordingFieldLabel }}</div>
-      <div class="text-xs text-slate-500">Speak now and your input will be captured.</div>
-      <div class="mt-3 text-sm text-slate-600">{{ liveTranscript || 'Listening...' }}</div>
-    </div>
-    <button type="button" class="recording-stop inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100" (click)="stopVoice()">
-      <i class="pi pi-stop"></i>
-      Stop recording
-    </button>
-  </div>
-
-  <!-- Sections -->
-  <div class="space-y-6">
-    <section class="bg-white rounded-lg shadow p-4">
-      <div class="flex justify-between items-start">
-        <div class="flex items-start gap-4">
-          <div class="section-icon"><i class="pi pi-heart"></i></div>
-          <div>
-            <div class="text-sm font-semibold section-label">EXAMINATION <span class="text-red-500">*</span></div>
-            <div class="text-xs section-desc">Physical examination, observations, range of motion, palpation findings.</div>
-          </div>
-        </div>
-        <div class="flex gap-2 items-center">
-          <button type="button" class="control-btn" aria-label="Voice" (click)="startVoice('examination')"><i class="pi pi-microphone"></i> Voice</button>
-          <button type="button" class="control-btn" aria-label="AI"><i class="pi pi-magic"></i> AI</button>
-        </div>
-      </div>
-      <div class="mt-3">
-        <textarea name="examination" rows="5" class="ia-textarea w-full" [(ngModel)]="examination" placeholder="Document physical exam findings..."></textarea>
-      </div>
-    </section>
-
-    <section class="bg-white rounded-lg shadow p-4">
-      <div class="flex justify-between items-start">
-        <div class="flex items-start gap-4">
-          <div class="section-icon"><i class="pi pi-file"></i></div>
-          <div>
-            <div class="text-sm font-semibold section-label">INITIAL REPORT <span class="text-red-500">*</span></div>
-            <div class="text-xs section-desc">Diagnosis and clinical findings.</div>
-          </div>
-        </div>
-        <div class="flex gap-2 items-center">
-          <button type="button" class="control-btn" aria-label="Voice" (click)="startVoice('initialReport')"><i class="pi pi-microphone"></i> Voice</button>
-          <button type="button" class="control-btn" aria-label="AI"><i class="pi pi-magic"></i> AI</button>
-        </div>
-      </div>
-      <div class="mt-3">
-        <textarea name="initialReport" rows="5" class="ia-textarea w-full" [(ngModel)]="initialReport" placeholder="Enter diagnosis and clinical findings..."></textarea>
-      </div>
-    </section>
-
-    <section class="bg-white rounded-lg shadow p-4">
-      <div class="flex justify-between items-start">
-        <div class="flex items-start gap-4">
-          <div class="section-icon"><i class="pi pi-flag"></i></div>
-          <div>
-            <div class="text-sm font-semibold section-label">TREATMENT PLAN <span class="text-red-500">*</span></div>
-            <div class="text-xs section-desc">Planned treatments, number of sessions, duration, milestones.</div>
-          </div>
-        </div>
-        <div class="flex gap-2 items-center">
-          <button type="button" class="control-btn" aria-label="Voice" (click)="startVoice('treatmentPlan')"><i class="pi pi-microphone"></i> Voice</button>
-          <button type="button" class="control-btn" aria-label="AI"><i class="pi pi-magic"></i> AI</button>
-        </div>
-      </div>
-      <div class="mt-3">
-        <textarea name="treatmentPlan" rows="6" class="ia-textarea w-full" [(ngModel)]="treatmentPlan" placeholder="Outline the treatment plan..."></textarea>
-      </div>
-    </section>
-
-    <section class="bg-white rounded-lg shadow p-4">
-      <div class="text-sm font-semibold text-gray-700">ATTACHMENTS (OPTIONAL)</div>
-      <div class="mt-3 attach-container">
-        <label class="attach-dropzone" (drop)="onDrop($event)" (dragover)="onDragOver($event)">
-          <input type="file" multiple class="hidden" (change)="onFilesSelected($event)" />
-          <div class="attach-inner">
-            <i class="pi pi-paperclip attach-icon"></i>
-            <div class="attach-text">Drag & drop X-rays, photos, PDFs — or click to upload</div>
-          </div>
-          <div *ngIf="attachments.length > 0" class="attach-preview">
-            <div *ngFor="let file of attachments; let i = index" class="attached-item">
-              <div class="attached-info">
-                <span class="attached-name">{{ file.name }}</span>
-                <span class="attached-size">({{ file.size / 1024 | number:'1.0-1' }} KB)</span>
+            <div class="patient-info">
+              <div class="patient-name-row">
+                <div class="patient-name">{{ patientName() }}</div>
+                <span class="patient-badge">{{ patientBadge() }}</span>
               </div>
-              <button type="button" class="remove-file" (click)="removeAttachment(i)">Remove</button>
+              <div class="patient-summary">
+                <div class="patient-summary-title">Chief complaint</div>
+                <div class="patient-summary-text">{{ chiefComplaint() }}</div>
+              </div>
             </div>
           </div>
-        </label>
+          <div class="patient-details-row grid-cols-5">
+            <div class="detail-box">
+              <div class="detail-title">AGE</div>
+              <div class="detail-value">{{ age() != null ? age() + ' yrs' : '—' }}</div>
+            </div>
+            <div class="detail-box">
+              <div class="detail-title">GENDER</div>
+              <div class="detail-value">{{ gender() || '—' }}</div>
+            </div>
+            <div class="detail-box">
+              <div class="detail-title">INJURY</div>
+              <div class="detail-value">{{ injury() || '—' }}</div>
+            </div>
+            <div class="detail-box">
+              <div class="detail-title">DATE OF INJURY</div>
+              <div class="detail-value">{{ (injuryDate() | date:'MMM d, y') || '—' }}</div>
+            </div>
+            <div class="detail-box">
+              <div class="detail-title">PATIENT CATEGORY</div>
+              <div class="detail-value">{{ patientCategory() || '—' }}</div>
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
-
-    <div class="flex gap-4 justify-start items-center mt-6">
-      <button type="button" class="btn-save px-8 py-3 border rounded-lg bg-white inline-flex items-center gap-3" (click)="saveDraft()">
-        <i class="pi pi-save" aria-hidden="true"></i>
-        <span>Save draft</span>
-      </button>
-      <button type="button" class="btn-submit px-8 py-3 rounded-lg text-white flex items-center gap-3" (click)="submitAndSend()">
-        <i class="pi pi-file" aria-hidden="true"></i>
-        <span>Submit & send to patient</span>
-      </button>
     </div>
-  </div>
+
+    @if (listening()) {
+      <div class="recording-box shadow-md bg-white rounded-3xl border border-blue-100 p-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <div class="text-sm text-blue-700 font-semibold">Recording {{ recordingFieldLabel() }}</div>
+          <div class="text-xs text-slate-500">Speak now and your input will be captured.</div>
+          <div class="mt-3 text-sm text-slate-600">{{ liveTranscript() || 'Listening...' }}</div>
+        </div>
+        <button type="button" class="recording-stop inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100" (click)="stopVoice()">
+          <i class="pi pi-stop"></i>
+          Stop recording
+        </button>
+      </div>
+    }
+
+    <!-- Sections -->
+    <div class="space-y-6">
+      <section class="bg-white rounded-lg shadow p-4">
+        <div class="flex justify-between items-start">
+          <div class="flex items-start gap-4">
+            <div class="section-icon"><i class="pi pi-heart"></i></div>
+            <div>
+              <div class="text-sm font-semibold section-label">EXAMINATION <span class="text-red-500">*</span></div>
+              <div class="text-xs section-desc">Physical examination, observations, range of motion, palpation findings.</div>
+            </div>
+          </div>
+          <div class="flex gap-2 items-center">
+            <button type="button" class="control-btn" aria-label="Voice" (click)="startVoice('examination')"><i class="pi pi-microphone"></i> Voice</button>
+            <button type="button" class="control-btn" aria-label="AI"><i class="pi pi-magic"></i> AI</button>
+          </div>
+        </div>
+        <div class="mt-3">
+          <textarea name="examination" rows="5" class="ia-textarea w-full" [ngModel]="examination()" (ngModelChange)="examination.set($event)" placeholder="Document physical exam findings..."></textarea>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-lg shadow p-4">
+        <div class="flex justify-between items-start">
+          <div class="flex items-start gap-4">
+            <div class="section-icon"><i class="pi pi-file"></i></div>
+            <div>
+              <div class="text-sm font-semibold section-label">INITIAL REPORT <span class="text-red-500">*</span></div>
+              <div class="text-xs section-desc">Diagnosis and clinical findings.</div>
+            </div>
+          </div>
+          <div class="flex gap-2 items-center">
+            <button type="button" class="control-btn" aria-label="Voice" (click)="startVoice('initialReport')"><i class="pi pi-microphone"></i> Voice</button>
+            <button type="button" class="control-btn" aria-label="AI"><i class="pi pi-magic"></i> AI</button>
+          </div>
+        </div>
+        <div class="mt-3">
+          <textarea name="initialReport" rows="5" class="ia-textarea w-full" [ngModel]="initialReport()" (ngModelChange)="initialReport.set($event)" placeholder="Enter diagnosis and clinical findings..."></textarea>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-lg shadow p-4">
+        <div class="flex justify-between items-start">
+          <div class="flex items-start gap-4">
+            <div class="section-icon"><i class="pi pi-flag"></i></div>
+            <div>
+              <div class="text-sm font-semibold section-label">TREATMENT PLAN <span class="text-red-500">*</span></div>
+              <div class="text-xs section-desc">Planned treatments, number of sessions, duration, milestones.</div>
+            </div>
+          </div>
+          <div class="flex gap-2 items-center">
+            <button type="button" class="control-btn" aria-label="Voice" (click)="startVoice('treatmentPlan')"><i class="pi pi-microphone"></i> Voice</button>
+            <button type="button" class="control-btn" aria-label="AI"><i class="pi pi-magic"></i> AI</button>
+          </div>
+        </div>
+        <div class="mt-3">
+          <textarea name="treatmentPlan" rows="6" class="ia-textarea w-full" [ngModel]="treatmentPlan()" (ngModelChange)="treatmentPlan.set($event)" placeholder="Outline the treatment plan..."></textarea>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-lg shadow p-4">
+        <div class="text-sm font-semibold text-gray-700">ATTACHMENTS (OPTIONAL)</div>
+        <div class="mt-3 attach-container">
+          <label class="attach-dropzone" (drop)="onDrop($event)" (dragover)="onDragOver($event)">
+            <input type="file" multiple class="hidden" (change)="onFilesSelected($event)" />
+            <div class="attach-inner">
+              <i class="pi pi-paperclip attach-icon"></i>
+              <div class="attach-text">Drag & drop X-rays, photos, PDFs — or click to upload</div>
+            </div>
+            @if (attachments().length > 0) {
+              <div class="attach-preview">
+                @for (file of attachments(); track file; let i = $index) {
+                  <div class="attached-item">
+                    <div class="attached-info">
+                      <span class="attached-name">{{ file.name }}</span>
+                      <span class="attached-size">({{ file.size / 1024 | number:'1.0-1' }} KB)</span>
+                    </div>
+                    <button type="button" class="remove-file" (click)="removeAttachment(i)">Remove</button>
+                  </div>
+                }
+              </div>
+            }
+          </label>
+        </div>
+      </section>
+
+      <div class="flex gap-4 justify-start items-center mt-6">
+        <button type="button" class="btn-save px-8 py-3 border rounded-lg bg-white inline-flex items-center gap-3" [disabled]="saving()" (click)="saveDraft()">
+          <i class="pi pi-save" aria-hidden="true"></i>
+          <span>Save draft</span>
+        </button>
+        <button type="button" class="btn-submit px-8 py-3 rounded-lg text-white flex items-center gap-3" [disabled]="saving()" (click)="submitAndSend()">
+          <i class="pi pi-file" aria-hidden="true"></i>
+          <span>Submit & send to patient</span>
+        </button>
+      </div>
+    </div>
+  }
 </div>
