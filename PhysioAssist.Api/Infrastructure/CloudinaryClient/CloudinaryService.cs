@@ -48,4 +48,27 @@ public class CloudinaryService(Cloudinary cloudinary) : IMediaStorageService
 
         await DeleteImageAsync(publicId);
     }
+    //----------------------------------------------------------------------------------------------------
+    public async Task<string> UploadAudioAsync(
+    IFormFile file,
+    string folder,
+    string publicId)
+    {
+        await using var stream = file.OpenReadStream();
+
+        var uploadParams = new VideoUploadParams
+        {
+            File = new FileDescription(file.FileName, stream),
+            Folder = folder,
+            PublicId = publicId,
+            Overwrite = true
+        };
+
+        var result = await _cloudinary.UploadAsync(uploadParams);
+
+        if (result.Error is not null)
+            throw new InvalidOperationException(result.Error.Message);
+
+        return result.SecureUrl.ToString();
+    }
 }

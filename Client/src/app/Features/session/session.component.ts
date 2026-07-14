@@ -1,28 +1,41 @@
-import { DatePipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { SessionService } from '../../Core/Services/session.service';
+import { SelectedAttachment } from '../../Shared/Models/selected-attachment';
 import { SessionDetailsResponse } from '../../Shared/Models/session-details-response';
-import { RecordingModalComponent } from './components/recording-modal/recording-modal.component';
 
-type SelectedAttachment = {
-  file: File;
-  preview: string;
-};
+import { DictationGuideComponent } from './components/dictation-guide/dictation-guide.component';
+import { RecordingModalComponent } from './components/recording-modal/recording-modal.component';
+import { SessionActionsComponent } from './components/session-actions/session-actions.component';
+import { SessionAttachmentsComponent } from './components/session-attachments/session-attachments.component';
+import { SessionHeaderComponent } from './components/session-header/session-header.component';
+import { SessionInfoComponent } from './components/session-info/session-info.component';
+import { SessionNotesComponent } from './components/session-notes/session-notes.component';
 
 @Component({
   selector: 'app-session',
-  imports: [DatePipe, RecordingModalComponent],
+  imports: [
+    SessionHeaderComponent,
+    SessionNotesComponent,
+    SessionInfoComponent,
+    SessionAttachmentsComponent,
+    SessionActionsComponent,
+    DictationGuideComponent,
+    RecordingModalComponent,
+  ],
   templateUrl: './session.component.html',
   styleUrl: './session.component.css',
 })
 export class SessionComponent implements OnInit {
   private sessionService = inject(SessionService);
-
+  private route = inject(ActivatedRoute);
   sessionDetails = signal<SessionDetailsResponse | null>(null);
   notes = signal('');
+
   isSavingDraft = signal(false);
+  isCompletingSession = signal(false);
+
   sessionInfoOpen = signal(true);
-  attachmentsOpen = signal(true);
   dictationGuideOpen = signal(false);
 
   isRecordingModalOpen = signal(false);
@@ -30,7 +43,6 @@ export class SessionComponent implements OnInit {
   isUploadingAudio = signal(false);
 
   selectedAttachmentFiles = signal<SelectedAttachment[]>([]);
-  isCompletingSession = signal(false);
 
   private recordingTimer?: ReturnType<typeof setInterval>;
   private mediaRecorder?: MediaRecorder;
@@ -38,49 +50,44 @@ export class SessionComponent implements OnInit {
   private audioStream?: MediaStream;
 
   ngOnInit(): void {
-    const id = '940D33B2-901D-4F13-A983-AB72BD888091';
+    //const id = '940D33B2-901D-4F13-A983-AB72BD888091';
+    const id = this.route.snapshot.paramMap.get('id');
 
+    if (!id) {
+      console.error('Session id was not found in the route');
+      return;
+    }
+
+    this.loadSessionDetails(id);
+  }
+  private loadSessionDetails(id: string) {
     this.sessionService.getDetails(id).subscribe({
-      next: (res) => {
-        this.sessionDetails.set(res);
-        this.notes.set(res.editedTranscript ?? '');
-        console.log(res);
+      next: (response) => {
+        this.sessionDetails.set(response);
+        this.notes.set(response.editedTranscript ?? '');
       },
-      error: (err) => console.log(err),
+      error: (error) => {
+        console.error('Failed to load session details', error);
+      },
     });
   }
 
-  toggleDictationGuide() {
-    this.dictationGuideOpen.update((value) => !value);
+  onNotesChanged(value: string) {
+    this.notes.set(value);
   }
 
   toggleSessionInfo() {
     this.sessionInfoOpen.update((value) => !value);
   }
 
-  toggleAttachments() {
-    this.attachmentsOpen.update((value) => !value);
-  }
-
-  getStatusText(status?: number): string {
-    switch (status) {
-      case 0:
-        return 'scheduled';
-      case 1:
-        return 'in-progress';
-      case 2:
-        return 'completed';
-      case 3:
-        return 'cancelled';
-      default:
-        return '';
-    }
+  toggleDictationGuide() {
+    this.dictationGuideOpen.update((value) => !value);
   }
 
   async openRecordingModal() {
-    const currentSession = this.sessionDetails();
-
-    if (!currentSession) return;
+    if (!this.sessionDetails()) {
+      return;
+    }
 
     try {
       this.audioChunks = [];
@@ -113,7 +120,9 @@ export class SessionComponent implements OnInit {
   stopRecording() {
     const currentSession = this.sessionDetails();
 
-    if (!currentSession || !this.mediaRecorder) return;
+    if (!currentSession || !this.mediaRecorder) {
+      return;
+    }
 
     this.isUploadingAudio.set(true);
 
@@ -130,8 +139,8 @@ export class SessionComponent implements OnInit {
             this.isUploadingAudio.set(false);
             this.closeRecordingModal();
           },
-          error: (err) => {
-            console.error(err);
+          error: (error) => {
+            console.error(error);
             this.isUploadingAudio.set(false);
             this.closeRecordingModal();
           },
@@ -152,41 +161,55 @@ export class SessionComponent implements OnInit {
     this.closeRecordingModal();
   }
 
-  onAttachmentFilesSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
+  saveDraft() {
+    const currentSession = this.sessionDetails();
 
-    if (!input.files || input.files.length === 0) return;
+    if (!currentSession) {
+      return;
+    }
 
-    const files: SelectedAttachment[] = Array.from(input.files).map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
+    const files = this.selectedAttachmentFiles().map((attachment) => attachment.file);
 
-    this.selectedAttachmentFiles.update((current) => [...current, ...files]);
+    this.isSavingDraft.set(true);
 
-    input.value = '';
-  }
+    this.sessionService.saveDraft(currentSession.id, this.notes(), files).subscribe({
+      next: () => {
+        this.clearSelectedAttachments();
 
-  removeSelectedAttachment(index: number) {
-    this.selectedAttachmentFiles.update((files) => {
-      URL.revokeObjectURL(files[index].preview);
-      return files.filter((_, i) => i !== index);
+        this.sessionDetails.update((current) =>
+          current
+            ? {
+                ...current,
+                status: 1,
+              }
+            : current,
+        );
+
+        this.isSavingDraft.set(false);
+
+        console.log('Draft saved successfully');
+      },
+      error: (error) => {
+        console.error(error);
+        this.isSavingDraft.set(false);
+      },
     });
   }
 
   completeSession() {
     const currentSession = this.sessionDetails();
 
-    if (!currentSession) return;
+    if (!currentSession) {
+      return;
+    }
 
-    const files = this.selectedAttachmentFiles().map((x) => x.file);
+    const files = this.selectedAttachmentFiles().map((attachment) => attachment.file);
 
     this.isCompletingSession.set(true);
 
     this.sessionService.completeSession(currentSession.id, this.notes(), files).subscribe({
       next: () => {
-        this.selectedAttachmentFiles().forEach((x) => URL.revokeObjectURL(x.preview));
-        this.selectedAttachmentFiles.set([]);
+        this.clearSelectedAttachments();
 
         this.sessionDetails.update((current) =>
           current
@@ -198,10 +221,11 @@ export class SessionComponent implements OnInit {
         );
 
         this.isCompletingSession.set(false);
+
         console.log('Session completed successfully');
       },
-      error: (err) => {
-        console.error(err);
+      error: (error) => {
+        console.error(error);
         this.isCompletingSession.set(false);
       },
     });
@@ -214,47 +238,25 @@ export class SessionComponent implements OnInit {
           current
             ? {
                 ...current,
-                attachments: current.attachments.filter((x) => x.id !== attachmentId),
+                attachments: current.attachments.filter(
+                  (attachment) => attachment.id !== attachmentId,
+                ),
               }
             : current,
         );
       },
-      error: (err) => console.error(err),
+      error: (error) => {
+        console.error(error);
+      },
     });
   }
-  saveDraft() {
-    const currentSession = this.sessionDetails();
 
-    if (!currentSession) return;
-
-    const files = this.selectedAttachmentFiles().map((x) => x.file);
-
-    this.isSavingDraft.set(true);
-
-    this.sessionService.saveDraft(currentSession.id, this.notes(), files).subscribe({
-      next: () => {
-        this.selectedAttachmentFiles().forEach((x) => URL.revokeObjectURL(x.preview));
-
-        this.selectedAttachmentFiles.set([]);
-
-        this.sessionDetails.update((current) =>
-          current
-            ? {
-                ...current,
-                status: 1, // InProgress
-              }
-            : current,
-        );
-
-        this.isSavingDraft.set(false);
-
-        console.log('Draft saved successfully');
-      },
-      error: (err) => {
-        console.error(err);
-        this.isSavingDraft.set(false);
-      },
+  private clearSelectedAttachments() {
+    this.selectedAttachmentFiles().forEach((attachment) => {
+      URL.revokeObjectURL(attachment.preview);
     });
+
+    this.selectedAttachmentFiles.set([]);
   }
 
   private closeRecordingModal() {
@@ -268,6 +270,7 @@ export class SessionComponent implements OnInit {
 
   private stopMicrophone() {
     this.audioStream?.getTracks().forEach((track) => track.stop());
+
     this.audioStream = undefined;
   }
 }

@@ -6,7 +6,6 @@ import { TestprimengComponent } from './Features/testprimeng/testprimeng.compone
 import { noAuthGuard } from './Core/Guards/no-auth-guard';
 import { authGuard } from './Core/Guards/auth-guard';
 import { permissionGuard } from './Core/Guards/permission-guard';
-import { SessionComponent } from './Features/session/session.component';
 
 export const routes: Routes = [
   {
@@ -79,17 +78,54 @@ export const routes: Routes = [
         path: 'account',
         loadComponent: () =>
           import('./Features/account/account.component').then((m) => m.AccountComponent),
-      },{
-       path: 'patients',
-          children: [
-          { path: '', loadComponent: () => import('./Features/Patient/patient-list/patient-list.component').then(m => m.PatientListComponent) },
-          { path: 'create', loadComponent: () => import('./Features/Patient/patient-form/patient-form.component').then(m => m.PatientFormComponent) },
-          { path: 'edit/:id', loadComponent: () => import('./Features/Patient/patient-form/patient-form.component').then(m => m.PatientFormComponent) },
-          { path: ':id', loadComponent: () => import('./Features/Patient/patient-detail/patient-detail.component').then(m => m.PatientDetailComponent) },
-        ]
       },
-      { path: 'session', component: SessionComponent },
-      { path: 'initial-report', loadComponent: () => import('./Features/initial-report/initial-report.component').then(m => m.InitialReportComponent) }
+      {
+        path: 'patients',
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./Features/Patient/patient-list/patient-list.component').then(
+                (m) => m.PatientListComponent,
+              ),
+          },
+          {
+            path: 'create',
+            loadComponent: () =>
+              import('./Features/Patient/patient-form/patient-form.component').then(
+                (m) => m.PatientFormComponent,
+              ),
+          },
+          {
+            path: 'edit/:id',
+            loadComponent: () =>
+              import('./Features/Patient/patient-form/patient-form.component').then(
+                (m) => m.PatientFormComponent,
+              ),
+          },
+          {
+            path: ':id',
+            loadComponent: () =>
+              import('./Features/Patient/patient-detail/patient-detail.component').then(
+                (m) => m.PatientDetailComponent,
+              ),
+          },
+        ],
+      },
+      {
+        path: 'session/:id',
+        loadComponent: () =>
+          import('./Features/session/session.component').then(
+            (component) => component.SessionComponent,
+          ),
+      },
+      {
+        path: 'initial-report',
+        loadComponent: () =>
+          import('./Features/initial-report/initial-report.component').then(
+            (m) => m.InitialReportComponent,
+          ),
+      },
     ],
   },
 

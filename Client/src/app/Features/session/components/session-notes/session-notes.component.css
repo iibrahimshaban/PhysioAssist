@@ -1,3 +1,8 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
 .mixed-transcript {
   unicode-bidi: plaintext;
   text-align: start;
