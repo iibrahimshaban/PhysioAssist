@@ -1,0 +1,54 @@
+<div class="calendar-grid">
+  <app-calendar-header [days]="days()" [timelineWidth]="timelineWidth" />
+
+  <div class="calendar-grid__body" #scrollContainer>
+    <div class="timeline" [style.width.px]="timelineWidth">
+      @for (hour of hours(); track hour) {
+        <div class="timeline__hour" [style.height.px]="hourHeight">
+          <span class="timeline__label">{{ formatHourLabel(hour) }}</span>
+        </div>
+      }
+    </div>
+
+    @for (day of days(); track day.date.getTime()) {
+      <div class="day-column">
+        @if (!isWorkingDay(day.date)) {
+          <div class="day-column__off">Doctor off this day</div>
+        } @else {
+          @for (hour of hours(); track hour) {
+            <div class="day-column__hour-line" [style.height.px]="hourHeight"></div>
+          }
+
+          @if (isTodayColumn(day.date) && currentTimeTop() !== null) {
+            <div class="current-time-line" [style.top.px]="currentTimeTop()">
+              <span class="current-time-line__dot"></span>
+            </div>
+          }
+
+          @for (interval of availabilityForDay(day.date); track interval.start.getTime()) {
+            <app-availability-overlay
+              [interval]="interval"
+              [top]="topFor(interval.start)"
+              [height]="heightFor(interval.start, interval.end)"
+              (intervalClicked)="intervalClicked.emit($event)"
+            />
+          }
+
+          @for (appointment of appointmentsForDay(day.date); track appointment.id) {
+            <app-appointment-card
+              [appointment]="appointment"
+              [top]="topFor(displayedStart(appointment))"
+              [height]="heightFor(displayedStart(appointment), displayedEnd(appointment))"
+              [dragging]="draggingId() === appointment.id"
+              (cardClicked)="appointmentClicked.emit($event)"
+              (dragStarted)="onDragStarted($event)"
+              (resizeStarted)="onResizeStarted($event)"
+              (quickComplete)="quickComplete.emit($event)"
+              (quickCancel)="quickCancel.emit($event)"
+            />
+          }
+        }
+      </div>
+    }
+  </div>
+</div>

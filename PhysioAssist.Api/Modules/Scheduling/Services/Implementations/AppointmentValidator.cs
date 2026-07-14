@@ -1,8 +1,9 @@
 ﻿using PhysioAssist.Api.Modules.Scheduling.DTO;
 using PhysioAssist.Api.Modules.Scheduling.Entities;
-using PhysioAssist.Api.Modules.Scheduling.helpers;
+using PhysioAssist.Api.Modules.Scheduling.Errors;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Shared.ResultPattern;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations
 {
@@ -16,84 +17,97 @@ namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations
         private readonly IScheduleSlotRepository _scheduleSlotRepository = scheduleSlotRepository;
         private readonly IWorkingScheduleDayRepository _workingScheduleDayRepository = workingScheduleDayRepository;
 
-        public async Task ValidateCreateAsync(CreateAppointmentRequest request, CancellationToken cancellationToken = default)
+        public async Task<Result> ValidateCreateAsync(CreateAppointmentRequest request, CancellationToken cancellationToken = default)
         {
-            ValidateBasicShape(request.SlotStart, request.SlotEnd);
+            var shapeResult = ValidateBasicShape(request.SlotStart, request.SlotEnd);
+            if (shapeResult.IsFailure)
+                return shapeResult;
 
-            await ValidateWorkingHoursAsync(request.DoctorId, request.SlotStart, request.SlotEnd, cancellationToken);
+            var workingHoursResult = await ValidateWorkingHoursAsync(request.DoctorId, request.SlotStart, request.SlotEnd, cancellationToken);
+            if (workingHoursResult.IsFailure)
+                return workingHoursResult;
 
-            await ValidateOverlapAsync(request.DoctorId, request.SlotStart, request.SlotEnd, excludeAppointmentId: null, cancellationToken);
+            return await ValidateOverlapAsync(request.DoctorId, request.SlotStart, request.SlotEnd, excludeAppointmentId: null, cancellationToken);
         }
 
-        public async Task ValidateRescheduleAsync(ScheduleSlot existing, RescheduleAppointmentRequest request, CancellationToken cancellationToken = default)
+        public async Task<Result> ValidateRescheduleAsync(ScheduleSlot existing, RescheduleAppointmentRequest request, CancellationToken cancellationToken = default)
         {
             if (existing.Status != SlotStatus.Booked)
-                throw new SchedulingConflictException($"Cannot reschedule an appointment in status {existing.Status}.");
+                return Result.Failure(AppointmentErrors.InvalidStatusForReschedule(existing.Status));
 
-            ValidateBasicShape(request.NewSlotStart, request.NewSlotEnd);
+            var shapeResult = ValidateBasicShape(request.NewSlotStart, request.NewSlotEnd);
+            if (shapeResult.IsFailure)
+                return shapeResult;
 
-            await ValidateWorkingHoursAsync(existing.DoctorId, request.NewSlotStart, request.NewSlotEnd, cancellationToken);
+            var workingHoursResult = await ValidateWorkingHoursAsync(existing.DoctorId, request.NewSlotStart, request.NewSlotEnd, cancellationToken);
+            if (workingHoursResult.IsFailure)
+                return workingHoursResult;
 
             // Exclude the appointment being moved — otherwise it would "overlap itself"
-            await ValidateOverlapAsync(existing.DoctorId, request.NewSlotStart, request.NewSlotEnd, existing.Id, cancellationToken);
+            return await ValidateOverlapAsync(existing.DoctorId, request.NewSlotStart, request.NewSlotEnd, existing.Id, cancellationToken);
         }
 
-        public void ValidateCancel(ScheduleSlot existing)
+        public Result ValidateCancel(ScheduleSlot existing)
         {
-            if (existing.Status != SlotStatus.Booked)
-                throw new SchedulingConflictException($"Cannot cancel an appointment in status {existing.Status}.");
+            return existing.Status != SlotStatus.Booked
+                ? Result.Failure(AppointmentErrors.InvalidStatusForCancel(existing.Status))
+                : Result.Success();
         }
 
-        public void ValidateComplete(ScheduleSlot existing)
+        public Result ValidateComplete(ScheduleSlot existing)
         {
-            if (existing.Status != SlotStatus.Booked)
-                throw new SchedulingConflictException($"Cannot complete an appointment in status {existing.Status}.");
+            return existing.Status != SlotStatus.Booked
+                ? Result.Failure(AppointmentErrors.InvalidStatusForComplete(existing.Status))
+                : Result.Success();
         }
 
-        public void ValidateNoShow(ScheduleSlot existing)
+        public Result ValidateNoShow(ScheduleSlot existing)
         {
-            if (existing.Status != SlotStatus.Booked)
-                throw new SchedulingConflictException($"Cannot mark no-show on an appointment in status {existing.Status}.");
+            return existing.Status != SlotStatus.Booked
+                ? Result.Failure(AppointmentErrors.InvalidStatusForNoShow(existing.Status))
+                : Result.Success();
         }
 
-        private static void ValidateBasicShape(DateTime slotStart, DateTime slotEnd)
+        private static Result ValidateBasicShape(DateTimeOffset slotStart, DateTimeOffset slotEnd)
         {
             if (slotEnd <= slotStart)
-                throw new ArgumentException("SlotEnd must be after SlotStart.");
+                return Result.Failure(AppointmentErrors.EndBeforeStart);
 
             var duration = slotEnd - slotStart;
 
             if (duration.TotalMinutes < MinDurationMinutes)
-                throw new ArgumentException($"Appointment must be at least {MinDurationMinutes} minutes.");
+                return Result.Failure(AppointmentErrors.DurationTooShort(MinDurationMinutes));
 
             if (duration.TotalMinutes > MaxDurationMinutes)
-                throw new ArgumentException($"Appointment cannot exceed {MaxDurationMinutes} minutes.");
+                return Result.Failure(AppointmentErrors.DurationTooLong(MaxDurationMinutes));
 
             if (slotStart.Date != slotEnd.Date)
-                throw new ArgumentException("Appointment cannot span multiple days.");
+                return Result.Failure(AppointmentErrors.SpansMultipleDays);
+
+            return Result.Success();
         }
 
-        private async Task ValidateWorkingHoursAsync(Guid doctorId, DateTime slotStart, DateTime slotEnd, CancellationToken cancellationToken)
+        private async Task<Result> ValidateWorkingHoursAsync(Guid doctorId, DateTimeOffset slotStart, DateTimeOffset slotEnd, CancellationToken cancellationToken)
         {
             var workingDay = await _workingScheduleDayRepository.GetWorkingDayAsync(doctorId, slotStart.DayOfWeek, cancellationToken);
 
             if (workingDay is null)
-                throw new SchedulingConflictException($"Doctor is not working on {slotStart.DayOfWeek}.");
+                return Result.Failure(AppointmentErrors.DoctorNotWorking(slotStart.DayOfWeek));
 
-            var startTime = TimeOnly.FromDateTime(slotStart);
-            var endTime = TimeOnly.FromDateTime(slotEnd);
+            var startTime = TimeOnly.FromTimeSpan(slotStart.TimeOfDay);
+            var endTime = TimeOnly.FromTimeSpan(slotEnd.TimeOfDay);
 
             if (startTime < workingDay.StartTime || endTime > workingDay.EndTime)
-                throw new SchedulingConflictException(
-                    $"Appointment must be within working hours ({workingDay.StartTime} - {workingDay.EndTime}).");
+                return Result.Failure(AppointmentErrors.OutsideWorkingHours(workingDay.StartTime, workingDay.EndTime));
+
+            return Result.Success();
         }
 
-        private async Task ValidateOverlapAsync(Guid doctorId, DateTime slotStart, DateTime slotEnd, Guid? excludeAppointmentId, CancellationToken cancellationToken)
+        private async Task<Result> ValidateOverlapAsync(Guid doctorId, DateTimeOffset slotStart, DateTimeOffset slotEnd, Guid? excludeAppointmentId, CancellationToken cancellationToken)
         {
             var hasOverlap = await _scheduleSlotRepository.HasOverlapAsync(doctorId, slotStart, slotEnd, excludeAppointmentId, cancellationToken);
 
-            if (hasOverlap)
-                throw new SchedulingConflictException("This appointment overlaps an existing appointment.");
+            return hasOverlap ? Result.Failure(AppointmentErrors.Overlap) : Result.Success();
         }
     }
 }

@@ -41,13 +41,13 @@ export class PatientDetailComponent implements OnInit {
     }
   }
 
-  goBack() {
-    this.router.navigate(['/patients']);
-  }
+goBack() {
+  this.router.navigate(['/app/patients']);
+}
 
-  goToEdit() {
-    this.router.navigate(['/patients/edit', this.patient.id]);
-  }
+goToEdit() {
+  this.router.navigate(['/app/patients/edit', this.patient.id]);
+}
 
   delete() {
     if (confirm('Are you sure you want to delete this patient?')) {
@@ -57,4 +57,7 @@ export class PatientDetailComponent implements OnInit {
       });
     }
   }
+  goToInitialReport(patientId: string) {
+  this.router.navigate(['/app/initial-report', patientId]);
+}
 }

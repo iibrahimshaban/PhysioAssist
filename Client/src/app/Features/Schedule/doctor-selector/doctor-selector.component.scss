@@ -1,0 +1,7 @@
+:host { display: block; }
+.doctor-selector {
+  height: 36px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  background: var(--color-surface); color: var(--color-text-primary); font-size: 13px; cursor: pointer;
+  &:hover { border-color: var(--color-border-strong); }
+  &:focus { outline: 2px solid var(--color-primary); outline-offset: -1px; }
+}

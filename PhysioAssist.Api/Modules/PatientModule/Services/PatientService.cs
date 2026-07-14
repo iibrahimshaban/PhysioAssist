@@ -14,7 +14,6 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
     {
         private readonly IPatientRepo _patientRepo;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
         private readonly IDoctorPatientRepo _doctorPatientRepo;
         private readonly IScheduleSlotQueryService _scheduleSlotQueryService;
         private readonly ApplicationDbContext _context;
@@ -31,7 +30,6 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         {
             _patientRepo = patientRepo;
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
             _doctorPatientRepo = doctorPatientRepo;
             _scheduleSlotQueryService = scheduleSlotQueryService;
             _context = context;

@@ -1,18 +1,20 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PatientService } from '../services/patient.service';
-import { GenderPipe } from '../../../Shared/Pipes/gender-pipe';
 
 @Component({
   selector: 'app-patient-list',
-  imports: [CommonModule, GenderPipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './patient-list.component.html',
   styleUrl: './patient-list.component.css',
 })
 export class PatientListComponent implements OnInit {
   patients: any[] = [];
   isLoading = false;
+  searchTerm = '';
+  activeTab: 'all' | 'today' | 'pending' = 'all';
 
   constructor(
     private patientService: PatientService,
@@ -40,16 +42,48 @@ export class PatientListComponent implements OnInit {
     });
   }
 
+  get filteredPatients() {
+    let result = this.patients;
+
+    if (this.searchTerm.trim()) {
+      const term = this.searchTerm.toLowerCase();
+      result = result.filter(p =>
+        p.fullName?.toLowerCase().includes(term) ||
+        p.phoneNumber?.includes(term)
+      );
+    }
+
+    if (this.activeTab === 'today') {
+      result = result.filter(p => p.slotStart && this.isToday(p.slotStart));
+    } else if (this.activeTab === 'pending') {
+      result = result.filter(p => !p.slotStart);
+    }
+
+    return result;
+  }
+
+  private isToday(dateStr: string): boolean {
+    const date = new Date(dateStr);
+    const today = new Date();
+    return date.getFullYear() === today.getFullYear()
+        && date.getMonth() === today.getMonth()
+        && date.getDate() === today.getDate();
+  }
+
+  setTab(tab: 'all' | 'today' | 'pending') {
+    this.activeTab = tab;
+  }
+
   getInitials(fullName: string): string {
     if (!fullName) return '?';
     return fullName.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
   }
 
   goToDetail(id: string) {
-    this.router.navigate(['/patients', id]);
+    this.router.navigate(['/app/patients', id]);
   }
 
   goToCreate() {
-    this.router.navigate(['/patients/create']);
+    this.router.navigate(['/app/patients/create']);
   }
 }

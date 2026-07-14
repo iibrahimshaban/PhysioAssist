@@ -9,6 +9,6 @@ public class PatientWithNextSlotResponse
     public string Gender { get; set; } = string.Empty;
     public PatientStatus Status { get; set; }
     public string QRCodeToken { get; set; } = string.Empty;
-    public DateTime? SlotStart { get; set; }
-    public DateTime? SlotEnd { get; set; }
+    public DateTimeOffset? SlotStart { get; set; }
+    public DateTimeOffset? SlotEnd { get; set; }
 }

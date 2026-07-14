@@ -1,0 +1,9 @@
+:host { display: contents; }
+.availability-block {
+  position: absolute; left: 4px; right: 4px; background: var(--status-available-bg);
+  border: 1px dashed var(--status-available-border); border-radius: var(--radius-sm); cursor: pointer;
+  transition: background 0.15s; display: flex; align-items: center; justify-content: center;
+  &:hover { background: #D1FAE5; }
+}
+.availability-block__label { font-size: 11px; color: var(--status-available-border); font-weight: 500; opacity: 0; transition: opacity 0.15s; }
+.availability-block:hover .availability-block__label { opacity: 1; }

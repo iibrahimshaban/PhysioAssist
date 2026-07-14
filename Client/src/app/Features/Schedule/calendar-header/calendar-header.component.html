@@ -1,0 +1,9 @@
+<div class="header-row">
+  <div class="header-row__timeline-spacer" [style.width.px]="timelineWidth()"></div>
+  @for (day of days(); track day.date.getTime()) {
+    <div class="header-row__day" [class.header-row__day--today]="day.isToday">
+      <span class="header-row__day-label">{{ day.label }}</span>
+      <span class="header-row__day-number">{{ day.dayNumber }}</span>
+    </div>
+  }
+</div>

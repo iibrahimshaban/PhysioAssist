@@ -1,6 +1,6 @@
 ﻿namespace PhysioAssist.Api.Shared.Interfaces;
 
-public record ScheduleSlotResult(Guid PatientId, DateTime SlotStart, DateTime SlotEnd);
+public record ScheduleSlotResult(Guid PatientId, DateTimeOffset SlotStart, DateTimeOffset SlotEnd);
 
 public interface IScheduleSlotQueryService
 {

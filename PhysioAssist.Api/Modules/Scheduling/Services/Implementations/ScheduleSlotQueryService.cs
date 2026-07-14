@@ -13,7 +13,7 @@ public class ScheduleSlotQueryService(ApplicationDbContext context) : IScheduleS
         return await _context.ScheduleSlots
             .Where(s =>
                 s.DoctorId == doctorId &&
-                s.SlotStart >= DateTime.UtcNow &&
+                s.SlotStart >= DateTimeOffset.UtcNow &&
                 s.Status == SlotStatus.Booked)
             .OrderBy(s => s.SlotStart)
             .Select(s => new ScheduleSlotResult(s.PatientId, s.SlotStart, s.SlotEnd))
