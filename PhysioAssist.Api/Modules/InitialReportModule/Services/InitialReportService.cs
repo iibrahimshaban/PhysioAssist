@@ -3,7 +3,7 @@ using PhysioAssist.Api.Modules.InitialReportModule.Entities;
 using PhysioAssist.Api.Modules.InitialReportModule.Errors;
 using PhysioAssist.Api.Modules.InitialReportModule.Repositories;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 using PhysioAssist.Api.Shared.SystemPrompts;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Services;
@@ -147,7 +147,14 @@ public class InitialReportService(
 
         return Result.Success();
     }
+    public async Task<Result<InitialReportResponse>> GetByPatientIdAsync(Guid patientId)
+    {
+        var report = await _reportRepository.GetReportByPatientIdAsync(patientId);
 
+        return report is null
+            ? Result.Failure<InitialReportResponse>(InitialReportErrors.NotFound)
+            : Result.Success(MapToResponse(report));
+    }
     private static InitialReportResponse MapToResponse(InitialReport report) => new(
         report.Id,
         report.DoctorId,

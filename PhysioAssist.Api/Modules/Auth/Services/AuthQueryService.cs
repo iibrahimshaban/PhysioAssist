@@ -2,6 +2,7 @@
 using PhysioAssist.Api.Modules.Auth.Errors;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Dtos.Doctor;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
 
 namespace PhysioAssist.Api.Modules.Auth.Services;
 

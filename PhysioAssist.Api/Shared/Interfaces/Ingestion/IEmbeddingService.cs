@@ -1,6 +1,6 @@
 ﻿using Microsoft.Data.SqlTypes;
 
-namespace PhysioAssist.Api.Shared.Interfaces;
+namespace PhysioAssist.Api.Shared.Interfaces.Ingestion;
 
 public interface IEmbeddingService
 {

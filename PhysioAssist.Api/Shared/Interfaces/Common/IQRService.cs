@@ -1,6 +1,6 @@
 using PhysioAssist.Api.Shared.QR;
 
-namespace PhysioAssist.Api.Shared.Interfaces;
+namespace PhysioAssist.Api.Shared.Interfaces.Common;
 
 public interface IQRService
 {

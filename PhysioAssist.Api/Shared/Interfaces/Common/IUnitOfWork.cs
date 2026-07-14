@@ -1,7 +1,7 @@
 ﻿using PhysioAssist.Api.Modules.Scheduling.Entities;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
 
-namespace PhysioAssist.Api.Shared.Interfaces;
+namespace PhysioAssist.Api.Shared.Interfaces.Common;
 
 public interface IUnitOfWork 
 {

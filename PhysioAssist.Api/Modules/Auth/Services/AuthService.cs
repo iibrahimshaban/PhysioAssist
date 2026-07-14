@@ -8,6 +8,8 @@ using PhysioAssist.Api.Modules.Auth.JwtService;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Consts;
 using PhysioAssist.Api.Shared.Helpers;
+using PhysioAssist.Api.Shared.Interfaces.Common;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
 using System.Security.Cryptography;
 
 namespace PhysioAssist.Api.Modules.Auth.Services;

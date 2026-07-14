@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using PhysioAssist.Api.Shared.Interfaces.Documentation;
+using System.Text;
 using System.Text.Json;
 
 namespace PhysioAssist.Api.Infrastructure.GroqClient;

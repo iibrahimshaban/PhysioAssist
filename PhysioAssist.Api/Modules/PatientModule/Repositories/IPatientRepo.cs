@@ -1,6 +1,6 @@
 ﻿using PhysioAssist.Api.Modules.PatientModule.DTOs;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Modules.PatientModule.Repositories
 {

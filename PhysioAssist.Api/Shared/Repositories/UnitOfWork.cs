@@ -2,7 +2,7 @@
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
 using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Shared.Repositories;
 

@@ -1,5 +1,4 @@
-﻿
-namespace PhysioAssist.Api.Modules.PatientModule.Entities;
+﻿namespace PhysioAssist.Api.Modules.PatientModule.Entities;
 
 public class Patient : AuditableEntity
 {

@@ -1,6 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 using MapsterMapper;
 using PhysioAssist.Api.Modules.Intake.DTOs.DynamicForms;
 using PhysioAssist.Api.Modules.Intake.DTOs.FormSchemas;
@@ -10,10 +7,14 @@ using PhysioAssist.Api.Modules.Intake.Entities;
 using PhysioAssist.Api.Modules.Intake.Errors;
 using PhysioAssist.Api.Modules.Intake.Helpers;
 using PhysioAssist.Api.Modules.Intake.Repositories;
-using PhysioAssist.Api.Modules.PatientModule.Entities;
-using PhysioAssist.Api.Modules.PatientModule.Repositories;
 using PhysioAssist.Api.Shared.Consts;
+using PhysioAssist.Api.Shared.Dtos.Patient;
+using PhysioAssist.Api.Shared.Interfaces.Common;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
 using PhysioAssist.Api.Shared.QR;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 
 namespace PhysioAssist.Api.Modules.Intake.Services;
 
@@ -25,8 +26,8 @@ public class IntakeService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     ILogger<IntakeService> logger,
-    IPatientRepo patientRepo,
-    IDoctorPatientRepo doctorPatientRepo) : IIntakeService
+    IPatientQueryService _patientQueryService
+) : IIntakeService
 {
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -71,8 +72,6 @@ public class IntakeService(
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IMapper _mapper = mapper;
     private readonly ILogger<IntakeService> _logger = logger;
-    private readonly IPatientRepo _patientRepo = patientRepo;
-    private readonly IDoctorPatientRepo _doctorPatientRepo = doctorPatientRepo;
 
     public async Task<Result> EnsureSchemaBelongsToDoctorAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default)
     {
@@ -296,7 +295,7 @@ public class IntakeService(
         if (schemaDto is null)
             return Result.Failure<PublicIntakeSubmissionResponse>(IntakeErrors.InvalidSchema);
 
-        var submissionDto = DeserializeSubmissionJson(request.FormSubmissionData);
+        var submissionDto = ExtractInputValuesHelper.DeserializeSubmissionJson(request.FormSubmissionData);
         if (submissionDto is null)
             return Result.Failure<PublicIntakeSubmissionResponse>(IntakeErrors.InvalidSubmission);
 
@@ -387,7 +386,8 @@ public class IntakeService(
         return Result.Success(response);
     }
 
-    public async Task<Result<PreVisitIntakeResponse>> ConvertToPatientAsync(Guid id, ConvertIntakeToPatientRequest request, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result<PreVisitIntakeResponse>> ConvertToPatientAsync(
+    Guid id, ConvertIntakeToPatientRequest request, Guid doctorId, CancellationToken cancellationToken = default)
     {
         var intake = await _preVisitIntakeRepository.GetByIdAsync(id, cancellationToken);
         if (intake is null)
@@ -399,62 +399,42 @@ public class IntakeService(
         if (intake.ConvertedToPatientId is not null)
             return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.AlreadyConverted);
 
-        if (intake.Status != IntakeStatus.Approved)
-        {
-            _logger.LogWarning("Convert-to-patient attempted on intake {IntakeId} with status {Status} (requires Approved) by doctor {DoctorId}",
-                id, intake.Status, doctorId);
-            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidStatusTransition);
-        }
+        if (!string.IsNullOrWhiteSpace(request.FormSubmissionData))
+            intake.FormSubmissionData = request.FormSubmissionData;
 
-        // ADDED: pull patient fields out of the dynamic form submission instead of
-        // reading intake.PatientName/PatientEmail/PatientPhone (removed from the entity).
-        var submission = DeserializeSubmissionJson(intake.FormSubmissionData);
+        if (request.PainPointsData is not null)
+            intake.PainPointsData = string.IsNullOrWhiteSpace(request.PainPointsData) ? null : request.PainPointsData;
+
+        var submission = ExtractInputValuesHelper.DeserializeSubmissionJson(intake.FormSubmissionData);
         if (submission is null)
-            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSubmission); // TODO: verify this error constant exists
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSubmission);
 
         var fullName = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_full_name", "text");
         var email = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_email", "email");
         var phone = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_phone", "phone");
         var gender = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_gender", "radio");
-        var dateOfBirth = ExtractInputValuesHelper.ExtractAnswerDate(submission, "question_default_dob", "date");
+        DateTime? dateOfBirth = ExtractInputValuesHelper.ExtractAnswerDate(submission, "question_default_dob", "date");
+        var job = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_job", "text");
 
         if (string.IsNullOrWhiteSpace(fullName))
-            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSubmission); // TODO: verify this error constant exists — Patient.FullName has no default
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSubmission);
 
-        var token = $"patient-qr-{Guid.NewGuid():N}";
+        var createPatientResult = await _patientQueryService.CreatePatientFromIntakeAsync(
+            new CreatePatientFromIntakeRequest(
+                fullName,
+                email,
+                phone,
+                gender,
+                dateOfBirth,
+                job,
+                doctorId,
+                ExtractInputValuesHelper.ExtractPatientCategory(intake.PainPointsData)),
+            cancellationToken);
 
-        var resolvedEmail = string.IsNullOrWhiteSpace(email)
-            ? $"converted-{Guid.NewGuid():N}@physioassist.local"
-            : email;
+        if (createPatientResult.IsFailure)
+            return Result.Failure<PreVisitIntakeResponse>(createPatientResult.Error);
 
-        var patient = new Patient
-        {
-            FullName = fullName,
-            EmailAddress = resolvedEmail,
-            PhoneNumber = phone ?? string.Empty,
-            Gender = gender ?? string.Empty,
-            DateOfBirth = dateOfBirth, // null when not present in the submission — fine, now nullable
-            QRCodeToken = token,
-            Status = PatientStatus.Active
-        };
-
-        await _patientRepo.AddAsync(patient);
-        await _unitOfWork.SaveAsync(cancellationToken);
-
-        var doctorPatient = new DoctorPatient
-        {
-            DoctorId = doctorId,
-            PatientId = patient.Id,
-            IsPrimary = true,
-            AssignedAt = DateTime.UtcNow,
-            AccessLevel = AccessLevel.FullAccess,
-            Status = DoctorPatientStatus.Active
-        };
-
-        await _doctorPatientRepo.AddAsync(doctorPatient);
-        await _unitOfWork.SaveAsync(cancellationToken);
-
-        intake.ConvertedToPatientId = patient.Id;
+        intake.ConvertedToPatientId = createPatientResult.Value;
         intake.Status = IntakeStatus.Converted;
         intake.ReviewedAt = DateTime.UtcNow;
         intake.ReviewedByDoctorId = doctorId;
@@ -463,22 +443,10 @@ public class IntakeService(
         await _unitOfWork.SaveAsync(cancellationToken);
 
         _logger.LogInformation("Intake {IntakeId} converted to patient {PatientId} by doctor {DoctorId}",
-            id, patient.Id, doctorId);
+            id, intake.ConvertedToPatientId, doctorId);
 
         var response = _mapper.Map<PreVisitIntakeResponse>(intake);
         return Result.Success(response);
-    }
-
-    private DynamicFormSubmissionDto? DeserializeSubmissionJson(string submissionJson)
-    {
-        try
-        {
-            return JsonSerializer.Deserialize<DynamicFormSubmissionDto>(submissionJson, _jsonOptions);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
     }
 
     private DynamicFormSchemaDto? DeserializeSchemaJson(string schemaJson)

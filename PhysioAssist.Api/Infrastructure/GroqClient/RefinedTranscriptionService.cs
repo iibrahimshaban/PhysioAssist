@@ -1,5 +1,6 @@
 using PhysioAssist.Api.Shared.Dtos.Transcription;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
+using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 
 namespace PhysioAssist.Api.Infrastructure.GroqClient;
 

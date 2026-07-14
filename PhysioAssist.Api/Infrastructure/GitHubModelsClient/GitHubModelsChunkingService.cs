@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using PhysioAssist.Api.Shared.Dtos.Chunking;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
