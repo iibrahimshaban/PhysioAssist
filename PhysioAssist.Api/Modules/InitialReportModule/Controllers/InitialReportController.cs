@@ -18,6 +18,9 @@ public class InitialReportController(IInitialReportService initialReportService,
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateInitialReportRequest request)
     {
+        // ⚠️ افتراض: DoctorId بيتاخد من الـ claim بتاع ApplicationUser Id.
+        // لو عندك ربط مختلف بين ApplicationUser والـ Doctor entity (مثلاً IDoctorService)،
+        // استبدلي السطر ده بالطريقة الصح عندك لجلب DoctorId الحقيقي.
         var doctorId = Guid.Parse(User.GetUserId()!);
 
         var result = await _initialReportService.CreateAsync(doctorId, request);
@@ -101,6 +104,15 @@ public class InitialReportController(IInitialReportService initialReportService,
     public async Task<IActionResult> GetIntakeDataSummaryByPatientId(Guid patientId)
     {
         var result = await _intakeQueryService.GetPatientIntakeSummaryAsync(patientId);
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : result.ToProblem(); 
+    }
+
+    [HttpPost("{id:guid}/submit")]
+    public async Task<IActionResult> Submit(Guid id)
+    {
+        var result = await _initialReportService.SubmitAsync(id);
 
         return result.IsSuccess
             ? Ok(result.Value)

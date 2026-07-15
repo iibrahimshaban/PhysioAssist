@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using PhysioAssist.Api.Shared.Interfaces.Common;
+using IQRService = PhysioAssist.Api.Shared.Interfaces.Common.IQRService;
 
 namespace PhysioAssist.Api.Shared.QR;
 
