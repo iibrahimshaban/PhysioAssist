@@ -1,5 +1,6 @@
 ﻿using PhysioAssist.Api.Modules.DocumentationModule.Errors;
 using PhysioAssist.Api.Persistence;
+using PhysioAssist.Api.Shared.Interfaces.Documentation;
 
 namespace PhysioAssist.Api.Modules.DocumentationModule.Services;
 

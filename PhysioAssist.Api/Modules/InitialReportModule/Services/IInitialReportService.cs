@@ -10,4 +10,5 @@ public interface IInitialReportService
     Task<Result<InitialReportResponse>> TranscribeAsync(Guid reportId, IFormFile audioFile, string? languageHint);
     Task<Result<ReportAttachmentResponse>> UploadAttachmentAsync(Guid reportId, IFormFile file);
     Task<Result> DeleteAttachmentAsync(Guid reportId, Guid attachmentId);
+    Task<Result<InitialReportResponse>> GetByPatientIdAsync(Guid patientId);
 }

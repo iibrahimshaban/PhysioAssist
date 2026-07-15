@@ -5,8 +5,8 @@ using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Errors;
 using PhysioAssist.Api.Modules.PatientModule.Repositories;
 using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Interfaces;
 using System.Security.Claims;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Modules.PatientModule.Services
 {

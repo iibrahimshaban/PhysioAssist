@@ -1,16 +1,9 @@
-import { Component, input, output, signal, computed } from '@angular/core';
+import { Component, input, output, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { TextareaModule } from 'primeng/textarea';
-import { SelectModule } from 'primeng/select';
 import { MultiSelect } from 'primeng/multiselect';
-import { CheckboxModule } from 'primeng/checkbox';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { MessageModule } from 'primeng/message';
-import { BodySelectorComponent } from '../body-selector/body-selector.component';
 import {
   DynamicFormSchemaDto,
   DynamicFormSubmissionDto,
@@ -28,343 +21,315 @@ import {
   imports: [
     CommonModule,
     FormsModule,
-    ButtonModule,
-    InputTextModule,
     InputNumberModule,
-    TextareaModule,
-    SelectModule,
     MultiSelect,
-    CheckboxModule,
-    SelectButtonModule,
-    MessageModule,
-    BodySelectorComponent
+    SelectButtonModule
   ],
   template: `
     <div class="dynamic-form-renderer" role="form" aria-label="Dynamic intake form">
       @if (!schema()) {
-        <div class="text-center py-12 text-surface-400" role="status">
+        <div class="text-center py-12 text-slate-400" role="status">
           <i class="pi pi-inbox text-4xl block mb-3"></i>
           <p>No form schema provided.</p>
         </div>
       } @else if ((schema()?.sections?.length ?? 0) === 0) {
-        <div class="text-center py-12 text-surface-400" role="status">
+        <div class="text-center py-12 text-slate-400" role="status">
           <i class="pi pi-file text-4xl block mb-3"></i>
           <p>This form has no sections defined yet.</p>
         </div>
       } @else {
         @for (section of schema()!.sections; track section.sectionId) {
-          <section class="mb-6" [attr.aria-labelledby]="'section-' + section.sectionId">
-            <div class="mb-3">
-              <h2 [id]="'section-' + section.sectionId" class="text-xl font-bold text-surface-800">{{ section.title }}</h2>
-              @if (section.description) {
-                <p class="text-sm text-surface-500 mt-1">{{ section.description }}</p>
-              }
-            </div>
+          <section class="mb-8" [attr.aria-labelledby]="'section-' + section.sectionId">
+            @if (section.title || section.description) {
+              <div class="mb-4">
+                @if (section.title) {
+                  <h2 [id]="'section-' + section.sectionId" class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ section.title }}</h2>
+                }
+                @if (section.description) {
+                  <p class="text-sm text-slate-500 mt-2 leading-relaxed">{{ section.description }}</p>
+                }
+              </div>
+            }
 
             @for (group of section.groups; track group.groupId) {
-              <fieldset class="mb-4 p-4 border border-surface-200 rounded-lg bg-white">
+              <fieldset class="mb-6 bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
                 @if (group.title) {
-                  <legend class="text-base font-semibold text-surface-700 px-1">{{ group.title }}</legend>
+                  <legend class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-1 px-0 flex items-center gap-2">
+                    <i class="pi pi-list text-indigo-500 text-xs"></i>
+                    {{ group.title }}
+                  </legend>
                 }
                 @if (group.description) {
-                  <p class="text-sm text-surface-500 mb-3">{{ group.description }}</p>
+                  <p class="text-xs text-slate-400 mb-4">{{ group.description }}</p>
                 }
 
                 @if (group.questions.length === 0) {
-                  <p class="text-xs text-surface-400 italic py-2 text-center" role="status">No questions in this group</p>
+                  <p class="text-xs text-slate-400 italic py-2 text-center" role="status">No questions in this group</p>
                 }
 
-                @for (question of group.questions; track question.questionId) {
-                  @if (isQuestionVisible(question)) {
-                    <div class="mb-4 last:mb-0">
-                      <div class="flex items-start justify-between">
-                        <label class="block text-sm font-medium text-surface-700 mb-1"
-                               [attr.for]="'q-' + question.questionId"
-                               [id]="'label-' + question.questionId">
-                          {{ question.text }}
-                          @if (question.required) {
-                            <span class="text-red-500 ml-0.5" aria-label="required">*</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  @for (question of group.questions; track question.questionId) {
+                    @if (isQuestionVisible(question)) {
+                      <div class="mb-1" [class.sm:col-span-2]="isWideQuestion(question.type)">
+                        <div class="flex items-start justify-between gap-2 mb-1.5">
+                          <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider"
+                                 [attr.for]="'q-' + question.questionId"
+                                 [id]="'label-' + question.questionId">
+                            {{ question.text }}
+                            @if (question.required) {
+                              <span class="text-rose-500 ml-0.5" aria-label="required">*</span>
+                            }
+                          </label>
+                          @if (question.conditions?.length) {
+                            <span class="text-xs text-amber-500 shrink-0" title="Conditional question">
+                              <i class="pi pi-sliders-h" aria-hidden="true"></i>
+                            </span>
                           }
-                        </label>
-                        @if (question.conditions?.length) {
-                          <span class="text-xs text-orange-500 shrink-0 ml-2" title="Conditional question">
-                            <i class="pi pi-sliders-h" aria-hidden="true"></i>
-                          </span>
+                        </div>
+                        @if (question.description) {
+                          <p class="text-xs text-slate-400 mb-1.5" [id]="'desc-' + question.questionId">{{ question.description }}</p>
                         }
-                      </div>
-                      @if (question.description) {
-                        <p class="text-xs text-surface-500 mb-2" [id]="'desc-' + question.questionId">{{ question.description }}</p>
-                      }
 
-                      <div class="mb-2">
-                        @switch (question.type) {
-                          @case ('text') {
-                            <input
-                              type="text"
-                              pInputText
-                              [ngModel]="answers()[question.questionId]"
-                              (ngModelChange)="updateAnswer(question.questionId, $event)"
-                              [attr.id]="'q-' + question.questionId"
-                              [attr.aria-labelledby]="'label-' + question.questionId"
-                              [attr.aria-describedby]="(question.description ? 'desc-' + question.questionId + ' ' : '') + 'errors-' + question.questionId"
-                              [attr.aria-required]="question.required"
-                              class="w-full"
-                              [attr.placeholder]="question.placeholder || 'Enter your answer'" />
-                          }
-                          @case ('email') {
-                            <input
-                              type="email"
-                              pInputText
-                              [ngModel]="answers()[question.questionId]"
-                              (ngModelChange)="updateAnswer(question.questionId, $event)"
-                              [attr.id]="'q-' + question.questionId"
-                              [attr.aria-labelledby]="'label-' + question.questionId"
-                              [attr.aria-describedby]="'errors-' + question.questionId"
-                              [attr.aria-required]="question.required"
-                              class="w-full"
-                              [attr.placeholder]="question.placeholder || 'email@example.com'" />
-                          }
-                          @case ('phone') {
-                            <input
-                              type="tel"
-                              pInputText
-                              [ngModel]="answers()[question.questionId]"
-                              (ngModelChange)="updateAnswer(question.questionId, $event)"
-                              [attr.id]="'q-' + question.questionId"
-                              [attr.aria-labelledby]="'label-' + question.questionId"
-                              [attr.aria-describedby]="'errors-' + question.questionId"
-                              [attr.aria-required]="question.required"
-                              class="w-full"
-                              [attr.placeholder]="question.placeholder || '(555) 123-4567'" />
-                          }
-                          @case ('number') {
-                            <p-inputNumber
-                              [ngModel]="answers()[question.questionId]"
-                              (ngModelChange)="updateAnswer(question.questionId, $event)"
-                              [inputId]="'q-' + question.questionId"
-                              styleClass="w-full"
-                              [attr.aria-labelledby]="'label-' + question.questionId"
-                              [attr.aria-describedby]="'errors-' + question.questionId"
-                              [attr.aria-required]="question.required" />
-                          }
-                          @case ('textarea') {
-                            <textarea
-                              pTextarea
-                              [ngModel]="answers()[question.questionId]"
-                              (ngModelChange)="updateAnswer(question.questionId, $event)"
-                              [attr.id]="'q-' + question.questionId"
-                              [attr.aria-labelledby]="'label-' + question.questionId"
-                              [attr.aria-describedby]="'errors-' + question.questionId"
-                              [attr.aria-required]="question.required"
-                              rows="3"
-                              class="w-full"
-                              [attr.placeholder]="question.placeholder || 'Enter your answer'"></textarea>
-                          }
-                          @case ('date') {
-                            <input
-                              type="date"
-                              pInputText
-                              [ngModel]="answers()[question.questionId]"
-                              (ngModelChange)="updateAnswer(question.questionId, $event)"
-                              [attr.id]="'q-' + question.questionId"
-                              [attr.aria-labelledby]="'label-' + question.questionId"
-                              [attr.aria-required]="question.required"
-                              class="w-full" />
-                          }
-                          @case ('datetime') {
-                            <input
-                              type="datetime-local"
-                              pInputText
-                              [ngModel]="answers()[question.questionId]"
-                              (ngModelChange)="updateAnswer(question.questionId, $event)"
-                              [attr.id]="'q-' + question.questionId"
-                              [attr.aria-labelledby]="'label-' + question.questionId"
-                              [attr.aria-required]="question.required"
-                              class="w-full" />
-                          }
-                          @case ('select') {
-                            <p-select
-                              [options]="question.options || []"
-                              [ngModel]="answers()[question.questionId]"
-                              (ngModelChange)="updateAnswer(question.questionId, $event)"
-                              [inputId]="'q-' + question.questionId"
-                              placeholder="Select an option"
-                              class="w-full"
-                              [attr.aria-labelledby]="'label-' + question.questionId" />
-                          }
-                          @case ('multiselect') {
-                            <p-multiSelect
-                              [options]="question.options || []"
-                              [ngModel]="answers()[question.questionId]"
-                              (ngModelChange)="updateAnswer(question.questionId, $event)"
-                              [inputId]="'q-' + question.questionId"
-                              [placeholder]="question.placeholder || 'Select options'"
-                              class="w-full"
-                              [attr.aria-labelledby]="'label-' + question.questionId" />
-                          }
-                          @case ('checkbox') {
-                            <div class="space-y-1.5" role="group" [attr.aria-labelledby]="'label-' + question.questionId">
-                              @for (opt of (question.options || []); track opt) {
-                                <div class="flex items-center gap-2">
-                                  <p-checkbox
-                                    [inputId]="question.questionId + '_' + opt"
-                                    [value]="opt"
-                                    [ngModel]="answers()[question.questionId] || []"
-                                    (ngModelChange)="updateAnswer(question.questionId, $event)"
-                                    [binary]="false" />
-                                  <label [for]="question.questionId + '_' + opt" class="text-sm text-surface-700 cursor-pointer">{{ opt }}</label>
-                                </div>
-                              }
-                            </div>
-                          }
-                          @case ('radio') {
-                            <div class="space-y-1.5" role="radiogroup" [attr.aria-labelledby]="'label-' + question.questionId">
-                              @for (opt of (question.options || []); track opt) {
-                                <div class="flex items-center gap-2">
-                                  <input
-                                    type="radio"
-                                    [name]="question.questionId"
-                                    [value]="opt"
-                                    [checked]="answers()[question.questionId] === opt"
-                                    (change)="updateAnswer(question.questionId, opt)"
-                                    [attr.id]="question.questionId + '_' + opt"
-                                    class="border-surface-300"
-                                    [attr.aria-label]="opt" />
-                                  <label [for]="question.questionId + '_' + opt" class="text-sm text-surface-700 cursor-pointer">{{ opt }}</label>
-                                </div>
-                              }
-                            </div>
-                          }
-                          @case ('boolean') {
-                            <div class="flex items-center gap-2">
-                              <p-checkbox
-                                [binary]="true"
+                        <div>
+                          @switch (question.type) {
+                            @case ('text') {
+                              <input
+                                type="text"
+                                [ngModel]="answers()[question.questionId]"
+                                (ngModelChange)="updateAnswer(question.questionId, $event)"
+                                [attr.id]="'q-' + question.questionId"
+                                [attr.aria-labelledby]="'label-' + question.questionId"
+                                [attr.aria-describedby]="(question.description ? 'desc-' + question.questionId + ' ' : '') + 'errors-' + question.questionId"
+                                [attr.aria-required]="question.required"
+                                class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+                                [attr.placeholder]="question.placeholder || 'Enter your answer'" />
+                            }
+                            @case ('email') {
+                              <input
+                                type="email"
+                                [ngModel]="answers()[question.questionId]"
+                                (ngModelChange)="updateAnswer(question.questionId, $event)"
+                                [attr.id]="'q-' + question.questionId"
+                                [attr.aria-labelledby]="'label-' + question.questionId"
+                                [attr.aria-describedby]="'errors-' + question.questionId"
+                                [attr.aria-required]="question.required"
+                                class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+                                [attr.placeholder]="question.placeholder || 'email@example.com'" />
+                            }
+                            @case ('phone') {
+                              <input
+                                type="tel"
+                                [ngModel]="answers()[question.questionId]"
+                                (ngModelChange)="updateAnswer(question.questionId, $event)"
+                                [attr.id]="'q-' + question.questionId"
+                                [attr.aria-labelledby]="'label-' + question.questionId"
+                                [attr.aria-describedby]="'errors-' + question.questionId"
+                                [attr.aria-required]="question.required"
+                                class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+                                [attr.placeholder]="question.placeholder || '(555) 123-4567'" />
+                            }
+                            @case ('number') {
+                              <p-inputNumber
                                 [ngModel]="answers()[question.questionId]"
                                 (ngModelChange)="updateAnswer(question.questionId, $event)"
                                 [inputId]="'q-' + question.questionId"
-                                [attr.aria-labelledby]="'label-' + question.questionId" />
-                              <label [for]="'q-' + question.questionId" class="text-sm text-surface-700 cursor-pointer">Yes</label>
-                            </div>
-                          }
-                          @case ('file') {
-                            <div class="flex items-center gap-3 px-4 py-6 border-2 border-dashed border-surface-300 rounded-md bg-surface-50 cursor-not-allowed"
-                                 role="status" aria-label="File upload placeholder">
-                              <i class="pi pi-upload text-surface-300 text-xl" aria-hidden="true"></i>
-                              <div>
-                                <p class="text-sm text-surface-400 font-medium">File upload is not available</p>
-                                <p class="text-xs text-surface-300">This feature will be available in a future update</p>
-                              </div>
-                            </div>
-                          }
-                          @case ('fileupload') {
-                            <div class="flex items-center gap-3 px-4 py-6 border-2 border-dashed border-surface-300 rounded-md bg-surface-50 cursor-not-allowed"
-                                 role="status" aria-label="File upload placeholder">
-                              <i class="pi pi-upload text-surface-300 text-xl" aria-hidden="true"></i>
-                              <div>
-                                <p class="text-sm text-surface-400 font-medium">File upload is not available</p>
-                                <p class="text-xs text-surface-300">This feature will be available in a future update</p>
-                              </div>
-                            </div>
-                          }
-                          @case ('painpoint') {
-                            <div class="flex flex-col gap-2">
-                              <div class="flex items-center gap-3">
-                                <label class="text-xs text-surface-500 w-16">Intensity</label>
-                                <p-selectButton
-                                  [options]="painScaleOptions"
-                                  [ngModel]="answers()[question.questionId]?.intensity"
-                                  (ngModelChange)="updateAnswer(question.questionId, { x: 0, y: 0, bodyPart: '', ...(answers()[question.questionId] || {}), intensity: $event })"
-                                  styleClass="p-selectbutton-sm" />
-                              </div>
-                              <div class="flex items-center gap-3">
-                                <label class="text-xs text-surface-500 w-16">Anatomical Region</label>
-                                <input
-                                  type="text"
-                                  pInputText
-                                  [ngModel]="answers()[question.questionId]?.anatomicalRegion || answers()[question.questionId]?.bodyPart"
-                                  (ngModelChange)="updateAnswer(question.questionId, { x: 0, y: 0, anatomicalRegion: $event, bodyPart: $event, intensity: answers()[question.questionId]?.intensity ?? 5 })"
-                                  placeholder="e.g. lumbar spine, shoulder, knee"
-                                  class="w-full text-sm" />
-                              </div>
-                              <div class="flex items-center gap-3">
-                                <label class="text-xs text-surface-500 w-16">Side</label>
-                                <input
-                                  type="text"
-                                  pInputText
-                                  [ngModel]="answers()[question.questionId]?.side"
-                                  (ngModelChange)="updateAnswer(question.questionId, { x: 0, y: 0, anatomicalRegion: answers()[question.questionId]?.anatomicalRegion ?? answers()[question.questionId]?.bodyPart ?? '', bodyPart: answers()[question.questionId]?.bodyPart ?? answers()[question.questionId]?.anatomicalRegion ?? '', side: $event, intensity: answers()[question.questionId]?.intensity ?? 5, description: answers()[question.questionId]?.description ?? '' })"
-                                  [attr.placeholder]="question.placeholder || 'left, right, bilateral'"
-                                  class="w-full text-sm" />
-                              </div>
-                              <div class="flex items-center gap-3">
-                                <label class="text-xs text-surface-500 w-16">Description</label>
-                                <input
-                                  type="text"
-                                  pInputText
-                                  [ngModel]="answers()[question.questionId]?.description"
-                                  (ngModelChange)="updateAnswer(question.questionId, { x: 0, y: 0, anatomicalRegion: answers()[question.questionId]?.anatomicalRegion ?? answers()[question.questionId]?.bodyPart ?? '', bodyPart: answers()[question.questionId]?.bodyPart ?? answers()[question.questionId]?.anatomicalRegion ?? '', side: answers()[question.questionId]?.side ?? '', intensity: answers()[question.questionId]?.intensity ?? 5, description: $event })"
-                                  [attr.placeholder]="question.placeholder || 'Describe the pain'"
-                                  class="w-full text-sm" />
-                              </div>
-                            </div>
-                          }
-                          @case ('bodyselector') {
-                            <app-body-selector
-                              (painPointsChange)="updateAnswer(question.questionId, $event)" />
-                          }
-                          @case ('painscale') {
-                            <div class="flex flex-wrap items-center gap-3">
-                              <p-selectButton
-                                [options]="painScaleOptions"
+                                styleClass="w-full"
+                                inputStyleClass="!w-full !text-sm !px-3 !py-2 !border !border-slate-200 !rounded-xl"
+                                [attr.aria-labelledby]="'label-' + question.questionId"
+                                [attr.aria-describedby]="'errors-' + question.questionId"
+                                [attr.aria-required]="question.required" />
+                            }
+                            @case ('textarea') {
+                              <textarea
                                 [ngModel]="answers()[question.questionId]"
                                 (ngModelChange)="updateAnswer(question.questionId, $event)"
-                                styleClass="p-selectbutton-sm"
+                                [attr.id]="'q-' + question.questionId"
+                                [attr.aria-labelledby]="'label-' + question.questionId"
+                                [attr.aria-describedby]="'errors-' + question.questionId"
+                                [attr.aria-required]="question.required"
+                                rows="3"
+                                class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+                                [attr.placeholder]="question.placeholder || 'Enter your answer'"></textarea>
+                            }
+                            @case ('date') {
+                              <input
+                                type="date"
+                                [ngModel]="answers()[question.questionId]"
+                                (ngModelChange)="updateAnswer(question.questionId, $event)"
+                                [attr.id]="'q-' + question.questionId"
+                                [attr.aria-labelledby]="'label-' + question.questionId"
+                                [attr.aria-required]="question.required"
+                                class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400" />
+                            }
+                            @case ('datetime') {
+                              <input
+                                type="datetime-local"
+                                [ngModel]="answers()[question.questionId]"
+                                (ngModelChange)="updateAnswer(question.questionId, $event)"
+                                [attr.id]="'q-' + question.questionId"
+                                [attr.aria-labelledby]="'label-' + question.questionId"
+                                [attr.aria-required]="question.required"
+                                class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400" />
+                            }
+                            @case ('select') {
+                              <select
+                                [ngModel]="answers()[question.questionId]"
+                                (ngModelChange)="updateAnswer(question.questionId, $event)"
+                                [attr.id]="'q-' + question.questionId"
+                                [attr.aria-labelledby]="'label-' + question.questionId"
+                                [attr.aria-required]="question.required"
+                                class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400">
+                                <option [ngValue]="null">{{ question.placeholder || 'Select an option' }}</option>
+                                @for (opt of (question.options || []); track opt) {
+                                  <option [ngValue]="opt">{{ opt }}</option>
+                                }
+                              </select>
+                            }
+                            @case ('multiselect') {
+                              <p-multiSelect
+                                [options]="question.options || []"
+                                [ngModel]="answers()[question.questionId]"
+                                (ngModelChange)="updateAnswer(question.questionId, $event)"
+                                [inputId]="'q-' + question.questionId"
+                                [placeholder]="question.placeholder || 'Select options'"
+                                styleClass="w-full !rounded-xl !border-slate-200"
                                 [attr.aria-labelledby]="'label-' + question.questionId" />
-                              @if (answers()[question.questionId] != null) {
-                                <span class="text-sm text-surface-600" aria-live="polite">/ 10</span>
-                              }
-                            </div>
-                          }
-                          @default {
-                            <input
-                              type="text"
-                              pInputText
-                              [ngModel]="answers()[question.questionId]"
-                              (ngModelChange)="updateAnswer(question.questionId, $event)"
-                              [attr.id]="'q-' + question.questionId"
-                              [attr.aria-labelledby]="'label-' + question.questionId"
-                              class="w-full"
-                              [attr.placeholder]="question.placeholder || 'Enter your answer'" />
-                          }
-                        }
-                      </div>
-
-                      @if (question.helpText) {
-                        <p class="text-xs text-surface-400 mt-1" [id]="'help-' + question.questionId">{{ question.helpText }}</p>
-                      }
-
-                      @if (getQuestionErrors(question).length > 0 && isTouched(question.questionId)) {
-                        <div class="mb-2" [id]="'errors-' + question.questionId" role="alert">
-                          @for (err of getQuestionErrors(question); track err) {
-                            <p-message severity="error" [text]="err" styleClass="!text-xs !py-1 !px-2 !mb-1" />
+                            }
+                            @case ('checkbox') {
+                              <div class="flex flex-wrap gap-x-5 gap-y-2" role="group" [attr.aria-labelledby]="'label-' + question.questionId">
+                                @for (opt of (question.options || []); track opt) {
+                                  <label class="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
+                                    <input
+                                      type="checkbox"
+                                      [id]="question.questionId + '_' + opt"
+                                      [checked]="(answers()[question.questionId] || []).includes(opt)"
+                                      (change)="toggleCheckboxOption(question.questionId, opt, $any($event.target).checked)"
+                                      class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/30" />
+                                    {{ opt }}
+                                  </label>
+                                }
+                              </div>
+                            }
+                            @case ('radio') {
+                              <div class="flex flex-wrap gap-x-5 gap-y-2" role="radiogroup" [attr.aria-labelledby]="'label-' + question.questionId">
+                                @for (opt of (question.options || []); track opt) {
+                                  <label class="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
+                                    <input
+                                      type="radio"
+                                      [name]="question.questionId"
+                                      [value]="opt"
+                                      [checked]="answers()[question.questionId] === opt"
+                                      (change)="updateAnswer(question.questionId, opt)"
+                                      [id]="question.questionId + '_' + opt"
+                                      class="w-4 h-4 border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/30"
+                                      [attr.aria-label]="opt" />
+                                    {{ opt }}
+                                  </label>
+                                }
+                              </div>
+                            }
+                            @case ('boolean') {
+                              <label class="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
+                                <input
+                                  type="checkbox"
+                                  [ngModel]="answers()[question.questionId]"
+                                  (ngModelChange)="updateAnswer(question.questionId, $event)"
+                                  [attr.id]="'q-' + question.questionId"
+                                  [attr.aria-labelledby]="'label-' + question.questionId"
+                                  class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/30" />
+                                Yes
+                              </label>
+                            }
+                            @case ('file') {
+                              <div class="flex items-center gap-3 px-4 py-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 cursor-not-allowed"
+                                   role="status" aria-label="File upload placeholder">
+                                <i class="pi pi-upload text-slate-300 text-xl" aria-hidden="true"></i>
+                                <div>
+                                  <p class="text-sm text-slate-400 font-medium m-0">File upload is not available</p>
+                                  <p class="text-xs text-slate-300 m-0">This feature will be available in a future update</p>
+                                </div>
+                              </div>
+                            }
+                            @case ('fileupload') {
+                              <div class="flex items-center gap-3 px-4 py-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 cursor-not-allowed"
+                                   role="status" aria-label="File upload placeholder">
+                                <i class="pi pi-upload text-slate-300 text-xl" aria-hidden="true"></i>
+                                <div>
+                                  <p class="text-sm text-slate-400 font-medium m-0">File upload is not available</p>
+                                  <p class="text-xs text-slate-300 m-0">This feature will be available in a future update</p>
+                                </div>
+                              </div>
+                            }
+                            @case ('painpoint') {
+                              <div class="flex flex-col gap-3 bg-slate-50 border border-slate-100 rounded-xl p-3">
+                                <div class="flex items-center gap-3">
+                                  <label class="text-xs font-semibold text-slate-500 w-24 shrink-0">Intensity</label>
+                                  <p-selectButton
+                                    [options]="painScaleOptions"
+                                    [ngModel]="answers()[question.questionId]?.intensity"
+                                    (ngModelChange)="updateAnswer(question.questionId, { x: 0, y: 0, bodyPart: '', ...(answers()[question.questionId] || {}), intensity: $event })"
+                                    styleClass="p-selectbutton-sm" />
+                                </div>
+                                <div class="flex items-center gap-3">
+                                  <label class="text-xs font-semibold text-slate-500 w-24 shrink-0">Region</label>
+                                  <input
+                                    type="text"
+                                    [ngModel]="answers()[question.questionId]?.anatomicalRegion || answers()[question.questionId]?.bodyPart"
+                                    (ngModelChange)="updateAnswer(question.questionId, { x: 0, y: 0, anatomicalRegion: $event, bodyPart: $event, intensity: answers()[question.questionId]?.intensity ?? 5 })"
+                                    placeholder="e.g. lumbar spine, shoulder, knee"
+                                    class="w-full text-sm px-3 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30" />
+                                </div>
+                                <div class="flex items-center gap-3">
+                                  <label class="text-xs font-semibold text-slate-500 w-24 shrink-0">Side</label>
+                                  <input
+                                    type="text"
+                                    [ngModel]="answers()[question.questionId]?.side"
+                                    (ngModelChange)="updateAnswer(question.questionId, { x: 0, y: 0, anatomicalRegion: answers()[question.questionId]?.anatomicalRegion ?? answers()[question.questionId]?.bodyPart ?? '', bodyPart: answers()[question.questionId]?.bodyPart ?? answers()[question.questionId]?.anatomicalRegion ?? '', side: $event, intensity: answers()[question.questionId]?.intensity ?? 5, description: answers()[question.questionId]?.description ?? '' })"
+                                    [attr.placeholder]="question.placeholder || 'left, right, bilateral'"
+                                    class="w-full text-sm px-3 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30" />
+                                </div>
+                                <div class="flex items-center gap-3">
+                                  <label class="text-xs font-semibold text-slate-500 w-24 shrink-0">Description</label>
+                                  <input
+                                    type="text"
+                                    [ngModel]="answers()[question.questionId]?.description"
+                                    (ngModelChange)="updateAnswer(question.questionId, { x: 0, y: 0, anatomicalRegion: answers()[question.questionId]?.anatomicalRegion ?? answers()[question.questionId]?.bodyPart ?? '', bodyPart: answers()[question.questionId]?.bodyPart ?? answers()[question.questionId]?.anatomicalRegion ?? '', side: answers()[question.questionId]?.side ?? '', intensity: answers()[question.questionId]?.intensity ?? 5, description: $event })"
+                                    [attr.placeholder]="question.placeholder || 'Describe the pain'"
+                                    class="w-full text-sm px-3 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30" />
+                                </div>
+                              </div>
+                            }
+                            @default {
+                              <input
+                                type="text"
+                                [ngModel]="answers()[question.questionId]"
+                                (ngModelChange)="updateAnswer(question.questionId, $event)"
+                                [attr.id]="'q-' + question.questionId"
+                                [attr.aria-labelledby]="'label-' + question.questionId"
+                                class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+                                [attr.placeholder]="question.placeholder || 'Enter your answer'" />
+                            }
                           }
                         </div>
-                      }
 
-                      <div class="flex items-start gap-2" [id]="'notes-' + question.questionId">
-                        <i class="pi pi-comment text-surface-300 text-xs mt-1.5" aria-hidden="true"></i>
-                        <input
-                          type="text"
-                          pInputText
-                          [ngModel]="notes()[question.questionId]"
-                          (ngModelChange)="updateNote(question.questionId, $event)"
-                          class="w-full text-xs"
-                          [attr.aria-label]="'Notes for ' + question.text"
-                          placeholder="Add a note..." />
+                        @if (question.helpText) {
+                          <p class="text-xs text-slate-400 mt-1.5" [id]="'help-' + question.questionId">{{ question.helpText }}</p>
+                        }
+
+                        @if (getQuestionErrors(question).length > 0 && isTouched(question.questionId)) {
+                          <div class="mt-1.5" [id]="'errors-' + question.questionId" role="alert">
+                            @for (err of getQuestionErrors(question); track err) {
+                              <p class="text-xs text-rose-500 font-medium flex items-center gap-1 m-0">
+                                <i class="pi pi-exclamation-circle text-xs"></i>
+                                {{ err }}
+                              </p>
+                            }
+                          </div>
+                        }
                       </div>
-                    </div>
+                    }
                   }
-                }
+                </div>
               </fieldset>
             }
           </section>
@@ -381,6 +346,9 @@ export class DynamicFormRendererComponent {
   readonly formSchemaId = input<string>('');
   readonly formSchemaVersion = input<number>(1);
   readonly conditionLogic = input<'AND' | 'OR'>('AND');
+  /** Pre-fills the answers signal — e.g. for the submission detail page's edit mode,
+   *  seeded from the previously stored submission (already unwrapped by the caller). */
+  readonly initialAnswers = input<Record<string, any> | null>(null);
 
   readonly submissionChange = output<DynamicFormSubmissionDto>();
   readonly validityChange = output<boolean>();
@@ -388,11 +356,36 @@ export class DynamicFormRendererComponent {
   protected readonly painScaleOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(v => ({ label: v.toString(), value: v }));
 
   protected readonly answers = signal<Record<string, any>>({});
-  protected readonly notes = signal<Record<string, string>>({});
   protected readonly touchedFields = signal<Set<string>>(new Set());
+
+  constructor() {
+    effect(() => {
+      const initial = this.initialAnswers();
+      if (initial) {
+        this.answers.set({ ...initial });
+      }
+    });
+  }
+
+  private readonly wideTypes = new Set([
+    'textarea', 'checkbox', 'multiselect', 'radio', 'painpoint', 'painscale',
+    'bodyselector', 'file', 'fileupload'
+  ]);
 
   protected isTouched(questionId: string): boolean {
     return this.touchedFields().has(questionId);
+  }
+
+  protected isWideQuestion(type: string): boolean {
+    return this.wideTypes.has(type);
+  }
+
+  protected toggleCheckboxOption(questionId: string, option: string, checked: boolean): void {
+    const current: string[] = this.answers()[questionId] || [];
+    const next = checked
+      ? [...current, option]
+      : current.filter(o => o !== option);
+    this.updateAnswer(questionId, next);
   }
 
   private readonly wrapTypes = new Set([
@@ -406,7 +399,6 @@ export class DynamicFormRendererComponent {
     if (!s) return null;
 
     const currentAnswers = this.answers();
-    const currentNotes = this.notes();
 
     const sections: SubmissionSectionDto[] = s.sections.map(section => {
       const groups: SubmissionGroupDto[] = section.groups.map(group => {
@@ -417,7 +409,6 @@ export class DynamicFormRendererComponent {
             value: this.wrapTypes.has(q.type)
               ? { [q.type]: currentAnswers[q.questionId] }
               : currentAnswers[q.questionId],
-            notes: currentNotes[q.questionId] || undefined,
             attachments: q.type === 'file' ? [] : undefined
           }));
         return { groupId: group.groupId, answers };
@@ -598,13 +589,8 @@ export class DynamicFormRendererComponent {
   }
 
   protected updateAnswer(questionId: string, value: any): void {
-    this.touchedFields.update(set => { set.add(questionId); return new Set(set); });
+    this.touchedFields.update(set => { const next = new Set(set); next.add(questionId); return next; });
     this.answers.update(current => ({ ...current, [questionId]: value }));
-    this.emitOutputs();
-  }
-
-  protected updateNote(questionId: string, value: string): void {
-    this.notes.update(current => ({ ...current, [questionId]: value }));
     this.emitOutputs();
   }
 

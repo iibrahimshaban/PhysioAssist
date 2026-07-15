@@ -14,6 +14,9 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
         builder.Property(p => p.FullName)
                .HasMaxLength(100);
 
+        builder
+            .Property(p => p.DateOfBirth).IsRequired(false);
+
         builder.Property(p => p.Gender)
                .HasMaxLength(10);
 

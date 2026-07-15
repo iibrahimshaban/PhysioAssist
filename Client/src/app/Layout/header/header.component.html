@@ -51,6 +51,28 @@
           routerLinkActive="!text-blue-600 !bg-blue-50"
           >Sessions</a
         >
+        <a
+          class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/initial-report"
+          routerLinkActive="!text-blue-600 !bg-blue-50"
+          >initial report</a
+        >
+
+        <!-- Intake: Schemas -->
+        <a
+          class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/intake/schemas"
+          routerLinkActive="!text-blue-600 !bg-blue-50"
+          >Schemas</a
+        >
+
+        <!-- Intake: Submissions -->
+        <a
+          class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/intake/submissions"
+          routerLinkActive="!text-blue-600 !bg-blue-50"
+          >Submissions</a
+        >
 
         <a
           class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
@@ -125,6 +147,25 @@
           >Patients</a
         >
 
+        <a
+          class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/session"
+          (click)="closeMenu()"
+          >Sessions</a
+        >
+
+        <a
+          class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/intake/schemas"
+          (click)="closeMenu()"
+          >Schemas</a
+        >
+        <a
+          class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/intake/submissions"
+          (click)="closeMenu()"
+          >Submissions</a
+        >
         <a
           class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
           routerLink="/app/account"

@@ -11,6 +11,7 @@ public record FormSchemaResponse
     public FormSchemaStatus Status { get; init; }
     public bool IsDefault { get; init; }
     public string SchemaHash { get; init; } = string.Empty;
+    public bool ShowPainMap { get; init; } 
     public DateTime? PublishedAt { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime? UpdatedAt { get; init; }

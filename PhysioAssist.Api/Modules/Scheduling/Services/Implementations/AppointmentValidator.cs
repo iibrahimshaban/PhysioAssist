@@ -102,7 +102,6 @@ namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations
 
             return Result.Success();
         }
-
         private async Task<Result> ValidateOverlapAsync(Guid doctorId, DateTimeOffset slotStart, DateTimeOffset slotEnd, Guid? excludeAppointmentId, CancellationToken cancellationToken)
         {
             var hasOverlap = await _scheduleSlotRepository.HasOverlapAsync(doctorId, slotStart, slotEnd, excludeAppointmentId, cancellationToken);

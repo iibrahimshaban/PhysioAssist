@@ -1,16 +1,25 @@
 import { Routes } from '@angular/router';
-import { NotFoundComponent } from './Shared/Components/not-found/not-found.component';
-import { ServerErrorComponent } from './Shared/Components/server-error/server-error.component';
 import { noAuthGuard } from './Core/Guards/no-auth-guard';
 import { authGuard } from './Core/Guards/auth-guard';
+import { MainLayoutComponent } from './Layout/main-layout/main-layout.component';
 
 export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./Features/home/home.component').then((m) => m.HomeComponent),
   },
-  { path: 'not-found', component: NotFoundComponent },
-  { path: 'server-error', component: ServerErrorComponent },
+  {
+    path: 'not-found',
+    loadComponent: () =>
+      import('./Shared/Components/not-found/not-found.component').then((m) => m.NotFoundComponent),
+  },
+  {
+    path: 'server-error',
+    loadComponent: () =>
+      import('./Shared/Components/server-error/server-error.component').then(
+        (m) => m.ServerErrorComponent,
+      ),
+  },
   {
     path: 'unauthorized',
     loadComponent: () =>
@@ -21,74 +30,17 @@ export const routes: Routes = [
   {
     path: 'auth',
     canActivate: [noAuthGuard],
-    children: [
-      {
-        path: 'login',
-        loadComponent: () =>
-          import('./Features/Auth/login/login.component').then((m) => m.LoginComponent),
-      },
-      {
-        path: 'register',
-        loadComponent: () =>
-          import('./Features/Auth/register/register.component').then((m) => m.RegisterComponent),
-      },
-      {
-        path: 'confirm-email',
-        loadComponent: () =>
-          import('./Features/Auth/confirm-email/confirm-email.component').then(
-            (m) => m.ConfirmEmailComponent,
-          ),
-      },
-      {
-        path: 'forgot-password',
-        loadComponent: () =>
-          import('./Features/Auth/forget-password/forget-password.component').then(
-            (m) => m.ForgotPasswordComponent,
-          ),
-      },
-      {
-        path: 'reset-password',
-        loadComponent: () =>
-          import('./Features/Auth/reset-password/reset-password.component').then(
-            (m) => m.ResetPasswordComponent,
-          ),
-      },
-      {
-        path: 'verify-otp',
-        loadComponent: () =>
-          import('./Features/Auth/verify-otp/verify-otp.component').then(
-            (m) => m.VerifyOtpComponent,
-          ),
-      },
-    ],
+    loadChildren: () => import('./Features/Auth/auth.routes').then((m) => m.authRoutes),
   },
   {
     path: 'app',
+    component: MainLayoutComponent,
     canActivate: [authGuard],
-    children: [
-      { path: 'intake', loadChildren: () => import('./Features/intake/intake.routes').then(m => m.intakeRoutes) },
-      { path: 'account', loadComponent: () => import('./Features/account/account.component').then(m => m.AccountComponent) },
-      {
-        path: 'patients',
-        children: [
-          { path: '', loadComponent: () => import('./Features/Patient/patient-list/patient-list.component').then(m => m.PatientListComponent) },
-          { path: 'create', loadComponent: () => import('./Features/Patient/patient-form/patient-form.component').then(m => m.PatientFormComponent) },
-          { path: 'edit/:id', loadComponent: () => import('./Features/Patient/patient-form/patient-form.component').then(m => m.PatientFormComponent) },
-          { path: ':id', loadComponent: () => import('./Features/Patient/patient-detail/patient-detail.component').then(m => m.PatientDetailComponent) },
-        ]
-      },
-      { path: 'initial-report/:id', loadComponent: () => import('./Features/initial-report/initial-report.component').then(m => m.InitialReportComponent) },      {
-        path: 'schedule',
-        loadComponent: () =>
-          import('./Features/Schedule/schedule-page.component')
-            .then(m => m.SchedulePageComponent),
-      },
-      { path: 'session', loadComponent: () => import('./Features/session/session.component').then(m => m.SessionComponent) },
-    ],
+    loadChildren: () => import('./Layout/main-layout/main-layout.routes').then((m) => m.MainLayoutRoutes),
   },
   {
     path: 'public',
-    loadChildren: () => import('./Features/intake/intake.routes').then(m => m.publicIntakeRoutes)
+    loadChildren: () => import('./Features/intake/intake.routes').then((m) => m.publicIntakeRoutes),
   },
   { path: '**', redirectTo: 'not-found' },
 ];

@@ -1,4 +1,4 @@
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 using PhysioAssist.Api.Shared.QR;
 using PhysioAssist.Api.Shared.Repositories;
 

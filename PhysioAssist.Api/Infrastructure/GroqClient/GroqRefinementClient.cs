@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Options;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 using PhysioAssist.Api.Shared.SystemPrompts;
 using System.Net.Http.Headers;
 using System.Text;

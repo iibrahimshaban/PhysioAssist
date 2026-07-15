@@ -22,16 +22,6 @@ public class PreVisitIntakeConfiguration : IEntityTypeConfiguration<PreVisitInta
         builder.Property(p => p.FormSchemaVersion)
                .IsRequired();
 
-        builder.Property(p => p.PatientName)
-               .IsRequired()
-               .HasMaxLength(200);
-
-        builder.Property(p => p.PatientEmail)
-               .HasMaxLength(200);
-
-        builder.Property(p => p.PatientPhone)
-               .HasMaxLength(20);
-
         builder.Property(p => p.FormSubmissionData)
                .IsRequired()
                .HasColumnType("nvarchar(max)");

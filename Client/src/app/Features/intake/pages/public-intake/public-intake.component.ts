@@ -13,9 +13,9 @@ import {
   PublicIntakeSubmissionResponse,
   DynamicFormSchemaDto,
   DynamicFormSubmissionDto,
-  SubmitPreVisitIntakeRequest,
-  PainPointDto
+  SubmitPreVisitIntakeRequest
 } from '../../models';
+import { BodyPainMapPayload, BodyPainMapComponent } from '../../components/body-pain-map/body-pain-map.component';
 
 @Component({
   selector: 'app-public-intake',
@@ -25,8 +25,9 @@ import {
     FormsModule,
     ButtonModule,
     InputTextModule,
-    DynamicFormRendererComponent
-  ],
+    DynamicFormRendererComponent,
+    BodyPainMapComponent
+],
   template: `
     <div class="min-h-screen bg-slate-50/50 flex flex-col font-sans" role="main" aria-label="Intake form page">
       <!-- ── Branded Header ──────────────────────────────────────── -->
@@ -44,44 +45,6 @@ import {
         </div>
       </header>
 
-      <!-- ── Loading State ────────────────────────────────────────── -->
-      @if (loading()) {
-        <div class="flex-1 flex flex-col items-center justify-center py-24 px-4 animate-fade-in" role="status" aria-label="Loading">
-          <div class="premium-spinner mb-4"></div>
-          <p class="text-slate-500 font-medium animate-pulse text-sm">Securing your connection & loading form...</p>
-        </div>
-      }
-
-      <!-- ── Error State ──────────────────────────────────────────── -->
-      @if (error()) {
-        <div class="max-w-lg mx-auto mt-12 px-4 w-full animate-fade-in-up">
-          <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 text-center" role="alert">
-            <div class="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mx-auto mb-5 text-rose-500">
-              <i class="pi pi-exclamation-triangle text-3xl" aria-hidden="true"></i>
-            </div>
-            <h2 class="text-lg font-bold text-slate-800 mb-2">Unable to Load Intake Form</h2>
-            <p class="text-slate-600 mb-6 text-sm leading-relaxed">{{ error() }}</p>
-            <div class="flex flex-col sm:flex-row gap-3 justify-center">
-              <p-button
-                label="Try Again"
-                icon="pi pi-refresh"
-                (onClick)="retry()"
-                severity="primary"
-                styleClass="w-full sm:w-auto">
-              </p-button>
-              <p-button
-                label="Go Back Home"
-                icon="pi pi-home"
-                (onClick)="goHome()"
-                [outlined]="true"
-                severity="secondary"
-                styleClass="w-full sm:w-auto">
-              </p-button>
-            </div>
-          </div>
-        </div>
-      }
-
       <!-- ── Success State ────────────────────────────────────────── -->
       @if (submitted() && submissionResult()) {
         <div class="max-w-lg mx-auto mt-12 px-4 w-full animate-fade-in-up">
@@ -93,12 +56,12 @@ import {
             </div>
             <h2 class="text-xl font-bold text-slate-900 mb-2">Thank you!</h2>
             <p class="text-slate-500 mb-6 text-sm">{{ submissionResult()!.message }}</p>
-            
+
             <div class="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100 text-left">
               <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Receipt ID</p>
               <p class="text-xs font-mono text-slate-800 break-all select-all font-semibold">{{ submissionResult()!.submissionId }}</p>
             </div>
-            
+
             <p class="text-[11px] text-slate-400">
               Submitted at {{ submissionResult()!.submittedAt | date:'medium' }}
             </p>
@@ -118,64 +81,6 @@ import {
               }
             </div>
 
-            <!-- Patient Demographics Section -->
-            <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6" aria-label="Patient information">
-              <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <i class="pi pi-user text-indigo-500 text-xs"></i>
-                Patient Details
-              </h2>
-              
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="sm:col-span-2">
-                  <label for="patient-name" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-                    Full Name <span class="text-rose-500" aria-label="required">*</span>
-                  </label>
-                  <input
-                    id="patient-name"
-                    type="text"
-                    pInputText
-                    [ngModel]="patientName()"
-                    (ngModelChange)="patientName.set($event)"
-                    placeholder="e.g. John Doe"
-                    class="w-full"
-                    [attr.aria-required]="true"
-                    [attr.aria-invalid]="nameTouched() && patientName().trim().length === 0"
-                    [class.ng-invalid]="nameTouched() && patientName().trim().length === 0"
-                    (blur)="nameTouched.set(true)" />
-                  @if (nameTouched() && patientName().trim().length === 0) {
-                    <p class="text-xs text-rose-500 mt-1.5 font-medium flex items-center gap-1" role="alert">
-                      <i class="pi pi-exclamation-circle text-xs"></i>
-                      Full name is required to submit your intake.
-                    </p>
-                  }
-                </div>
-                
-                <div>
-                  <label for="patient-email" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Email Address</label>
-                  <input
-                    id="patient-email"
-                    type="email"
-                    pInputText
-                    [ngModel]="patientEmail()"
-                    (ngModelChange)="patientEmail.set($event)"
-                    placeholder="john@example.com"
-                    class="w-full" />
-                </div>
-                
-                <div>
-                  <label for="patient-phone" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Phone Number</label>
-                  <input
-                    id="patient-phone"
-                    type="tel"
-                    pInputText
-                    [ngModel]="patientPhone()"
-                    (ngModelChange)="patientPhone.set($event)"
-                    placeholder="(555) 000-0000"
-                    class="w-full" />
-                </div>
-              </div>
-            </section>
-
             <!-- Dynamic Fields Render -->
             <app-dynamic-form-renderer
               [schema]="schema()"
@@ -194,6 +99,12 @@ import {
               </div>
             }
           </div>
+
+          <!-- Pain Map Section -->
+           @if (formData()!.showPainMap) {
+            <app-body-pain-map (mapChange)="onPainMapChange($event)" />
+           }
+
 
           <!-- Submit Buttons -->
           <div class="mt-8 pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -233,11 +144,6 @@ export class PublicIntakeComponent implements OnInit {
   readonly formData = signal<PublicIntakeFormResponse | null>(null);
   readonly schema = signal<DynamicFormSchemaDto | null>(null);
 
-  readonly patientName = signal('');
-  readonly patientEmail = signal('');
-  readonly patientPhone = signal('');
-  readonly nameTouched = signal(false);
-
   readonly submission = signal<DynamicFormSubmissionDto | null>(null);
   readonly isFormValid = signal(false);
   readonly submitting = signal(false);
@@ -246,8 +152,7 @@ export class PublicIntakeComponent implements OnInit {
   readonly submitError = signal<string | null>(null);
 
   readonly canSubmit = computed(() =>
-    this.patientName().trim().length > 0
-    && this.isFormValid()
+    this.isFormValid()
     && !this.submitting()
     && !this.submitted()
   );
@@ -275,6 +180,12 @@ export class PublicIntakeComponent implements OnInit {
     this.isFormValid.set(valid);
   }
 
+  painMapPayload = signal<BodyPainMapPayload | null>(null);
+
+  onPainMapChange(payload: BodyPainMapPayload) {
+    this.painMapPayload.set(payload);
+  }
+
   submit(): void {
     const currentSubmission = this.submission();
     const currentSchema = this.schema();
@@ -283,17 +194,14 @@ export class PublicIntakeComponent implements OnInit {
     this.submitting.set(true);
     this.submitError.set(null);
 
-    const request: SubmitPreVisitIntakeRequest = {
-      patientName: this.patientName().trim(),
-      patientEmail: this.patientEmail().trim() || undefined,
-      patientPhone: this.patientPhone().trim() || undefined,
-      formSubmissionData: JSON.stringify(currentSubmission)
-    };
+    const painMap = this.painMapPayload();
 
-    const painPoints = this.extractPainPoints(currentSubmission, currentSchema);
-    if (painPoints.length > 0) {
-      request.painPointsData = JSON.stringify(painPoints);
-    }
+    const request: SubmitPreVisitIntakeRequest = {
+      formSubmissionData: JSON.stringify(currentSubmission),
+      painPointsData: painMap && painMap.regions.length > 0
+        ? JSON.stringify(painMap)
+        : undefined
+    };
 
     this.qrAccessService.submitPublicIntake(this.token!, request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
@@ -309,33 +217,6 @@ export class PublicIntakeComponent implements OnInit {
     });
   }
 
-  private extractPainPoints(
-    submission: DynamicFormSubmissionDto,
-    schema: DynamicFormSchemaDto
-  ): PainPointDto[] {
-    const bodySelectorIds = new Set<string>();
-    for (const section of schema.sections) {
-      for (const group of section.groups) {
-        for (const question of group.questions) {
-          if (question.type === 'bodyselector') {
-            bodySelectorIds.add(question.questionId);
-          }
-        }
-      }
-    }
-
-    const painPoints: PainPointDto[] = [];
-    for (const section of submission.sections) {
-      for (const group of section.groups) {
-        for (const answer of group.answers) {
-          if (bodySelectorIds.has(answer.questionId) && Array.isArray(answer.value)) {
-            painPoints.push(...answer.value);
-          }
-        }
-      }
-    }
-    return painPoints;
-  }
 
   private loadForm(token: string | null): void {
     this.token = token;

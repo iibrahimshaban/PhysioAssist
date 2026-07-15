@@ -12,6 +12,9 @@ interface DragState {
   originalStart: Date;
   originalEnd: Date;
   startClientY: number;
+  startClientX: number;     // horizontal anchor — needed to compute day movement
+  originalDayIndex: number; // which column the drag started in
+  colWidth: number;         // cached once at drag-start to avoid layout thrashing on every pointermove
   mode: 'move' | 'resize';
 }
 
@@ -33,6 +36,7 @@ export class CalendarGridComponent implements AfterViewInit, OnDestroy {
   appointmentClicked = output<Appointment>();
   intervalClicked = output<AvailableInterval>();
   rescheduleRequested = output<{ appointment: Appointment; newStart: Date; newEnd: Date }>();
+  invalidDropAttempted = output<void>();
   quickComplete = output<Appointment>();
   quickCancel = output<Appointment>();
 
@@ -114,8 +118,12 @@ export class CalendarGridComponent implements AfterViewInit, OnDestroy {
     return date.toDateString() === new Date().toDateString();
   }
 
+  // Filters by the LIVE (in-drag) position when one exists, so a card being
+  // dragged across columns visually "jumps" to whichever day the pointer is
+  // currently over, instead of staying anchored to its original column
+  // until the drop completes.
   protected appointmentsForDay(date: Date): Appointment[] {
-    return this.appointments().filter(a => a.slotStart.toDateString() === date.toDateString());
+    return this.appointments().filter(a => this.displayedStart(a).toDateString() === date.toDateString());
   }
 
   protected availabilityForDay(date: Date): AvailableInterval[] {
@@ -150,12 +158,19 @@ export class CalendarGridComponent implements AfterViewInit, OnDestroy {
 
   // ---- Drag / resize ----
 
-  protected onDragStarted(e: { appointment: Appointment; clientY: number }): void {
+  protected onDragStarted(e: { appointment: Appointment; clientY: number; clientX: number }): void {
+    const originalDayIndex = this.days().findIndex(
+      d => d.date.toDateString() === e.appointment.slotStart.toDateString()
+    );
+
     this.dragState = {
       appointment: e.appointment,
       originalStart: e.appointment.slotStart,
       originalEnd: e.appointment.slotEnd,
       startClientY: e.clientY,
+      startClientX: e.clientX,
+      originalDayIndex: originalDayIndex >= 0 ? originalDayIndex : 0,
+      colWidth: this.measureColumnWidth(),
       mode: 'move'
     };
     this.draggingId.set(e.appointment.id);
@@ -163,11 +178,17 @@ export class CalendarGridComponent implements AfterViewInit, OnDestroy {
   }
 
   protected onResizeStarted(e: { appointment: Appointment; clientY: number }): void {
+    // Resize stays vertical-only by design — it changes duration, so it
+    // never needs a day index or column width. clientX/originalDayIndex are
+    // filled with harmless placeholders since the resize branch never reads them.
     this.dragState = {
       appointment: e.appointment,
       originalStart: e.appointment.slotStart,
       originalEnd: e.appointment.slotEnd,
       startClientY: e.clientY,
+      startClientX: 0,
+      originalDayIndex: 0,
+      colWidth: 1,
       mode: 'resize'
     };
     this.draggingId.set(e.appointment.id);
@@ -195,9 +216,32 @@ export class CalendarGridComponent implements AfterViewInit, OnDestroy {
     let newEnd = this.dragState.originalEnd;
 
     if (this.dragState.mode === 'move') {
-      newStart = new Date(this.dragState.originalStart.getTime() + snappedMinutes * 60000);
-      newEnd = new Date(this.dragState.originalEnd.getTime() + snappedMinutes * 60000);
+      // --- Horizontal: resolve X movement to a day column ---
+      const deltaX = event.clientX - this.dragState.startClientX;
+      const dayDelta = Math.round(deltaX / this.dragState.colWidth);
+      const days = this.days();
+      const targetDayIndex = Math.max(
+        0,
+        Math.min(days.length - 1, this.dragState.originalDayIndex + dayDelta)
+      );
+      const targetDate = days[targetDayIndex].date;
+
+      // --- Vertical: time-of-day still comes from the Y-axis delta, same as before ---
+      const originalMinutesOfDay =
+        this.dragState.originalStart.getHours() * 60 + this.dragState.originalStart.getMinutes();
+      // Clamp within a single calendar day so a large vertical drag can't
+      // spill into a different day than the one horizontal movement selected.
+      const newMinutesOfDay = Math.max(0, Math.min(1439, originalMinutesOfDay + snappedMinutes));
+
+      newStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+      newStart.setHours(Math.floor(newMinutesOfDay / 60), newMinutesOfDay % 60, 0, 0);
+
+      // --- Duration is ALWAYS preserved — computed once from the original
+      // appointment, never re-derived from drag distance. ---
+      const durationMs = this.dragState.originalEnd.getTime() - this.dragState.originalStart.getTime();
+      newEnd = new Date(newStart.getTime() + durationMs);
     } else {
+      // Resize: vertical-only, changes duration by design. Unchanged from before.
       const minDuration = 15;
       const candidateEnd = new Date(this.dragState.originalEnd.getTime() + snappedMinutes * 60000);
       const minEnd = new Date(this.dragState.originalStart.getTime() + minDuration * 60000);
@@ -217,12 +261,25 @@ export class CalendarGridComponent implements AfterViewInit, OnDestroy {
 
     this.draggingId.set(null);
 
-    if (live && (live.start.getTime() !== original.start.getTime() || live.end.getTime() !== original.end.getTime())) {
-      this.rescheduleRequested.emit({
-        appointment: this.dragState.appointment,
-        newStart: live.start,
-        newEnd: live.end
-      });
+    const moved = live && (
+      live.start.getTime() !== original.start.getTime() ||
+      live.end.getTime() !== original.end.getTime()
+    );
+
+    if (moved) {
+      if (this.isWorkingDay(live!.start)) {
+        this.rescheduleRequested.emit({
+          appointment: this.dragState.appointment,
+          newStart: live!.start,
+          newEnd: live!.end
+        });
+      } else {
+        // Doctor doesn't work this day at all — skip the network round trip,
+        // snap back, and let the page surface why. Backend remains the sole
+        // authority on overlap/exact-hours validation; this is just a cheap
+        // client-side check using data already loaded.
+        this.invalidDropAttempted.emit();
+      }
     }
 
     const map = new Map(this.liveDragPositions());
@@ -241,6 +298,18 @@ export class CalendarGridComponent implements AfterViewInit, OnDestroy {
     const start = this.timelineStartHour();
     const offset = Math.max(0, (fraction - start - 1) * this.hourHeight);
     container.scrollTop = offset;
+  }
+
+  // ---- Helpers ----
+
+  // Measures the day-column width once, at drag-start, rather than on every
+  // pointermove — getBoundingClientRect()/clientWidth forces a layout reflow,
+  // and pointermove can fire dozens of times per second.
+  private measureColumnWidth(): number {
+    const container = this.scrollContainer()?.nativeElement;
+    if (!container) return 1; // guards against division by zero if ref isn't ready
+    const usableWidth = container.clientWidth - this.timelineWidth;
+    return usableWidth / Math.max(this.days().length, 1);
   }
 
   private hourFraction(time: string): number {

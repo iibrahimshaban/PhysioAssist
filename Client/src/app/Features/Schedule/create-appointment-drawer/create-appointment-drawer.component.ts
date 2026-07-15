@@ -52,16 +52,13 @@ export class CreateAppointmentDrawerComponent {
   start.setHours(h, m, 0, 0);
   const end = new Date(start.getTime() + durationMinutes * 60000);
 
-     console.log(start);
-      console.log(start.toString());
-      console.log(start.toISOString());
-      console.log(start.getTimezoneOffset());
+
 
   this.createRequested.emit({
     doctorId: this.doctorId()!,
     patientId,
-    slotStart: toIsoWithOffset(start), // was: start.toISOString()
-    slotEnd: toIsoWithOffset(end)      // was: end.toISOString()
+    slotStart: toIsoWithOffset(start), 
+    slotEnd: toIsoWithOffset(end)      
   });
 }
 

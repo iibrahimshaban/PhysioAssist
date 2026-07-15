@@ -55,5 +55,9 @@ public class PatientFormSchemaConfiguration : IEntityTypeConfiguration<PatientFo
 
         builder.HasIndex(p => new { p.DoctorId, p.Name })
                .HasDatabaseName("IX_PatientFormSchema_DoctorId_Name");
+
+        builder.Property(p => p.ShowPainMap)
+           .IsRequired()
+           .HasDefaultValue(true);
     }
 }

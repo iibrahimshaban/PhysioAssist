@@ -41,13 +41,14 @@ export class PatientDetailComponent implements OnInit {
     }
   }
 
-goBack() {
-  this.router.navigate(['/app/patients']);
-}
 
-goToEdit() {
-  this.router.navigate(['/app/patients/edit', this.patient.id]);
-}
+  goBack() {
+    this.router.navigate(['app/patients']);
+  }
+
+  goToEdit() {
+    this.router.navigate(['app/patients/edit', this.patient.id]);
+  }
 
   delete() {
     if (confirm('Are you sure you want to delete this patient?')) {

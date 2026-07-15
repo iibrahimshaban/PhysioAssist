@@ -3,7 +3,7 @@ using PhysioAssist.Api.Modules.SessionModule.Entities;
 using PhysioAssist.Api.Modules.SessionModule.Errors;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Dtos.Chunking;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 
 namespace PhysioAssist.Api.Modules.SessionModule.Services;
 

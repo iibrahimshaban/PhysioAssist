@@ -13,14 +13,13 @@ export interface PreVisitIntakeResponse {
   doctorId: string;
   formSchemaId: string;
   formSchemaVersion: number;
-  patientName: string;
-  patientEmail?: string;
-  patientPhone?: string;
   status: IntakeStatus;
   convertedToPatientId?: string;
   submittedAt: string;
   reviewedAt?: string;
   reviewedByDoctorId?: string;
+  patientName?: string;      
+  painRegionCount: number;  
 }
 
 export interface PreVisitIntakeDetailsResponse {
@@ -28,9 +27,6 @@ export interface PreVisitIntakeDetailsResponse {
   doctorId: string;
   formSchemaId: string;
   formSchemaVersion: number;
-  patientName: string;
-  patientEmail?: string;
-  patientPhone?: string;
   formSubmissionData: string;
   painPointsData?: string;
   status: IntakeStatus;
@@ -42,9 +38,6 @@ export interface PreVisitIntakeDetailsResponse {
 }
 
 export interface SubmitPreVisitIntakeRequest {
-  patientName: string;
-  patientEmail?: string;
-  patientPhone?: string;
   formSubmissionData: string;
   painPointsData?: string;
 }
@@ -54,5 +47,8 @@ export interface UpdateIntakeStatusRequest {
 }
 
 export interface ConvertIntakeToPatientRequest {
-  notes?: string;
+  formSubmissionData?: string; // ADDED
+  painPointsData?: string;     // ADDED
 }
+
+

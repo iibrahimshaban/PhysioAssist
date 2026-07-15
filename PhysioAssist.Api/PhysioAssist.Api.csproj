@@ -6,6 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>4afe5434-e92c-4a54-b4e0-783ab1c4122a</UserSecretsId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Modules\QueryModule\Entities\**" />
+    <Content Remove="Modules\QueryModule\Entities\**" />
+    <EmbeddedResource Remove="Modules\QueryModule\Entities\**" />
+    <None Remove="Modules\QueryModule\Entities\**" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.29.2" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />

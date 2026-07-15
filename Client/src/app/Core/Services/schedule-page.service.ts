@@ -4,7 +4,9 @@ import { catchError, throwError, firstValueFrom, Observable, MonoTypeOperatorFun
 import {
   ScheduleSlotDto, AvailableIntervalDto, CreateAppointmentRequest, RescheduleAppointmentRequest,
   WorkingScheduleDto, ProblemDetails, CalendarViewMode, ScheduleFilters, ScheduleStatistics,
-  Appointment, AvailableInterval, WorkingDayWindow, ToastMessage
+  Appointment, AvailableInterval, WorkingDayWindow, ToastMessage,
+  DailyAvailabilityDto,
+  DailyAvailability
 } from '../../Features/Schedule/schedule.models';
 import { environment } from '../../../environments/environment.development';
 
@@ -150,15 +152,81 @@ export class SchedulePageService {
     setTimeout(() => this.toasts.update(list => list.filter(t => t.id !== id)), 4000);
   }
 
-  // schedule-page.service.ts — add: pure fetch, does not touch the main availability signal
-async fetchAvailabilityForDate(doctorId: string, date: Date): Promise<AvailableInterval[]> {
+//   // schedule-page.service.ts — add: pure fetch, does not touch the main availability signal
+// async fetchAvailabilityForDate(doctorId: string, date: Date): Promise<AvailableInterval[]> {
+//   const dtos = await firstValueFrom(
+//     this.http.get<AvailableIntervalDto[]>(`${APPOINTMENTS_BASE}/doctor/${doctorId}/availability`, {
+//       params: { date: date.toISOString() }
+//     }).pipe(this.catchAsProblem())
+//   );
+//   return dtos.map(d => ({ start: new Date(d.start), end: new Date(d.end) }));
+// }
+
+
+  // schedule-page.service.ts
+
+// // New: single round trip for a date range, replaces the old N-calls-per-week
+// // workaround. Backend omits non-working days entirely from the response,
+// // so anything NOT in this list is implicitly a day the doctor doesn't work.
+// async fetchAvailabilityRange(doctorId: string, from: Date, to: Date): Promise<DailyAvailability[]> {
+//   const dtos = await firstValueFrom(
+//     this.http.get<DailyAvailabilityDto[]>(`${APPOINTMENTS_BASE}/doctor/${doctorId}/availability-range`, {
+//       params: { from: toIsoWithOffset(from), to: toIsoWithOffset(to) }
+//     }).pipe(this.catchAsProblem())
+//   );
+
+//   return dtos.map(d => ({
+//     date: this.parseDateOnly(d.date),
+//     intervals: d.intervals.map(i => ({ start: new Date(i.start), end: new Date(i.end) }))
+//   }));
+// }
+
+// private parseDateOnly(value: string): Date {
+//   const [y, m, d] = value.split('-').map(Number);
+//   return new Date(y, m - 1, d);
+// }
+
+
+
+async fetchAvailabilityRange(doctorId: string, from: Date, to: Date): Promise<DailyAvailability[]> {
   const dtos = await firstValueFrom(
-    this.http.get<AvailableIntervalDto[]>(`${APPOINTMENTS_BASE}/doctor/${doctorId}/availability`, {
-      params: { date: date.toISOString() }
+    this.http.get<DailyAvailabilityDto[]>(`${APPOINTMENTS_BASE}/doctor/${doctorId}/availability-range`, {
+      params: { from: toIsoWithOffset(from), to: toIsoWithOffset(to) }
     }).pipe(this.catchAsProblem())
   );
-  return dtos.map(d => ({ start: new Date(d.start), end: new Date(d.end) }));
+
+  // Backend now sends intervals as time-only strings ("09:00:00") scoped to
+  // the day's own "date" field, instead of full ISO datetimes. Each interval
+  // must be reconstructed by combining the parent day's date with its time.
+  return dtos.map(d => {
+    const date = this.parseDateOnly(d.date);
+    return {
+      date,
+      intervals: d.intervals.map(i => ({
+        start: this.combineDateAndTime(date, i.start),
+        end: this.combineDateAndTime(date, i.end)
+      }))
+    };
+  });
 }
+
+private parseDateOnly(value: string): Date {
+  const [y, m, d] = value.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+// Combines a calendar date (midnight, local time) with a "HH:mm:ss" time
+// string into a single Date. Assumes an interval never crosses midnight —
+// matches working-hours semantics (an end time of "00:00:00" would need
+// special-casing as next-day, which isn't a real working-hours scenario).
+private combineDateAndTime(date: Date, time: string): Date {
+  const [h, m, s] = time.split(':').map(Number);
+  const result = new Date(date);
+  result.setHours(h, m, s || 0, 0);
+  return result;
+}
+
+
 
   async createAppointment(request: CreateAppointmentRequest): Promise<void> {
     try {
@@ -252,56 +320,49 @@ async fetchAvailabilityForDate(doctorId: string, date: Date): Promise<AvailableI
   // }
 
 
-  // schedule-page.service.ts — fix: availability now loads for EVERY visible day, not just selectedDate
+// schedule-page.service.ts — loadForCurrentSelection, updated to use the range endpoint
+// for week view instead of looping single-day availability calls
 
+// schedule-page.service.ts — guard against the 404-when-no-schedule behavior
 private async loadForCurrentSelection(doctorId: string, date: Date, view: CalendarViewMode): Promise<void> {
   this.loading.set(true);
   this.errorMessage.set(null);
 
   try {
     const dates = view === 'day' ? [date] : this.weekDates(date);
+    const rangeStart = dates[0];
+    const rangeEnd = dates[dates.length - 1];
 
-    const [appointmentResults, availabilityResults] = await Promise.all([
-      Promise.all(dates.map(d => firstValueFrom(
-        this.http.get<ScheduleSlotDto[]>(`${APPOINTMENTS_BASE}/doctor/${doctorId}`, {
-          params: { date: d.toISOString() }
-        }).pipe(this.catchAsProblem())
-      ))),
-      Promise.all(dates.map(d => firstValueFrom(
-        this.http.get<AvailableIntervalDto[]>(`${APPOINTMENTS_BASE}/doctor/${doctorId}/availability`, {
-          params: { date: d.toISOString() }
-        }).pipe(this.catchAsProblem())
-      )))
-    ]);
+    const appointmentsPromise = Promise.all(dates.map(d => firstValueFrom(
+      this.http.get<ScheduleSlotDto[]>(`${APPOINTMENTS_BASE}/doctor/${doctorId}`, {
+        params: { date: toIsoWithOffset(d) }
+      }).pipe(this.catchAsProblem())
+    )));
+
+    const availabilityPromise = this.fetchAvailabilityRange(doctorId, rangeStart, rangeEnd).catch(err => {
+      if (err instanceof HttpErrorResponse && err.status === 404) return []; // no active schedule — same meaning as "no availability"
+      throw err;
+    });
+
+    const [appointmentResults, dailyAvailability] = await Promise.all([appointmentsPromise, availabilityPromise]);
 
     this.appointments.set(appointmentResults.flat().map(dto => this.toAppointment(dto)));
-    this.availability.set(availabilityResults.flat().map(dto => ({
-      start: new Date(dto.start),
-      end: new Date(dto.end)
-    })));
+    this.availability.set(dailyAvailability.flatMap(d => d.intervals));
   } catch (err) {
     this.errorMessage.set(this.extractErrorMessage(err));
   } finally {
     this.loading.set(false);
   }
 }
-
-// refreshAvailability (used after mutations) needs the same range-aware treatment now:
+// refreshAvailability (called after every mutation) — same range-based fix
 private async refreshAvailability(): Promise<void> {
   const doctorId = this.selectedDoctorId();
   if (!doctorId) return;
 
   const dates = this.currentView() === 'day' ? [this.selectedDate()] : this.weekDates(this.selectedDate());
-
-  const results = await Promise.all(dates.map(d => firstValueFrom(
-    this.http.get<AvailableIntervalDto[]>(`${APPOINTMENTS_BASE}/doctor/${doctorId}/availability`, {
-      params: { date: d.toISOString() }
-    }).pipe(this.catchAsProblem())
-  )));
-
-  this.availability.set(results.flat().map(dto => ({ start: new Date(dto.start), end: new Date(dto.end) })));
+  const daily = await this.fetchAvailabilityRange(doctorId, dates[0], dates[dates.length - 1]);
+  this.availability.set(daily.flatMap(d => d.intervals));
 }
-
   private async loadWorkingSchedule(doctorId: string): Promise<void> {
     try {
       const dto = await firstValueFrom(
@@ -405,4 +466,6 @@ export function toIsoWithOffset(date: Date): string {
     `${sign}${offsetHours}:${offsetMins}`
   );
 }
+
+
 
