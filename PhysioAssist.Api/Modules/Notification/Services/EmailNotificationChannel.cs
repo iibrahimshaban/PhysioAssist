@@ -1,4 +1,5 @@
 ﻿using PhysioAssist.Api.Modules.Notification.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Modules.Notification.Services
 {

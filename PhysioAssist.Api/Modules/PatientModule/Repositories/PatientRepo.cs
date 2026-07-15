@@ -53,5 +53,12 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
         {
             _context.Patients.Update(entity);
         }
+        public async Task<IEnumerable<Patient>> GetByDoctorId(Guid doctorId, CancellationToken cancellation)
+        {
+            return await _context.DoctorPatients
+                .Where(dp => dp.DoctorId == doctorId)
+                .Select(dp => dp.Patient)
+                .ToListAsync(cancellation);
+        }
     }
 }

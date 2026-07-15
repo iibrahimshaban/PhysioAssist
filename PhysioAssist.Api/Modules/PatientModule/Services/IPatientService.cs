@@ -18,6 +18,6 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         Task<Result> SetPrimaryDoctorAsync(Guid doctorId, Guid patientId);
 
         // patient slot 
-        Task<Result<IEnumerable<PatientWithNextSlotResponse>>> GetPatientsWithSlotsAsync(CancellationToken ct = default);
+        Task<Result<IEnumerable<PatientWithNextSlotResponse>>> GetPatientsWithSlotsAsync(Guid doctorId, CancellationToken ct = default);
     }
 }

@@ -25,19 +25,19 @@
 
       <div class="flex shrink-0 rounded-xl border border-slate-200 bg-white p-1">
         <button (click)="setTab('all')"
-          [class]="activeTab === 'all'
+          [class]="activeTab() === 'all'
             ? 'rounded-lg bg-[#0B8EEA] px-4 py-2 text-sm font-semibold text-white'
             : 'rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700'">
           All
         </button>
         <button (click)="setTab('today')"
-          [class]="activeTab === 'today'
+          [class]="activeTab() === 'today'
             ? 'rounded-lg bg-[#0B8EEA] px-4 py-2 text-sm font-semibold text-white'
             : 'rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700'">
           Today
         </button>
         <button (click)="setTab('pending')"
-          [class]="activeTab === 'pending'
+          [class]="activeTab() === 'pending'
             ? 'rounded-lg bg-[#0B8EEA] px-4 py-2 text-sm font-semibold text-white'
             : 'rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700'">
           Pending
@@ -45,23 +45,23 @@
       </div>
     </div>
 
-    @if (isLoading) {
+    @if (isLoading()) {
       <div class="py-20 text-center text-slate-400">
         <i class="pi pi-spin pi-spinner text-2xl"></i>
         <p class="mt-2 text-sm">Loading patients...</p>
       </div>
     }
 
-    @if (!isLoading && filteredPatients.length === 0) {
+    @if (!isLoading() && filteredPatients().length === 0) {
       <div class="rounded-xl bg-white p-12 text-center text-slate-400 shadow-sm">
         <i class="pi pi-users text-4xl mb-3"></i>
         <p class="text-sm">No patients found.</p>
       </div>
     }
 
-    @if (!isLoading && filteredPatients.length > 0) {
+    @if (!isLoading() && filteredPatients().length > 0) {
       <div class="flex flex-col gap-3">
-        @for (patient of filteredPatients; track patient.id) {
+        @for (patient of filteredPatients(); track patient.id) {
           <div (click)="goToDetail(patient.id)"
             class="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-white px-6 py-4 shadow-sm transition-shadow hover:shadow-md">
 
