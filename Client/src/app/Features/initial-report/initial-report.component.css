@@ -311,10 +311,11 @@ section {
 .patient-summary{ color: rgba(255,255,255,0.95); font-size: 13px; line-height: 1.6; max-width: 640px; }
 .patient-summary-title{ font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.75); margin-bottom: 6px; }
 .patient-summary-text{ color: rgba(255,255,255,0.95); font-size: 13px; line-height: 1.7; }
-.patient-details-row{ background: #ffffff; display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 16px; padding: 24px 28px 28px; border-top-left-radius: 0; border-top-right-radius: 0; }
+.patient-details-row{ background: #ffffff; display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 16px; padding: 24px 28px 28px; border-top-left-radius: 0; border-top-right-radius: 0; }
 .detail-box{ background: #f7f9ff; border: 1px solid #e7ecf9; border-radius: 18px; padding: 18px 20px; min-height: 86px; }
 .detail-title{ font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #6b7c96; margin-bottom: 6px; }
 .detail-value{ font-size: 18px; font-weight: 700; color: #16263c; }
+@media (max-width: 1100px){ .patient-details-row{ grid-template-columns: repeat(3, minmax(0,1fr)); } }
 @media (max-width: 900px){ .patient-details-row{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (max-width: 640px){ .patient-card-top{ flex-direction: column; align-items: stretch; }
 .patient-score-card{ width: 100%; min-width: auto; }

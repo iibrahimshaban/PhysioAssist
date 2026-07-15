@@ -11,10 +11,15 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
 
         builder.ToTable("Session", schema: "session");
 
-        builder.Property(s => s.Summary)
+        builder.Property(s => s.SummaryText)
                .HasColumnType("nvarchar(max)");
 
         builder.Property(s => s.Status)
                .HasConversion<int>();
+        builder
+    .HasMany(s => s.Attachments)
+    .WithOne(a => a.Session)
+    .HasForeignKey(a => a.SessionId)
+    .OnDelete(DeleteBehavior.Cascade);
     }
 }

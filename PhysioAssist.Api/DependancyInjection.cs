@@ -3,19 +3,45 @@ using Hangfire;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi;
+using PhysioAssist.Api.Infrastructure.AutoComplete;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
 using PhysioAssist.Api.Infrastructure.GeminiClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
+<<<<<<< HEAD
 using PhysioAssist.Api.Modules.InitialReportModule;
 using PhysioAssist.Api.Modules.SessionModule;
+=======
+using PhysioAssist.Api.Modules.Auth.Services;
+using PhysioAssist.Api.Modules.DocumentationModule;
+using PhysioAssist.Api.Modules.InitialReportModule;
+using PhysioAssist.Api.Modules.Intake;
+using PhysioAssist.Api.Modules.PatientModule;
+using PhysioAssist.Api.Modules.PatientModule.Services;
+using PhysioAssist.Api.Modules.QueryModule;
+using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
+using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
+using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
+using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Modules.SessionModule;
+using PhysioAssist.Api.Modules.SessionModule.Services;
+>>>>>>> be94d86bf95f3c039134e9161e18565aa145bc99
 using PhysioAssist.Api.Persistence;
+using PhysioAssist.Api.Shared;
 using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
+<<<<<<< HEAD
 using PhysioAssist.Api.Shared.Interfaces;
 using PhysioAssist.Api.Shared.NotificationService;
 using PhysioAssist.Api.Shared.PdfService;
 using PhysioAssist.Api.Shared.QRService;
+=======
+using PhysioAssist.Api.Shared.Interfaces.Common;
+using PhysioAssist.Api.Shared.Interfaces.Documentation;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
+using PhysioAssist.Api.Shared.Interfaces.Ingestion;
+>>>>>>> be94d86bf95f3c039134e9161e18565aa145bc99
 using PhysioAssist.Api.Shared.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
@@ -29,12 +55,20 @@ public static class DependancyInjection
         QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
         services
-            .AddSwaggerGen()
+            .AddSwaggerConfiguration()
             .AddHttpContextAccessor()
             .AddFluentValidationConfig()
             .AddMapsterConfiguration()
             .AddPermissionAuthorization()
             .AddMailConfig()
+<<<<<<< HEAD
+=======
+            .AddExposedServicesConfig()
+            .AddDocumentationSummarizationConfig()
+            .AddAutoCompleteService(configuration)
+            .AddEmbeddingConfig()
+            .AddAudioTranscriptionConfig()
+>>>>>>> be94d86bf95f3c039134e9161e18565aa145bc99
             .AddDbContextConfiguration(configuration)
             .AddCorsConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration)
@@ -56,12 +90,23 @@ public static class DependancyInjection
     private static IServiceCollection AddQrCodeConfig(this IServiceCollection services, IConfiguration configuration)
     {
         services
+<<<<<<< HEAD
             .AddOptions<QrSettings>()
             .BindConfiguration(QrSettings.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.AddScoped<IQRService, QRService>();
+=======
+           .AddAuthModule(configuration)
+           .AddIntakeModule()
+           .AddSessionModule()
+           .AddQueryModuleConfig(configuration)
+           .AddPatientModule()
+           .AddDocumentationModule()
+           .AddSharedServices(configuration)
+           .AddInitialReportModule();
+>>>>>>> be94d86bf95f3c039134e9161e18565aa145bc99
 
         return services;
     }
@@ -76,6 +121,34 @@ public static class DependancyInjection
                     .WithOrigins(configuration.GetSection("AllowedOrigins").Get<string[]>()!)
             )
         );
+
+        return services;
+    }
+    private static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)
+    {
+        services.AddSwaggerGen(options =>
+        {
+            const string schemeId = "Bearer";
+
+            options.AddSecurityDefinition(schemeId, new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "Bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter your JWT token below (no need to type \"Bearer \" — Swagger adds it automatically)."
+            });
+
+            options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecuritySchemeReference(schemeId, document),
+                    new List<string>()
+                }
+            });
+        });
+
 
         return services;
     }
@@ -121,6 +194,19 @@ public static class DependancyInjection
 
     private static IServiceCollection AddMailConfig(this IServiceCollection services)
     {
+<<<<<<< HEAD
+=======
+       
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IScheduleSlotRepository, ScheduleSlotRepository>();
+        services.AddScoped<IWorkingScheduleRepository, WorkingScheduleRepository>();
+        services.AddScoped<IWorkingScheduleDayRepository, WorkingScheduleDayRepository>();
+        services.AddScoped<IAppointmentValidator, AppointmentValidator>();
+        services.AddScoped<IAppointmentService, AppointmentService>();
+        services.AddScoped<IWorkingScheduleService, WorkingScheduleService>();
+        services.AddScoped<IScheduleSlotQueryService, ScheduleSlotQueryService>();
+>>>>>>> be94d86bf95f3c039134e9161e18565aa145bc99
         services
             .AddOptions<MailSettings>()
             .BindConfiguration(MailSettings.SectionName)
@@ -131,31 +217,73 @@ public static class DependancyInjection
 
         return services;
     }
+<<<<<<< HEAD
+=======
+    private static IServiceCollection AddDocumentationSummarizationConfig(this IServiceCollection services)
+    {
+
+        services.AddOptions<GitHubModelsDocumentationOptions>()
+             .BindConfiguration(GitHubModelsDocumentationOptions.SectionName)
+             .ValidateDataAnnotations()
+             .ValidateOnStart();
+
+        services.AddHttpClient<IDocumentationExtractionService, GitHubModelsDocumentationExtractionService>();
+
+        services.AddOptions<GroqSummarizationOptions>()
+            .BindConfiguration(GroqSummarizationOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<ISessionSummarizationService, GroqSessionSummarizationService>();
+
+        services.AddOptions<GroqRollupSummarizationOptions>()
+            .BindConfiguration(GroqRollupSummarizationOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IRollupSummarizationService, GroqRollupSummarizationService>();
+
+        return services;
+    }
+    private static IServiceCollection AddEmbeddingConfig(this IServiceCollection services)
+    {
+        services.AddOptions<GitHubModelsEmbeddingOptions>()
+            .BindConfiguration(GitHubModelsEmbeddingOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IEmbeddingService, GitHubModelsEmbeddingService>();
+        services.AddScoped<ISessionEmbeddingService, SessionEmbeddingService>();
+
+        services.AddOptions<GitHubModelsChatOptions>()
+        .BindConfiguration(GitHubModelsChatOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        services.AddHttpClient<ITranscriptChunkingService, GitHubModelsChunkingService>();
+        services.AddHttpClient<IQueryTranslationService, GitHubModelsQueryTranslationService>();
+        services.AddScoped<ISessionChunkSearchService, SessionChunkSearchService>();
+
+
+
+        return services;
+    }
+>>>>>>> be94d86bf95f3c039134e9161e18565aa145bc99
     private static IServiceCollection AddAudioTranscriptionConfig(this IServiceCollection services)
     {
         services
             .AddOptions<GroqOptions>()
             .BindConfiguration(GroqOptions.SectionName)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+            .ValidateDataAnnotations();
 
         services
         .AddOptions<GeminiOptions>()
         .BindConfiguration(GeminiOptions.SectionName)
-        .ValidateDataAnnotations()
-        .ValidateOnStart();
+        .ValidateDataAnnotations();
 
         services.AddHttpClient<GroqWhisperClient>();
         services.AddHttpClient<ITranscriptionRefinementService,GroqRefinementClient>();
 
-        //register whisper 
-        //services.AddScoped<IAudioTranscriptionService>(sp =>
-        //    new RefinedTranscriptionService(
-        //        sp.GetRequiredService<GroqWhisperClient>(),
-        //        sp.GetRequiredService<ITranscriptionRefinementService>()
-        //    ));
-
-        //register gemini flash 
         services.AddHttpClient<IAudioTranscriptionService, GeminiTranscriptionClient>();
 
         return services;
@@ -188,4 +316,30 @@ public static class DependancyInjection
 
         return services;
     }
+<<<<<<< HEAD
+=======
+
+
+    // Autocomplete services
+    public static IServiceCollection AddAutoCompleteService(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<VocabularySources>(configuration.GetSection("VocabularySources"));
+
+        services.AddSingleton<MultiLanguageTrieRegistry>();
+        services.AddSingleton<MultiLanguageVocabularyLoader>();
+
+        services.AddHostedService<VocabularyBootstrapService>();
+
+        services.AddSingleton<IAutoCompleteService, AutoCompleteService>();
+
+        services.AddResponseCaching();
+
+        return services;
+    }
+    private static IServiceCollection AddExposedServicesConfig(this IServiceCollection services)
+    {
+        services.AddScoped<IPatientQueryService, PatientQueryService>();
+        return services;
+    }
+>>>>>>> be94d86bf95f3c039134e9161e18565aa145bc99
 }

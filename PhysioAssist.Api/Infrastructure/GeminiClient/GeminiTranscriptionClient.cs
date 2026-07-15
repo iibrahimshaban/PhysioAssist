@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 using PhysioAssist.Api.Shared.SystemPrompts;
 using System.Text;
 using System.Text.Json;

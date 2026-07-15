@@ -8,7 +8,8 @@ using PhysioAssist.Api.Modules.Auth.JwtService;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Consts;
 using PhysioAssist.Api.Shared.Helpers;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
 using System.Security.Cryptography;
 
 namespace PhysioAssist.Api.Modules.Auth.Services;
@@ -19,7 +20,9 @@ public class AuthService(
         SignInManager<ApplicationUser> signInManager,
         ApplicationDbContext context,
         ICustomEmailService emailService,
-        IMediaStorageService storageService
+        IMediaStorageService storageService,
+        IPatientFormSchemaSeedingService formSchemaSeedingService,
+        ILogger<AuthService> _logger
         ) : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
@@ -28,6 +31,7 @@ public class AuthService(
     private readonly ApplicationDbContext _context = context;
     private readonly ICustomEmailService _emailService = emailService;
     private readonly IMediaStorageService _storageService= storageService;
+    private readonly IPatientFormSchemaSeedingService _formSchemaSeedingService = formSchemaSeedingService;
 
     private static readonly int RefreshTokenExpiryInDays = 90;
     private const int OtpExpiryIn = 15;
@@ -41,6 +45,9 @@ public class AuthService(
 
         if (user.IsDisabled)
             return Result.Failure<AuthResponse>(UserErrors.DisabledUser);
+
+        if (!user.EmailConfirmed)
+            return Result.Failure<AuthResponse>(UserErrors.EmailNotConfirmed);
 
         var result = await _signInManager.PasswordSignInAsync(user, request.Password, false, true);
 
@@ -105,6 +112,7 @@ public class AuthService(
 
         await _context.Doctors.AddAsync(new Doctor
         {
+            Id = userId,
             UserId = userId.ToString(),
             ClinicName = request.ClinicName,
         }, cancellationToken);
@@ -236,6 +244,20 @@ public class AuthService(
         user.EmailConfirmed = true;
         await _userManager.UpdateAsync(user);
         await _userManager.AddToRoleAsync(user, DefaultRoles.SoloDoctor);
+
+        var doctor = await _context.Doctors
+        .FirstOrDefaultAsync(d => d.UserId == user.Id, cancellationToken);
+
+        if (doctor is not null)
+        {
+            var seedResult = await _formSchemaSeedingService.SeedDefaultSchemaAsync(
+                doctor.Id, doctor.ClinicName, cancellationToken);
+
+            if (seedResult.IsFailure)
+                _logger.LogWarning(
+                    "Failed to seed default form schema for doctor {DoctorId}: {Error}",
+                    doctor.Id, seedResult.Error);
+        }
 
         return Result.Success();
     }

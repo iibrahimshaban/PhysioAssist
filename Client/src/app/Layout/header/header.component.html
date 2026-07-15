@@ -1,92 +1,203 @@
 <header class="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm relative">
   <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-
     <!-- Logo -->
     <a routerLink="/" class="flex items-center gap-2 no-underline shrink-0">
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
-          stroke="#1a7fd4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/>
-        <path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/>
-        <circle cx="20" cy="10" r="2"/>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#1a7fd4"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"
+        />
+        <path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4" />
+        <circle cx="20" cy="10" r="2" />
       </svg>
       <span class="font-bold text-gray-900 text-base tracking-tight">PhysioAssist</span>
     </a>
 
     <!-- Desktop nav -->
     <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
-      <a class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
-         routerLink="/test-error" routerLinkActive="!text-blue-600 !bg-blue-50">Test Error</a>
+      <a
+        class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+        routerLink="/test-error"
+        routerLinkActive="!text-blue-600 !bg-blue-50"
+        >Test Error</a
+      >
 
-      <a class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
-         routerLink="/prime" routerLinkActive="!text-blue-600 !bg-blue-50">Prime</a>
+      <a
+        class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+        routerLink="/prime"
+        routerLinkActive="!text-blue-600 !bg-blue-50"
+        >Prime</a
+      >
 
       @if (auth.isAuthenticated()) {
-        <a class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
-           routerLink="/app/patients" routerLinkActive="!text-blue-600 !bg-blue-50">Patients</a>
+        <a
+          class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/patients"
+          routerLinkActive="!text-blue-600 !bg-blue-50"
+          >Patients</a
+        >
+        <a
+          class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/session"
+          routerLinkActive="!text-blue-600 !bg-blue-50"
+          >Sessions</a
+        >
+        <a
+          class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/initial-report"
+          routerLinkActive="!text-blue-600 !bg-blue-50"
+          >initial report</a
+        >
 
-        <a class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
-           routerLink="/app/account" routerLinkActive="!text-blue-600 !bg-blue-50">
+        <!-- Intake: Schemas -->
+        <a
+          class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/intake/schemas"
+          routerLinkActive="!text-blue-600 !bg-blue-50"
+          >Schemas</a
+        >
+
+        <!-- Intake: Submissions -->
+        <a
+          class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/intake/submissions"
+          routerLinkActive="!text-blue-600 !bg-blue-50"
+          >Submissions</a
+        >
+
+        <a
+          class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/account"
+          routerLinkActive="!text-blue-600 !bg-blue-50"
+        >
           <i class="pi pi-user mr-1"></i>{{ auth.currentUser()?.firstName }}
         </a>
 
-        <button (click)="auth.logout()"
-          class="ml-2 px-4 py-1.5 rounded-lg text-sm font-medium text-red-500 border border-red-200 hover:bg-red-50 transition-colors cursor-pointer bg-transparent">
+        <button
+          (click)="auth.logout()"
+          class="ml-2 px-4 py-1.5 rounded-lg text-sm font-medium text-red-500 border border-red-200 hover:bg-red-50 transition-colors cursor-pointer bg-transparent"
+        >
           Logout
         </button>
       }
 
       @if (!auth.isAuthenticated()) {
-        <a class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
-           routerLink="/auth/login" routerLinkActive="!text-blue-600 !bg-blue-50">Login</a>
+        <a
+          class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/auth/login"
+          routerLinkActive="!text-blue-600 !bg-blue-50"
+          >Login</a
+        >
 
-        <a class="ml-2 px-4 py-1.5 rounded-xl text-sm font-medium text-white no-underline hover:opacity-90 transition-opacity"
-           style="background: linear-gradient(135deg, #1a7fd4, #0eb8a0)"
-           routerLink="/auth/register">Get started</a>
+        <a
+          class="ml-2 px-4 py-1.5 rounded-xl text-sm font-medium text-white no-underline hover:opacity-90 transition-opacity"
+          style="background: linear-gradient(135deg, #1a7fd4, #0eb8a0)"
+          routerLink="/auth/register"
+          >Get started</a
+        >
       }
     </nav>
 
     <!-- Mobile hamburger -->
-    <button class="md:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gray-100 transition-colors border-none bg-transparent cursor-pointer"
-    (click)="toggleMenu()">
-      <i class="pi text-gray-600 text-lg" [class.pi-bars]="!menuOpen()" [class.pi-times]="menuOpen()"></i>
+    <button
+      class="md:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gray-100 transition-colors border-none bg-transparent cursor-pointer"
+      (click)="toggleMenu()"
+    >
+      <i
+        class="pi text-gray-600 text-lg"
+        [class.pi-bars]="!menuOpen()"
+        [class.pi-times]="menuOpen()"
+      ></i>
     </button>
-
   </div>
 
   <!-- Mobile menu -->
   @if (menuOpen()) {
-    <div class="md:hidden absolute top-16 left-0 right-0 border-t border-gray-100 bg-white shadow-lg px-4 py-3 flex flex-col gap-1 text-sm font-medium z-50">
+    <div
+      class="md:hidden absolute top-16 left-0 right-0 border-t border-gray-100 bg-white shadow-lg px-4 py-3 flex flex-col gap-1 text-sm font-medium z-50"
+    >
+      <a
+        class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
+        routerLink="/test-error"
+        (click)="closeMenu()"
+        >Test Error</a
+      >
 
-      <a class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
-         routerLink="/test-error" (click)="closeMenu()">Test Error</a>
-
-      <a class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
-         routerLink="/prime" (click)="closeMenu()">Prime</a>
+      <a
+        class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
+        routerLink="/prime"
+        (click)="closeMenu()"
+        >Prime</a
+      >
 
       @if (auth.isAuthenticated()) {
-        <a class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
-           routerLink="/app/patients" (click)="closeMenu()">Patients</a>
+        <a
+          class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/patients"
+          (click)="closeMenu()"
+          >Patients</a
+        >
 
-        <a class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
-           routerLink="/app/account" (click)="closeMenu()">
+        <a
+          class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/session"
+          (click)="closeMenu()"
+          >Sessions</a
+        >
+
+        <a
+          class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/intake/schemas"
+          (click)="closeMenu()"
+          >Schemas</a
+        >
+        <a
+          class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/intake/submissions"
+          (click)="closeMenu()"
+          >Submissions</a
+        >
+        <a
+          class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/account"
+          (click)="closeMenu()"
+        >
           <i class="pi pi-user mr-1"></i>{{ auth.currentUser()?.firstName }}
         </a>
 
-        <button (click)="auth.logout(); closeMenu()"
-          class="text-left px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none w-full">
+        <button
+          (click)="auth.logout(); closeMenu()"
+          class="text-left px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none w-full"
+        >
           Logout
         </button>
       }
 
       @if (!auth.isAuthenticated()) {
-        <a class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
-           routerLink="/auth/login" (click)="closeMenu()">Login</a>
+        <a
+          class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/auth/login"
+          (click)="closeMenu()"
+          >Login</a
+        >
 
-        <a class="mt-1 px-3 py-2 rounded-xl text-sm font-medium text-white text-center no-underline hover:opacity-90 transition-opacity"
-           style="background: linear-gradient(135deg, #1a7fd4, #0eb8a0)"
-           routerLink="/auth/register" (click)="closeMenu()">Get started</a>
+        <a
+          class="mt-1 px-3 py-2 rounded-xl text-sm font-medium text-white text-center no-underline hover:opacity-90 transition-opacity"
+          style="background: linear-gradient(135deg, #1a7fd4, #0eb8a0)"
+          routerLink="/auth/register"
+          (click)="closeMenu()"
+          >Get started</a
+        >
       }
-
     </div>
   }
 </header>

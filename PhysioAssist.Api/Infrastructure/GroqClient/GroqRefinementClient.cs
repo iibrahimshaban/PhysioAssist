@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.Options;
-using PhysioAssist.Api.Shared.Interfaces;
+using Microsoft.Extensions.Options;
+using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 using PhysioAssist.Api.Shared.SystemPrompts;
 using System.Net.Http.Headers;
 using System.Text;
@@ -46,7 +46,6 @@ public class GroqRefinementClient : ITranscriptionRefinementService
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
 
         // Debugging snippet
-        Console.WriteLine($"Requesting for refinement: {_httpClient.BaseAddress}{request.RequestUri}");
 
         HttpResponseMessage response;
         try

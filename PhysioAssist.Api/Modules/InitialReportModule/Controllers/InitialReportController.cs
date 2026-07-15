@@ -3,15 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.InitialReportModule.DTOs;
 using PhysioAssist.Api.Modules.InitialReportModule.Services;
 using PhysioAssist.Api.Shared.Extensions;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Controllers;
 
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class InitialReportController(IInitialReportService initialReportService) : ControllerBase
+public class InitialReportController(IInitialReportService initialReportService, IIntakeQueryService intakeQueryService) : ControllerBase
 {
     private readonly IInitialReportService _initialReportService = initialReportService;
+    private readonly IIntakeQueryService _intakeQueryService = intakeQueryService;
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateInitialReportRequest request)
@@ -81,11 +83,35 @@ public class InitialReportController(IInitialReportService initialReportService)
             ? NoContent()
             : result.ToProblem();
     }
+<<<<<<< HEAD
 
     [HttpPost("{id:guid}/submit")]
     public async Task<IActionResult> Submit(Guid id)
     {
         var result = await _initialReportService.SubmitAsync(id);
+=======
+    [HttpGet("patient/{patientId:guid}/intake")]
+    public async Task<IActionResult> GetIntakeDataByPatientId(Guid patientId)
+    {
+        var result = await _intakeQueryService.GetPreVisitIntakeByPatientIdAsync(patientId);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : result.ToProblem();
+    }
+    [HttpGet("patient/{patientId:guid}")]
+    public async Task<IActionResult> GetByPatientId(Guid patientId)
+    {
+        var result = await _initialReportService.GetByPatientIdAsync(patientId);
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : result.ToProblem(); 
+    }
+    [HttpGet("patient/{patientId:guid}/summary")]
+    public async Task<IActionResult> GetIntakeDataSummaryByPatientId(Guid patientId)
+    {
+        var result = await _intakeQueryService.GetPatientIntakeSummaryAsync(patientId);
+>>>>>>> be94d86bf95f3c039134e9161e18565aa145bc99
 
         return result.IsSuccess
             ? Ok(result.Value)

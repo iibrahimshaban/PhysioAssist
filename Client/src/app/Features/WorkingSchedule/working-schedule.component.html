@@ -1,0 +1,62 @@
+<section class="ws-page">
+  <header class="ws-page-header">
+    <div class="ws-title-row">
+      <h1>Working Schedule</h1>
+      @if (statusLabel(); as status) {
+        <span class="ws-status-badge" [class.ws-status-badge--active]="status === 'Active'">{{ status }}</span>
+      }
+    </div>
+    <p>Set the days and hours you're available in the clinic.</p>
+  </header>
+
+  @if (loading()) {
+    <div class="ws-card">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="ws-skeleton-row"></div>
+      }
+    </div>
+  } @else {
+    <form class="ws-card" [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="ws-section">
+        <p class="ws-section-eyebrow">Quick Setup</p>
+        <div class="ws-presets">
+          <button type="button" class="ws-preset-btn" (click)="applyPreset('weekdays')">Weekdays, 9–5</button>
+          <button type="button" class="ws-preset-btn" (click)="applyPreset('everyday')">Every day, 9–5</button>
+          <button type="button" class="ws-preset-btn ws-preset-btn--ghost" (click)="applyPreset('clear')">
+            Clear all
+          </button>
+        </div>
+      </div>
+
+      <div class="ws-section">
+        <p class="ws-section-eyebrow">Weekly Availability</p>
+        <app-weekly-schedule-editor
+          [weekDays]="weekDays"
+          [daysArray]="daysArray"
+          [dayViewModels]="dayViewModels()"
+        />
+      </div>
+
+      <p class="ws-summary-line">{{ summaryLabel() }}</p>
+
+      <div class="ws-actions">
+        <button type="submit" class="ws-btn ws-btn-primary" [disabled]="saving() || processingAction()">
+          {{ saving() ? 'Saving…' : submitLabel() }}
+        </button>
+
+        @if (hasSchedule()) {
+          <div class="ws-secondary-actions">
+            <button
+              type="button"
+              class="ws-btn ws-btn-danger-ghost"
+              [disabled]="processingAction() || saving()"
+              (click)="onDelete()"
+            >
+              Delete Schedule
+            </button>
+          </div>
+        }
+      </div>
+    </form>
+  }
+</section>

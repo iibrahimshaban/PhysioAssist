@@ -14,9 +14,37 @@ export interface InitialReportResponse {
   doctorId: string;
   patientId: string;
   reportText: string;
-  treatmentPlanPdfUrl: string;
+  treatmentPlanPdfUrl?: string;
   createdAt: string;
   attachments: ReportAttachmentResponse[];
+}
+
+export interface CreateInitialReportRequest {
+  patientId: string;
+  reportText?: string;
+}
+
+export interface UpdateReportTextRequest {
+  reportText: string;
+}
+
+export interface PatientIntakeSummaryResponse {
+  patientFullName?: string;
+  gender?: string;
+  age?: number;
+  chiefComplaint?: string;
+  injuryDescription?: string;
+  injuryDate?: string;
+  patientCategory?: number;
+}
+
+export interface AiInitialReportRequest {
+  patientId: string;
+  text: string;
+}
+
+export interface AiInitialReportResponse {
+  reply: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -25,40 +53,37 @@ export class InitialReportService {
 
   constructor(private readonly http: HttpClient) {}
 
-  createReport(patientId: string) {
-    return this.http.post<InitialReportResponse>(this.baseUrl, {
-      patientId,
-      reportText: '',
-    });
+  getReportById(reportId: string) {
+    return this.http.get<InitialReportResponse>(`${this.baseUrl}/${reportId}`);
   }
 
-  getReport(id: string) {
-    return this.http.get<InitialReportResponse>(`${this.baseUrl}/${id}`);
+  getReportByPatientId(patientId: string) {
+    return this.http.get<InitialReportResponse>(`${this.baseUrl}/patient/${patientId}`);
   }
 
-  updateReportText(id: string, reportText: string) {
-    return this.http.put<InitialReportResponse>(`${this.baseUrl}/${id}/text`, {
-      reportText,
-    });
+  createReport(request: CreateInitialReportRequest) {
+    return this.http.post<InitialReportResponse>(this.baseUrl, request);
   }
 
-  transcribeAudio(id: string, audioBlob: Blob, languageHint = 'ar') {
-    const formData = new FormData();
-    formData.append('audioFile', audioBlob, 'voice-recording.wav');
-    return this.http.post<InitialReportResponse>(`${this.baseUrl}/${id}/transcribe?languageHint=${encodeURIComponent(languageHint)}`, formData);
+  updateReportText(reportId: string, request: UpdateReportTextRequest) {
+    return this.http.put<InitialReportResponse>(`${this.baseUrl}/${reportId}/text`, request);
   }
 
-  uploadAttachment(id: string, file: File) {
+  uploadAttachment(reportId: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<ReportAttachmentResponse>(`${this.baseUrl}/${id}/attachments`, formData);
+    return this.http.post<ReportAttachmentResponse>(`${this.baseUrl}/${reportId}/attachments`, formData);
   }
 
-  deleteAttachment(id: string, attachmentId: string) {
-    return this.http.delete<void>(`${this.baseUrl}/${id}/attachments/${attachmentId}`);
+  deleteAttachment(reportId: string, attachmentId: string) {
+    return this.http.delete<void>(`${this.baseUrl}/${reportId}/attachments/${attachmentId}`);
   }
 
-  submitReport(id: string) {
-    return this.http.post<InitialReportResponse>(`${this.baseUrl}/${id}/submit`, {});
+  getIntakeDataSummaryByPatientId(patientId: string) {
+    return this.http.get<PatientIntakeSummaryResponse>(`${this.baseUrl}/patient/${patientId}/summary`);
+  }
+
+  sendChatMessage(request: AiInitialReportRequest) {
+    return this.http.post<AiInitialReportResponse>(`${environment.apiUrl}ai/initial-report`, request);
   }
 }

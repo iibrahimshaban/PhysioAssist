@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.Scheduling.DTO;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Shared.ResultPattern;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Controllers
 {
@@ -43,7 +44,11 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
             CancellationToken cancellationToken)
         {
             var result = await _appointmentService.CreateAsync(request, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+
+            if (result.IsFailure)
+                return result.ToProblem();
+
+            return CreatedAtAction(nameof(GetById), new { id = result.Value.Id }, result.Value);
         }
 
         /// <summary>
@@ -59,7 +64,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         public async Task<ActionResult<ScheduleSlotDto>> GetById(Guid id, CancellationToken cancellationToken)
         {
             var result = await _appointmentService.GetByIdAsync(id, cancellationToken);
-            return result is null ? NotFound() : Ok(result);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
 
         /// <summary>
@@ -76,7 +82,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         [HttpGet("doctor/{doctorId:guid}")]
         public async Task<ActionResult<IReadOnlyList<ScheduleSlotDto>>> GetDoctorAppointments(
             Guid doctorId,
-            [FromQuery] DateTime date,
+            [FromQuery] DateTimeOffset date,
             CancellationToken cancellationToken)
         {
             var result = await _appointmentService.GetDoctorAppointmentsAsync(doctorId, date, cancellationToken);
@@ -101,7 +107,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<AvailableIntervalDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IReadOnlyList<AvailableIntervalDto>>> GetAvailability(
             Guid doctorId,
-            [FromQuery] DateTime date,
+            [FromQuery] DateTimeOffset date,
             CancellationToken cancellationToken)
         {
             var result = await _appointmentService.GetAvailabilityAsync(doctorId, date, cancellationToken);
@@ -130,7 +136,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         public async Task<ActionResult<ScheduleSlotDto>> Cancel(Guid id, CancellationToken cancellationToken)
         {
             var result = await _appointmentService.CancelAsync(id, cancellationToken);
-            return Ok(result);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
 
         /// <summary>
@@ -159,7 +166,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
             CancellationToken cancellationToken)
         {
             var result = await _appointmentService.RescheduleAsync(id, request, cancellationToken);
-            return Ok(result);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
 
         /// <summary>
@@ -177,7 +185,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         public async Task<ActionResult<ScheduleSlotDto>> Complete(Guid id, CancellationToken cancellationToken)
         {
             var result = await _appointmentService.CompleteAsync(id, cancellationToken);
-            return Ok(result);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
 
         /// <summary>
@@ -195,7 +204,107 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         public async Task<ActionResult<ScheduleSlotDto>> MarkNoShow(Guid id, CancellationToken cancellationToken)
         {
             var result = await _appointmentService.MarkNoShowAsync(id, cancellationToken);
-            return Ok(result);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
+        }
+
+        /// <summary>
+        /// Permanently deletes an appointment record.
+        /// </summary>
+        /// <remarks>
+        /// This is a hard delete, unlike <see cref="Cancel"/> — the row is removed entirely
+        /// and no history is kept, regardless of the appointment's current status. Prefer
+        /// <see cref="Cancel"/> for the normal "appointment called off" flow; use this only
+        /// when the record itself should be erased (e.g. it was created by mistake).
+        /// </remarks>
+        /// <param name="id">The appointment ID to delete.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <response code="204">Appointment deleted successfully.</response>
+        /// <response code="404">No appointment exists with the given ID.</response>
+        [HttpDelete("{id:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+        {
+            var result = await _appointmentService.DeleteAsync(id, cancellationToken);
+
+            return result.IsFailure ? result.ToProblem() : NoContent();
+        }
+
+
+        /// <summary>
+        /// Calculates the doctor's free (bookable) time intervals for every working day
+        /// within a date range — one entry per working day, keyed by date.
+        /// </summary>
+        /// <remarks>
+        /// Intended for the frontend Week/Month calendar view, as a range-based counterpart
+        /// to <see cref="GetAvailability"/>. Reuses the same <c>AvailabilityCalculator</c>
+        /// algorithm per day; nothing is pre-generated or cached.
+        /// - If both <paramref name="from"/> and <paramref name="to"/> are omitted, the
+        ///   current calendar week (Sunday - Saturday) is used.
+        /// - <paramref name="from"/> and <paramref name="to"/> must be supplied together;
+        ///   providing only one is a 400.
+        /// - <paramref name="from"/> must be on or before <paramref name="to"/>.
+        /// - The range cannot exceed 31 days.
+        /// - Days the doctor doesn't work on are omitted from the result entirely (not
+        ///   returned as an empty entry), same philosophy as the single-day endpoint.
+        /// - Unlike the single-day endpoint, a doctor with no active WorkingSchedule at all
+        ///   results in a 404, not an empty list — this endpoint can't compute a calendar
+        ///   view without a schedule to anchor it to.
+        /// </remarks>
+        /// <param name="doctorId">The doctor's ID.</param>
+        /// <param name="from">Start of the range (inclusive). Optional — see remarks.</param>
+        /// <param name="to">End of the range (inclusive). Optional — see remarks.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <response code="200">Returns the list of daily availability entries (may be empty if fully booked every working day in range).</response>
+        /// <response code="400">Range is invalid (only one of from/to supplied, to before from, or range exceeds the maximum allowed span).</response>
+        /// <response code="404">The doctor has no active working schedule.</response>
+        [HttpGet("doctor/{doctorId:guid}/availability-range")]
+        [ProducesResponseType(typeof(IReadOnlyList<DailyAvailabilityDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IReadOnlyList<DailyAvailabilityDto>>> GetAvailabilityRange(
+            Guid doctorId,
+            [FromQuery] DateTimeOffset? from,
+            [FromQuery] DateTimeOffset? to,
+            CancellationToken cancellationToken)
+        {
+            var result = await _appointmentService.GetAvailabilityRangeAsync(doctorId, from, to, cancellationToken);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
+        }
+
+
+
+        // Controllers/AppointmentsController.cs — add this action to the existing controller
+
+        /// <summary>
+        /// Retrieves all cancelled appointments for a doctor, optionally filtered to a date range.
+        /// </summary>
+        /// <remarks>
+        /// Ordered most-recently-cancelled first. If <paramref name="from"/> or
+        /// <paramref name="to"/> is provided, both must be — a half-open range is
+        /// rejected as ambiguous, same rule as <see cref="GetAvailabilityRange"/>.
+        /// If neither is provided, every cancelled appointment for the doctor is returned.
+        /// </remarks>
+        /// <param name="doctorId">The doctor's ID.</param>
+        /// <param name="from">Start of the range (inclusive), optional.</param>
+        /// <param name="to">End of the range (inclusive), optional.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <response code="200">Returns the list of cancelled appointments (may be empty).</response>
+        /// <response code="400">Only one of from/to was supplied, or from is after to.</response>
+        [HttpGet("doctor/{doctorId:guid}/cancelled")]
+        [ProducesResponseType(typeof(IReadOnlyList<ScheduleSlotDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<IReadOnlyList<ScheduleSlotDto>>> GetCancelledAppointments(
+            Guid doctorId,
+            [FromQuery] DateTimeOffset? from,
+            [FromQuery] DateTimeOffset? to,
+            CancellationToken cancellationToken)
+        {
+            var result = await _appointmentService.GetCancelledAppointmentsAsync(doctorId, from, to, cancellationToken);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
     }
 }

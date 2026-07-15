@@ -8,16 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Modules\PatientModule\Controllers\**" />
-    <Compile Remove="Shared\Configuration\**" />
-    <Content Remove="Modules\PatientModule\Controllers\**" />
-    <Content Remove="Shared\Configuration\**" />
-    <EmbeddedResource Remove="Modules\PatientModule\Controllers\**" />
-    <EmbeddedResource Remove="Shared\Configuration\**" />
-    <None Remove="Modules\PatientModule\Controllers\**" />
-    <None Remove="Shared\Configuration\**" />
+    <Compile Remove="Modules\QueryModule\Entities\**" />
+    <Content Remove="Modules\QueryModule\Entities\**" />
+    <EmbeddedResource Remove="Modules\QueryModule\Entities\**" />
+    <None Remove="Modules\QueryModule\Entities\**" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.29.2" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
@@ -38,17 +33,17 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.77.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.77.0" />
     <PackageReference Include="MimeKit" Version="4.17.0" />
+<<<<<<< HEAD
     <PackageReference Include="QRCoder" Version="1.8.0" />
+=======
+>>>>>>> be94d86bf95f3c039134e9161e18565aa145bc99
     <PackageReference Include="QuestPDF" Version="2026.7.0" />
     <PackageReference Include="SharpGrip.FluentValidation.AutoValidation.Mvc" Version="2.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Modules\QueryModule\Agents\" />
   </ItemGroup>
 
 </Project>

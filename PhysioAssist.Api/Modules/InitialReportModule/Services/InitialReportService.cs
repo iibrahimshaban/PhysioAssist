@@ -7,7 +7,7 @@ using PhysioAssist.Api.Modules.InitialReportModule.Repositories;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Dtos.Pdf;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 using PhysioAssist.Api.Shared.SystemPrompts;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Services;
@@ -164,7 +164,11 @@ public class InitialReportService(
 
         return Result.Success();
     }
+    public async Task<Result<InitialReportResponse>> GetByPatientIdAsync(Guid patientId)
+    {
+        var report = await _reportRepository.GetReportByPatientIdAsync(patientId);
 
+<<<<<<< HEAD
     public async Task<Result<InitialReportResponse>> SubmitAsync(Guid reportId)
     {
         var report = await _reportRepository.GetWithAttachmentsAsync(reportId);
@@ -202,6 +206,12 @@ public class InitialReportService(
         return Result.Success(MapToResponse(report));
     }
 
+=======
+        return report is null
+            ? Result.Failure<InitialReportResponse>(InitialReportErrors.NotFound)
+            : Result.Success(MapToResponse(report));
+    }
+>>>>>>> be94d86bf95f3c039134e9161e18565aa145bc99
     private static InitialReportResponse MapToResponse(InitialReport report) => new(
         report.Id,
         report.DoctorId,
