@@ -17,7 +17,6 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         private readonly IDoctorPatientRepo _doctorPatientRepo;
         private readonly IScheduleSlotQueryService _scheduleSlotQueryService;
         private readonly ApplicationDbContext _context;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public PatientService(
             IPatientRepo patientRepo,
@@ -33,7 +32,6 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             _doctorPatientRepo = doctorPatientRepo;
             _scheduleSlotQueryService = scheduleSlotQueryService;
             _context = context;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<Result<PatientResponse>> CreateAsync(PatientRequest request)
@@ -152,18 +150,11 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             return Result.Success();
         }
 
-        public async Task<Result<IEnumerable<PatientWithNextSlotResponse>>> GetPatientsWithSlotsAsync(CancellationToken ct = default)
+        public async Task<Result<IEnumerable<PatientWithNextSlotResponse>>> GetPatientsWithSlotsAsync(Guid doctorId, CancellationToken ct = default)
         {
-            // 1. Get userId from JWT sub claim
-            var userId = _httpContextAccessor.HttpContext?.User
-    .FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(userId))
-                return Result.Failure<IEnumerable<PatientWithNextSlotResponse>>(PatientErrors.Unauthorized);
-
-            // 2. Resolve userId → doctorId
             var doctor = await _context.Doctors
-                .FirstOrDefaultAsync(d => d.UserId == userId, ct);
+                .FirstOrDefaultAsync(d => d.Id == doctorId, ct);
 
             if (doctor is null)
                 return Result.Failure<IEnumerable<PatientWithNextSlotResponse>>(PatientErrors.NotADoctor);
@@ -172,7 +163,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             var slots = await _scheduleSlotQueryService.GetUpcomingSlotsForDoctorAsync(doctor.Id, ct);
 
             // 4. Get all patients
-            var patients = await _patientRepo.GetAllAsync();
+            var patients = await _patientRepo.GetByDoctorId(doctorId, ct);
 
             // 5. Build slot lookup
             var slotLookup = slots.ToDictionary(s => s.PatientId);

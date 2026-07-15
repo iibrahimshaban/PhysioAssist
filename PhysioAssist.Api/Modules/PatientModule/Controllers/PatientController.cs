@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PhysioAssist.Api.Modules.Auth.Contracts.Authentication;
-﻿using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.PatientModule.DTOs;
 using PhysioAssist.Api.Modules.PatientModule.Services;
+
 
 namespace PhysioAssist.Api.Modules.PatientModule.Controllers
 {
@@ -84,7 +83,9 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
         [HttpGet("with-slots")]
         public async Task<IActionResult> GetWithSlots(CancellationToken ct)
         {
-            var result = await _patientService.GetPatientsWithSlotsAsync(ct);
+            var doctorId =  Guid.Parse(User.GetUserId()!);
+
+            var result = await _patientService.GetPatientsWithSlotsAsync(doctorId, ct);
             return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
         }
     }

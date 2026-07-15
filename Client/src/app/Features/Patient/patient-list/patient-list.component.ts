@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PatientService } from '../services/patient.service';
-import { GenderPipe } from '...'; // update to actual path
+import { GenderPipe } from '../../../Shared/Pipes/gender-pipe';
 
 @Component({
   selector: 'app-patient-list',

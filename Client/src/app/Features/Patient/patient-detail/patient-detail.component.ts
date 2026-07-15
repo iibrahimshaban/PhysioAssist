@@ -58,7 +58,15 @@ export class PatientDetailComponent implements OnInit {
       });
     }
   }
-  goToInitialReport(patientId: string) {
-  this.router.navigate(['/app/initial-report', patientId]);
-}
+  goToInitialReport(patient: any): void {
+    this.router.navigate(['/app/initial-report', patient.id], {
+      state: {
+        patient: {
+          id: patient.id,
+          name: patient.fullName,
+          gender: patient.gender,
+        }
+      }
+    });
+  }
 }
