@@ -1,3 +1,6 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using PhysioAssist.Api.Modules.Auth.Contracts.Authentication;
 ﻿using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.PatientModule.DTOs;
 using PhysioAssist.Api.Modules.PatientModule.Services;
@@ -6,6 +9,8 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+
     public class PatientController(IPatientService patientService) : ControllerBase
     {
         private readonly IPatientService _patientService = patientService;
@@ -74,6 +79,13 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
         {
             var result = await _patientService.SetPrimaryDoctorAsync(doctorId, patientId);
             return result.IsSuccess ? NoContent() : result.ToProblem();
+        }
+
+        [HttpGet("with-slots")]
+        public async Task<IActionResult> GetWithSlots(CancellationToken ct)
+        {
+            var result = await _patientService.GetPatientsWithSlotsAsync(ct);
+            return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
         }
     }
 }

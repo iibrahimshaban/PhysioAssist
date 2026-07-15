@@ -13,7 +13,7 @@ namespace PhysioAssist.Api.Modules.PatientModule
             services.AddScoped<IPatientService, PatientService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IDoctorPatientRepo, DoctorPatientRepo>();
-
+            services.AddHttpContextAccessor();
             return services;
         }
     }

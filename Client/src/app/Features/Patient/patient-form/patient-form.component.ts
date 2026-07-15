@@ -67,6 +67,7 @@ export class PatientFormComponent implements OnInit {
   }
 
   goBack() {
+
     this.router.navigate(['app/patients']);
   }
 }

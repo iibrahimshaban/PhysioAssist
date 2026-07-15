@@ -41,6 +41,7 @@ export class PatientDetailComponent implements OnInit {
     }
   }
 
+
   goBack() {
     this.router.navigate(['app/patients']);
   }
@@ -57,4 +58,7 @@ export class PatientDetailComponent implements OnInit {
       });
     }
   }
+  goToInitialReport(patientId: string) {
+  this.router.navigate(['/app/initial-report', patientId]);
+}
 }
