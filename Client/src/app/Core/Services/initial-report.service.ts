@@ -3,8 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 // --- AI chat -----------------------------------------------------------
-// NOTE: not present on InitialReportController as shown — leaving as-is
-// until confirmed which module actually owns this endpoint.
+// NOTE: not present on InitialReportController — this is a teammate's WIP
+// feature. Leaving the wiring in place so it's ready once the backend
+// endpoint lands; sendChatMessage will 404 until then.
 export interface AiInitialReportRequest {
   patientId: string;
   text: string;
@@ -29,7 +30,6 @@ export interface PreVisitIntakeDataResponse {
   reviewedByDoctorId?: string;
 }
 
-// --- Initial report itself ---------------------------------------------
 export interface ReportAttachmentResponse {
   id: string;
   fileUrl: string;
@@ -63,7 +63,7 @@ export interface PatientIntakeSummaryResponse {
   chiefComplaint?: string;
   injuryDescription?: string;
   injuryDate?: string;
-  patientCategory?: number; // enum ordinal from backend — see note below
+  patientCategory?: number; // enum ordinal from backend
 }
 
 @Injectable({ providedIn: 'root' })
@@ -74,10 +74,27 @@ export class InitialReportService {
   constructor(private readonly http: HttpClient) {}
 
   /** GET api/InitialReport/patient/{patientId}/intake — the raw PreVisitIntake
-   *  row for this patient, so the frontend can pull name/dob/gender/chief
-   *  complaint/etc. out of formSubmissionData / painPointsData itself. */
+   *  row for this patient, in case the frontend needs the full formSubmissionData
+   *  / painPointsData JSON rather than just the condensed summary below. */
   getIntakeDataByPatientId(patientId: string) {
     return this.http.get<PreVisitIntakeDataResponse>(`${this.baseUrl}/patient/${patientId}/intake`);
+  }
+
+  /** GET api/InitialReport/patient/{patientId}/summary — condensed intake
+   *  fields (name/gender/age/chief complaint/etc.) for the patient header. */
+  getIntakeDataSummaryByPatientId(patientId: string) {
+    return this.http.get<PatientIntakeSummaryResponse>(`${this.baseUrl}/patient/${patientId}/summary`);
+  }
+
+  /** GET api/InitialReport/patient/{patientId} — existing report for this
+   *  patient, if one was already created. 404 means none exists yet. */
+  getReportByPatientId(patientId: string) {
+    return this.http.get<InitialReportResponse>(`${this.baseUrl}/patient/${patientId}`);
+  }
+
+  /** GET api/InitialReport/{id} — fetch by the report's own id. */
+  getReportById(reportId: string) {
+    return this.http.get<InitialReportResponse>(`${this.baseUrl}/${reportId}`);
   }
 
   /** POST api/InitialReport — CreateInitialReportRequest(PatientId, ReportText?) */
@@ -85,19 +102,20 @@ export class InitialReportService {
     return this.http.post<InitialReportResponse>(this.baseUrl, request);
   }
 
-  /** GET api/InitialReport/{id} — fetch by the report's own id, not patientId. */
-  getReportById(reportId: string) {
-    return this.http.get<InitialReportResponse>(`${this.baseUrl}/${reportId}`);
-  }
-
   /** PUT api/InitialReport/{id}/text — UpdateReportTextRequest(ReportText) */
   updateReportText(reportId: string, request: UpdateReportTextRequest) {
     return this.http.put<InitialReportResponse>(`${this.baseUrl}/${reportId}/text`, request);
   }
 
+  /** POST api/InitialReport/{id}/submit — finalizes the report and triggers
+   *  treatment-plan PDF generation on the backend. */
+  submitReport(reportId: string) {
+    return this.http.post<InitialReportResponse>(`${this.baseUrl}/${reportId}/submit`, {});
+  }
+
   /** POST api/InitialReport/{id}/attachments — multipart file upload. Requires
-   *  a report to already exist (its id), so attachments can't be sent before
-   *  the report's first save. */
+   *  a report to already exist, so attachments can't be sent before the
+   *  report's first save. */
   uploadAttachment(reportId: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);
@@ -108,22 +126,19 @@ export class InitialReportService {
   deleteAttachment(reportId: string, attachmentId: string) {
     return this.http.delete<void>(`${this.baseUrl}/${reportId}/attachments/${attachmentId}`);
   }
-  getReportByPatientId(patientId: string) {
-    return this.http.get<InitialReportResponse>(`${this.baseUrl}/patient/${patientId}`);
-  }
-  getIntakeDataSummaryByPatientId(patientId: string) {
-    return this.http.get<PatientIntakeSummaryResponse>(`${this.baseUrl}/patient/${patientId}/summary`);
+
+  /** POST api/InitialReport/{id}/transcribe — multipart audioFile + optional
+   *  languageHint query param. Returns the report with reportText updated
+   *  from the transcription/refinement pipeline. */
+  transcribeAudio(reportId: string, audioBlob: Blob, languageHint?: string) {
+    const formData = new FormData();
+    formData.append('audioFile', audioBlob, 'voice-recording.webm');
+    const query = languageHint ? `?languageHint=${encodeURIComponent(languageHint)}` : '';
+    return this.http.post<InitialReportResponse>(`${this.baseUrl}/${reportId}/transcribe${query}`, formData);
   }
 
-  // --- Not yet wired into the component -----------------------------
-  // POST api/InitialReport/{id}/transcribe (multipart audioFile + optional
-  // languageHint query param). Response shape (result.Value) isn't confirmed
-  // yet, and this also needs browser-side audio capture (MediaRecorder) to
-  // replace the current SpeechRecognition-based voice input. Left as a stub
-  // until both are confirmed.
-  // transcribe(reportId: string, audioFile: Blob, languageHint?: string) { ... }
-
-  /** @deprecated superseded by createReport/updateReportText */
+  /** @wip not present on InitialReportController yet — teammate is still
+   *  building the AI chat/messaging backend. Will 404 until that lands. */
   sendChatMessage(request: AiInitialReportRequest) {
     return this.http.post<AiInitialReportResponse>(`${environment.apiUrl}ai/initial-report`, request);
   }

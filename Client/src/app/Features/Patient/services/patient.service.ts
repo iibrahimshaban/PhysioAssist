@@ -12,8 +12,8 @@ export class PatientService {
   getAll() {
     return this.http.get<any[]>(this.apiUrl);
   }
-
   getById(id: string) {
+
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 

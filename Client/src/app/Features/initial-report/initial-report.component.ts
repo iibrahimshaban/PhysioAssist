@@ -3,32 +3,50 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
-import { InitialReportService } from '../../Core/Services/initial-report.service';
+import {
+  InitialReportService,
+  InitialReportResponse,
+  ReportAttachmentResponse,
+} from '../../Core/Services/initial-report.service';
 import { SnackbarService } from '../../Core/Services/snackbar.service';
-// using standard HTML controls to keep this standalone component lightweight
+
+interface ChatMessage {
+  from: 'user' | 'assistant';
+  text: string;
+  time?: string;
+}
+
+interface AttachmentEntry {
+  id?: string;
+  name: string;
+  size: number;
+  fileUrl?: string;
+  fileType?: string;
+}
+
+const PATIENT_CATEGORY_LABELS = ['Orthopedic', 'Neurological', 'Pediatric', 'General / Other'];
 
 @Component({
   selector: 'app-initial-report',
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './initial-report.component.html',
-  styleUrl: './initial-report.component.css',
+  styleUrls: ['./initial-report.component.css'],
 })
 export class InitialReportComponent implements OnInit {
-
-  
   patientId: string | null = null;
-  noPatientSelected = false;
   reportId: string | null = null;
+  noPatientSelected = false;
 
+  // --- Patient header (populated from the intake summary endpoint) ---
   patientName = signal('');
   patientBadge = signal('');
   age = signal<number | null>(null);
   gender = signal('');
   chiefComplaint = signal('');
-  readonly injury = signal<string | undefined>(undefined);
-  readonly injuryDate = signal<string | undefined>(undefined);
-  readonly patientCategory = signal<string | undefined>(undefined);
+  injury = signal<string | undefined>(undefined);
+  injuryDate = signal<string | undefined>(undefined);
+  patientCategory = signal<string | undefined>(undefined);
 
   patientInitials = computed(() =>
     this.patientName()
@@ -38,22 +56,21 @@ export class InitialReportComponent implements OnInit {
       .join('')
   );
 
-  // --- Two-way ngModel-bound fields. Signals here too, since the report load
-  // (initialReport) is set asynchronously from an HTTP callback. ---
+  // --- Report fields ---
   examination = signal('');
   initialReport = signal('');
   treatmentPlan = signal('');
-  attachments = signal<File[]>([]);
-  chatText = '';
-  activeVoiceField: 'chatText' | 'examination' | 'initialReport' | 'treatmentPlan' | null = null;
+  attachments = signal<AttachmentEntry[]>([]);
+  treatmentPlanPdfUrl = signal<string | undefined>(undefined);
 
-  // chat state
-  messages = signal<Array<{ from: 'user' | 'assistant'; text: string; time?: string }>>([]);
-  sending = signal(false);
   saving = signal(false);
-  recognition: any = null;
+
+  // --- Voice input (MediaRecorder -> backend transcribe/refine pipeline) ---
+  activeVoiceField: 'chatText' | 'examination' | 'initialReport' | 'treatmentPlan' | null = null;
   listening = signal(false);
   liveTranscript = signal('');
+  private mediaRecorder: MediaRecorder | null = null;
+  private recordedChunks: BlobPart[] = [];
 
   recordingFieldLabel = computed(() => {
     switch (this.activeVoiceField) {
@@ -63,66 +80,22 @@ export class InitialReportComponent implements OnInit {
         return 'initial report';
       case 'treatmentPlan':
         return 'treatment plan';
-      case 'chatText':
-        return 'voice note';
       default:
         return 'voice note';
     }
   });
+
+  // --- AI chat (WIP — backend endpoint not confirmed yet) ---
+  chatText = '';
+  messages = signal<ChatMessage[]>([]);
+  sending = signal(false);
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly initialReportService: InitialReportService,
     private readonly snackbar: SnackbarService
-  ) {
-    // init speech recognition if available
-    const w: any = window as any;
-    const SpeechRecognition = w.SpeechRecognition || w.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      this.recognition = new SpeechRecognition();
-      this.recognition.lang = 'en-US';
-      this.recognition.interimResults = false;
-      this.recognition.maxAlternatives = 1;
-      this.recognition.onresult = (ev: any) => {
-        const transcript = Array.from(ev.results)
-          .map((result: any) => result[0].transcript)
-          .join(' ')
-          .trim();
-
-        if (!transcript) {
-          return;
-        }
-
-        this.liveTranscript.set(transcript);
-
-        switch (this.activeVoiceField) {
-          case 'chatText':
-            this.chatText = transcript;
-            break;
-          case 'examination':
-            this.examination.set(transcript);
-            break;
-          case 'initialReport':
-            this.initialReport.set(transcript);
-            break;
-          case 'treatmentPlan':
-            this.treatmentPlan.set(transcript);
-            break;
-          default:
-            this.chatText = transcript;
-        }
-      };
-      this.recognition.onend = () => {
-        this.listening.set(false);
-        this.activeVoiceField = null;
-      };
-      this.recognition.onerror = () => {
-        this.listening.set(false);
-        this.activeVoiceField = null;
-      };
-    }
-  }
+  ) {}
 
   ngOnInit(): void {
     const navState = history.state as { patient?: any } | undefined;
@@ -130,8 +103,7 @@ export class InitialReportComponent implements OnInit {
       this.applyPatientSummary(navState.patient);
     }
 
-    // patientId is mandatory, so it now lives on the route path, e.g.
-    // /app/initial-report/:patientId — see MainLayoutRoutes.
+    // patientId lives on the route path, e.g. /app/initial-report/:patientId
     this.route.paramMap.subscribe(params => {
       const resolvedId = params.get('patientId') ?? (navState?.patient?.id != null ? String(navState.patient.id) : null);
 
@@ -144,7 +116,7 @@ export class InitialReportComponent implements OnInit {
       this.noPatientSelected = false;
       this.patientId = resolvedId;
       this.loadIntakeHeader(resolvedId);
-      this.loadExistingReport(resolvedId);
+      this.loadOrCreateReport(resolvedId);
     });
   }
 
@@ -158,9 +130,9 @@ export class InitialReportComponent implements OnInit {
     if (patient.chiefComplaint) this.chiefComplaint.set(patient.chiefComplaint);
   }
 
+  /** Loads the condensed intake summary (name/age/gender/chief complaint/etc.)
+   *  to populate the patient header card. */
   private loadIntakeHeader(patientId: string): void {
-    const PATIENT_CATEGORY_LABELS = ['Orthopedic', 'Neurological', 'Pediatric', 'General / Other'];
-
     this.initialReportService.getIntakeDataSummaryByPatientId(patientId).subscribe({
       next: intake => {
         if (intake.patientFullName) this.patientName.set(intake.patientFullName);
@@ -183,17 +155,23 @@ export class InitialReportComponent implements OnInit {
     });
   }
 
-  /** Loads an existing report for this patient, if one was already created.
-   *  A 404 here just means "no report yet", which is expected for a brand
-   *  new patient — not an error to surface. */
-  private loadExistingReport(patientId: string): void {
+  /** Loads an existing report for this patient if one exists; otherwise
+   *  creates an empty one immediately so attachments have somewhere to
+   *  upload to right away. A 404 on the lookup just means "no report yet"
+   *  — expected for a brand new patient, not an error to surface. */
+  private loadOrCreateReport(patientId: string): void {
     this.initialReportService.getReportByPatientId(patientId).subscribe({
-      next: res => {
-        this.reportId = res.id;
-        this.initialReport.set(res.reportText ?? '');
-      },
+      next: res => this.applyReportResponse(res),
       error: err => {
-        if (err?.status !== 404) {
+        if (err?.status === 404) {
+          this.initialReportService.createReport({ patientId }).subscribe({
+            next: res => this.applyReportResponse(res),
+            error: createErr => {
+              console.error('Unable to create report', createErr);
+              this.snackbar.error('Unable to start report', ['Could not create an initial report for this patient.']);
+            }
+          });
+        } else {
           console.warn('Unable to load existing report', err);
           this.snackbar.warning('Unable to load report', ['Could not load an existing report.']);
         }
@@ -201,47 +179,158 @@ export class InitialReportComponent implements OnInit {
     });
   }
 
-  addUserMessage(text: string) {
+  private applyReportResponse(response: InitialReportResponse): void {
+    this.reportId = response.id;
+    this.treatmentPlanPdfUrl.set(response.treatmentPlanPdfUrl);
+    this.parseReportText(response.reportText ?? '');
+    this.attachments.set(
+      (response.attachments ?? []).map(a => ({
+        id: a.id,
+        name: a.fileName,
+        size: 0,
+        fileUrl: a.fileUrl,
+        fileType: a.fileType,
+      }))
+    );
+  }
+
+  /** Splits the combined reportText field back into the three UI sections. */
+  private parseReportText(reportText: string): void {
+    const examinationMatch = reportText.match(/=== Examination ===([\s\S]*?)(?=== Diagnosis ===|$)/);
+    const diagnosisMatch = reportText.match(/=== Diagnosis ===([\s\S]*?)(?=== Treatment Plan ===|$)/);
+    const treatmentMatch = reportText.match(/=== Treatment Plan ===([\s\S]*?)$/);
+
+    this.examination.set(examinationMatch?.[1]?.trim() ?? '');
+    this.initialReport.set(diagnosisMatch?.[1]?.trim() ?? '');
+    this.treatmentPlan.set(treatmentMatch?.[1]?.trim() ?? '');
+  }
+
+  /** Combines the three UI sections into the single reportText field the
+   *  backend stores. Mirrors parseReportText's markers so a reload restores
+   *  all three fields correctly. */
+  private buildReportText(): string {
+    return `=== Examination ===\n${this.examination().trim()}\n=== Diagnosis ===\n${this.initialReport().trim()}\n=== Treatment Plan ===\n${this.treatmentPlan().trim()}`;
+  }
+
+  private getApiErrorDetail(err: any): string {
+    return err?.error?.detail || err?.error?.message || err?.statusText || err?.message || '';
+  }
+
+  startVoice(field: 'chatText' | 'examination' | 'initialReport' | 'treatmentPlan'): void {
+    if (this.listening()) {
+      this.stopVoice();
+      return;
+    }
+
+    if (!this.reportId) {
+      this.snackbar.warning('Report not ready', ['Please wait until the report finishes loading before recording audio.']);
+      return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      this.snackbar.warning('Microphone unavailable', ['Your browser does not support audio recording.']);
+      return;
+    }
+
+    this.activeVoiceField = field;
+    this.liveTranscript.set('');
+    this.recordedChunks = [];
+    this.listening.set(true);
+
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then(stream => {
+        this.mediaRecorder = new MediaRecorder(stream);
+        this.mediaRecorder.ondataavailable = (event: BlobEvent) => {
+          if (event.data && event.data.size > 0) {
+            this.recordedChunks.push(event.data);
+          }
+        };
+        this.mediaRecorder.onstop = () => {
+          this.listening.set(false);
+          stream.getTracks().forEach(track => track.stop());
+          const audioBlob = new Blob(this.recordedChunks, { type: 'audio/webm' });
+          this.transcribeVoice(audioBlob, field);
+        };
+        this.mediaRecorder.start();
+      })
+      .catch(err => {
+        this.listening.set(false);
+        this.activeVoiceField = null;
+        console.error('Microphone access denied', err);
+        this.snackbar.warning('Microphone access denied', [this.getApiErrorDetail(err) || 'Cannot start recording.']);
+      });
+  }
+
+  stopVoice(): void {
+    if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') {
+      this.listening.set(false);
+      this.activeVoiceField = null;
+      return;
+    }
+    this.mediaRecorder.stop();
+  }
+
+  /** WIP: teammate's transcription pipeline currently returns the whole
+   *  updated report, not a per-field result — so for now this assigns the
+   *  returned text wholesale to whichever field was being recorded. */
+  private transcribeVoice(audioBlob: Blob, field: 'chatText' | 'examination' | 'initialReport' | 'treatmentPlan'): void {
+    if (!this.reportId) {
+      this.snackbar.error('Cannot transcribe audio', ['Report ID is missing.']);
+      this.activeVoiceField = null;
+      return;
+    }
+
+    this.initialReportService.transcribeAudio(this.reportId, audioBlob).subscribe({
+      next: res => {
+        const trimmedText = res.reportText?.trim() ?? '';
+        if (!trimmedText) {
+          this.snackbar.warning('No transcription result', ['The audio did not return any text.']);
+          this.activeVoiceField = null;
+          return;
+        }
+
+        this.liveTranscript.set(trimmedText);
+        switch (field) {
+          case 'chatText':
+            this.chatText = trimmedText;
+            break;
+          case 'examination':
+            this.examination.set(trimmedText);
+            break;
+          case 'initialReport':
+            this.initialReport.set(trimmedText);
+            break;
+          case 'treatmentPlan':
+            this.treatmentPlan.set(trimmedText);
+            break;
+        }
+        this.activeVoiceField = null;
+      },
+      error: err => {
+        console.error('Audio transcription failed', err);
+        this.snackbar.error('Transcription failed', [this.getApiErrorDetail(err) || 'Unable to transcribe audio.']);
+        this.activeVoiceField = null;
+      }
+    });
+  }
+
+  // --- AI chat (WIP) ------------------------------------------------
+
+  addUserMessage(text: string): void {
     this.messages.update(msgs => [...msgs, { from: 'user', text, time: new Date().toLocaleTimeString() }]);
   }
 
-  addAssistantMessage(text: string) {
+  addAssistantMessage(text: string): void {
     this.messages.update(msgs => [...msgs, { from: 'assistant', text, time: new Date().toLocaleTimeString() }]);
   }
 
-  startVoice(field: 'chatText' | 'examination' | 'initialReport' | 'treatmentPlan') {
-    if (!this.recognition) {
-      this.snackbar.warning('Speech recognition unavailable', ['Your browser does not support audio transcription.']);
-      return;
-    }
-    if (this.listening()) {
-      this.recognition.stop();
-      return;
-    }
-    this.liveTranscript.set('');
-    this.activeVoiceField = field;
-    this.listening.set(true);
-    this.recognition.start();
-  }
-
-  stopVoice() {
-    if (!this.recognition) return;
-    this.recognition.stop();
-    this.listening.set(false);
-    this.activeVoiceField = null;
-  }
-
-  /** @deprecated sendChatMessage hits a legacy ai/initial-report endpoint not
-   *  present on InitialReportController — kept only until the chat/AI flow is
-   *  reconfirmed against the current backend. */
-  sendToAi(text: string) {
-    if (!text || this.sending() || this.patientId == null) return;
+  sendToAi(text: string): void {
+    if (!text || this.sending() || !this.patientId) return;
     this.sending.set(true);
-    const payload = { patientId: this.patientId, text };
-    this.initialReportService.sendChatMessage(payload).subscribe({
+    this.initialReportService.sendChatMessage({ patientId: this.patientId, text }).subscribe({
       next: res => {
-        const reply = res?.reply || 'No response from AI.';
-        this.addAssistantMessage(reply);
+        this.addAssistantMessage(res?.reply || 'No response from AI.');
         this.sending.set(false);
       },
       error: err => {
@@ -252,7 +341,7 @@ export class InitialReportComponent implements OnInit {
     });
   }
 
-  onChatSubmit() {
+  onChatSubmit(): void {
     const text = this.chatText?.trim();
     if (!text) return;
     this.chatText = '';
@@ -260,140 +349,125 @@ export class InitialReportComponent implements OnInit {
     this.sendToAi(text);
   }
 
-  compileDraft() {
+  compileDraft(): void {
     const combined = this.messages().map(m => `${m.from}: ${m.text}`).join('\n');
     this.sendToAi(`Compile draft from conversation:\n${combined}`);
   }
 
-  onFilesSelected(event: Event) {
+  onFilesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files) return;
-    this.addFiles(input.files);
+    this.uploadFiles(input.files);
     input.value = '';
   }
 
-  addFiles(fileList: FileList) {
-    const newFiles: File[] = [];
-    for (let i = 0; i < fileList.length; i++) {
-      const file = fileList.item(i);
-      if (file) newFiles.push(file);
-    }
-    if (newFiles.length > 0) {
-      this.attachments.update(files => [...files, ...newFiles]);
-    }
-  }
-
-  removeAttachment(index: number) {
-    this.attachments.update(files => files.filter((_, i) => i !== index));
-  }
-
-  onDrop(event: DragEvent) {
+  onDrop(event: DragEvent): void {
     event.preventDefault();
     if (event.dataTransfer?.files) {
-      this.addFiles(event.dataTransfer.files);
+      this.uploadFiles(event.dataTransfer.files);
     }
   }
 
-  onDragOver(event: DragEvent) {
+  onDragOver(event: DragEvent): void {
     event.preventDefault();
   }
 
-  /** Combines the three UI sections into the single reportText field the
-   *  backend currently stores. Pending decision on whether the backend DTO
-   *  should split these into separate columns instead. */
-  private buildReportText(): string {
-    const parts: string[] = [];
-    const examination = this.examination().trim();
-    const initialReport = this.initialReport().trim();
-    const treatmentPlan = this.treatmentPlan().trim();
-    if (examination) parts.push(`Examination:\n${examination}`);
-    if (initialReport) parts.push(`Initial Report:\n${initialReport}`);
-    if (treatmentPlan) parts.push(`Treatment Plan:\n${treatmentPlan}`);
-    return parts.join('\n\n');
+  private uploadFiles(fileList: FileList): void {
+    Array.from(fileList).forEach(file => this.uploadAttachmentFile(file));
   }
 
-  /** Creates the report if none exists yet for this patient, otherwise
-   *  updates the existing one's text. Uploads any attachments picked before
-   *  the report existed (attachments require a reportId to attach to).
-   *  Only image files are accepted by the backend (UploadAttachmentAsync). */
-  private persistReport(onSuccess: () => void) {
-    if (this.patientId == null) {
-      this.snackbar.warning('No patient selected', ['Open this page from a patient in the list.']);
+  private uploadAttachmentFile(file: File): void {
+    if (!this.reportId) {
+      this.snackbar.warning('Cannot upload attachment', ['Report is still being created — try again in a moment.']);
+      return;
+    }
+
+    const isImage = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf';
+    if (!isImage && !isPdf) {
+      this.snackbar.error('Invalid attachment', ['Only images and PDFs are allowed.']);
+      return;
+    }
+
+    this.initialReportService.uploadAttachment(this.reportId, file).subscribe({
+      next: (res: ReportAttachmentResponse) => {
+        this.attachments.update(list => [
+          ...list,
+          { id: res.id, name: res.fileName, size: file.size, fileUrl: res.fileUrl, fileType: res.fileType },
+        ]);
+        this.snackbar.success('Attachment uploaded', [res.fileName]);
+      },
+      error: err => {
+        console.error('Attachment upload failed', err);
+        const message =
+          err?.status === 400 ? 'Only images and PDFs are allowed.' : this.getApiErrorDetail(err) || 'Unable to upload attachment.';
+        this.snackbar.error('Upload failed', [message]);
+      }
+    });
+  }
+
+  removeAttachment(index: number): void {
+    const attachment = this.attachments()[index];
+    if (!attachment) return;
+
+    if (attachment.id && this.reportId) {
+      this.initialReportService.deleteAttachment(this.reportId, attachment.id).subscribe({
+        next: () => {
+          this.attachments.update(list => list.filter((_, i) => i !== index));
+          this.snackbar.success('Attachment removed');
+        },
+        error: err => {
+          console.error('Attachment delete failed', err);
+          this.snackbar.error('Delete failed', [this.getApiErrorDetail(err) || 'Unable to remove attachment.']);
+        }
+      });
+      return;
+    }
+
+    this.attachments.update(list => list.filter((_, i) => i !== index));
+  }
+
+  saveDraft(): void {
+    this.persistReportText(() => this.snackbar.success('Draft saved'));
+  }
+
+  submitAndSend(): void {
+    this.persistReportText(() => {
+      if (!this.reportId) return;
+      this.initialReportService.submitReport(this.reportId).subscribe({
+        next: res => {
+          this.applyReportResponse(res);
+          const linkMessage = res.treatmentPlanPdfUrl ? `PDF: ${res.treatmentPlanPdfUrl}` : 'Report submitted successfully.';
+          this.snackbar.success('Submitted and sent', [linkMessage]);
+        },
+        error: err => {
+          console.error('Submit failed', err);
+          this.snackbar.error('Submit failed', [this.getApiErrorDetail(err) || 'Unable to submit report.']);
+        }
+      });
+    });
+  }
+
+  private persistReportText(onSuccess: () => void): void {
+    if (!this.reportId) {
+      this.snackbar.error('Unable to save', ['Report is still being created — try again in a moment.']);
       return;
     }
 
     this.saving.set(true);
     const reportText = this.buildReportText();
 
-    const afterReportSaved = (reportId: string) => {
-      this.reportId = reportId;
-      const currentAttachments = this.attachments();
-      const imageAttachments = currentAttachments.filter(f => f.type.startsWith('image/'));
-      const skipped = currentAttachments.length - imageAttachments.length;
-      if (skipped > 0) {
-        this.snackbar.warning('Some attachments skipped', [`${skipped} file(s) are not images and were not uploaded.`]);
-      }
-
-      if (imageAttachments.length === 0) {
+    this.initialReportService.updateReportText(this.reportId, { reportText }).subscribe({
+      next: () => {
         this.saving.set(false);
         onSuccess();
-        return;
+      },
+      error: err => {
+        this.saving.set(false);
+        console.error('Report save failed', err);
+        this.snackbar.error('Save failed', [this.getApiErrorDetail(err) || 'Unable to save report.']);
       }
-
-      let remaining = imageAttachments.length;
-      let hadError = false;
-      imageAttachments.forEach(file => {
-        this.initialReportService.uploadAttachment(reportId, file).subscribe({
-          next: () => {
-            remaining--;
-            if (remaining === 0) {
-              this.saving.set(false);
-              this.attachments.set([]);
-              if (!hadError) onSuccess();
-            }
-          },
-          error: err => {
-            console.error('Attachment upload failed', err);
-            hadError = true;
-            remaining--;
-            if (remaining === 0) {
-              this.saving.set(false);
-              this.snackbar.error('Attachment upload failed', ['One or more files could not be uploaded.']);
-            }
-          }
-        });
-      });
-    };
-
-    if (this.reportId == null) {
-      this.initialReportService.createReport({ patientId: this.patientId, reportText }).subscribe({
-        next: res => afterReportSaved(res.id),
-        error: err => {
-          this.saving.set(false);
-          console.error('Report create failed', err);
-          const message = err?.error?.message || err?.statusText || err?.message || 'Unable to create report.';
-          this.snackbar.error('Save failed', [message]);
-        }
-      });
-    } else {
-      this.initialReportService.updateReportText(this.reportId, { reportText }).subscribe({
-        next: () => afterReportSaved(this.reportId!),
-        error: err => {
-          this.saving.set(false);
-          console.error('Report update failed', err);
-          const message = err?.error?.message || err?.statusText || err?.message || 'Unable to update report.';
-          this.snackbar.error('Save failed', [message]);
-        }
-      });
-    }
-  }
-
-  saveDraft() {
-    this.persistReport(() => this.snackbar.success('Draft saved'));
-  }
-
-  submitAndSend() {
-    this.persistReport(() => this.snackbar.success('Submitted and sent'));
+    });
   }
 
   goToPatients(): void {

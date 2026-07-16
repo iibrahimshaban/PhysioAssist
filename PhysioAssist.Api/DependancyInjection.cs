@@ -1,4 +1,4 @@
-﻿using CloudinaryDotNet;
+using CloudinaryDotNet;
 using Hangfire;
 using Mapster;
 using MapsterMapper;
@@ -31,9 +31,12 @@ using PhysioAssist.Api.Shared.Interfaces.Common;
 using PhysioAssist.Api.Shared.Interfaces.Documentation;
 using PhysioAssist.Api.Shared.Interfaces.Exposed;
 using PhysioAssist.Api.Shared.Interfaces.Ingestion;
+using PhysioAssist.Api.Shared.PdfService;
+using PhysioAssist.Api.Shared.QRService;
 using PhysioAssist.Api.Shared.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
+using IQRService = PhysioAssist.Api.Shared.Interfaces.IQRService;
 
 namespace PhysioAssist.Api;
 
@@ -41,6 +44,8 @@ public static class DependancyInjection
 {
     public static IServiceCollection AddGlobalServicesRegistration(this IServiceCollection services, IConfiguration configuration)
     {
+        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
         services
             .AddSwaggerConfiguration()
             .AddHttpContextAccessor()
@@ -52,11 +57,16 @@ public static class DependancyInjection
             .AddDocumentationSummarizationConfig()
             .AddAutoCompleteService(configuration)
             .AddEmbeddingConfig()
-            .AddAudioTranscriptionConfig()
             .AddDbContextConfiguration(configuration)
             .AddCorsConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration)
+            .AddAudioTranscriptionConfig()
             .AddHangfireBGJobs(configuration);
+
+
+        services.AddQrCodeConfig(configuration);
+        services.AddScoped<IPdfService, PdfService>();
+        services.AddScoped<INotificationService, PhysioAssist.Api.Shared.NotificationService.NotificationService>();
 
         services
            .AddAuthModule(configuration)
@@ -67,6 +77,19 @@ public static class DependancyInjection
            .AddDocumentationModule()
            .AddSharedServices(configuration)
            .AddInitialReportModule();
+
+        return services;
+    }
+
+    private static IServiceCollection AddQrCodeConfig(this IServiceCollection services, IConfiguration configuration)
+    {
+        services
+            .AddOptions<QrSettings>()
+            .BindConfiguration(QrSettings.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddScoped<IQRService, QRService>();
 
         return services;
     }
@@ -164,6 +187,7 @@ public static class DependancyInjection
         services.AddScoped<IAppointmentService, AppointmentService>();
         services.AddScoped<IWorkingScheduleService, WorkingScheduleService>();
         services.AddScoped<IScheduleSlotQueryService, ScheduleSlotQueryService>();
+
         services
             .AddOptions<MailSettings>()
             .BindConfiguration(MailSettings.SectionName)
@@ -236,7 +260,7 @@ public static class DependancyInjection
         .ValidateDataAnnotations();
 
         services.AddHttpClient<GroqWhisperClient>();
-        services.AddHttpClient<ITranscriptionRefinementService, GroqRefinementClient>();
+        services.AddHttpClient<ITranscriptionRefinementService,GroqRefinementClient>();
 
         services.AddHttpClient<IAudioTranscriptionService, GeminiTranscriptionClient>();
 

@@ -11,4 +11,10 @@ public interface IInitialReportService
     Task<Result<ReportAttachmentResponse>> UploadAttachmentAsync(Guid reportId, IFormFile file);
     Task<Result> DeleteAttachmentAsync(Guid reportId, Guid attachmentId);
     Task<Result<InitialReportResponse>> GetByPatientIdAsync(Guid patientId);
+
+    /// <summary>
+    /// Generates the treatment plan PDF, generates a QR code, and dispatches an email
+    /// notification to the patient with both.
+    /// </summary>
+    Task<Result<InitialReportResponse>> SubmitAsync(Guid reportId);
 }

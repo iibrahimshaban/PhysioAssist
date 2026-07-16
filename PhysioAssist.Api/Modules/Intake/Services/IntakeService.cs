@@ -15,6 +15,7 @@ using PhysioAssist.Api.Shared.QR;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using IQRService = PhysioAssist.Api.Shared.Interfaces.Common.IQRService;
 
 namespace PhysioAssist.Api.Modules.Intake.Services;
 

@@ -1,5 +1,6 @@
 ﻿using PhysioAssist.Api.Modules.Notification.DTO;
 using PhysioAssist.Api.Modules.Notification.Interfaces;
+using INotificationService = PhysioAssist.Api.Modules.Notification.Interfaces.INotificationService;
 
 namespace PhysioAssist.Api.Modules.Notification.Services
 {

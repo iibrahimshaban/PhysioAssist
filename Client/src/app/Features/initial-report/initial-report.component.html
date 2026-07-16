@@ -138,7 +138,7 @@
         <div class="text-sm font-semibold text-gray-700">ATTACHMENTS (OPTIONAL)</div>
         <div class="mt-3 attach-container">
           <label class="attach-dropzone" (drop)="onDrop($event)" (dragover)="onDragOver($event)">
-            <input type="file" multiple class="hidden" (change)="onFilesSelected($event)" />
+            <input type="file" accept="image/*,.pdf" multiple class="hidden" (change)="onFilesSelected($event)" />
             <div class="attach-inner">
               <i class="pi pi-paperclip attach-icon"></i>
               <div class="attach-text">Drag & drop X-rays, photos, PDFs — or click to upload</div>
@@ -157,6 +157,51 @@
               </div>
             }
           </label>
+        </div>
+      </section>
+
+      <!-- AI chat (WIP) -->
+      <section class="bg-white rounded-lg shadow p-4">
+        <div class="flex justify-between items-start mb-3">
+          <div class="flex items-start gap-4">
+            <div class="section-icon"><i class="pi pi-comments"></i></div>
+            <div>
+              <div class="text-sm font-semibold section-label">AI ASSISTANT</div>
+              <div class="text-xs section-desc">Chat with the AI to help draft or refine sections of the report.</div>
+            </div>
+          </div>
+          <div class="flex gap-2 items-center">
+            <button type="button" class="control-btn" aria-label="Voice" (click)="startVoice('chatText')"><i class="pi pi-microphone"></i> Voice</button>
+            <button type="button" class="control-btn" [disabled]="sending()" (click)="compileDraft()">
+              <i class="pi pi-sparkles"></i> Compile draft
+            </button>
+          </div>
+        </div>
+
+        @if (messages().length > 0) {
+          <div class="chat-messages space-y-2 mb-3 max-h-64 overflow-y-auto">
+            @for (message of messages(); track message) {
+              <div class="chat-bubble" [class.chat-bubble-user]="message.from === 'user'" [class.chat-bubble-assistant]="message.from === 'assistant'">
+                <span class="chat-bubble-text">{{ message.text }}</span>
+                @if (message.time) {
+                  <span class="chat-bubble-time text-xs text-slate-400">{{ message.time }}</span>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <div class="flex gap-2 items-center">
+          <input
+            type="text"
+            class="ia-textarea w-full"
+            placeholder="Ask the AI assistant..."
+            [(ngModel)]="chatText"
+            (keyup.enter)="onChatSubmit()"
+          />
+          <button type="button" class="control-btn" [disabled]="sending()" (click)="onChatSubmit()">
+            <i class="pi pi-send"></i> Send
+          </button>
         </div>
       </section>
 
