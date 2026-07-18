@@ -1,14 +1,17 @@
 @if (profile(); as p) {
-  <div class="max-w-5xl mx-auto p-6">
+  <div class="max-w-5xl mx-auto p-4 sm:p-6">
 
     <!-- Header -->
-    <div class="flex justify-between items-start mb-4">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
       <div>
-        <h1 class="text-3xl font-bold">Profile</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold">Profile</h1>
         <p class="text-gray-500 text-sm">Your doctor profile and public info</p>
       </div>
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         @if (!isEditMode()) {
+          @if (authService.hasPermission('receptionist:read')) {
+            <p-button label="Staff" icon="pi pi-users" severity="secondary" [outlined]="true" (onClick)="goToStaff()" />
+          }
           <p-button label="Settings" icon="pi pi-cog" severity="secondary" [outlined]="true" (onClick)="openPasswordDialog()" />
           <p-button label="Edit profile" (onClick)="enterEditMode()" />
         } @else {
@@ -31,10 +34,10 @@
 
     <!-- Banner + avatar -->
     <div class="bg-white rounded-xl border overflow-hidden mb-6">
-      <div class="relative h-32 bg-gradient-to-r from-blue-500 to-teal-400">
-        <div class="absolute -bottom-10 left-6">
+      <div class="relative h-24 sm:h-32 bg-gradient-to-r from-blue-500 to-teal-400">
+        <div class="absolute -bottom-10 left-4 sm:left-6">
           <div class="relative">
-            <div class="w-20 h-20 rounded-full bg-teal-500 text-white flex items-center justify-center text-xl font-bold border-4 border-white overflow-hidden shadow-sm">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-teal-500 text-white flex items-center justify-center text-lg sm:text-xl font-bold border-4 border-white overflow-hidden shadow-sm">
               @if (photoPreviewUrl()) {
                 <img [src]="photoPreviewUrl()" class="w-full h-full object-cover" alt="Profile photo" />
               } @else {
@@ -51,7 +54,7 @@
         </div>
       </div>
 
-      <div class="pt-12 pb-6 px-6 flex items-center justify-between">
+      <div class="pt-10 sm:pt-12 pb-6 px-4 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h2 class="text-lg font-bold">{{ p.firstName }} {{ p.lastName }}</h2>
           <p class="text-gray-500 text-sm">{{ p.title ?? 'Add your title' }}</p>
@@ -62,13 +65,13 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
       <!-- Personal information -->
-      <div class="md:col-span-2 bg-white rounded-xl border p-6">
+      <div class="md:col-span-2 bg-white rounded-xl border p-4 sm:p-6">
         <h3 class="text-xs font-semibold text-gray-400 tracking-wide mb-4">PERSONAL INFORMATION</h3>
 
         @if (!isEditMode()) {
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p class="text-sm text-gray-400">Full name</p>
               <p class="font-medium">{{ p.firstName }} {{ p.lastName }}</p>
@@ -79,7 +82,7 @@
             </div>
             <div>
               <p class="text-sm text-gray-400">Email</p>
-              <p class="font-medium">{{ p.email }}</p>
+              <p class="font-medium break-all">{{ p.email }}</p>
             </div>
             <div>
               <p class="text-sm text-gray-400">Phone</p>
@@ -93,48 +96,48 @@
               <p class="text-sm text-gray-400">Clinic address</p>
               <p class="font-medium">{{ p.clinicAddress ?? '—' }}</p>
             </div>
-            <div class="col-span-2">
+            <div class="sm:col-span-2">
               <p class="text-sm text-gray-400">About</p>
               <p class="font-medium">{{ p.about ?? '—' }}</p>
             </div>
           </div>
         } @else {
-          <form [formGroup]="form" class="grid grid-cols-2 gap-4">
+          <form [formGroup]="form" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="flex flex-col gap-1">
               <label class="text-sm text-gray-500">Username</label>
-              <input pInputText formControlName="userName" />
+              <input pInputText formControlName="userName" class="w-full" />
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-sm text-gray-500">Title</label>
-              <input pInputText formControlName="title" />
+              <input pInputText formControlName="title" class="w-full" />
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-sm text-gray-500">First name</label>
-              <input pInputText formControlName="firstName" />
+              <input pInputText formControlName="firstName" class="w-full" />
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-sm text-gray-500">Last name</label>
-              <input pInputText formControlName="lastName" />
+              <input pInputText formControlName="lastName" class="w-full" />
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-sm text-gray-500">Phone</label>
-              <input pInputText formControlName="phoneNumber" />
+              <input pInputText formControlName="phoneNumber" class="w-full" />
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-sm text-gray-500">Years of experience</label>
-              <p-inputNumber formControlName="yearsOfExperience" [min]="0" [max]="70" />
+              <p-inputNumber formControlName="yearsOfExperience" [min]="0" [max]="70" styleClass="w-full" />
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-sm text-gray-500">Clinic name</label>
-              <input pInputText formControlName="clinicName" />
+              <input pInputText formControlName="clinicName" class="w-full" />
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-sm text-gray-500">Clinic address</label>
-              <input pInputText formControlName="clinicAddress" />
+              <input pInputText formControlName="clinicAddress" class="w-full" />
             </div>
-            <div class="col-span-2 flex flex-col gap-1">
+            <div class="sm:col-span-2 flex flex-col gap-1">
               <label class="text-sm text-gray-500">About</label>
-              <textarea pTextarea formControlName="about" rows="3"></textarea>
+              <textarea pTextarea formControlName="about" rows="3" class="w-full"></textarea>
             </div>
           </form>
         }
@@ -142,21 +145,21 @@
 
       <!-- At a glance -->
       @if (!isEditMode()) {
-      <div class="bg-white rounded-xl border p-6">
+      <div class="bg-white rounded-xl border p-4 sm:p-6">
         <h3 class="text-xs font-semibold text-gray-400 tracking-wide mb-4">AT A GLANCE</h3>
         <div class="space-y-4">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
               <i class="pi pi-envelope"></i>
             </div>
-            <div>
+            <div class="min-w-0">
               <p class="text-sm text-gray-400">Email</p>
-              <p class="font-medium">{{ p.email }}</p>
+              <p class="font-medium truncate">{{ p.email }}</p>
             </div>
           </div>
 
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
               <i class="pi pi-phone"></i>
             </div>
             <div>
@@ -166,17 +169,17 @@
           </div>
 
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
               <i class="pi pi-map-marker"></i>
             </div>
-            <div>
+            <div class="min-w-0">
               <p class="text-sm text-gray-400">Address</p>
-              <p class="font-medium">{{ p.clinicAddress ?? '—' }}</p>
+              <p class="font-medium truncate">{{ p.clinicAddress ?? '—' }}</p>
             </div>
           </div>
 
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
               <i class="pi pi-calendar"></i>
             </div>
             <div>
@@ -196,7 +199,7 @@
   header="Change password"
   [(visible)]="isPasswordDialogOpen"
   [modal]="true"
-  [style]="{ width: '28rem' }">
+  [style]="{ width: '90vw', maxWidth: '28rem' }">
 
   <form [formGroup]="passwordForm" class="flex flex-col gap-4">
     <div class="flex flex-col gap-1">
@@ -234,7 +237,7 @@
   header="Crop your photo"
   [(visible)]="isCropperOpen"
   [modal]="true"
-  [style]="{ width: '28rem' }">
+  [style]="{ width: '90vw', maxWidth: '28rem' }">
 
   @if (imageToCrop()) {
     <image-cropper

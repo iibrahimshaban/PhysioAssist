@@ -2,19 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
-// --- AI chat -----------------------------------------------------------
-// NOTE: not present on InitialReportController — this is a teammate's WIP
-// feature. Leaving the wiring in place so it's ready once the backend
-// endpoint lands; sendChatMessage will 404 until then.
-export interface AiInitialReportRequest {
-  patientId: string;
-  text: string;
-}
-
-export interface AiInitialReportResponse {
-  reply: string;
-}
-
 // --- Intake data (read-only, for populating the patient header) --------
 export interface PreVisitIntakeDataResponse {
   id: string;
@@ -135,11 +122,5 @@ export class InitialReportService {
     formData.append('audioFile', audioBlob, 'voice-recording.webm');
     const query = languageHint ? `?languageHint=${encodeURIComponent(languageHint)}` : '';
     return this.http.post<InitialReportResponse>(`${this.baseUrl}/${reportId}/transcribe${query}`, formData);
-  }
-
-  /** @wip not present on InitialReportController yet — teammate is still
-   *  building the AI chat/messaging backend. Will 404 until that lands. */
-  sendChatMessage(request: AiInitialReportRequest) {
-    return this.http.post<AiInitialReportResponse>(`${environment.apiUrl}ai/initial-report`, request);
   }
 }

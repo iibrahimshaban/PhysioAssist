@@ -309,6 +309,37 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.ToTable("OtpEntry", "auth");
                 });
 
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Auth.Entities.Receptionist", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<TimeOnly?>("From")
+                        .HasColumnType("time");
+
+                    b.Property<Guid>("ManagingDoctorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Shift")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly?>("To")
+                        .HasColumnType("time");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ManagingDoctorId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Receptionists", "auth");
+                });
+
             modelBuilder.Entity("PhysioAssist.Api.Modules.Auth.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -1219,6 +1250,25 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Auth.Entities.Receptionist", b =>
+                {
+                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.Doctor", "ManagingDoctor")
+                        .WithMany()
+                        .HasForeignKey("ManagingDoctorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ManagingDoctor");
 
                     b.Navigation("User");
                 });

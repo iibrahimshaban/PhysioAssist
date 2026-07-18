@@ -1,8 +1,4 @@
 using CloudinaryDotNet;
-using Hangfire;
-using Mapster;
-using MapsterMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi;
 using PhysioAssist.Api.Infrastructure.AutoComplete;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
@@ -23,20 +19,14 @@ using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Modules.SessionModule.Services;
-using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared;
-using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
-using PhysioAssist.Api.Shared.Interfaces.Common;
 using PhysioAssist.Api.Shared.Interfaces.Documentation;
-using PhysioAssist.Api.Shared.Interfaces.Exposed;
 using PhysioAssist.Api.Shared.Interfaces.Ingestion;
+using PhysioAssist.Api.Shared.Options;
 using PhysioAssist.Api.Shared.PdfService;
-using PhysioAssist.Api.Shared.QRService;
-using PhysioAssist.Api.Shared.Repositories;
+using PhysioAssist.Api.Shared.QR;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
-using IQRService = PhysioAssist.Api.Shared.Interfaces.IQRService;
 
 namespace PhysioAssist.Api;
 
@@ -56,6 +46,7 @@ public static class DependancyInjection
             .AddExposedServicesConfig()
             .AddDocumentationSummarizationConfig()
             .AddAutoCompleteService(configuration)
+            .AddPatientSummaryConfig(configuration)
             .AddEmbeddingConfig()
             .AddDbContextConfiguration(configuration)
             .AddCorsConfiguration(configuration)
@@ -75,7 +66,6 @@ public static class DependancyInjection
            .AddQueryModuleConfig(configuration)
            .AddPatientModule()
            .AddDocumentationModule()
-           .AddSharedServices(configuration)
            .AddInitialReportModule();
 
         return services;
@@ -83,13 +73,32 @@ public static class DependancyInjection
 
     private static IServiceCollection AddQrCodeConfig(this IServiceCollection services, IConfiguration configuration)
     {
+
         services
-            .AddOptions<QrSettings>()
-            .BindConfiguration(QrSettings.SectionName)
+            .AddOptions<QRTokenOptions>()
+            .BindConfiguration(QRTokenOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart(); ;
+
+        services
+            .AddOptions<FrontendSettings>()
+            .BindConfiguration(FrontendSettings.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.AddScoped<IQRService, QRService>();
+
+        return services;
+    }
+    private static IServiceCollection AddPatientSummaryConfig(this IServiceCollection services, IConfiguration configuration)
+    {
+        services
+            .AddOptions<GroqPatientSummaryOptions>()
+            .BindConfiguration(GroqPatientSummaryOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IPatientSummaryAiService, GroqPatientSummaryService>();
 
         return services;
     }

@@ -1,21 +1,16 @@
-using Microsoft.AspNetCore.Identity;
-using PhysioAssist.Api.Modules.Auth.Entities;
+using Microsoft.Extensions.Options;
+using PhysioAssist.Api.Infrastructure.GeminiClient;
 using PhysioAssist.Api.Modules.InitialReportModule.DTOs;
 using PhysioAssist.Api.Modules.InitialReportModule.Entities;
 using PhysioAssist.Api.Modules.InitialReportModule.Errors;
 using PhysioAssist.Api.Modules.InitialReportModule.Repositories;
-using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Dtos.Pdf;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
-using PhysioAssist.Api.Shared.Interfaces.Common;
-using PhysioAssist.Api.Shared.SystemPrompts;
-using IQRService = PhysioAssist.Api.Shared.Interfaces.IQRService;
+using PhysioAssist.Api.Shared.Interfaces.Documentation;
+using PhysioAssist.Api.Shared.Options;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Services;
 
-// ⚠️ الـ Patient/Doctor lookup هنا بيتعمل مباشرة عن طريق ApplicationDbContext وUserManager
-// لأن IPatientQueryService مش موجودة فعليًا في الكود، وDoctorId بيتفترض إنه = ApplicationUser.Id.
-// لو الافتراضين دول غلط، قوليلي عشان نظبطهم.
 public class InitialReportService(
     IInitialReportRepository reportRepository,
     IReportAttachmentRepository attachmentRepository,
@@ -24,9 +19,12 @@ public class InitialReportService(
     IPdfService pdfService,
     IQRService qrService,
     INotificationService notificationService,
-    UserManager<ApplicationUser> userManager,
-    ApplicationDbContext context,
-    IUnitOfWork unitOfWork) : IInitialReportService
+    IPatientQueryService _patientQueryService,
+    IUnitOfWork unitOfWork,
+    IAuthQueryService _authQueryService,
+    IOptions<FrontendSettings> _frontendSettings,
+    IPatientSummaryAiService _patientSummaryAiService
+) : IInitialReportService
 {
     private readonly IInitialReportRepository _reportRepository = reportRepository;
     private readonly IReportAttachmentRepository _attachmentRepository = attachmentRepository;
@@ -35,9 +33,9 @@ public class InitialReportService(
     private readonly IPdfService _pdfService = pdfService;
     private readonly IQRService _qrService = qrService;
     private readonly INotificationService _notificationService = notificationService;
-    private readonly UserManager<ApplicationUser> _userManager = userManager;
-    private readonly ApplicationDbContext _context = context;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+    private const string PdfContentType = "application/pdf";
 
     public async Task<Result<InitialReportResponse>> CreateAsync(Guid doctorId, CreateInitialReportRequest request)
     {
@@ -112,7 +110,10 @@ public class InitialReportService(
         if (report is null)
             return Result.Failure<ReportAttachmentResponse>(InitialReportErrors.NotFound);
 
-        if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        var isImage = file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
+        var isPdf = file.ContentType.Equals(PdfContentType, StringComparison.OrdinalIgnoreCase);
+
+        if (!isImage && !isPdf)
             return Result.Failure<ReportAttachmentResponse>(InitialReportErrors.InvalidFileType);
 
         var publicId = Guid.CreateVersion7().ToString();
@@ -121,7 +122,19 @@ public class InitialReportService(
         string fileUrl;
         try
         {
-            fileUrl = await _mediaStorageService.UploadImageAsync(file, folder, publicId);
+            if (isPdf)
+            {
+                await using var stream = file.OpenReadStream();
+                var extension = Path.GetExtension(file.FileName).TrimStart('.');
+                if (string.IsNullOrEmpty(extension))
+                    extension = "pdf";
+
+                fileUrl = await _mediaStorageService.UploadRawFileAsync(stream, folder, publicId, extension);
+            }
+            else
+            {
+                fileUrl = await _mediaStorageService.UploadClinicalImageAsync(file, folder, publicId);
+            }
         }
         catch
         {
@@ -180,32 +193,56 @@ public class InitialReportService(
         if (report is null)
             return Result.Failure<InitialReportResponse>(InitialReportErrors.NotFound);
 
-        var patient = await _context.Patients.FindAsync(report.PatientId);
+        var patient = await _patientQueryService.GetPatientAsync(report.PatientId);
 
         if (patient is null)
             return Result.Failure<InitialReportResponse>(InitialReportErrors.PatientNotFound);
 
-        var doctor = await _userManager.FindByIdAsync(report.DoctorId.ToString());
-        var doctorFullName = doctor is null ? "Doctor" : $"{doctor.FirstName} {doctor.LastName}";
+        var doctor = await _authQueryService.GetDoctorById(report.DoctorId);
+        var doctorFullName = doctor.IsFailure ? "Doctor" : $"{doctor.Value.FirstName} {doctor.Value.LastName}";
 
-        // 1. Generate treatment plan PDF
-        var pdfRequest = new TreatmentPlanPdfRequest(
-            report.Id, patient.FullName, doctorFullName, report.ReportText, DateTime.UtcNow);
+        var summaryResult = await _patientSummaryAiService.GeneratePatientFriendlySummaryAsync(report.ReportText);
 
-        var pdfUrl = await _pdfService.GenerateTreatmentPlanPdfAsync(pdfRequest);
-        report.TreatmentPlanPdfUrl = pdfUrl;
+        if (summaryResult.IsFailure)
+            return Result.Failure<InitialReportResponse>(summaryResult.Error);
 
-        // 2. Generate signed QR code pointing to the patient
-        var qrToken = _qrService.GenerateSignedToken(patient.Id, "patient-report-access");
-        var qrImageUrl = await _qrService.GenerateQrImageUrlAsync(
-            qrToken, $"qr-codes/{patient.Id}", $"report-{report.Id}");
+        // 1.  Generate QR pointing to the patient profile
+        var qrUrl = $"{_frontendSettings.Value.BaseUrl}/app/patients/{patient.Value.Id}";
+        var qrBytes = _qrService.GenerateQrImageBytes(qrUrl);
+
+        // 2. Generate treatment plan PDF, QR as its own section
+        var summaryParagraphs = summaryResult.Value
+            .Split(["\r\n\r\n", "\n\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+
+        var pdfContent = new PdfDocumentContent(
+                    Title: "PhysioAssist — Treatment Plan",
+                    Sections:
+                    [
+                        new PdfSection(null,
+                [
+                    $"Patient: {patient.Value.FullName}",
+                    $"Doctor: {doctorFullName}",
+                    $"Date: {DateTime.UtcNow:yyyy-MM-dd}"
+                ]),
+                new PdfSection("Your Summary", summaryParagraphs),
+                new PdfSection("Scan to access your profile", [], qrBytes)
+                    ]);
+
+        var pdfResult = await _pdfService.GeneratePdfAsync(
+            pdfContent, $"treatment-plans/{report.Id}", $"treatment-plan-{report.Id}");
+
+        if (pdfResult.IsFailure)
+            return Result.Failure<InitialReportResponse>(pdfResult.Error);
+
+        report.TreatmentPlanPdfUrl = pdfResult.Value;
 
         _reportRepository.Update(report);
         await _unitOfWork.SaveAsync();
 
-        // 3. Dispatch email notification (WhatsApp deferred)
+        // 3. Dispatch email with PDF attached — background job, WhatsApp deferred
         await _notificationService.SendReportReadyNotificationAsync(
-            report.DoctorId, patient.Id, patient.EmailAddress, patient.FullName, pdfUrl, qrImageUrl);
+            report.DoctorId, patient.Value.Id, patient.Value.EmailAddress, patient.Value.FullName, report.TreatmentPlanPdfUrl);
 
         return Result.Success(MapToResponse(report));
     }

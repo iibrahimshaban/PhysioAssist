@@ -23,23 +23,21 @@ public class CloudinaryService(Cloudinary cloudinary) : IMediaStorageService
             throw new InvalidOperationException(result.Error.Message);
         return result.SecureUrl.ToString();
     }
-    public async Task<string> UploadDocumentAsync(IFormFile file, string folder, string publicId)
+    public async Task<string> UploadClinicalImageAsync(IFormFile file, string folder, string publicId)
     {
         await using var stream = file.OpenReadStream();
-
-        var uploadParams = new RawUploadParams
+        var uploadParams = new ImageUploadParams
         {
             File = new FileDescription(file.FileName, stream),
             Folder = folder,
             PublicId = publicId,
-            Overwrite = true
+            Overwrite = true,
+            Transformation = new Transformation()
+                .Width(2000).Height(2000).Crop("limit")
         };
-
         var result = await _cloudinary.UploadAsync(uploadParams);
-
         if (result.Error != null)
             throw new InvalidOperationException(result.Error.Message);
-
         return result.SecureUrl.ToString();
     }
     //---------------------------------------------------------------------------------------------------

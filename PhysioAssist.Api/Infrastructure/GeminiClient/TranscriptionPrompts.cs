@@ -1,4 +1,4 @@
-﻿namespace PhysioAssist.Api.Shared.SystemPrompts;
+﻿namespace PhysioAssist.Api.Infrastructure.GeminiClient;
 
 public static class TranscriptionPrompts
 {
