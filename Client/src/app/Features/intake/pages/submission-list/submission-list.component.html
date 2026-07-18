@@ -1,0 +1,93 @@
+<div class="max-w-3xl mx-auto py-6 px-3 sm:px-4" aria-live="polite">
+
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-extrabold text-[var(--color-text-primary)] tracking-tight">Reception queue</h1>
+      <p class="text-sm text-[var(--color-text-secondary)] mt-1">Patients who completed the pre-visit intake form</p>
+    </div>
+    <p-button
+      label="Refresh"
+      icon="pi pi-refresh"
+      [text]="true"
+      severity="secondary"
+      (onClick)="loadSubmissions()"
+      [loading]="loading()"
+      aria-label="Refresh submissions list">
+    </p-button>
+  </div>
+
+  <!-- Error State -->
+  @if (error()) {
+    <div class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-8 text-center" role="alert">
+      <div class="w-16 h-16 rounded-full bg-[var(--color-danger-light, #fef2f2)] text-[var(--color-danger)] flex items-center justify-center mx-auto mb-4 text-2xl">
+        <i class="pi pi-exclamation-triangle"></i>
+      </div>
+      <h3 class="text-base font-bold text-[var(--color-text-primary)] mb-1">Failed to load submissions</h3>
+      <p class="text-sm text-[var(--color-text-secondary)] mb-4">{{ error() }}</p>
+      <p-button label="Try Again" icon="pi pi-refresh" severity="warn" (onClick)="loadSubmissions()" />
+    </div>
+  }
+
+  @if (!error()) {
+    <div class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-5 sm:p-6">
+
+      <!-- Summary Stats -->
+      <app-submission-summary-stats
+        [totalCount]="submissions().length"
+        [pendingCount]="pendingCount()"
+        [approvedCount]="approvedCount()"
+        [loading]="loading()" />
+
+      <!-- Filters Bar -->
+      <app-submission-filters-bar
+        [searchTerm]="searchTerm()"
+        [selectedStatus]="selectedStatus()"
+        [statusOptions]="statusOptions"
+        (searchChange)="onSearch($event)"
+        (statusChange)="onStatusChange($event)"
+        (clearFilters)="clearFilters()" />
+
+      <!-- Loading Skeleton -->
+      @if (loading()) {
+        <div class="space-y-3">
+          @for (i of [1,2,3]; track i) {
+            <div class="bg-[var(--color-page-bg)] rounded-xl border border-[var(--color-border)] p-4 h-[72px] animate-pulse"></div>
+          }
+        </div>
+      }
+
+      <!-- Card list -->
+      @if (!loading()) {
+        @if (filteredSubmissions().length === 0) {
+          <div class="text-center py-10">
+            <div class="w-16 h-16 rounded-full bg-[var(--color-page-bg)] text-[var(--color-text-secondary)] opacity-50 flex items-center justify-center mx-auto mb-4 text-2xl">
+              <i class="pi pi-inbox"></i>
+            </div>
+            <h3 class="text-base font-bold text-[var(--color-text-primary)] mb-1">
+              @if (searchTerm() || selectedStatus()) { No matching submissions } @else { No submissions yet }
+            </h3>
+            <p class="text-sm text-[var(--color-text-secondary)] mb-4">
+              @if (searchTerm() || selectedStatus()) {
+                Try adjusting your search or filter criteria.
+              } @else {
+                Patient submissions will appear here once forms are completed.
+              }
+            </p>
+            @if (searchTerm() || selectedStatus()) {
+              <p-button label="Clear Filters" icon="pi pi-filter-slash" [text]="true" (onClick)="clearFilters()" />
+            }
+          </div>
+        } @else {
+          <div class="space-y-3">
+            @for (row of filteredSubmissions(); track row.id) {
+              <app-submission-row
+                [submission]="row"
+                (selected)="viewSubmission($event)" />
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

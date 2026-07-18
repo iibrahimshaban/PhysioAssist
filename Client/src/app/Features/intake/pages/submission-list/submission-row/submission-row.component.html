@@ -1,0 +1,27 @@
+<button
+  type="button"
+  (click)="selected.emit(submission)"
+  class="w-full text-left bg-[var(--color-page-bg)] rounded-xl border border-[var(--color-border)] p-4 flex items-start sm:items-center justify-between gap-3 hover:border-[var(--color-primary-soft)] hover:bg-[var(--color-surface)] hover:shadow-sm transition">
+  <div class="flex items-center gap-3 min-w-0 flex-1">
+    <div class="avatar-chip">
+      {{ getInitials(submission.patientName) }}
+    </div>
+    <div class="min-w-0 flex-1">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="font-bold text-[var(--color-text-primary)] capitalize text-sm sm:text-base truncate">{{ submission.patientName || 'Unnamed patient' }}</span>
+        <span class="status-badge shrink-0" [ngClass]="getStatusPillClass(submission.status)">
+          {{ getQueueStatusLabel(submission.status) }}
+        </span>
+      </div>
+      <p class="text-xs text-[var(--color-text-secondary)] mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 m-0">
+        <span class="inline-flex items-center gap-1 whitespace-nowrap">
+          <i class="pi pi-clock text-[10px]"></i>
+          Checked in {{ timeAgo(submission.submittedAt) }}
+        </span>
+        <span class="inline-block px-1.5 opacity-50">&middot;</span>
+        <span class="whitespace-nowrap">{{ submission.painRegionCount }} pain region(s)</span>
+      </p>
+    </div>
+  </div>
+  <i class="pi pi-chevron-right text-[var(--color-text-secondary)] opacity-50 shrink-0 mt-1 sm:mt-0" aria-hidden="true"></i>
+</button>

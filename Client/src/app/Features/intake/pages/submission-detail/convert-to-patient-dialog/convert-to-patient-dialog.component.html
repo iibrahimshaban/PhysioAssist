@@ -1,0 +1,71 @@
+<p-dialog
+  header="Convert to Patient"
+  [visible]="visible"
+  (visibleChange)="!$event && cancelDialog.emit()"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+  [closable]="true"
+  aria-labelledby="convert-dialog-header">
+
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-[var(--color-success-text)] flex items-center justify-center">
+        <i class="pi pi-user-plus text-white text-sm"></i>
+      </div>
+      <div>
+        <h3 class="font-bold text-base m-0 text-[var(--color-text-primary)]">Convert to Patient</h3>
+        <p class="text-xs text-[var(--color-text-secondary)] m-0">Create a patient record from this intake</p>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="space-y-4">
+    <p class="text-sm text-[var(--color-text-secondary)]">
+      This will create a new patient record from this intake submission. Review the details below and confirm.
+    </p>
+    <div class="rounded-xl border border-[var(--color-border)] overflow-hidden">
+      <div class="bg-[var(--color-page-bg)] px-4 py-2 border-b border-[var(--color-border)]">
+        <p class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider m-0">Patient Details</p>
+      </div>
+      <div class="p-4 space-y-3">
+        <div>
+          <p class="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide m-0">Name</p>
+          <p class="text-sm font-semibold text-[var(--color-text-primary)] m-0 capitalize">{{ patientName || '—' }}</p>
+        </div>
+        @if (patientEmail) {
+          <div>
+            <p class="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide m-0">Email</p>
+            <p class="text-sm text-[var(--color-text-primary)] m-0">{{ patientEmail }}</p>
+          </div>
+        }
+        @if (patientPhone) {
+          <div>
+            <p class="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide m-0">Phone</p>
+            <p class="text-sm text-[var(--color-text-primary)] m-0">{{ patientPhone }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="flex gap-2 justify-end">
+      <button
+        type="button"
+        (click)="cancelDialog.emit()"
+        class="btn-action-secondary"
+        aria-label="Cancel conversion">
+        Cancel
+      </button>
+      <button
+        type="button"
+        (click)="confirmDialog.emit()"
+        [disabled]="updating"
+        class="btn-action-primary disabled:opacity-60"
+        aria-label="Confirm convert to patient">
+        <i class="pi" [ngClass]="updating ? 'pi-spin pi-spinner' : 'pi-user-plus'"></i>
+        Confirm &amp; create patient
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,21 @@
+<!-- Summary row -->
+@if (!loading && totalCount > 0) {
+  <div class="stat-box-row mb-5">
+    <div class="stat-box-col">
+      <span class="stat-box-label">Total</span>
+      <span class="stat-box-value">{{ totalCount }}</span>
+    </div>
+    @if (pendingCount > 0) {
+      <div class="stat-box-col">
+        <span class="stat-box-label">Pending Review</span>
+        <span class="stat-box-value text-[var(--color-warning-text)]">{{ pendingCount }}</span>
+      </div>
+    }
+    @if (approvedCount > 0) {
+      <div class="stat-box-col">
+        <span class="stat-box-label">Approved</span>
+        <span class="stat-box-value text-[var(--color-success-text)]">{{ approvedCount }}</span>
+      </div>
+    }
+  </div>
+}

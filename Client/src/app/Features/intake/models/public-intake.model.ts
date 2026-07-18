@@ -1,5 +1,5 @@
 export interface GenerateIntakeQrLinkRequest {
-  expiryHours: number;
+  expiryMonths: number;
 }
 
 export interface GenerateIntakeQrLinkResponse {

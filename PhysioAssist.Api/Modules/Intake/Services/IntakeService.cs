@@ -241,7 +241,7 @@ public class IntakeService(
         if (schema.DoctorId != doctorId)
             return Result.Failure<GenerateIntakeQrLinkResponse>(IntakeErrors.UnauthorizedDoctor);
 
-        var expiry = DateTime.UtcNow.AddHours(request.ExpiryHours);
+        var expiry = DateTime.UtcNow.AddMonths(request.ExpiryMonths);
         var nonce = Guid.NewGuid().ToString("N");
 
         var payload = new QRTokenPayload

@@ -1,0 +1,54 @@
+/* ─── Mobile card layout ─────────────────────────────────────────── */
+.schema-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.schema-card:hover {
+  border-color: var(--color-primary-soft);
+  box-shadow: 0 2px 8px rgb(99 102 241 / 0.08);
+}
+
+.schema-card-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ─── QR dialog — Public URL label ──────────────────────────────── */
+.qr-url-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+/* ─── Desktop table — legacy hide-on-mobile columns ─────────────── */
+/* (kept as fallback for any layout tweaks) */
+@media (max-width: 639px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  /* Ensure schema cards have comfortable touch targets */
+  .schema-card {
+    min-height: 44px;
+  }
+
+  /* Action buttons row: larger tap area on mobile */
+  .schema-card .flex.gap-2 p-button,
+  .schema-card .flex.gap-2 button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, signal, OnInit, DestroyRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,7 +16,8 @@ import { IntakeApiService } from '../../services/intake-api.service';
 import { DynamicFormEngineService } from '../../services/dynamic-form-engine.service';
 import { QrAccessService } from '../../services/qr-access.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
-import { FormSchemaSummaryResponse, FormSchemaStatus, GenerateIntakeQrLinkRequest, GenerateIntakeQrLinkResponse } from '../../models';
+import { FormSchemaSummaryResponse, FormSchemaStatus, GenerateIntakeQrLinkResponse } from '../../models';
+
 
 @Component({
   selector: 'app-schema-list',
@@ -34,339 +35,8 @@ import { FormSchemaSummaryResponse, FormSchemaStatus, GenerateIntakeQrLinkReques
     TooltipModule,
     MessageModule
   ],
-  template: `
-    <div class="page-container animate-fade-in">
-      <!-- Page Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-               style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
-            <i class="pi pi-file-edit text-white text-lg"></i>
-          </div>
-          <div>
-            <h1 class="page-title">Form Schemas</h1>
-            <p class="page-subtitle">Manage and publish your intake form templates</p>
-          </div>
-        </div>
-        <p-button
-          label="Create Schema"
-          icon="pi pi-plus"
-          (onClick)="createSchema()"
-          severity="primary"
-          styleClass="shadow-sm">
-        </p-button>
-      </div>
-
-      <!-- Main Card -->
-      <p-card>
-        <ng-template pTemplate="content">
-          <!-- Search Bar -->
-          <div class="mb-5 px-1">
-            <div class="relative">
-              <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 text-sm"></i>
-              <input
-                pInputText
-                type="text"
-                [(ngModel)]="searchTerm"
-                (input)="onSearch()"
-                placeholder="Search schemas by name or description..."
-                class="w-full !pl-10"
-                style="padding-left: 2.5rem !important;" />
-            </div>
-          </div>
-
-          <!-- Loading Skeleton -->
-          @if (loading()) {
-            <div class="stagger-children">
-              @for (i of [1,2,3,4,5]; track i) {
-                <div class="skeleton-row">
-                  <div class="skeleton skeleton-text" style="width: 160px; height: 14px;"></div>
-                  <div class="skeleton skeleton-text" style="width: 200px; height: 12px;"></div>
-                  <div class="skeleton skeleton-text" style="width: 40px; height: 12px;"></div>
-                  <div class="skeleton" style="width: 70px; height: 24px; border-radius: 9999px;"></div>
-                  <div class="skeleton skeleton-text" style="width: 24px; height: 14px;"></div>
-                  <div class="skeleton skeleton-text" style="width: 100px; height: 12px;"></div>
-                  <div class="flex gap-2">
-                    <div class="skeleton" style="width: 32px; height: 32px; border-radius: 8px;"></div>
-                    <div class="skeleton" style="width: 32px; height: 32px; border-radius: 8px;"></div>
-                  </div>
-                </div>
-              }
-            </div>
-          }
-
-          <!-- Error State -->
-          @if (!loading() && loadError()) {
-            <div class="empty-state py-12 animate-fade-in-up" role="alert">
-              <div class="empty-state-icon" style="background: #fef2f2; color: #ef4444; width: 5rem; height: 5rem; font-size: 2rem;">
-                <i class="pi pi-exclamation-triangle"></i>
-              </div>
-              <h3 class="empty-state-title">Failed to load schemas</h3>
-              <p class="empty-state-text">{{ loadError() }}</p>
-              <p-button label="Try Again" icon="pi pi-refresh" severity="warn" (onClick)="loadSchemas()" />
-            </div>
-          }
-
-          <!-- Table -->
-          @if (!loading() && !loadError()) {
-            <p-table
-              [value]="filteredSchemas()"
-              [paginator]="true"
-              [rows]="10"
-              [showCurrentPageReport]="true"
-              currentPageReportTemplate="Showing {first} to {last} of {totalRecords} schemas"
-              [rowHover]="true"
-              styleClass="p-datatable-sm cursor-pointer">
-
-              <ng-template pTemplate="header">
-                <tr>
-                  <th>Name</th>
-                  <th class="hide-on-mobile">Description</th>
-                  <th>Version</th>
-                  <th>Status</th>
-                  <th>Default</th>
-                  <th class="hide-on-mobile">Published</th>
-                  <th class="text-center" style="width: 140px;">Actions</th>
-                </tr>
-              </ng-template>
-
-              <ng-template pTemplate="body" let-schema>
-                <tr class="animate-fade-in" (click)="editSchema(schema.id)" style="cursor: pointer;">
-                  <td>
-                    <div class="flex items-center gap-2.5">
-                      <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                           [style.background]="schema.status === FormSchemaStatus.Published ? '#ecfdf5' : '#f1f5f9'">
-                        <i class="pi text-xs"
-                           [class.pi-check-circle]="schema.status === FormSchemaStatus.Published"
-                           [class.pi-file-edit]="schema.status !== FormSchemaStatus.Published"
-                           [style.color]="schema.status === FormSchemaStatus.Published ? '#22c55e' : '#94a3b8'"></i>
-                      </div>
-                      <span class="font-semibold text-surface-800">{{ schema.name }}</span>
-                    </div>
-                  </td>
-                  <td class="hide-on-mobile">
-                    <span class="text-surface-500 text-sm">{{ schema.description || '—' }}</span>
-                  </td>
-                  <td>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-surface-100 text-surface-600 text-xs font-medium">
-                      v{{ schema.version }}
-                    </span>
-                  </td>
-                  <td>
-                    <p-tag
-                      [value]="getStatusLabel(schema.status)"
-                      [severity]="getStatusSeverity(schema.status)">
-                    </p-tag>
-                  </td>
-                  <td>
-                    @if (schema.isDefault) {
-                      <div class="flex items-center gap-1.5">
-                        <i class="pi pi-star-fill text-amber-400 text-sm animate-pulse-slow"></i>
-                      </div>
-                    } @else {
-                      <span class="text-surface-300">—</span>
-                    }
-                  </td>
-                  <td class="hide-on-mobile">
-                    <span class="text-sm text-surface-500">
-                      {{ schema.publishedAt ? (schema.publishedAt | date: 'MMM d, y') : '—' }}
-                    </span>
-                  </td>
-                  <td>
-                    <div class="flex gap-1.5 justify-center">
-                        <p-button
-                          icon="pi pi-pencil"
-                          [rounded]="true"
-                          severity="secondary"
-                          size="small"
-                          pTooltip="Edit"
-                          tooltipPosition="top"
-                          (onClick)="handleActionClick($event, () => editSchema(schema.id))">
-                        </p-button>
-
-                      @if (schema.status === FormSchemaStatus.Draft) {
-                        <p-button
-                          icon="pi pi-check-circle"
-                          [rounded]="true"
-                          severity="success"
-                          size="small"
-                          pTooltip="Publish"
-                          tooltipPosition="top"
-                          (onClick)="handleActionClick($event, () => publishSchema(schema))"
-                          [loading]="publishLoading() === schema.id">
-                        </p-button>
-                      }
-
-                      @if (schema.status === FormSchemaStatus.Published) {
-                        <p-button
-                          icon="pi pi-qrcode"
-                          [rounded]="true"
-                          severity="help"
-                          size="small"
-                          pTooltip="Generate QR Link"
-                          tooltipPosition="top"
-                          (onClick)="handleActionClick($event, () => openQrDialog(schema.id))">
-                        </p-button>
-                      }
-                    </div>
-                  </td>
-                </tr>
-              </ng-template>
-
-              <ng-template pTemplate="emptymessage">
-                <tr>
-                  <td colspan="7">
-                    <div class="empty-state py-12">
-                      <div class="empty-state-icon" style="width: 5rem; height: 5rem; font-size: 2rem;">
-                        <i class="pi pi-inbox"></i>
-                      </div>
-                      <h3 class="empty-state-title text-lg">No schemas found</h3>
-                      <p class="empty-state-text">
-                        @if (searchTerm) {
-                          No schemas match your search. Try a different term.
-                        } @else {
-                          Get started by creating your first intake form schema.
-                        }
-                      </p>
-                      @if (!searchTerm) {
-                        <p-button
-                          label="Create Your First Schema"
-                          icon="pi pi-plus"
-                          (onClick)="createSchema()">
-                        </p-button>
-                      }
-                    </div>
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          }
-        </ng-template>
-      </p-card>
-
-      <!-- QR Link Dialog -->
-      <p-dialog
-        [(visible)]="qrDialogVisible"
-        [modal]="true"
-        [closable]="true"
-        [dismissableMask]="true"
-        [focusOnShow]="false"
-        [style]="{ width: '480px' }">
-
-        <ng-template pTemplate="header">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center"
-                 style="background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);">
-              <i class="pi pi-qrcode text-white"></i>
-            </div>
-            <div>
-              <h3 class="font-bold text-base m-0">Generate QR Link</h3>
-              <p class="text-xs text-surface-500 m-0">Create a public intake URL</p>
-            </div>
-          </div>
-        </ng-template>
-
-        @if (!qrResult()) {
-          <div class="space-y-5">
-            <div>
-              <label class="block text-sm font-semibold text-surface-700 mb-2">
-                <i class="pi pi-clock text-xs mr-1.5 text-surface-400"></i>
-                Expiry Time (hours)
-              </label>
-              <p-inputNumber
-                [(ngModel)]="expiryHours"
-                [min]="1"
-                [max]="8760"
-                [showButtons]="true"
-                class="w-full">
-              </p-inputNumber>
-              <p class="text-xs text-surface-400 mt-1.5">
-                Link will expire after this period. Max: 8760 hours (1 year)
-              </p>
-            </div>
-          </div>
-          <ng-template pTemplate="footer">
-            <div class="flex justify-end gap-2">
-              <p-button
-                label="Cancel"
-                severity="secondary"
-                [outlined]="true"
-                (onClick)="closeQrDialog()">
-              </p-button>
-              <p-button
-                label="Generate Link"
-                icon="pi pi-link"
-                (onClick)="generateQr()"
-                [loading]="qrLoading()">
-              </p-button>
-            </div>
-          </ng-template>
-        } @else {
-          <div class="space-y-5 animate-fade-in-up">
-            <!-- Success indicator -->
-            <div class="flex items-center gap-3 p-3 rounded-xl" style="background: #f0fdf4;">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: #22c55e;">
-                <i class="pi pi-check text-white text-sm"></i>
-              </div>
-              <div>
-                <p class="text-sm font-semibold text-green-800 m-0">Link generated successfully</p>
-                <p class="text-xs text-green-600 m-0">Share this URL with patients</p>
-              </div>
-            </div>
-
-            @if (qrImageUrl()) {
-              <div class="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4">
-                <img [src]="qrImageUrl()" alt="QR code for the public intake form" class="w-48 h-48 rounded-lg border border-slate-200 bg-white" />
-                <p class="text-xs text-surface-500 m-0 text-center">Scan this code to open the intake form on a phone.</p>
-              </div>
-            }
-
-            <div>
-              <label class="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">Public URL</label>
-              <div class="flex gap-2">
-                <input
-                  pInputText
-                  [ngModel]="qrPublicUrl()"
-                  readonly
-                  class="flex-1 !bg-surface-50 font-mono text-sm" />
-                <p-button
-                  icon="pi pi-copy"
-                  [outlined]="true"
-                  severity="secondary"
-                  (onClick)="copyToClipboard(qrPublicUrl())"
-                  pTooltip="Copy URL">
-                </p-button>
-                <p-button
-                  icon="pi pi-external-link"
-                  [outlined]="true"
-                  severity="primary"
-                  (onClick)="openUrl(qrPublicUrl())"
-                  pTooltip="Open in new tab">
-                </p-button>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2 p-3 rounded-lg bg-surface-50">
-              <i class="pi pi-calendar text-surface-400 text-sm"></i>
-              <div>
-                <p class="text-xs text-surface-500 m-0">Expires</p>
-                <p class="text-sm font-medium text-surface-700 m-0">{{ qrResult()?.expiresAt | date:'medium' }}</p>
-              </div>
-            </div>
-          </div>
-          <ng-template pTemplate="footer">
-            <div class="flex justify-end">
-              <p-button
-                label="Done"
-                icon="pi pi-check"
-                (onClick)="closeQrDialog()">
-              </p-button>
-            </div>
-          </ng-template>
-        }
-      </p-dialog>
-    </div>
-  `
+  templateUrl: './schema-list.component.html',
+  styleUrl: './schema-list.component.css'
 })
 export class SchemaListComponent implements OnInit {
   private readonly apiService = inject(IntakeApiService);
@@ -382,12 +52,23 @@ export class SchemaListComponent implements OnInit {
   loadError = signal<string | null>(null);
   searchTerm = '';
 
+  /** True when the viewport is narrower than 640 px (sm breakpoint). */
+  isMobile = signal(typeof window !== 'undefined' ? window.innerWidth < 640 : false);
+
+  @HostListener('window:resize')
+  onResize(): void {
+    if (typeof window !== 'undefined') {
+      this.isMobile.set(window.innerWidth < 640);
+    }
+  }
+
   readonly FormSchemaStatus = FormSchemaStatus;
 
   // QR Dialog state
   qrDialogVisible = false;
   qrSchemaId = '';
-  expiryHours = 24;
+  /** Duration in months. Max 24 months (2 years). */
+  expiryMonths = 12;
   qrResult = signal<GenerateIntakeQrLinkResponse | null>(null);
   qrPublicUrl = signal('');
   qrImageUrl = signal<string | null>(null);
@@ -420,7 +101,6 @@ export class SchemaListComponent implements OnInit {
       this.filteredSchemas.set(this.schemas());
       return;
     }
-
     const filtered = this.schemas().filter(schema =>
       schema.name.toLowerCase().includes(term) ||
       schema.description?.toLowerCase().includes(term)
@@ -429,7 +109,7 @@ export class SchemaListComponent implements OnInit {
   }
 
   createSchema(): void {
-    this.router.navigate(['app/intake/schemas/new']);
+    this.router.navigate(['/app/intake/schemas/new']);
   }
 
   handleActionClick(event: Event | undefined, callback: () => void): void {
@@ -439,7 +119,7 @@ export class SchemaListComponent implements OnInit {
   }
 
   editSchema(id: string): void {
-    this.router.navigate(['app/intake/schemas/edit', id]);
+    this.router.navigate(['/app/intake/schemas/edit', id]);
   }
 
   publishSchema(schema: FormSchemaSummaryResponse): void {
@@ -460,7 +140,7 @@ export class SchemaListComponent implements OnInit {
 
   openQrDialog(id: string): void {
     this.qrSchemaId = id;
-    this.expiryHours = 24;
+    this.expiryMonths = 12;
     this.qrResult.set(null);
     this.qrPublicUrl.set('');
     this.qrImageUrl.set(null);
@@ -476,7 +156,8 @@ export class SchemaListComponent implements OnInit {
 
   generateQr(): void {
     this.qrLoading.set(true);
-    this.apiService.generateIntakeQrLink(this.qrSchemaId, { expiryHours: this.expiryHours }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    const expiryMonths = this.expiryMonths;
+    this.apiService.generateIntakeQrLink(this.qrSchemaId, { expiryMonths }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
         const publicUrl = this.normalizePublicUrl(result.publicUrl || result.token);
         setTimeout(() => {
@@ -498,15 +179,71 @@ export class SchemaListComponent implements OnInit {
     });
   }
 
+  /**
+   * Opens a minimal browser print window containing the QR code image and
+   * the public URL underneath — zero-dependency, uses window.print().
+   */
+  printQrCode(): void {
+    const imageUrl = this.qrImageUrl();
+    const publicUrl = this.qrPublicUrl();
+    if (!imageUrl || !publicUrl) return;
+
+    const printWindow = window.open('', '_blank', 'width=500,height=650');
+    if (!printWindow) {
+      this.snackbar.error('Print blocked', ['Allow pop-ups for this site to print the QR code.']);
+      return;
+    }
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Patient Intake QR Code</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh; margin: 0; padding: 32px;
+      box-sizing: border-box; background: #fff; color: #0f172a;
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; margin: 0 0 4px; text-align: center; }
+    p.subtitle { font-size: 0.8rem; color: #64748b; margin: 0 0 24px; text-align: center; }
+    img { width: 240px; height: 240px; border: 1px solid #e2e8f0; border-radius: 12px; display: block; }
+    .url-label {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: #94a3b8; margin-top: 20px; text-align: center;
+    }
+    .url-box {
+      margin-top: 6px; padding: 10px 16px; border: 1px solid #e2e8f0;
+      border-radius: 8px; background: #f8fafc;
+      font-family: 'Courier New', monospace; font-size: 0.75rem;
+      color: #334155; word-break: break-all; max-width: 320px; text-align: center;
+    }
+    @media print { body { padding: 16px; } }
+  </style>
+</head>
+<body>
+  <h1>Patient Intake Form</h1>
+  <p class="subtitle">Scan or visit the URL below to complete the pre-visit intake</p>
+  <img src="${imageUrl}" alt="QR Code" />
+  <p class="url-label">Public URL</p>
+  <div class="url-box">${publicUrl}</div>
+  <script>window.onload = function() { window.print(); window.close(); };<` + `/script>
+</body>
+</html>`;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  }
+
   private normalizePublicUrl(value: string | undefined): string {
     if (!value?.trim()) {
       return this.qrAccessService.generatePublicUrl('');
     }
-
     if (/^https?:\/\//i.test(value)) {
       return value;
     }
-
     return this.qrAccessService.generatePublicUrl(value);
   }
 
@@ -521,9 +258,7 @@ export class SchemaListComponent implements OnInit {
   }
 
   openUrl(url: string): void {
-    if (!url) {
-      return;
-    }
+    if (!url) return;
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 
@@ -544,11 +279,11 @@ export class SchemaListComponent implements OnInit {
     }
   }
 
-  getStatusSeverity(status: FormSchemaStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+  getStatusBadgeClass(status: FormSchemaStatus): string {
     switch (status) {
-      case FormSchemaStatus.Published: return 'success';
-      case FormSchemaStatus.Archived: return 'secondary';
-      default: return 'info';
+      case FormSchemaStatus.Published: return 'status-badge-success';
+      case FormSchemaStatus.Archived: return 'status-badge-neutral';
+      default: return 'status-badge-warning'; // Draft
     }
   }
 }

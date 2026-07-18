@@ -1,0 +1,28 @@
+<!-- Filters -->
+<div class="mb-5 flex flex-wrap gap-3">
+  <div class="relative flex-1 min-w-[200px]">
+    <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] text-sm"></i>
+    <input
+      type="search"
+      [ngModel]="searchTerm"
+      (ngModelChange)="searchChange.emit($event)"
+      placeholder="Search by patient name..."
+      class="w-full text-sm pl-9 pr-3 py-2 border border-[var(--color-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-soft)] focus:border-[var(--color-primary)] bg-[var(--color-surface)] text-[var(--color-text-primary)]"
+      aria-label="Search submissions" />
+  </div>
+
+  <!-- Pill-scroll wrapper: hides native scrollbar, only scrolls on genuinely narrow screens -->
+  <div class="filter-pill-scroller">
+    <div class="segmented-control" role="group" aria-label="Filter by status">
+      @for (opt of statusOptions; track opt.label) {
+        <button
+          type="button"
+          class="segmented-tab"
+          [class.active]="selectedStatus === opt.value"
+          (click)="statusChange.emit(opt.value)">
+          {{ opt.label }}
+        </button>
+      }
+    </div>
+  </div>
+</div>
