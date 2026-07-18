@@ -6,7 +6,6 @@ using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.Auth.Errors;
 using PhysioAssist.Api.Modules.Auth.JwtService;
 using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Consts;
 using PhysioAssist.Api.Shared.Helpers;
 using PhysioAssist.Api.Shared.Interfaces.Common;
 using PhysioAssist.Api.Shared.Interfaces.Exposed;
@@ -386,17 +385,27 @@ public class AuthService(
     {
         var roles = await _userManager.GetRolesAsync(user);
 
-        var permissions = await (from r in _context.Roles
-                                 join rc in _context.RoleClaims
-                                 on r.Id equals rc.RoleId
-                                 where roles.Contains(r.Name!)
-                                 select rc.ClaimValue)
-                                 .Distinct()
-                                 .ToListAsync();
+        var rolePermissions = await (from r in _context.Roles
+                                     join rc in _context.RoleClaims
+                                     on r.Id equals rc.RoleId
+                                     where roles.Contains(r.Name!) && rc.ClaimType == Permissions.Type
+                                     select rc.ClaimValue)
+                                     .ToListAsync();
 
-        return (roles, permissions);
+        var userPermissions = await _context.UserClaims
+            .Where(uc => uc.UserId == user.Id && uc.ClaimType == Permissions.Type)
+            .Select(uc => uc.ClaimValue)
+            .ToListAsync();
+
+        var permissions = rolePermissions
+            .Concat(userPermissions)
+            .Where(p => !string.IsNullOrEmpty(p))
+            .Distinct()
+            .ToList();
+
+        return (roles, permissions!);
     }
 
-    
+
 }
 

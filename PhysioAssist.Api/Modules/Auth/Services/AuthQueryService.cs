@@ -11,7 +11,10 @@ public class AuthQueryService(ApplicationDbContext context) : IAuthQueryService
     private readonly ApplicationDbContext _context = context;
     public async Task<Result<DoctorResponse>> GetDoctorById(Guid id, CancellationToken cancellationToken = default)
     {
-        var doctor = await _context.Doctors.FindAsync([id, cancellationToken], cancellationToken: cancellationToken);
+        var doctor = await _context
+            .Doctors.Include(d => d.User)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
         if (doctor == null)
         {
             return Result.Failure<DoctorResponse>(DoctorErrors.DoctorNotFound);

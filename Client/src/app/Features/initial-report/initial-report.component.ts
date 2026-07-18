@@ -1,8 +1,13 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
+import { from, of } from 'rxjs';
+import { catchError, concatMap, map, toArray } from 'rxjs/operators';
 import {
   InitialReportService,
   InitialReportResponse,
@@ -10,18 +15,16 @@ import {
 } from '../../Core/Services/initial-report.service';
 import { SnackbarService } from '../../Core/Services/snackbar.service';
 
-interface ChatMessage {
-  from: 'user' | 'assistant';
-  text: string;
-  time?: string;
-}
-
 interface AttachmentEntry {
   id?: string;
   name: string;
   size: number;
   fileUrl?: string;
   fileType?: string;
+  /** Present only for attachments the doctor has picked locally but that
+   *  haven't been sent to the server yet — they upload when Submit is
+   *  pressed, not on selection. Cleared once the upload succeeds. */
+  file?: File;
 }
 
 const PATIENT_CATEGORY_LABELS = ['Orthopedic', 'Neurological', 'Pediatric', 'General / Other'];
@@ -29,7 +32,8 @@ const PATIENT_CATEGORY_LABELS = ['Orthopedic', 'Neurological', 'Pediatric', 'Gen
 @Component({
   selector: 'app-initial-report',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, ButtonModule, ConfirmDialogModule],
+  providers: [ConfirmationService],
   templateUrl: './initial-report.component.html',
   styleUrls: ['./initial-report.component.css'],
 })
@@ -58,15 +62,31 @@ export class InitialReportComponent implements OnInit {
 
   // --- Report fields ---
   examination = signal('');
-  initialReport = signal('');
   treatmentPlan = signal('');
   attachments = signal<AttachmentEntry[]>([]);
   treatmentPlanPdfUrl = signal<string | undefined>(undefined);
 
   saving = signal(false);
 
+  // --- Readonly / edit gating -----------------------------------------
+  // A report that already had saved content when the page loaded opens in
+  // readonly mode so the doctor can't accidentally change a finished report
+  // — they have to explicitly press "Edit" to unlock it. A brand-new report
+  // (nothing saved yet) is editable immediately, since there's nothing to
+  // protect against yet.
+  isExistingReport = signal(false);
+  readonlyMode = signal(false);
+
+  // --- Attachments staged locally, not yet sent to the server ----------
+  // Ids of already-uploaded attachments the doctor removed in this session.
+  // We don't call the delete endpoint the moment they click "Remove" —
+  // that made an accidental click destructive with no way back. Instead we
+  // just hide it locally and only actually delete it on the server once
+  // the doctor presses Submit.
+  private pendingDeletions = signal<string[]>([]);
+
   // --- Voice input (MediaRecorder -> backend transcribe/refine pipeline) ---
-  activeVoiceField: 'chatText' | 'examination' | 'initialReport' | 'treatmentPlan' | null = null;
+  activeVoiceField: 'examination' | 'treatmentPlan' | null = null;
   listening = signal(false);
   liveTranscript = signal('');
   private mediaRecorder: MediaRecorder | null = null;
@@ -76,8 +96,6 @@ export class InitialReportComponent implements OnInit {
     switch (this.activeVoiceField) {
       case 'examination':
         return 'examination notes';
-      case 'initialReport':
-        return 'initial report';
       case 'treatmentPlan':
         return 'treatment plan';
       default:
@@ -85,16 +103,13 @@ export class InitialReportComponent implements OnInit {
     }
   });
 
-  // --- AI chat (WIP — backend endpoint not confirmed yet) ---
-  chatText = '';
-  messages = signal<ChatMessage[]>([]);
-  sending = signal(false);
-
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly location: Location,
     private readonly initialReportService: InitialReportService,
-    private readonly snackbar: SnackbarService
+    private readonly snackbar: SnackbarService,
+    private readonly confirmationService: ConfirmationService
   ) {}
 
   ngOnInit(): void {
@@ -158,14 +173,26 @@ export class InitialReportComponent implements OnInit {
   /** Loads an existing report for this patient if one exists; otherwise
    *  creates an empty one immediately so attachments have somewhere to
    *  upload to right away. A 404 on the lookup just means "no report yet"
-   *  — expected for a brand new patient, not an error to surface. */
+   *  — expected for a brand new patient, not an error to surface.
+   *
+   *  An existing report opens readonly (doctor must press Edit); a freshly
+   *  created one opens editable right away since there's nothing saved to
+   *  protect yet. */
   private loadOrCreateReport(patientId: string): void {
     this.initialReportService.getReportByPatientId(patientId).subscribe({
-      next: res => this.applyReportResponse(res),
+      next: res => {
+        this.isExistingReport.set(true);
+        this.readonlyMode.set(true);
+        this.applyReportResponse(res);
+      },
       error: err => {
         if (err?.status === 404) {
           this.initialReportService.createReport({ patientId }).subscribe({
-            next: res => this.applyReportResponse(res),
+            next: res => {
+              this.isExistingReport.set(false);
+              this.readonlyMode.set(false);
+              this.applyReportResponse(res);
+            },
             error: createErr => {
               console.error('Unable to create report', createErr);
               this.snackbar.error('Unable to start report', ['Could not create an initial report for this patient.']);
@@ -179,10 +206,17 @@ export class InitialReportComponent implements OnInit {
     });
   }
 
+  /** Unlocks the form for editing. Only meaningful for a report that already
+   *  had saved content (readonlyMode is only ever true in that case). */
+  enableEdit(): void {
+    this.readonlyMode.set(false);
+  }
+
   private applyReportResponse(response: InitialReportResponse): void {
     this.reportId = response.id;
     this.treatmentPlanPdfUrl.set(response.treatmentPlanPdfUrl);
     this.parseReportText(response.reportText ?? '');
+    this.pendingDeletions.set([]);
     this.attachments.set(
       (response.attachments ?? []).map(a => ({
         id: a.id,
@@ -194,29 +228,47 @@ export class InitialReportComponent implements OnInit {
     );
   }
 
-  /** Splits the combined reportText field back into the three UI sections. */
+  /** Splits the combined reportText field back into the UI sections.
+   *  Uses plain indexOf/slice rather than regex lookaheads — an earlier
+   *  version used a lookahead that was accidentally short one "=" character,
+   *  which caused it to stop capturing one character early and leak a
+   *  stray "=" onto its own line at the end of the Examination text every
+   *  time a report was loaded and re-saved. stripStrayEqualsArtifact below
+   *  cleans up any such leftover lines from reports saved while that bug
+   *  was live, so they self-heal the next time they're saved. */
   private parseReportText(reportText: string): void {
-    const examinationMatch = reportText.match(/=== Examination ===([\s\S]*?)(?=== Diagnosis ===|$)/);
-    const diagnosisMatch = reportText.match(/=== Diagnosis ===([\s\S]*?)(?=== Treatment Plan ===|$)/);
-    const treatmentMatch = reportText.match(/=== Treatment Plan ===([\s\S]*?)$/);
+    const examinationMarker = '=== Examination ===';
+    const treatmentMarker = '=== Treatment Plan ===';
 
-    this.examination.set(examinationMatch?.[1]?.trim() ?? '');
-    this.initialReport.set(diagnosisMatch?.[1]?.trim() ?? '');
-    this.treatmentPlan.set(treatmentMatch?.[1]?.trim() ?? '');
+    const treatmentIndex = reportText.indexOf(treatmentMarker);
+    const examinationRaw = treatmentIndex >= 0 ? reportText.slice(0, treatmentIndex) : reportText;
+    const treatmentRaw = treatmentIndex >= 0 ? reportText.slice(treatmentIndex + treatmentMarker.length) : '';
+
+    const examinationText = examinationRaw.replace(examinationMarker, '').trim();
+    const treatmentText = treatmentRaw.trim();
+
+    this.examination.set(this.stripStrayEqualsArtifact(examinationText));
+    this.treatmentPlan.set(treatmentText);
   }
 
-  /** Combines the three UI sections into the single reportText field the
+  private stripStrayEqualsArtifact(text: string): string {
+    return text.replace(/(?:\r?\n=+\s*)+$/, '').trimEnd();
+  }
+
+  /** Combines the UI sections into the single reportText field the
    *  backend stores. Mirrors parseReportText's markers so a reload restores
-   *  all three fields correctly. */
+   *  both fields correctly. */
   private buildReportText(): string {
-    return `=== Examination ===\n${this.examination().trim()}\n=== Diagnosis ===\n${this.initialReport().trim()}\n=== Treatment Plan ===\n${this.treatmentPlan().trim()}`;
+    return `=== Examination ===\n${this.examination().trim()}\n=== Treatment Plan ===\n${this.treatmentPlan().trim()}`;
   }
 
   private getApiErrorDetail(err: any): string {
     return err?.error?.detail || err?.error?.message || err?.statusText || err?.message || '';
   }
 
-  startVoice(field: 'chatText' | 'examination' | 'initialReport' | 'treatmentPlan'): void {
+  startVoice(field: 'examination' | 'treatmentPlan'): void {
+    if (this.readonlyMode()) return;
+
     if (this.listening()) {
       this.stopVoice();
       return;
@@ -274,7 +326,7 @@ export class InitialReportComponent implements OnInit {
   /** WIP: teammate's transcription pipeline currently returns the whole
    *  updated report, not a per-field result — so for now this assigns the
    *  returned text wholesale to whichever field was being recorded. */
-  private transcribeVoice(audioBlob: Blob, field: 'chatText' | 'examination' | 'initialReport' | 'treatmentPlan'): void {
+  private transcribeVoice(audioBlob: Blob, field: 'examination' | 'treatmentPlan'): void {
     if (!this.reportId) {
       this.snackbar.error('Cannot transcribe audio', ['Report ID is missing.']);
       this.activeVoiceField = null;
@@ -292,14 +344,8 @@ export class InitialReportComponent implements OnInit {
 
         this.liveTranscript.set(trimmedText);
         switch (field) {
-          case 'chatText':
-            this.chatText = trimmedText;
-            break;
           case 'examination':
             this.examination.set(trimmedText);
-            break;
-          case 'initialReport':
-            this.initialReport.set(trimmedText);
             break;
           case 'treatmentPlan':
             this.treatmentPlan.set(trimmedText);
@@ -315,56 +361,18 @@ export class InitialReportComponent implements OnInit {
     });
   }
 
-  // --- AI chat (WIP) ------------------------------------------------
-
-  addUserMessage(text: string): void {
-    this.messages.update(msgs => [...msgs, { from: 'user', text, time: new Date().toLocaleTimeString() }]);
-  }
-
-  addAssistantMessage(text: string): void {
-    this.messages.update(msgs => [...msgs, { from: 'assistant', text, time: new Date().toLocaleTimeString() }]);
-  }
-
-  sendToAi(text: string): void {
-    if (!text || this.sending() || !this.patientId) return;
-    this.sending.set(true);
-    this.initialReportService.sendChatMessage({ patientId: this.patientId, text }).subscribe({
-      next: res => {
-        this.addAssistantMessage(res?.reply || 'No response from AI.');
-        this.sending.set(false);
-      },
-      error: err => {
-        console.error('AI call failed', err);
-        this.addAssistantMessage('AI service error.');
-        this.sending.set(false);
-      }
-    });
-  }
-
-  onChatSubmit(): void {
-    const text = this.chatText?.trim();
-    if (!text) return;
-    this.chatText = '';
-    this.addUserMessage(text);
-    this.sendToAi(text);
-  }
-
-  compileDraft(): void {
-    const combined = this.messages().map(m => `${m.from}: ${m.text}`).join('\n');
-    this.sendToAi(`Compile draft from conversation:\n${combined}`);
-  }
-
   onFilesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files) return;
-    this.uploadFiles(input.files);
+    this.stageFiles(input.files);
     input.value = '';
   }
 
   onDrop(event: DragEvent): void {
     event.preventDefault();
+    if (this.readonlyMode()) return;
     if (event.dataTransfer?.files) {
-      this.uploadFiles(event.dataTransfer.files);
+      this.stageFiles(event.dataTransfer.files);
     }
   }
 
@@ -372,80 +380,205 @@ export class InitialReportComponent implements OnInit {
     event.preventDefault();
   }
 
-  private uploadFiles(fileList: FileList): void {
-    Array.from(fileList).forEach(file => this.uploadAttachmentFile(file));
+  private isAllowedAttachmentType(file: File): boolean {
+    return file.type.startsWith('image/') || file.type === 'application/pdf';
   }
 
-  private uploadAttachmentFile(file: File): void {
-    if (!this.reportId) {
-      this.snackbar.warning('Cannot upload attachment', ['Report is still being created — try again in a moment.']);
-      return;
-    }
+  /** Adds files to the local attachments list only. Nothing is sent to the
+   *  server here — uploads are deferred until the doctor presses Submit,
+   *  so this just gives the doctor a visible record of what they've
+   *  attached so far. */
+  private stageFiles(fileList: FileList): void {
+    if (this.readonlyMode()) return;
 
-    const isImage = file.type.startsWith('image/');
-    const isPdf = file.type === 'application/pdf';
-    if (!isImage && !isPdf) {
-      this.snackbar.error('Invalid attachment', ['Only images and PDFs are allowed.']);
-      return;
-    }
+    const files = Array.from(fileList);
+    const rejected: string[] = [];
 
-    this.initialReportService.uploadAttachment(this.reportId, file).subscribe({
-      next: (res: ReportAttachmentResponse) => {
-        this.attachments.update(list => [
-          ...list,
-          { id: res.id, name: res.fileName, size: file.size, fileUrl: res.fileUrl, fileType: res.fileType },
-        ]);
-        this.snackbar.success('Attachment uploaded', [res.fileName]);
-      },
-      error: err => {
-        console.error('Attachment upload failed', err);
-        const message =
-          err?.status === 400 ? 'Only images and PDFs are allowed.' : this.getApiErrorDetail(err) || 'Unable to upload attachment.';
-        this.snackbar.error('Upload failed', [message]);
-      }
+    const staged = files.filter(file => {
+      if (this.isAllowedAttachmentType(file)) return true;
+      rejected.push(file.name);
+      return false;
     });
+
+    if (rejected.length > 0) {
+      this.snackbar.error('Invalid attachment', [
+        `Only images and PDFs are allowed: ${rejected.join(', ')}`,
+      ]);
+    }
+
+    if (staged.length === 0) return;
+
+    this.attachments.update(list => [
+      ...list,
+      ...staged.map(file => ({
+        name: file.name,
+        size: file.size,
+        fileType: file.type,
+        file,
+      })),
+    ]);
   }
 
+  /** Removing an attachment never touches the server immediately — whether
+   *  it's a file already saved on a previous submit or one just staged
+   *  locally. For an already-saved attachment we just remember its id and
+   *  hide it; the actual delete call only fires once the doctor confirms
+   *  Submit, so an accidental click doesn't destroy anything on its own —
+   *  reloading the page before submitting brings it right back. */
   removeAttachment(index: number): void {
     const attachment = this.attachments()[index];
     if (!attachment) return;
 
-    if (attachment.id && this.reportId) {
-      this.initialReportService.deleteAttachment(this.reportId, attachment.id).subscribe({
-        next: () => {
-          this.attachments.update(list => list.filter((_, i) => i !== index));
-          this.snackbar.success('Attachment removed');
-        },
-        error: err => {
-          console.error('Attachment delete failed', err);
-          this.snackbar.error('Delete failed', [this.getApiErrorDetail(err) || 'Unable to remove attachment.']);
-        }
-      });
-      return;
+    if (attachment.id) {
+      this.pendingDeletions.update(ids => [...ids, attachment.id!]);
     }
 
     this.attachments.update(list => list.filter((_, i) => i !== index));
   }
 
   saveDraft(): void {
-    this.persistReportText(() => this.snackbar.success('Draft saved'));
+    this.confirmationService.confirm({
+      header: 'Save draft?',
+      message: 'Save the current examination, treatment plan, and attachment changes as a draft?',
+      icon: 'pi pi-save',
+      acceptLabel: 'Save',
+      rejectLabel: 'Cancel',
+      accept: () => {
+        this.persistReportText(() => {
+          this.snackbar.success('Draft saved');
+          this.isExistingReport.set(true);
+        });
+      }
+    });
   }
 
   submitAndSend(): void {
-    this.persistReportText(() => {
-      if (!this.reportId) return;
-      this.initialReportService.submitReport(this.reportId).subscribe({
-        next: res => {
-          this.applyReportResponse(res);
-          const linkMessage = res.treatmentPlanPdfUrl ? `PDF: ${res.treatmentPlanPdfUrl}` : 'Report submitted successfully.';
-          this.snackbar.success('Submitted and sent', [linkMessage]);
-        },
-        error: err => {
-          console.error('Submit failed', err);
-          this.snackbar.error('Submit failed', [this.getApiErrorDetail(err) || 'Unable to submit report.']);
-        }
-      });
+    this.confirmationService.confirm({
+      header: 'Submit report?',
+      message: 'This finalizes the report and sends the treatment plan to the patient. Are you sure you want to continue?',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Submit',
+      rejectLabel: 'Cancel',
+      accept: () => {
+        this.persistReportText(() => {
+          this.uploadPendingAttachments(() => {
+            this.deletePendingAttachments(() => this.finalizeSubmit());
+          });
+        });
+      }
     });
+  }
+
+  private finalizeSubmit(): void {
+    if (!this.reportId) return;
+    this.initialReportService.submitReport(this.reportId).subscribe({
+      next: res => {
+        this.applyReportResponse(res);
+        this.isExistingReport.set(true);
+        this.readonlyMode.set(true);
+        this.snackbar.success('Submitted and sent', ['Report saved successfully.']);
+      },
+      error: err => {
+        console.error('Submit failed', err);
+        this.snackbar.error('Submit failed', [this.getApiErrorDetail(err) || 'Unable to submit report.']);
+      }
+    });
+  }
+
+  /** Uploads any attachments the doctor staged locally but hasn't sent to
+   *  the server yet — this is the one point in the flow where new
+   *  attachment uploads actually happen. Runs sequentially so a failure is
+   *  reported against the specific file, rather than firing everything in
+   *  parallel and losing track of which one broke. */
+  private uploadPendingAttachments(onDone: () => void): void {
+    if (!this.reportId) {
+      onDone();
+      return;
+    }
+
+    const pending = this.attachments().filter(a => !a.id && a.file);
+    if (pending.length === 0) {
+      onDone();
+      return;
+    }
+
+    this.saving.set(true);
+
+    from(pending)
+      .pipe(
+        concatMap(attachment =>
+          this.initialReportService.uploadAttachment(this.reportId!, attachment.file!).pipe(
+            map((res: ReportAttachmentResponse) => ({ attachment, res, error: null as any })),
+            catchError(error => of({ attachment, res: null as ReportAttachmentResponse | null, error }))
+          )
+        ),
+        toArray()
+      )
+      .subscribe(results => {
+        this.saving.set(false);
+
+        this.attachments.update(list =>
+          list.map(entry => {
+            const result = results.find(r => r.attachment === entry);
+            if (!result || !result.res) return entry;
+            return {
+              id: result.res.id,
+              name: result.res.fileName,
+              size: entry.size,
+              fileUrl: result.res.fileUrl,
+              fileType: result.res.fileType,
+            };
+          })
+        );
+
+        const failed = results.filter(r => r.error);
+        if (failed.length > 0) {
+          const names = failed.map(f => f.attachment.name).join(', ');
+          this.snackbar.error('Some attachments failed to upload', [
+            `${names} — please retry before submitting.`,
+          ]);
+          return; // don't finalize submit until every attachment is up
+        }
+
+        onDone();
+      });
+  }
+
+  /** Actually deletes, on the server, whatever attachments the doctor
+   *  removed during this editing session. Deferred to Submit time so a
+   *  removal made mid-edit isn't destructive on its own. */
+  private deletePendingAttachments(onDone: () => void): void {
+    const ids = this.pendingDeletions();
+    if (!this.reportId || ids.length === 0) {
+      onDone();
+      return;
+    }
+
+    this.saving.set(true);
+
+    from(ids)
+      .pipe(
+        concatMap(id =>
+          this.initialReportService.deleteAttachment(this.reportId!, id).pipe(
+            map(() => ({ id, error: null as any })),
+            catchError(error => of({ id, error }))
+          )
+        ),
+        toArray()
+      )
+      .subscribe(results => {
+        this.saving.set(false);
+
+        const failed = results.filter(r => r.error);
+        if (failed.length > 0) {
+          this.snackbar.error('Some attachments failed to remove', [
+            `${failed.length} file(s) could not be deleted — they may still appear after reload.`,
+          ]);
+        }
+
+        this.pendingDeletions.set([]);
+        onDone();
+      });
   }
 
   private persistReportText(onSuccess: () => void): void {
@@ -468,6 +601,12 @@ export class InitialReportComponent implements OnInit {
         this.snackbar.error('Save failed', [this.getApiErrorDetail(err) || 'Unable to save report.']);
       }
     });
+  }
+
+  /** Returns to whatever page the doctor came from (browser history), rather
+   *  than assuming they always arrived from the patients list. */
+  goBack(): void {
+    this.location.back();
   }
 
   goToPatients(): void {

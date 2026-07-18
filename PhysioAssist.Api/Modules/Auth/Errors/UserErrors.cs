@@ -37,6 +37,9 @@ public static class UserErrors
     public static readonly Error UserNotFound =
         new("User.UserNotFound", "No account was found with the provided information.", StatusCodes.Status404NotFound);
 
+    public static readonly Error RoleNotFound =
+        new("User.RoleNotFound", "One or more of the specified roles do not exist.", StatusCodes.Status404NotFound);
+
     public static readonly Error InvalidRoles =
         new("User.InvalidRoles", "One or more of the specified roles do not exist.", StatusCodes.Status400BadRequest);
 
@@ -45,4 +48,7 @@ public static class UserErrors
 
     public static readonly Error RegistrationFailed =
         new("User.RegistrationFailed", "Registration could not be completed. Please try again later.", StatusCodes.Status400BadRequest);
+
+    public static readonly Error ReceptionistMustHaveOwner =
+        new("User.ReceptionistMustHaveOwner", "Receptionists must have an associated doctor.", StatusCodes.Status400BadRequest);
 }

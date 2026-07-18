@@ -45,6 +45,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<OtpEntry> OtpEntries { get; set; }
     public DbSet<Doctor> Doctors { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<Receptionist> Receptionists { get; set; }
 
     // Patient
     public DbSet<Patient> Patients { get; set; }

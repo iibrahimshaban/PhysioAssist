@@ -4,12 +4,8 @@ using PhysioAssist.Api.Shared.Repositories;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Repositories;
 
-public class InitialReportRepository : BaseRepository<InitialReport>, IInitialReportRepository
+public class InitialReportRepository(ApplicationDbContext context) : BaseRepository<InitialReport>(context), IInitialReportRepository
 {
-    public InitialReportRepository(ApplicationDbContext context) : base(context)
-    {
-    }
-
     public async Task<InitialReport?> GetByIdAsync(Guid id)
     {
         return await _context.InitialReports
@@ -34,6 +30,7 @@ public class InitialReportRepository : BaseRepository<InitialReport>, IInitialRe
     public async Task<InitialReport?> GetReportByPatientIdAsync(Guid patientId)
     {
         return await _context.InitialReports
+            .Include(r => r.Attachments)
             .FirstOrDefaultAsync(r => r.PatientId == patientId);
     }
 }

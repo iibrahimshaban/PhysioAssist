@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
+using PhysioAssist.Api.Infrastructure.GeminiClient;
 using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
 using PhysioAssist.Api.Shared.Interfaces.Common;
 using PhysioAssist.Api.Shared.Interfaces.Ingestion;
-using PhysioAssist.Api.Shared.SystemPrompts;
 
 namespace PhysioAssist.Api.Modules.Auth.Controllers;
 

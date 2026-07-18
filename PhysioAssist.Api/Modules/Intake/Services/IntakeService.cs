@@ -7,15 +7,11 @@ using PhysioAssist.Api.Modules.Intake.Entities;
 using PhysioAssist.Api.Modules.Intake.Errors;
 using PhysioAssist.Api.Modules.Intake.Helpers;
 using PhysioAssist.Api.Modules.Intake.Repositories;
-using PhysioAssist.Api.Shared.Consts;
 using PhysioAssist.Api.Shared.Dtos.Patient;
-using PhysioAssist.Api.Shared.Interfaces.Common;
-using PhysioAssist.Api.Shared.Interfaces.Exposed;
 using PhysioAssist.Api.Shared.QR;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using IQRService = PhysioAssist.Api.Shared.Interfaces.Common.IQRService;
 
 namespace PhysioAssist.Api.Modules.Intake.Services;
 
@@ -269,6 +265,7 @@ public class IntakeService(
     public async Task<Result<PublicIntakeFormResponse>> GetPublicFormAsync(string token, CancellationToken cancellationToken = default)
     {
         var tokenValidationResult = _qrService.ValidateToken(token, QRTokenPurpose.Intake);
+
         if (tokenValidationResult.IsFailure)
             return Result.Failure<PublicIntakeFormResponse>(tokenValidationResult.Error);
 
