@@ -38,8 +38,9 @@ public static class SystemPrompts
         "reason in Notes. Do not silently smooth over self-corrections during translation, and do " +
         "not let an earlier looser word choice bleed into Diagnosis after a correction was made.\n";
 
+    // Updated JSON shape instruction to expect object wrapper instead of bare array
     private const string JsonShapeInstruction =
-        "\nReturn ONLY a JSON array matching this exact shape, no markdown fences, no extra text:\n[{{\n{0}}}]\n\n";
+        "\nReturn ONLY a JSON array matching this exact shape, no markdown fences, no extra text:\n{{\"chunks\": [{{\n{0}}}]}}\n\n";
 
     public static string BuildFullPrompt(string fewShotExample) =>
         IntroAndRules +
