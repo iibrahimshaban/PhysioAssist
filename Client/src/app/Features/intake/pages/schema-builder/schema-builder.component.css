@@ -1,3 +1,5 @@
+@import '../../intake-theme.css';
+
 :host { display: block; }
 
 /* ── Toolbar ───────────────────────────────────────────── */
@@ -7,8 +9,8 @@
   justify-content: space-between;
   padding: 0 1rem;
   height: 3.5rem;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  background: rgb(var(--intake-color-surface-50));
+  border-bottom: 1px solid rgb(var(--intake-color-border));
   position: sticky;
   top: 3.5rem;
   z-index: 100;
@@ -24,8 +26,8 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
+  background: rgba(var(--intake-color-primary), 0.2);
+  color: rgb(var(--intake-color-primary));
 }
 
 .version-badge {
@@ -35,14 +37,14 @@
   border-radius: 9999px;
   font-size: 0.625rem;
   font-weight: 600;
-  background: var(--color-page-bg);
-  color: var(--color-text-secondary);
+  background: rgb(var(--intake-color-surface-100));
+  color: rgb(var(--intake-color-text-secondary));
 }
 
 .builder-title {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: rgb(var(--intake-color-text-primary));
   margin: 0;
   letter-spacing: -0.015em;
   white-space: nowrap;

@@ -1,3 +1,5 @@
+@import '../../../intake-theme.css';
+
 :host { display: block; }
 .detail-field {
   display: flex;
@@ -10,12 +12,12 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-text-secondary);
+  color: rgb(var(--intake-color-text-secondary));
   margin: 0;
 }
 
 .detail-value {
   font-size: 0.875rem;
-  color: var(--color-text-primary);
+  color: rgb(var(--intake-color-text-primary));
   margin: 0;
 }

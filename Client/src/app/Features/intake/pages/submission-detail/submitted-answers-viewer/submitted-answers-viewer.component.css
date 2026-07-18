@@ -1,3 +1,5 @@
+@import '../../../intake-theme.css';
+
 :host { display: block; }
 
 .answer-field {
@@ -5,12 +7,12 @@
   flex-direction: column;
   gap: 0.125rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid var(--color-page-bg);
+  border-bottom: 1px solid rgb(var(--intake-color-surface-100));
 }
 
 .answer-label {
   font-size: 0.6875rem;
-  color: var(--color-text-secondary);
+  color: rgb(var(--intake-color-text-secondary));
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-weight: 600;
@@ -20,6 +22,6 @@
 .answer-value {
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: rgb(var(--intake-color-text-primary));
   margin: 0;
 }

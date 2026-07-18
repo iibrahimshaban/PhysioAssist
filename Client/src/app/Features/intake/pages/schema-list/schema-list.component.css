@@ -1,7 +1,9 @@
+@import '../../intake-theme.css';
+
 /* ─── Mobile card layout ─────────────────────────────────────────── */
 .schema-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: rgb(var(--intake-color-surface-50));
+  border: 1px solid rgb(var(--intake-color-border));
   border-radius: 1rem;
   padding: 1rem;
   cursor: pointer;
@@ -9,7 +11,7 @@
 }
 
 .schema-card:hover {
-  border-color: var(--color-primary-soft);
+  border-color: rgba(var(--intake-color-primary), 0.2);
   box-shadow: 0 2px 8px rgb(99 102 241 / 0.08);
 }
 
@@ -30,7 +32,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: rgb(var(--intake-color-text-secondary));
 }
 
 /* ─── Desktop table — legacy hide-on-mobile columns ─────────────── */
