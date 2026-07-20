@@ -34,7 +34,7 @@ export class SchedulePageComponent {
 
   // TEMPORARY placeholder — no real Doctor endpoint provided yet.
   protected readonly doctors: Doctor[] = [
-    { id: '11111111-1111-1111-1111-111111111111', displayLabel: 'Doctor 1111-1111' },
+    { id: '019f621c-c77d-72a7-8fdb-f31a445179bc', displayLabel: 'ahmed omar' },
     { id: '22222222-2222-2222-2222-222222222222', displayLabel: 'Doctor 2222-2222' },
     { id: '019e220e-ff37-7a97-9f65-0a8fa4861efb', displayLabel: 'Doctor Admin' }
   ];

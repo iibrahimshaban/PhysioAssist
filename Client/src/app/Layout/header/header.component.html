@@ -24,20 +24,6 @@
 
     <!-- Desktop nav -->
     <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
-      <a
-        class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
-        routerLink="/test-error"
-        routerLinkActive="!text-blue-600 !bg-blue-50"
-        >Test Error</a
-      >
-
-      <a
-        class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
-        routerLink="/prime"
-        routerLinkActive="!text-blue-600 !bg-blue-50"
-        >Prime</a
-      >
-
       @if (auth.isAuthenticated()) {
         <a
           class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
@@ -56,6 +42,13 @@
           routerLink="/app/schedule"
           routerLinkActive="!text-blue-600 !bg-blue-50"
           >schedule</a
+        >
+
+        <a
+          class="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/app/working-schedule"
+          routerLinkActive="!text-blue-600 !bg-blue-50"
+          >working schedule</a
         >
 
         <!-- Intake: Schemas -->

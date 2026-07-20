@@ -13,5 +13,6 @@ export const MainLayoutRoutes : Routes = [
   { path: 'patients', loadChildren: () => import('../../Features/Patient/patient.routes').then((m) => m.patientRoutes) },
   { path: 'initial-report/:patientId', loadComponent: () => import('../../Features/initial-report/initial-report.component').then((m) => m.InitialReportComponent) },
   { path: 'schedule', loadComponent: () => import('../../Features/Schedule/schedule-page.component').then((m) => m.SchedulePageComponent) },
+  { path: 'working-schedule', loadComponent: () => import('../../Features/WorkingSchedule/working-schedule.component').then((m) => m.WorkingScheduleComponent) },
   { path: 'session', loadComponent: () => import('../../Features/session/session.component').then((m) => m.SessionComponent) },
 ];
