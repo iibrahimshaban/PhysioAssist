@@ -1,5 +1,5 @@
 ﻿using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Shared.Repositories;
 

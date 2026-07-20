@@ -16,4 +16,7 @@ public static class InitialReportErrors
 
     public static readonly Error InvalidFileType =
         new("InitialReport.InvalidFileType", "Only image files are supported for attachments.", StatusCodes.Status400BadRequest);
+
+    public static readonly Error PatientNotFound =
+        new("InitialReport.PatientNotFound", "Associated patient could not be found.", StatusCodes.Status404NotFound);
 }

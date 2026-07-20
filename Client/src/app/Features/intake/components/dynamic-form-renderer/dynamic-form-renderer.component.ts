@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed } from '@angular/core';
+import { Component, input, output, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -40,12 +40,16 @@ import {
       } @else {
         @for (section of schema()!.sections; track section.sectionId) {
           <section class="mb-8" [attr.aria-labelledby]="'section-' + section.sectionId">
-            <div class="mb-4">
-              <h2 [id]="'section-' + section.sectionId" class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ section.title }}</h2>
-              @if (section.description) {
-                <p class="text-sm text-slate-500 mt-2 leading-relaxed">{{ section.description }}</p>
-              }
-            </div>
+            @if (section.title || section.description) {
+              <div class="mb-4">
+                @if (section.title) {
+                  <h2 [id]="'section-' + section.sectionId" class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ section.title }}</h2>
+                }
+                @if (section.description) {
+                  <p class="text-sm text-slate-500 mt-2 leading-relaxed">{{ section.description }}</p>
+                }
+              </div>
+            }
 
             @for (group of section.groups; track group.groupId) {
               <fieldset class="mb-6 bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
@@ -342,6 +346,9 @@ export class DynamicFormRendererComponent {
   readonly formSchemaId = input<string>('');
   readonly formSchemaVersion = input<number>(1);
   readonly conditionLogic = input<'AND' | 'OR'>('AND');
+  /** Pre-fills the answers signal — e.g. for the submission detail page's edit mode,
+   *  seeded from the previously stored submission (already unwrapped by the caller). */
+  readonly initialAnswers = input<Record<string, any> | null>(null);
 
   readonly submissionChange = output<DynamicFormSubmissionDto>();
   readonly validityChange = output<boolean>();
@@ -350,6 +357,15 @@ export class DynamicFormRendererComponent {
 
   protected readonly answers = signal<Record<string, any>>({});
   protected readonly touchedFields = signal<Set<string>>(new Set());
+
+  constructor() {
+    effect(() => {
+      const initial = this.initialAnswers();
+      if (initial) {
+        this.answers.set({ ...initial });
+      }
+    });
+  }
 
   private readonly wideTypes = new Set([
     'textarea', 'checkbox', 'multiselect', 'radio', 'painpoint', 'painscale',

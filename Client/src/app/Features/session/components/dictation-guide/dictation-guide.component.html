@@ -1,0 +1,133 @@
+<div
+  class="w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:sticky lg:top-5"
+>
+  <button
+    type="button"
+    (click)="onToggle()"
+    class="flex w-full items-center justify-between px-5 py-5"
+  >
+    <span class="flex items-center text-sm font-bold uppercase text-slate-700">
+      <i class="fa-regular fa-lightbulb mr-2 text-sky-500"></i>
+      DICTATION GUIDE
+    </span>
+
+    <i
+      class="fa-solid transition-transform duration-200"
+      [class.fa-chevron-up]="isOpen()"
+      [class.fa-chevron-down]="!isOpen()"
+    ></i>
+  </button>
+
+  @if (isOpen()) {
+    <div class="border-t border-slate-100 px-5 pb-2">
+      <!-- Step 1 -->
+      <div class="flex gap-3 border-b border-slate-100 py-4">
+        <span
+          class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-100 text-xs font-bold text-sky-600"
+        >
+          1
+        </span>
+
+        <div>
+          <p class="text-sm font-bold text-slate-800">State the diagnosis</p>
+
+          <p class="mt-1 text-xs leading-5 text-slate-500">
+            Mention the affected body region, condition and current stage or severity.
+          </p>
+
+          <p class="mt-2 rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
+            Example: Right knee stiffness with mild swelling and limited extension.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="flex gap-3 border-b border-slate-100 py-4">
+        <span
+          class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-100 text-xs font-bold text-sky-600"
+        >
+          2
+        </span>
+
+        <div>
+          <p class="text-sm font-bold text-slate-800">Describe the treatment</p>
+
+          <p class="mt-1 text-xs leading-5 text-slate-500">
+            List the exercises, manual techniques, modalities and progression used during the
+            session.
+          </p>
+
+          <p class="mt-2 rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
+            Example: Stretching, muscle energy technique, terminal knee extension and strengthening
+            exercises.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="flex gap-3 border-b border-slate-100 py-4">
+        <span
+          class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-100 text-xs font-bold text-sky-600"
+        >
+          3
+        </span>
+
+        <div>
+          <p class="text-sm font-bold text-slate-800">Record the patient response</p>
+
+          <p class="mt-1 text-xs leading-5 text-slate-500">
+            Explain pain changes, tolerance, range of motion, performance and any progress noticed.
+          </p>
+
+          <p class="mt-2 rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
+            Example: The patient tolerated the exercises well and knee extension improved.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="flex gap-3 border-b border-slate-100 py-4">
+        <span
+          class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-100 text-xs font-bold text-sky-600"
+        >
+          4
+        </span>
+
+        <div>
+          <p class="text-sm font-bold text-slate-800">Add important notes</p>
+
+          <p class="mt-1 text-xs leading-5 text-slate-500">
+            Mention precautions, painful movements, exercises that were modified or anything that
+            should be monitored.
+          </p>
+
+          <p class="mt-2 rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
+            Example: Deep flexion was limited because it increased pain.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="flex gap-3 py-4">
+        <span
+          class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-100 text-xs font-bold text-sky-600"
+        >
+          5
+        </span>
+
+        <div>
+          <p class="text-sm font-bold text-slate-800">Define the next session focus</p>
+
+          <p class="mt-1 text-xs leading-5 text-slate-500">
+            Finish by stating what should be progressed, reviewed or targeted in the next
+            appointment.
+          </p>
+
+          <p class="mt-2 rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
+            Example: Progress quadriceps strengthening and reassess knee extension.
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+</div>

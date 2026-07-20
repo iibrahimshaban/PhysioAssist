@@ -12,8 +12,8 @@ export class PatientService {
   getAll() {
     return this.http.get<any[]>(this.apiUrl);
   }
-
   getById(id: string) {
+
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 
@@ -44,4 +44,9 @@ export class PatientService {
   updateStatus(id: string, status: number) {
     return this.http.put(`${this.apiUrl}/${id}/status`, status);
   }
+
+  getWithSlots() {
+  return this.http.get<any[]>(`${this.apiUrl}/with-slots`);
+}
+  
 }

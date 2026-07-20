@@ -1,4 +1,6 @@
 ﻿using PhysioAssist.Api.Modules.SessionModule.Services;
+using PhysioAssist.Api.Shared.Interfaces.Documentation;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
 
 namespace PhysioAssist.Api.Modules.SessionModule
 {

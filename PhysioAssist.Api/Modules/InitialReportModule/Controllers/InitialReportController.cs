@@ -3,19 +3,24 @@ using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.InitialReportModule.DTOs;
 using PhysioAssist.Api.Modules.InitialReportModule.Services;
 using PhysioAssist.Api.Shared.Extensions;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Controllers;
 
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class InitialReportController(IInitialReportService initialReportService) : ControllerBase
+public class InitialReportController(IInitialReportService initialReportService, IIntakeQueryService intakeQueryService) : ControllerBase
 {
     private readonly IInitialReportService _initialReportService = initialReportService;
+    private readonly IIntakeQueryService _intakeQueryService = intakeQueryService;
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateInitialReportRequest request)
     {
+        // ⚠️ افتراض: DoctorId بيتاخد من الـ claim بتاع ApplicationUser Id.
+        // لو عندك ربط مختلف بين ApplicationUser والـ Doctor entity (مثلاً IDoctorService)،
+        // استبدلي السطر ده بالطريقة الصح عندك لجلب DoctorId الحقيقي.
         var doctorId = Guid.Parse(User.GetUserId()!);
 
         var result = await _initialReportService.CreateAsync(doctorId, request);
@@ -76,6 +81,41 @@ public class InitialReportController(IInitialReportService initialReportService)
 
         return result.IsSuccess
             ? NoContent()
+            : result.ToProblem();
+    }
+    [HttpGet("patient/{patientId:guid}/intake")]
+    public async Task<IActionResult> GetIntakeDataByPatientId(Guid patientId)
+    {
+        var result = await _intakeQueryService.GetPreVisitIntakeByPatientIdAsync(patientId);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : result.ToProblem();
+    }
+    [HttpGet("patient/{patientId:guid}")]
+    public async Task<IActionResult> GetByPatientId(Guid patientId)
+    {
+        var result = await _initialReportService.GetByPatientIdAsync(patientId);
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : result.ToProblem(); 
+    }
+    [HttpGet("patient/{patientId:guid}/summary")]
+    public async Task<IActionResult> GetIntakeDataSummaryByPatientId(Guid patientId)
+    {
+        var result = await _intakeQueryService.GetPatientIntakeSummaryAsync(patientId);
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : result.ToProblem(); 
+    }
+
+    [HttpPost("{id:guid}/submit")]
+    public async Task<IActionResult> Submit(Guid id)
+    {
+        var result = await _initialReportService.SubmitAsync(id);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
             : result.ToProblem();
     }
 }

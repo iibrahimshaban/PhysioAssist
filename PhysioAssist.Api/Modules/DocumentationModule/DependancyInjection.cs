@@ -1,4 +1,5 @@
 ﻿using PhysioAssist.Api.Modules.DocumentationModule.Services;
+using PhysioAssist.Api.Shared.Interfaces.Documentation;
 
 namespace PhysioAssist.Api.Modules.DocumentationModule;
 

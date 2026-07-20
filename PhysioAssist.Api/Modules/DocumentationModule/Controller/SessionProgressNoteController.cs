@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.DocumentationModule.Contracts;
 using PhysioAssist.Api.Modules.DocumentationModule.Services;
+using PhysioAssist.Api.Shared.Interfaces.Documentation;
 
 namespace PhysioAssist.Api.Modules.DocumentationModule.Controller;
 

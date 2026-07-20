@@ -12,9 +12,7 @@ public static class ExtractInputValuesHelper
 
     /// <summary>
     /// Deserializes a stored FormSubmissionData JSON string into a DynamicFormSubmissionDto.
-    /// NOTE: if IntakeService already has an equivalent helper (likely used inside
-    /// SubmitPublicIntakeAsync before calling ValidateSubmissionAgainstSchema), reuse
-    /// that one instead of adding a second copy that can drift out of sync.
+    /// Single source of truth for this — both IntakeService and IntakeQueryService use it.
     /// </summary>
     public static DynamicFormSubmissionDto? DeserializeSubmissionJson(string submissionJson)
     {
@@ -28,9 +26,6 @@ public static class ExtractInputValuesHelper
         }
     }
 
-    /// <summary>
-    /// Finds an answer by questionId anywhere in the submission's sections/groups.
-    /// </summary>
     public static SubmissionAnswerDto? FindAnswer(DynamicFormSubmissionDto submission, string questionId)
     {
         foreach (var section in submission.Sections)
@@ -42,11 +37,6 @@ public static class ExtractInputValuesHelper
         return null;
     }
 
-    /// <summary>
-    /// Extracts a string value from an answer, unwrapping the frontend's
-    /// { "text": "..." } / { "email": "..." } / { "phone": "..." } / { "date": "..." }
-    /// wrapper shape. Falls back to a plain unwrapped value if the wrapper isn't present.
-    /// </summary>
     public static string? ExtractAnswerString(DynamicFormSubmissionDto submission, string questionId, string wrapperKey)
     {
         var answer = FindAnswer(submission, questionId);
@@ -64,6 +54,7 @@ public static class ExtractInputValuesHelper
         var raw = ExtractAnswerString(submission, questionId, wrapperKey);
         return DateTime.TryParse(raw, out var date) ? date : null;
     }
+
     public static string? ExtractPatientNameSafe(string formSubmissionData)
     {
         var submission = DeserializeSubmissionJson(formSubmissionData);
@@ -89,5 +80,90 @@ public static class ExtractInputValuesHelper
         }
 
         return 0;
+    }
+
+    public static readonly Dictionary<string, PatientCategory> PatientCategoryMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Orthopedic"] = PatientCategory.Orthopedic,
+        ["Neurological"] = PatientCategory.Neurological,
+        ["Pediatric"] = PatientCategory.Pediatric,
+        ["General / Other"] = PatientCategory.GeneralOther,
+    };
+
+    public static PatientCategory ExtractPatientCategory(string? painPointsData, PatientCategory fallback = PatientCategory.GeneralOther)
+    {
+        if (string.IsNullOrWhiteSpace(painPointsData)) return fallback;
+        try
+        {
+            using var doc = JsonDocument.Parse(painPointsData);
+            if (doc.RootElement.TryGetProperty("patientCategory", out var cat) && cat.ValueKind == JsonValueKind.String)
+            {
+                var value = cat.GetString();
+                if (!string.IsNullOrWhiteSpace(value) && PatientCategoryMap.TryGetValue(value, out var mapped))
+                {
+                    return mapped;
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            // fall through to fallback
+        }
+        return fallback;
+    }
+    public static string? ExtractChiefComplaint(string? painPointsData)
+    {
+        if (string.IsNullOrWhiteSpace(painPointsData)) return null;
+        try
+        {
+            using var doc = JsonDocument.Parse(painPointsData);
+            return doc.RootElement.TryGetProperty("chiefComplaint", out var cc) && cc.ValueKind == JsonValueKind.String
+                ? cc.GetString()
+                : null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    public static string? ExtractInjury(string? painPointsData)
+    {
+        if (string.IsNullOrWhiteSpace(painPointsData)) return null;
+        try
+        {
+            using var doc = JsonDocument.Parse(painPointsData);
+            if (!doc.RootElement.TryGetProperty("regions", out var regions) || regions.ValueKind != JsonValueKind.Array)
+            {
+                return null;
+            }
+
+            var labels = new List<string>();
+            foreach (var region in regions.EnumerateArray())
+            {
+                if (region.TryGetProperty("labelEn", out var label) && label.ValueKind == JsonValueKind.String)
+                {
+                    var value = label.GetString();
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        labels.Add(value);
+                    }
+                }
+            }
+
+            return labels.Count > 0 ? string.Join(", ", labels) : null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    public static int CalculateAge(DateTime dob)
+    {
+        var today = DateTime.UtcNow.Date;
+        var age = today.Year - dob.Year;
+        if (dob.Date > today.AddYears(-age)) age--;
+        return age;
     }
 }

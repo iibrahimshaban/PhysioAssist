@@ -1,0 +1,12 @@
+using PhysioAssist.Api.Shared.QR;
+
+namespace PhysioAssist.Api.Shared.Interfaces.Common;
+
+public interface IQRService
+{
+    Result<string> GenerateToken(QRTokenPayload payload);
+    Result<QRTokenPayload> ValidateToken(string token, QRTokenPurpose expectedPurpose);
+    Result<string> HashToken(string token);
+    byte[] GenerateQrImageBytes(string content);
+    Task<Result<string>> GenerateQrImageUrlAsync(string content, string folder, string publicId);
+}

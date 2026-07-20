@@ -49,8 +49,17 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         snackbar.error(body.detail);  // e.g. "Invalid email/password"
 
       // Fallback
+      } else if (body?.title) {
+        snackbar.error(body.title);
+
+      } else if (typeof body === 'string') {
+        snackbar.error(body);
+
+      } else if (err.statusText) {
+        snackbar.error(`${err.status} ${err.statusText}`);
+
       } else {
-        snackbar.error(body?.title ?? 'Unexpected error');
+        snackbar.error('Unexpected error');
       }
 
       return throwError(() => err);

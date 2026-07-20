@@ -4,5 +4,6 @@ public enum PatientCategory
 {
     Orthopedic,
     Neurological,
-    Pediatric
+    Pediatric,
+    GeneralOther
 }

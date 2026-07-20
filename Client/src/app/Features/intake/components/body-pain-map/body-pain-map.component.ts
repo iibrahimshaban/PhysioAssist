@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, computed, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -29,9 +29,19 @@ export interface PainRegionSelection {
   severity: number; // 1-10
 }
 
+export const PATIENT_CATEGORY_OPTIONS = [
+  'Orthopedic',
+  'Neurological',
+  'Pediatric',
+  'General / Other',
+] as const;
+
+export type PatientCategory = (typeof PATIENT_CATEGORY_OPTIONS)[number];
+
 export interface BodyPainMapPayload {
   regions: PainRegionSelection[];
   chiefComplaint: string;
+  patientCategory: PatientCategory | '';
 }
 
 const FRONT_REGIONS: BodyRegionDef[] = [
@@ -96,11 +106,38 @@ export class BodyPainMapComponent {
   /** Fires on every change so the parent form can keep a live copy of the payload. */
   @Output() mapChange = new EventEmitter<BodyPainMapPayload>();
 
+  /** When true, regions/slider/notes/remove are all non-interactive — for viewing a
+   *  previously submitted intake before a doctor clicks "Edit". */
+  @Input() readOnly = false;
+
+  /** Chief Complaint and Patient Category are doctor-only fields — hidden entirely
+   *  on the public patient-facing form (default false) and only shown on the
+   *  submission detail page (true), where they're editable while readOnly=false
+   *  and shown disabled while readOnly=true. */
+  @Input() showDoctorFields = false;
+
+  readonly patientCategoryOptions = PATIENT_CATEGORY_OPTIONS;
+
+  /** Pre-fills selections + chief complaint + category from a previously stored
+   *  payload (e.g. re-hydrating from PainPointsData for the submission detail page). */
+  @Input()
+  set initialValue(value: BodyPainMapPayload | null | undefined) {
+    if (!value) return;
+    const map = new Map<string, PainRegionSelection>();
+    for (const region of value.regions) {
+      map.set(region.id, region);
+    }
+    this.selectionsMap.set(map);
+    this.chiefComplaint.set(value.chiefComplaint ?? '');
+    this.patientCategory.set(value.patientCategory ?? '');
+  }
+
   readonly frontRegions = FRONT_REGIONS;
   readonly backRegions = BACK_REGIONS;
 
   private readonly selectionsMap = signal<Map<string, PainRegionSelection>>(new Map());
   readonly chiefComplaint = signal('');
+  readonly patientCategory = signal<PatientCategory | ''>('');
   readonly showDebug = signal(false);
 
   readonly selectedList = computed(() => Array.from(this.selectionsMap().values()));
@@ -108,6 +145,7 @@ export class BodyPainMapComponent {
   readonly payload = computed<BodyPainMapPayload>(() => ({
     regions: this.selectedList(),
     chiefComplaint: this.chiefComplaint(),
+    patientCategory: this.patientCategory(),
   }));
 
   isSelected(id: string): boolean {
@@ -115,6 +153,8 @@ export class BodyPainMapComponent {
   }
 
   toggleRegion(region: BodyRegionDef): void {
+    if (this.readOnly) return;
+
     const next = new Map(this.selectionsMap());
     if (next.has(region.id)) {
       next.delete(region.id);
@@ -131,6 +171,8 @@ export class BodyPainMapComponent {
   }
 
   updateSeverity(id: string, rawValue: string): void {
+    if (this.readOnly) return;
+
     const next = new Map(this.selectionsMap());
     const existing = next.get(id);
     if (!existing) return;
@@ -140,6 +182,8 @@ export class BodyPainMapComponent {
   }
 
   removeRegion(id: string): void {
+    if (this.readOnly) return;
+
     const next = new Map(this.selectionsMap());
     next.delete(id);
     this.selectionsMap.set(next);
@@ -147,7 +191,16 @@ export class BodyPainMapComponent {
   }
 
   onChiefComplaintInput(value: string): void {
+    if (this.readOnly) return;
+
     this.chiefComplaint.set(value);
+    this.emitChange();
+  }
+
+  onPatientCategoryChange(value: string): void {
+    if (this.readOnly) return;
+
+    this.patientCategory.set(value as PatientCategory | '');
     this.emitChange();
   }
 
