@@ -197,12 +197,9 @@ public static class DependancyInjection
         services.AddScoped<IAppointmentValidator, AppointmentValidator>();
         services.AddScoped<IAppointmentService, AppointmentService>();
         services.AddScoped<IWorkingScheduleService, WorkingScheduleService>();
-<<<<<<< HEAD
         services.AddNotificationModule();
-=======
         services.AddScoped<IScheduleSlotQueryService, ScheduleSlotQueryService>();
 
->>>>>>> main
         services
             .AddOptions<MailSettings>()
             .BindConfiguration(MailSettings.SectionName)
