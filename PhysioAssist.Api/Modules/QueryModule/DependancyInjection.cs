@@ -24,6 +24,17 @@ public static class DependancyInjection
 
         services.AddSingleton<IChatHistoryStore, SessionChatHistoryStore>();
 
+        services.AddKeyedSingleton<IChatCompletionService>("summarizationAI", (sp, _) =>
+        {
+            var summarizationAI = sp.GetRequiredService<IOptions<GitHubModelsDocumentationOptions>>().Value;
+
+            #pragma warning disable SKEXP0010
+            return new OpenAIChatCompletionService(
+                    modelId: summarizationAI.ChatModel,
+                    apiKey: summarizationAI.Token,
+                    endpoint: new Uri("https://models.inference.ai.azure.com"));
+        });
+
         services.AddHttpClient(nameof(WebSearchPlugin), (sp, client) =>
         {
             client.DefaultRequestHeaders.Accept.Clear();
@@ -41,6 +52,9 @@ public static class DependancyInjection
             var searchPlugin = sp.GetRequiredService<SessionSearchPlugin>();
             var tavilyOptions = sp.GetRequiredService<IOptions<TavilyOptions>>();
             var tavilyClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(WebSearchPlugin));
+            var summarizationService = sp.GetRequiredKeyedService<IChatCompletionService>("summarizationAI");
+
+
 
             var kernel = Kernel.CreateBuilder()
                 .AddOpenAIChatCompletion(
@@ -67,7 +81,7 @@ public static class DependancyInjection
                 }),
                 //TODO: USE CHEAPER MODEL FOR SUMMARIZATION LIKE GPT4O-MINI or Something
                 HistoryReducer = new ChatHistorySummarizationReducer(
-                    service: kernel.GetRequiredService<IChatCompletionService>(),
+                    service: summarizationService,
                     targetCount: 10,
                     thresholdCount: 15)
             };

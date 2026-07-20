@@ -136,6 +136,21 @@ namespace PhysioAssist.Api.Modules.QueryModule.Controllers
             await Response.WriteAsync($"data: {json}\n\n", ct);
             await Response.Body.FlushAsync(ct);
         }
+
+        /*
+         * USED TO TRACK HISTORY TO CHECK IF SUMMARIZATION WORKS FINE OR NOT
+         */
+        [HttpGet("debug/history")]
+        public IActionResult DebugHistory([FromQuery] string conversationId)
+        {
+            var history = _historyStore.Get(conversationId);
+            return Ok(history.Select(m => new
+            {
+                Role = m.Role.ToString(),
+                Content = m.Content,
+                Length = m.Content?.Length ?? 0
+            }));
+        }
     }
 #pragma warning restore SKEXP0110
 }
