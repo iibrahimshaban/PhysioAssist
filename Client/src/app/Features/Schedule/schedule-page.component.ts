@@ -1,16 +1,15 @@
-
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { AppointmentDrawerComponent } from './appointment-drawer/appointment-drawer.component';
 import { CalendarGridComponent } from './calendar-grid/calendar-grid.component';
 import { CalendarToolbarComponent } from './calendar-toolbar/calendar-toolbar.component';
 import { CreateAppointmentDrawerComponent } from './create-appointment-drawer/create-appointment-drawer.component';
-import { DoctorSelectorComponent } from './doctor-selector/doctor-selector.component';
 import { EmptyStateComponent } from './empty-state/empty-state.component';
 import { FiltersBarComponent } from './filters-bar/filters-bar.component';
 import { LoadingSkeletonComponent } from './loading-skeleton/loading-skeleton.component';
 import { Doctor, Appointment, AvailableInterval, CreateAppointmentRequest, ScheduleFilters, AvailableIntervalDto } from './schedule.models';
 import { StatisticsPanelComponent } from './statistics-panel/statistics-panel.component';
 import { SchedulePageService, toIsoWithOffset } from '../../Core/Services/schedule-page.service';
+import { AuthService } from '../../Core/Services/auth.service'; // adjust path to match your actual file
 import { firstValueFrom } from 'rxjs';
 import { RescheduleDialogComponent } from "./reschedule-dialog/reschedule-dialog.component";
 
@@ -18,7 +17,7 @@ import { RescheduleDialogComponent } from "./reschedule-dialog/reschedule-dialog
   selector: 'app-schedule-page',
   standalone: true,
   imports: [
-    CalendarToolbarComponent, CalendarGridComponent, DoctorSelectorComponent,
+    CalendarToolbarComponent, CalendarGridComponent, 
     StatisticsPanelComponent, FiltersBarComponent, AppointmentDrawerComponent,
     CreateAppointmentDrawerComponent, EmptyStateComponent, LoadingSkeletonComponent,
     RescheduleDialogComponent
@@ -29,15 +28,22 @@ import { RescheduleDialogComponent } from "./reschedule-dialog/reschedule-dialog
 })
 export class SchedulePageComponent {
   protected readonly scheduleService = inject(SchedulePageService);
+  private readonly authService = inject(AuthService);
   protected readonly isRescheduleDialogOpen = signal(false);
   protected readonly reschedulingAppointment = signal<Appointment | null>(null);
 
-  // TEMPORARY placeholder — no real Doctor endpoint provided yet.
-  protected readonly doctors: Doctor[] = [
-    { id: '019f621c-c77d-72a7-8fdb-f31a445179bc', displayLabel: 'ahmed omar' },
-    { id: '22222222-2222-2222-2222-222222222222', displayLabel: 'Doctor 2222-2222' },
-    { id: '019e220e-ff37-7a97-9f65-0a8fa4861efb', displayLabel: 'Doctor Admin' }
-  ];
+  // The doctor viewing their own calendar is always the logged-in user —
+  // no picker, no static list. `sub` from the JWT is the doctor's own ID.
+  protected readonly currentDoctorId = computed(() => this.authService.currentUser()?.id ?? null);
+
+  constructor() {
+    // Drive the schedule off whoever is logged in. Replaces the old flow where
+    // a DoctorSelectorComponent picked from a hardcoded array of fake IDs.
+    effect(() => {
+      const id = this.currentDoctorId();
+      if (id) this.scheduleService.selectDoctor(id);
+    });
+  }
 
   protected readonly dateRangeLabel = computed(() => {
     const date = this.scheduleService.selectedDate();
@@ -52,19 +58,14 @@ export class SchedulePageComponent {
     return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
   });
 
-// BEFORE: this hid the whole calendar whenever there were zero appointments
-// protected readonly emptyStateKind = computed(() => {
-//   if (!this.scheduleService.selectedDoctorId()) return 'no-doctor' as const;
-//   if (!this.scheduleService.workingHoursForSelectedDate()) return 'off-today' as const;
-//   if (this.scheduleService.filteredAppointments().length === 0) return 'no-appointments' as const;
-//   return null;
-// });
+  protected readonly emptyStateKind = computed(() => {
+    return !this.scheduleService.selectedDoctorId() ? ('no-doctor' as const) : null;
+  });
 
-protected readonly emptyStateKind = computed(() => {
-  return !this.scheduleService.selectedDoctorId() ? ('no-doctor' as const) : null;
-});
-
-  protected onDoctorSelected(doctorId: string): void { this.scheduleService.selectDoctor(doctorId); }
+  // onDoctorSelected removed — there's no manual doctor picker anymore for
+  // this page; the doctor is always the authenticated user. If a receptionist
+  // view needs to browse other doctors' calendars, that should be a separate
+  // route/component that explicitly passes a doctorId, not this one.
 
   protected onPrevious(): void {
     this.shiftDate(this.scheduleService.currentView() === 'day' ? -1 : -7);
@@ -83,10 +84,8 @@ protected readonly emptyStateKind = computed(() => {
   protected onIntervalClicked(interval: AvailableInterval): void {
     this.scheduleService.openCreateDrawer(interval.start, interval.end);
   }
-//
+
   protected async onCreateSubmit(request: CreateAppointmentRequest): Promise<void> {
-    console.log("////////////////////////")
-    console.log(request)
     try {
       await this.scheduleService.createAppointment(request);
     } catch {
@@ -132,34 +131,24 @@ protected readonly emptyStateKind = computed(() => {
     try { await this.scheduleService.deleteAppointment(id); } catch { /* toast shown */ }
   }
 
-  // protected onDrawerReschedule(appointment: Appointment): void {
-  //   this.scheduleService.closeDetailsDrawer();
-  //   this.scheduleService.openCreateDrawer(appointment.slotStart, appointment.slotEnd);
-  //   // NOTE: this opens Create, not a true reschedule form. A dedicated
-  //   // reschedule-in-place UI (reusing the same time-picker) is a reasonable
-  //   // follow-up if this flow feels indirect in practice.
-  // }
-
-
-
-protected onDrawerReschedule(appointment: Appointment): void {
-  this.scheduleService.closeDetailsDrawer();
-  this.reschedulingAppointment.set(appointment);
-  this.isRescheduleDialogOpen.set(true);
-}
-
-protected async onRescheduleConfirm(e: { appointmentId: string; newSlotStart: string; newSlotEnd: string }): Promise<void> {
-  try {
-    await this.scheduleService.rescheduleAppointment(e.appointmentId, {
-      newSlotStart: e.newSlotStart,
-      newSlotEnd: e.newSlotEnd
-    });
-    this.scheduleService.showToast('Appointment rescheduled.', 'success');
-    this.isRescheduleDialogOpen.set(false);
-  } catch {
-    this.scheduleService.showToast('Could not reschedule to that time.', 'error');
+  protected onDrawerReschedule(appointment: Appointment): void {
+    this.scheduleService.closeDetailsDrawer();
+    this.reschedulingAppointment.set(appointment);
+    this.isRescheduleDialogOpen.set(true);
   }
-}
+
+  protected async onRescheduleConfirm(e: { appointmentId: string; newSlotStart: string; newSlotEnd: string }): Promise<void> {
+    try {
+      await this.scheduleService.rescheduleAppointment(e.appointmentId, {
+        newSlotStart: e.newSlotStart,
+        newSlotEnd: e.newSlotEnd
+      });
+      this.scheduleService.showToast('Appointment rescheduled.', 'success');
+      this.isRescheduleDialogOpen.set(false);
+    } catch {
+      this.scheduleService.showToast('Could not reschedule to that time.', 'error');
+    }
+  }
 
   protected onFiltersChanged(partial: Partial<ScheduleFilters>): void {
     this.scheduleService.updateFilters(partial);
@@ -171,7 +160,4 @@ protected async onRescheduleConfirm(e: { appointmentId: string; newSlotStart: st
     next.setDate(next.getDate() + days);
     this.scheduleService.selectDate(next);
   }
-
-
 }
-
