@@ -27,9 +27,6 @@ export interface PreVisitIntakeDetailsResponse {
   doctorId: string;
   formSchemaId: string;
   formSchemaVersion: number;
-  patientName: string;
-  patientEmail?: string;
-  patientPhone?: string;
   formSubmissionData: string;
   painPointsData?: string;
   status: IntakeStatus;
@@ -50,5 +47,8 @@ export interface UpdateIntakeStatusRequest {
 }
 
 export interface ConvertIntakeToPatientRequest {
-  notes?: string;
+  formSubmissionData?: string; // ADDED
+  painPointsData?: string;     // ADDED
 }
+
+

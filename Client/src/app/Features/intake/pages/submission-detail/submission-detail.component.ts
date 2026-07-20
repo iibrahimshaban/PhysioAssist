@@ -1,28 +1,25 @@
 import { Component, inject, OnInit, signal, computed, DestroyRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { TagModule } from 'primeng/tag';
-import { TextareaModule } from 'primeng/textarea';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
-import { DrawerModule } from 'primeng/drawer';
 import { ConfirmationService } from 'primeng/api';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { DynamicFormEngineService } from '../../services/dynamic-form-engine.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
+import { DynamicFormRendererComponent } from '../../components/dynamic-form-renderer/dynamic-form-renderer.component';
+import { BodyPainMapComponent, BodyPainMapPayload } from '../../components/body-pain-map/body-pain-map.component';
 import {
   PreVisitIntakeDetailsResponse,
+  PreVisitIntakeResponse,
   DynamicFormSchemaDto,
   DynamicFormSubmissionDto,
   IntakeStatus,
-  PainPointDto,
   SubmissionAnswerDto,
   FormQuestionDto,
   UpdateIntakeStatusRequest,
+  ConvertIntakeToPatientRequest,
 } from '../../models';
 
 @Component({
@@ -30,14 +27,10 @@ import {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    ButtonModule,
-    CardModule,
-    TagModule,
-    TextareaModule,
     ConfirmDialogModule,
     DialogModule,
-    DrawerModule,
+    DynamicFormRendererComponent,
+    BodyPainMapComponent,
   ],
   providers: [ConfirmationService],
   template: `
@@ -57,50 +50,39 @@ import {
 
       <ng-template pTemplate="header">
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg flex items-center justify-center"
-               style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center">
             <i class="pi pi-user-plus text-white text-sm"></i>
           </div>
           <div>
-            <h3 class="font-bold text-base m-0">Convert to Patient</h3>
-            <p class="text-xs text-surface-500 m-0">Create a patient record from this intake</p>
+            <h3 class="font-bold text-base m-0 text-slate-900">Convert to Patient</h3>
+            <p class="text-xs text-slate-500 m-0">Create a patient record from this intake</p>
           </div>
         </div>
       </ng-template>
 
       <div class="space-y-4">
-        <p class="text-sm text-surface-600">
+        <p class="text-sm text-slate-600">
           This will create a new patient record from this intake submission. Review the details below and confirm.
         </p>
-        <div>
-          <label class="block text-sm font-semibold text-surface-700 mb-1.5">Notes (optional)</label>
-          <textarea
-            pTextarea
-            [(ngModel)]="convertNotes"
-            placeholder="Add any notes about this patient..."
-            rows="3"
-            class="w-full">
-          </textarea>
-        </div>
-        <div class="rounded-xl border border-surface-200 overflow-hidden">
-          <div class="bg-surface-50 px-4 py-2 border-b border-surface-100">
-            <p class="text-xs font-semibold text-surface-500 uppercase tracking-wider m-0">Patient Details</p>
+        <div class="rounded-xl border border-slate-200 overflow-hidden">
+          <div class="bg-slate-50 px-4 py-2 border-b border-slate-100">
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider m-0">Patient Details</p>
           </div>
           <div class="p-4 space-y-3">
             <div>
-              <p class="text-xs text-surface-400 uppercase tracking-wide m-0">Name</p>
-              <p class="text-sm font-semibold text-surface-800 m-0">{{ details()?.patientName }}</p>
+              <p class="text-xs text-slate-400 uppercase tracking-wide m-0">Name</p>
+              <p class="text-sm font-semibold text-slate-800 m-0 capitalize">{{ patientNameDisplay() || '—' }}</p>
             </div>
-            @if (details()?.patientEmail) {
+            @if (patientEmailDisplay()) {
               <div>
-                <p class="text-xs text-surface-400 uppercase tracking-wide m-0">Email</p>
-                <p class="text-sm text-surface-700 m-0">{{ details()?.patientEmail }}</p>
+                <p class="text-xs text-slate-400 uppercase tracking-wide m-0">Email</p>
+                <p class="text-sm text-slate-700 m-0">{{ patientEmailDisplay() }}</p>
               </div>
             }
-            @if (details()?.patientPhone) {
+            @if (patientPhoneDisplay()) {
               <div>
-                <p class="text-xs text-surface-400 uppercase tracking-wide m-0">Phone</p>
-                <p class="text-sm text-surface-700 m-0">{{ details()?.patientPhone }}</p>
+                <p class="text-xs text-slate-400 uppercase tracking-wide m-0">Phone</p>
+                <p class="text-sm text-slate-700 m-0">{{ patientPhoneDisplay() }}</p>
               </div>
             }
           </div>
@@ -108,46 +90,52 @@ import {
       </div>
       <ng-template pTemplate="footer">
         <div class="flex gap-2 justify-end">
-          <p-button
-            label="Cancel"
-            severity="secondary"
-            [outlined]="true"
-            (onClick)="showConvertDialog.set(false)"
-            aria-label="Cancel conversion" />
-          <p-button
-            label="Confirm Conversion"
-            icon="pi pi-user-plus"
-            severity="success"
-            (onClick)="convertToPatient()"
-            [loading]="updating()"
-            aria-label="Confirm convert to patient" />
+          <button
+            type="button"
+            (click)="showConvertDialog.set(false)"
+            class="text-sm font-semibold px-5 py-2.5 rounded-full border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition"
+            aria-label="Cancel conversion">
+            Cancel
+          </button>
+          <button
+            type="button"
+            (click)="convertToPatient()"
+            [disabled]="updating()"
+            class="text-sm font-semibold px-5 py-2.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 shadow-sm transition flex items-center gap-1.5"
+            aria-label="Confirm convert to patient">
+            <i class="pi" [ngClass]="updating() ? 'pi-spin pi-spinner' : 'pi-user-plus'"></i>
+            Confirm & create patient
+          </button>
         </div>
       </ng-template>
     </p-dialog>
 
-    <div class="page-container" aria-live="polite">
+    <div class="max-w-4xl mx-auto py-8 px-4" aria-live="polite">
 
       <!-- Loading State -->
       @if (loading()) {
         <div class="flex flex-col items-center justify-center py-24 animate-fade-in" role="status">
           <div class="premium-spinner mb-4"></div>
-          <p class="text-surface-500 text-sm">Loading submission details...</p>
+          <p class="text-slate-500 text-sm">Loading submission details...</p>
         </div>
       }
 
       <!-- Error State -->
       @else if (error()) {
         <div class="max-w-lg mx-auto mt-8 animate-fade-in-up">
-          <div class="bg-white rounded-2xl shadow-sm border border-red-100 p-8 text-center" role="alert">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                 style="background: #fef2f2;">
-              <i class="pi pi-exclamation-triangle text-3xl text-red-400"></i>
+          <div class="bg-white rounded-2xl shadow-sm border border-rose-100 p-8 text-center" role="alert">
+            <div class="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mx-auto mb-4">
+              <i class="pi pi-exclamation-triangle text-2xl text-rose-400"></i>
             </div>
-            <h2 class="text-lg font-semibold text-surface-800 mb-2">Failed to Load</h2>
-            <p class="text-surface-600 text-sm mb-6">{{ error() }}</p>
+            <h2 class="text-lg font-bold text-slate-800 mb-2">Failed to Load</h2>
+            <p class="text-slate-600 text-sm mb-6">{{ error() }}</p>
             <div class="flex gap-3 justify-center">
-              <p-button label="Go Back" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" (onClick)="goBack()" />
-              <p-button label="Retry" icon="pi pi-refresh" severity="warn" (onClick)="loadDetails()" />
+              <button type="button" (click)="goBack()" class="text-sm font-semibold px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center gap-1.5">
+                <i class="pi pi-arrow-left"></i> Go Back
+              </button>
+              <button type="button" (click)="loadDetails()" class="text-sm font-semibold px-4 py-2 rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition flex items-center gap-1.5">
+                <i class="pi pi-refresh"></i> Retry
+              </button>
             </div>
           </div>
         </div>
@@ -155,158 +143,140 @@ import {
 
       <!-- Content -->
       @else if (details(); as d) {
-        <div class="max-w-4xl mx-auto animate-fade-in">
+        <div class="animate-fade-in">
 
           <!-- Back + Breadcrumb -->
-          <div class="flex items-center gap-2 mb-5">
-            <p-button
-              label="Submissions"
-              icon="pi pi-arrow-left"
-              [text]="true"
-              severity="secondary"
-              (onClick)="goBack()"
-              styleClass="!px-2" />
-            <i class="pi pi-chevron-right text-surface-300 text-xs"></i>
-            <span class="text-sm text-surface-500 truncate">{{ d.patientName }}</span>
+          <div class="flex items-center gap-2 mb-6 min-w-0">
+            <button
+              type="button"
+              (click)="goBack()"
+              class="text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center gap-1.5 shrink-0">
+              <i class="pi pi-arrow-left text-xs"></i>
+              Submissions
+            </button>
+            <i class="pi pi-chevron-right text-slate-300 text-xs shrink-0"></i>
+            <span class="text-sm text-slate-500 truncate capitalize">{{ patientNameDisplay() || 'Unnamed patient' }}</span>
           </div>
 
           <!-- Header grid -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
 
             <!-- Patient Card -->
-            <div class="lg:col-span-2">
-              <p-card>
-                <ng-template pTemplate="header">
-                  <div class="p-5 pb-0">
-                    <div class="flex items-start gap-4">
-                      <!-- Patient avatar -->
-                      <div class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-lg font-bold text-white"
-                           [style.background]="getAvatarGradient(d.patientName)">
-                        {{ getInitials(d.patientName) }}
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <div class="flex items-start justify-between gap-3">
-                          <h2 class="text-xl font-bold text-surface-900 m-0 break-words">{{ d.patientName }}</h2>
-                          <p-tag
-                            [value]="getStatusLabel(d.status)"
-                            [severity]="getStatusSeverity(d.status)"
-                            class="shrink-0" />
-                        </div>
-                        @if (d.patientEmail) {
-                          <p class="text-sm text-surface-500 mt-1 m-0">
-                            <i class="pi pi-envelope text-xs mr-1"></i>{{ d.patientEmail }}
-                          </p>
-                        }
-                        @if (d.patientPhone) {
-                          <p class="text-sm text-surface-500 mt-0.5 m-0">
-                            <i class="pi pi-phone text-xs mr-1"></i>{{ d.patientPhone }}
-                          </p>
-                        }
-                      </div>
-                    </div>
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+              <div class="p-5 sm:p-6">
+                <div class="flex items-start gap-4">
+                  <!-- Patient avatar -->
+                  <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 text-lg font-bold">
+                    {{ getInitials(patientNameDisplay()) }}
                   </div>
-                </ng-template>
-
-                <div class="px-5 py-4">
-                  <div class="grid grid-cols-2 gap-4">
-                    <div class="detail-field">
-                      <p class="detail-label">Submitted</p>
-                      <p class="detail-value">{{ d.submittedAt | date:'MMM d, y, h:mm a' }}</p>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-3 flex-wrap">
+                      <h2 class="text-xl font-bold text-slate-900 m-0 break-words capitalize">{{ patientNameDisplay() || 'Unnamed patient' }}</h2>
+                      <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0" [ngClass]="getStatusPillClass(d.status)">
+                        {{ getStatusLabel(d.status) }}
+                      </span>
                     </div>
-                    <div class="detail-field col-span-2">
-                      <p class="detail-label">Submission ID</p>
-                      <p class="detail-value font-mono text-xs break-all select-all">{{ d.id }}</p>
-                    </div>
+                    @if (patientEmailDisplay()) {
+                      <p class="text-sm text-slate-500 mt-1 m-0 flex items-center gap-1.5">
+                        <i class="pi pi-envelope text-xs"></i>{{ patientEmailDisplay() }}
+                      </p>
+                    }
+                    @if (patientPhoneDisplay()) {
+                      <p class="text-sm text-slate-500 mt-0.5 m-0 flex items-center gap-1.5">
+                        <i class="pi pi-phone text-xs"></i>{{ patientPhoneDisplay() }}
+                      </p>
+                    }
                   </div>
                 </div>
 
-                <ng-template pTemplate="footer">
-                  @if (availableActions().length > 0) {
-                    <div class="flex flex-wrap gap-2">
-                      @for (action of availableActions(); track action.type + action.status) {
-                        <p-button
-                          [label]="action.label"
-                          [icon]="action.icon"
-                          [severity]="action.severity"
-                          (onClick)="confirmUpdate(action)"
-                          [loading]="updating()"
-                          [ariaLabel]="action.label" />
-                      }
-                    </div>
-                  }
-                </ng-template>
-              </p-card>
+                <div class="grid grid-cols-2 gap-4 mt-5 pt-5 border-t border-slate-100">
+                  <div class="detail-field">
+                    <p class="detail-label">Submitted</p>
+                    <p class="detail-value">{{ d.submittedAt | date:'MMM d, y, h:mm a' }}</p>
+                  </div>
+                  <div class="detail-field col-span-2">
+                    <p class="detail-label">Submission ID</p>
+                    <p class="detail-value font-mono text-xs break-all select-all">{{ d.id }}</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Form Details Card -->
-            <div>
-              <p-card>
-                <ng-template pTemplate="header">
-                  <div class="px-5 pt-4 pb-2">
-                    <h3 class="text-sm font-semibold text-surface-700 m-0 flex items-center gap-2">
-                      <i class="pi pi-file-edit text-surface-400 text-xs"></i>
-                      Form Details
-                    </h3>
-                  </div>
-                </ng-template>
-                <div class="px-5 pb-4 space-y-3">
-                  <div class="detail-field">
-                    <p class="detail-label">Form Name</p>
-                    <p class="detail-value">{{ d.formSchemaName }}</p>
-                  </div>
-                  <div class="detail-field">
-                    <p class="detail-label">Version</p>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-surface-100 text-surface-600 text-xs font-medium">
-                      v{{ d.formSchemaVersion }}
-                    </span>
-                  </div>
-                  @if (d.reviewedAt) {
-                    <div class="detail-field">
-                      <p class="detail-label">Reviewed At</p>
-                      <p class="detail-value">{{ d.reviewedAt | date:'MMM d, y' }}</p>
-                    </div>
-                  }
-                  @if (d.convertedToPatientId) {
-                    <div class="detail-field">
-                      <p class="detail-label">Patient ID</p>
-                      <p class="detail-value font-mono text-xs break-all">{{ d.convertedToPatientId }}</p>
-                    </div>
-                  }
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
+              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i class="pi pi-file-edit text-indigo-500 text-xs"></i>
+                Form Details
+              </h3>
+              <div class="space-y-3">
+                <div class="detail-field">
+                  <p class="detail-label">Form Name</p>
+                  <p class="detail-value">{{ d.formSchemaName }}</p>
                 </div>
-              </p-card>
+                <div class="detail-field">
+                  <p class="detail-label">Version</p>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-xs font-medium">
+                    v{{ d.formSchemaVersion }}
+                  </span>
+                </div>
+                @if (d.reviewedAt) {
+                  <div class="detail-field">
+                    <p class="detail-label">Reviewed At</p>
+                    <p class="detail-value">{{ d.reviewedAt | date:'MMM d, y' }}</p>
+                  </div>
+                }
+                @if (d.convertedToPatientId) {
+                  <div class="detail-field">
+                    <p class="detail-label">Patient ID</p>
+                    <p class="detail-value font-mono text-xs break-all">{{ d.convertedToPatientId }}</p>
+                  </div>
+                }
+              </div>
             </div>
           </div>
 
           <!-- Submitted Answers -->
-          <p-card class="mb-4">
-            <ng-template pTemplate="header">
-              <div class="px-5 py-4 border-b border-surface-100 flex items-center gap-2">
-                <i class="pi pi-list text-surface-400 text-sm"></i>
-                <h3 class="text-base font-semibold text-surface-800 m-0">Submitted Answers</h3>
-              </div>
-            </ng-template>
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-4">
+            <div class="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+              <i class="pi pi-list text-indigo-500 text-sm"></i>
+              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider m-0">Submitted Answers</h3>
+              @if (isEditing()) {
+                <span class="ml-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600">Editing</span>
+              }
+            </div>
 
-            @if (submissionData(); as data) {
-              <div class="p-5 space-y-5">
+            @if (isEditing()) {
+              @if (schema()) {
+                <div class="p-5 sm:p-6">
+                  <app-dynamic-form-renderer
+                    [schema]="schema()"
+                    [formSchemaId]="d.formSchemaId"
+                    [formSchemaVersion]="d.formSchemaVersion"
+                    [initialAnswers]="initialAnswersForEdit()"
+                    (submissionChange)="editedSubmission.set($event)"
+                    (validityChange)="editIsValid.set($event)" />
+                </div>
+              } @else {
+                <div class="p-5 sm:p-6 text-sm text-slate-500">Form schema unavailable — can't edit answers without it.</div>
+              }
+            } @else if (submissionData(); as data) {
+              <div class="p-5 sm:p-6 space-y-5">
                 @for (section of data.sections; track section.sectionId) {
                   <div>
-                    <h4 class="text-sm font-semibold text-surface-700 mb-3 flex items-center gap-2">
-                      <div class="w-1.5 h-4 rounded-full" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);"></div>
+                    <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                      <div class="w-1.5 h-4 rounded-full bg-indigo-500"></div>
                       {{ getSectionTitle(section.sectionId) || 'Section' }}
                     </h4>
                     @for (group of section.groups; track group.groupId) {
-                      <div class="ml-4 mb-3 rounded-xl border border-surface-100 overflow-hidden">
-                        <div class="bg-surface-50 px-3 py-2 border-b border-surface-100">
-                          <p class="text-xs font-semibold text-surface-500 m-0">{{ getGroupTitle(group.groupId) || 'Group' }}</p>
+                      <div class="ml-4 mb-3 rounded-xl border border-slate-100 overflow-hidden">
+                        <div class="bg-slate-50 px-3 py-2 border-b border-slate-100">
+                          <p class="text-xs font-semibold text-slate-500 m-0">{{ getGroupTitle(group.groupId) || 'Group' }}</p>
                         </div>
                         <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                           @for (answer of group.answers; track answer.questionId) {
                             <div class="answer-field">
                               <p class="answer-label">{{ getQuestionText(answer.questionId) || 'Question' }}</p>
                               <p class="answer-value">{{ formatAnswerValue(answer) }}</p>
-                              @if (answer.notes) {
-                                <p class="text-xs text-surface-400 italic mt-0.5">Note: {{ answer.notes }}</p>
-                              }
                             </div>
                           }
                         </div>
@@ -316,61 +286,75 @@ import {
                 }
               </div>
             } @else {
-              <div class="empty-state py-8">
-                <i class="pi pi-file text-surface-300 text-3xl mb-2"></i>
-                <p class="empty-state-text">No submitted answers available.</p>
+              <div class="text-center py-10">
+                <i class="pi pi-file text-slate-300 text-3xl mb-2"></i>
+                <p class="text-sm text-slate-400">No submitted answers available.</p>
               </div>
             }
-          </p-card>
+          </div>
 
-          <!-- Pain Points -->
-          @if (painPoints().length > 0) {
-            <p-card class="mb-4">
-              <ng-template pTemplate="header">
-                <div class="px-5 py-4 border-b border-surface-100 flex items-center gap-2">
-                  <i class="pi pi-map-marker text-red-400 text-sm"></i>
-                  <h3 class="text-base font-semibold text-surface-800 m-0">Pain Points</h3>
-                  <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-600">
-                    {{ painPoints().length }} marked
-                  </span>
-                </div>
-              </ng-template>
-
-              <div class="p-5">
-                <div class="flex flex-col sm:flex-row gap-6 items-start">
-                  <!-- <div class="w-44 sm:w-52 shrink-0 mx-auto sm:mx-0">
-                    <app-body-svg
-                      [view]="painPointView()"
-                      [points]="painPoints()"
-                      (viewChange)="painPointView.set($event)" />
-                  </div> -->
-                  <div class="flex-1 w-full">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      @for (point of painPoints(); track $index) {
-                        <div class="flex items-center gap-3 p-3 border border-surface-200 rounded-xl bg-white hover:border-surface-300 transition-all">
-                          <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold"
-                               [style.background]="getIntensityGradient(point.intensity)">
-                            {{ point.intensity }}
-                          </div>
-                          <div>
-                            <p class="text-xs font-medium text-surface-700 m-0">
-                              {{ point.bodyPart === 'back' ? 'Back' : 'Front' }}
-                            </p>
-                            <p class="text-xs text-surface-400 m-0">
-                              Intensity {{ point.intensity }}/10
-                              <span class="ml-1 inline-block" [style.color]="getIntensityColor(point.intensity)">
-                                {{ getIntensityLabel(point.intensity) }}
-                              </span>
-                            </p>
-                          </div>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </p-card>
+          <!-- Pain Map -->
+          @if (isEditing() || hasPainData()) {
+            <app-body-pain-map
+              [readOnly]="!isEditing()"
+              [showDoctorFields]="isEditing()"
+              [initialValue]="painMapPayload()"
+              (mapChange)="editedPainMap.set($event)" />
           }
+
+          <!-- Actions -->
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-5 mt-4">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Actions</h3>
+
+            @if (!isEditing()) {
+              <div class="flex flex-wrap justify-center gap-2">
+                @for (action of availableActions(); track action.type + action.status) {
+                  <button
+                    type="button"
+                    (click)="confirmUpdate(action)"
+                    [disabled]="updating()"
+                    class="!rounded-full py-2 px-4 text-sm font-semibold disabled:opacity-60 transition-colors duration-150 inline-flex items-center gap-1.5 whitespace-nowrap"
+                    [ngClass]="getActionButtonClass(action.severity)"
+                    [attr.aria-label]="action.label">
+                    <i class="pi text-xs" [ngClass]="updating() ? 'pi-spin pi-spinner' : action.icon"></i>
+                    {{ action.label }}
+                  </button>
+                }
+                @if (canEdit()) {
+                  <button
+                    type="button"
+                    (click)="startEditing()"
+                    class="!rounded-full py-2 px-4 text-sm font-semibold border border-slate-200 text-slate-600 bg-white hover:bg-slate-100 hover:border-slate-300 transition-colors duration-150 inline-flex items-center gap-1.5 whitespace-nowrap"
+                    aria-label="Edit submission">
+                    <i class="pi pi-pencil text-xs"></i>
+                    Edit
+                  </button>
+                }
+              </div>
+            } @else {
+              <!-- Editing now leads straight into conversion — there's no separate
+                   approve step. The doctor fixes the data, then converts the intake
+                   into a patient record directly from here. -->
+              <div class="flex flex-wrap justify-center gap-2">
+                <button
+                  type="button"
+                  (click)="cancelEditing()"
+                  class="!rounded-full py-2 px-4 text-sm font-semibold border border-slate-200 text-slate-600 bg-white hover:bg-slate-100 hover:border-slate-300 transition-colors duration-150 whitespace-nowrap"
+                  aria-label="Cancel editing">
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  (click)="showConvertDialog.set(true)"
+                  [disabled]="!editIsValid() || updating()"
+                  class="!rounded-full py-2 px-4 text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm disabled:opacity-60 transition-colors duration-150 inline-flex items-center gap-1.5 whitespace-nowrap"
+                  aria-label="Convert to patient">
+                  <i class="pi text-xs" [ngClass]="updating() ? 'pi-spin pi-spinner' : 'pi-user-plus'"></i>
+                  Convert to Patient
+                </button>
+              </div>
+            }
+          </div>
         </div>
       }
     </div>
@@ -438,12 +422,61 @@ export class SubmissionDetailComponent implements OnInit {
   readonly updating = signal(false);
   readonly error = signal<string | null>(null);
   readonly showConvertDialog = signal(false);
-  convertNotes = '';
   readonly details = signal<PreVisitIntakeDetailsResponse | null>(null);
   readonly schema = signal<DynamicFormSchemaDto | null>(null);
   readonly submissionData = signal<DynamicFormSubmissionDto | null>(null);
-  readonly painPoints = signal<PainPointDto[]>([]);
-  readonly painPointView = signal<'front' | 'back'>('front');
+  readonly painMapPayload = signal<BodyPainMapPayload | null>(null);
+
+  // --- Edit mode state ---
+  readonly isEditing = signal(false);
+  readonly editIsValid = signal(true);
+  readonly editedSubmission = signal<DynamicFormSubmissionDto | null>(null);
+  readonly editedPainMap = signal<BodyPainMapPayload | null>(null);
+
+  readonly hasPainData = computed(() => (this.painMapPayload()?.regions.length ?? 0) > 0);
+
+  /** These three are extracted from submissionData() (or editedSubmission() while
+   *  editing) rather than the backend response — PreVisitIntakeDetailsResponse no
+   *  longer carries patientName/Email/Phone directly, but formSubmissionData is
+   *  already included in this response, so no extra request is needed. Matches the
+   *  same default question IDs the backend uses elsewhere (ConvertToPatientAsync,
+   *  GetSubmissionsAsync) — same fragility caveat applies: breaks only if a doctor
+   *  deletes and recreates these exact seeded questions. */
+  readonly patientNameDisplay = computed(() => this.extractAnswer('question_default_full_name'));
+  readonly patientEmailDisplay = computed(() => this.extractAnswer('question_default_email'));
+  readonly patientPhoneDisplay = computed(() => this.extractAnswer('question_default_phone'));
+
+  private extractAnswer(questionId: string): string | undefined {
+    const data = this.isEditing() ? this.editedSubmission() : this.submissionData();
+    if (!data) return undefined;
+    for (const section of data.sections) {
+      for (const group of section.groups) {
+        for (const answer of group.answers) {
+          if (answer.questionId === questionId) {
+            const value = this.unwrapAnswerValue(answer.value);
+            return value != null && value !== '' ? String(value) : undefined;
+          }
+        }
+      }
+    }
+    return undefined;
+  }
+
+  /** Unwraps the stored submission's {questionId: {type: value}} shape into a flat
+   *  {questionId: value} record so DynamicFormRendererComponent can be pre-filled. */
+  readonly initialAnswersForEdit = computed<Record<string, any>>(() => {
+    const data = this.submissionData();
+    if (!data) return {};
+    const result: Record<string, any> = {};
+    for (const section of data.sections) {
+      for (const group of section.groups) {
+        for (const answer of group.answers) {
+          result[answer.questionId] = this.unwrapAnswerValue(answer.value);
+        }
+      }
+    }
+    return result;
+  });
 
   private readonly questionMap = computed<Record<string, FormQuestionDto>>(() => {
     const s = this.schema();
@@ -482,30 +515,6 @@ export class SubmissionDetailComponent implements OnInit {
     if (current == null) return [];
     switch (current) {
       case IntakeStatus.Pending:
-        return [{
-          type: 'status',
-          status: IntakeStatus.InReview,
-          label: 'Mark In Review',
-          icon: 'pi pi-eye',
-          severity: 'info' as const,
-          message: 'Mark this submission as in review?'
-        },
-        {
-          type: 'status',
-          status: IntakeStatus.Approved,
-          label: 'Approve',
-          icon: 'pi pi-check-circle',
-          severity: 'warn' as const,
-          message: 'Approve this submission?'
-        },
-        {
-          type: 'status',
-          status: IntakeStatus.Rejected,
-          label: 'Reject',
-          icon: 'pi pi-times-circle',
-          severity: 'danger' as const,
-          message: 'Reject this submission?'
-        }];
       case IntakeStatus.Submitted:
         return [{
           type: 'status',
@@ -517,14 +526,6 @@ export class SubmissionDetailComponent implements OnInit {
         },
         {
           type: 'status',
-          status: IntakeStatus.Approved,
-          label: 'Approve',
-          icon: 'pi pi-check-circle',
-          severity: 'warn' as const,
-          message: 'Approve this submission?'
-        },
-        {
-          type: 'status',
           status: IntakeStatus.Rejected,
           label: 'Reject',
           icon: 'pi pi-times-circle',
@@ -533,14 +534,6 @@ export class SubmissionDetailComponent implements OnInit {
         }];
       case IntakeStatus.InReview:
         return [{
-          type: 'status',
-          status: IntakeStatus.Approved,
-          label: 'Approve',
-          icon: 'pi pi-check-circle',
-          severity: 'warn' as const,
-          message: 'Approve this submission?'
-        },
-        {
           type: 'status',
           status: IntakeStatus.Rejected,
           label: 'Reject',
@@ -573,19 +566,20 @@ export class SubmissionDetailComponent implements OnInit {
           icon: 'pi pi-undo',
           severity: 'info' as const,
           message: 'Re-open this submission for review?'
-        },
-        {
-          type: 'status',
-          status: IntakeStatus.Approved,
-          label: 'Re-approve',
-          icon: 'pi pi-check-circle',
-          severity: 'warn' as const,
-          message: 'Re-approve this submission?'
         }];
       default:
         return [];
     }
   });
+
+  /** Edit is available for anything that hasn't already been converted or expired —
+   *  editing now leads straight into Convert to Patient, so it no longer depends on
+   *  an Approve transition being on the table. */
+  readonly canEdit = computed(() => {
+    const status = this.details()?.status;
+    return status != null && status !== IntakeStatus.Converted && status !== IntakeStatus.Expired;
+  });
+
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       this.submissionId.set(params.get('id'));
@@ -603,6 +597,7 @@ export class SubmissionDetailComponent implements OnInit {
 
     this.loading.set(true);
     this.error.set(null);
+    this.isEditing.set(false);
 
     this.intakeApi.getSubmissionDetails(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
@@ -617,10 +612,12 @@ export class SubmissionDetailComponent implements OnInit {
 
         if (data.painPointsData) {
           try {
-            this.painPoints.set(JSON.parse(data.painPointsData) as PainPointDto[]);
+            this.painMapPayload.set(JSON.parse(data.painPointsData) as BodyPainMapPayload);
           } catch {
-            // Pain points parsing failed
+            // Pain map parsing failed
           }
+        } else {
+          this.painMapPayload.set(null);
         }
 
         this.intakeApi.getFormSchemaById(data.formSchemaId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -644,6 +641,28 @@ export class SubmissionDetailComponent implements OnInit {
     });
   }
 
+  // --- Edit mode ---
+
+  startEditing(): void {
+    this.editedSubmission.set(this.submissionData());
+    this.editedPainMap.set(this.painMapPayload());
+    this.editIsValid.set(true);
+    this.isEditing.set(true);
+  }
+
+  cancelEditing(): void {
+    this.isEditing.set(false);
+    this.editedSubmission.set(null);
+    this.editedPainMap.set(null);
+  }
+
+  private unwrapAnswerValue(value: any): any {
+    if (value != null && typeof value === 'object' && !Array.isArray(value)) {
+      const keys = Object.keys(value);
+      if (keys.length === 1) return value[keys[0]];
+    }
+    return value;
+  }
 
   confirmUpdate(action: { type: 'status' | 'convert'; status: IntakeStatus; label: string; icon: string; severity: string; message: string }): void {
     if (action.type === 'convert') {
@@ -656,7 +675,6 @@ export class SubmissionDetailComponent implements OnInit {
       icon: 'pi pi-info-circle',
       acceptLabel: 'Yes, Proceed',
       rejectLabel: 'Cancel',
-      acceptButtonStyleClass: 'p-button-' + action.severity,
       accept: () => this.updateStatus(action.status),
     });
   }
@@ -668,10 +686,14 @@ export class SubmissionDetailComponent implements OnInit {
     this.updating.set(true);
 
     const request: UpdateIntakeStatusRequest = { newStatus };
+
     this.intakeApi.updateIntakeStatus(id, request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.snackbar.success('Status Updated', [`Submission moved to ${this.getStatusLabel(newStatus)}.`]);
         this.updating.set(false);
+        this.isEditing.set(false);
+        this.editedSubmission.set(null);
+        this.editedPainMap.set(null);
         this.loadDetails();
       },
       error: (err: any) => {
@@ -688,13 +710,40 @@ export class SubmissionDetailComponent implements OnInit {
 
     this.updating.set(true);
 
-    this.intakeApi.convertToPatient(id, { notes: this.convertNotes || undefined }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.showConvertDialog.set(false);
-        this.convertNotes = '';
+    // Always send the current data — edited version if the doctor was editing,
+    // otherwise whatever's already loaded. No conditional branching needed since
+    // both fields are sent in every case now.
+    const submission = this.isEditing() ? this.editedSubmission() : this.submissionData();
+    const painMap = this.isEditing() ? this.editedPainMap() : this.painMapPayload();
+
+    const request: ConvertIntakeToPatientRequest = {
+      formSubmissionData: submission ? JSON.stringify(submission) : undefined,
+      painPointsData: painMap && painMap.regions.length > 0 ? JSON.stringify(painMap) : undefined,
+    };
+
+    this.intakeApi.convertToPatient(id, request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (res: PreVisitIntakeResponse) => {
         this.snackbar.success('Conversion Successful', ['Submission has been converted to a patient record.']);
         this.updating.set(false);
-        this.loadDetails();
+        this.showConvertDialog.set(false);
+        this.isEditing.set(false);
+        this.editedSubmission.set(null);
+        this.editedPainMap.set(null);
+
+        // works from a refresh / shared link.
+        if (res?.convertedToPatientId) {
+          this.router.navigate(['/app/initial-report', res.convertedToPatientId], {
+            state: {
+              patient: {
+                id: res.convertedToPatientId,
+                name: res.patientName ?? this.patientNameDisplay(),
+                chiefComplaint: painMap?.chiefComplaint,
+              }
+            }
+          });
+        }else {
+          this.router.navigate(['/app/intake/submissions']);
+        }
       },
       error: (err: any) => {
         this.updating.set(false);
@@ -705,22 +754,12 @@ export class SubmissionDetailComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/intake/submissions']);
+    this.router.navigate(['/app/intake/submissions']);
   }
 
-  getInitials(name: string): string {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  }
-
-  getAvatarGradient(name: string): string {
-    const gradients = [
-      'linear-gradient(135deg, #6366f1, #8b5cf6)',
-      'linear-gradient(135deg, #ec4899, #f43f5e)',
-      'linear-gradient(135deg, #14b8a6, #06b6d4)',
-      'linear-gradient(135deg, #f59e0b, #ef4444)',
-      'linear-gradient(135deg, #22c55e, #16a34a)',
-    ];
-    return gradients[name.charCodeAt(0) % gradients.length];
+  getInitials(name: string | undefined): string {
+    if (!name) return '?';
+    return name.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2);
   }
 
   getSectionTitle(sectionId: string): string | undefined {
@@ -772,34 +811,38 @@ export class SubmissionDetailComponent implements OnInit {
     }
   }
 
-  getStatusSeverity(status: IntakeStatus): 'info' | 'warn' | 'success' | 'danger' | 'secondary' | 'contrast' {
+  /** Soft pill colors matching the rest of the app (submission-list uses the same palette). */
+  getStatusPillClass(status: IntakeStatus): string {
     switch (status) {
-      case IntakeStatus.Pending: return 'info';
-      case IntakeStatus.Submitted: return 'info';
-      case IntakeStatus.InReview: return 'warn';
-      case IntakeStatus.Approved: return 'success';
-      case IntakeStatus.Rejected: return 'secondary';
-      case IntakeStatus.Converted: return 'success';
-      case IntakeStatus.Expired: return 'secondary';
-      default: return 'info';
+      case IntakeStatus.Pending:
+      case IntakeStatus.Submitted:
+      case IntakeStatus.InReview:
+        return 'bg-amber-50 text-amber-700';
+      case IntakeStatus.Approved:
+      case IntakeStatus.Converted:
+        return 'bg-emerald-50 text-emerald-700';
+      case IntakeStatus.Rejected:
+      case IntakeStatus.Expired:
+        return 'bg-rose-50 text-rose-700';
+      default:
+        return 'bg-slate-100 text-slate-600';
     }
   }
 
-  getIntensityColor(intensity: number): string {
-    if (intensity <= 3) return '#22c55e';
-    if (intensity <= 6) return '#f59e0b';
-    return '#ef4444';
-  }
-
-  getIntensityGradient(intensity: number): string {
-    if (intensity <= 3) return 'linear-gradient(135deg, #22c55e, #16a34a)';
-    if (intensity <= 6) return 'linear-gradient(135deg, #f59e0b, #d97706)';
-    return 'linear-gradient(135deg, #ef4444, #dc2626)';
-  }
-
-  getIntensityLabel(intensity: number): string {
-    if (intensity <= 3) return 'Mild';
-    if (intensity <= 6) return 'Moderate';
-    return 'Severe';
+  /** Matches the reference design: solid fill for positive/primary actions,
+   *  white background with a colored border for destructive or informational ones —
+   *  not soft-pastel fills, this is the dedicated bottom action bar. */
+  getActionButtonClass(severity: string): string {
+    switch (severity) {
+      case 'success':
+      case 'warn':
+        return 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm';
+      case 'danger':
+        return 'bg-white text-rose-600 border border-rose-200 hover:bg-rose-50';
+      case 'info':
+        return 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50';
+      default:
+        return 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50';
+    }
   }
 }

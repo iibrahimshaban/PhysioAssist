@@ -1,7 +1,0 @@
-﻿namespace PhysioAssist.Api.Shared.Interfaces;
-
-public interface ISessionSummarizationService
-{
-    Task<string?> SummarizeSessionAsync(
-       string subjective, string? objectiveFindingsJson, string assessment, string plan, CancellationToken ct = default);
-}

@@ -1,8 +1,18 @@
-﻿global using Microsoft.EntityFrameworkCore;
+﻿global using FluentValidation;
+global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
-global using PhysioAssist.Api.Shared.ResultPattern;
-global using FluentValidation;
+global using PhysioAssist.Api.Shared.Authorization;
 global using PhysioAssist.Api.Shared.Common;
+global using PhysioAssist.Api.Shared.Consts;
 global using PhysioAssist.Api.Shared.Enums;
+global using PhysioAssist.Api.Shared.Extensions;
 global using PhysioAssist.Api.Shared.Interfaces;
-
+global using PhysioAssist.Api.Shared.Interfaces.Common;
+global using PhysioAssist.Api.Shared.Interfaces.Exposed;
+global using PhysioAssist.Api.Shared.ResultPattern;
+global using PhysioAssist.Api.Persistence;
+global using PhysioAssist.Api.Shared.Repositories;
+global using Hangfire;
+global using Mapster;
+global using MapsterMapper;
+global using Microsoft.AspNetCore.Authorization;

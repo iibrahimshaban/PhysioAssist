@@ -18,8 +18,6 @@ public static class DependancyInjection
     public static IServiceCollection AddQueryModuleConfig(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<TavilyOptions>(
-            // reuse the same config section if Tavily is already configured app-wide,
-            // otherwise bind a PhysioAssist-specific section
             configuration.GetRequiredSection(TavilyOptions.SectionName));
 
         services.AddSingleton<IChatHistoryStore, SessionChatHistoryStore>();

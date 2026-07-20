@@ -21,6 +21,7 @@ public static class DataSeeder
         await SeedAdminUserAsync(userManager);
         await SeedAdminPermissionsAsync(roleManager);
         await SeedSoloDoctorPermissionsAsync(roleManager);
+        // seed receptionist permissions 
 
         await DocumentationTemplateSeeder.SeedAsync(context);
         
@@ -31,7 +32,8 @@ public static class DataSeeder
         IdentityRole[] roles =
         [
             new IdentityRole { Id = DefaultRoles.AdminRoleId, Name = DefaultRoles.Admin },
-            new IdentityRole { Id = DefaultRoles.SoloRoleId,  Name = DefaultRoles.SoloDoctor }
+            new IdentityRole { Id = DefaultRoles.SoloRoleId,  Name = DefaultRoles.SoloDoctor },
+            new IdentityRole { Id = DefaultRoles.ReceptionistRoleId, Name = DefaultRoles.Receptionist }
         ];
 
         foreach (var role in roles)
@@ -91,13 +93,18 @@ public static class DataSeeder
 
         var soloDoctorPermissions = new[]
         {
-        Permissions.IntakeRead,
-        Permissions.IntakeManageForms,
-        Permissions.IntakeReview,
-        Permissions.IntakeConvert,
-        Permissions.QRGenerate,
-        Permissions.QRValidate,
-    };
+            Permissions.IntakeRead,
+            Permissions.IntakeManageForms,
+            Permissions.IntakeReview,
+            Permissions.IntakeConvert,
+            Permissions.QRGenerate,
+            Permissions.QRValidate,
+            Permissions.GetReceptionist,
+            Permissions.CreateReceptionist,
+            Permissions.UpdateReceptionist,
+            Permissions.CheckInPatients,
+            Permissions.ManageSchedule
+        };
 
         foreach (var permission in soloDoctorPermissions)
         {

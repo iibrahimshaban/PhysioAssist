@@ -1,0 +1,106 @@
+<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+  <button
+    type="button"
+    (click)="toggleAttachments()"
+    class="flex w-full items-center justify-between px-5 py-4"
+  >
+    <span class="text-sm font-bold uppercase text-slate-700"> ATTACHMENTS </span>
+
+    <i
+      class="fa-solid transition-transform duration-200"
+      [class.fa-chevron-up]="isOpen()"
+      [class.fa-chevron-down]="!isOpen()"
+    ></i>
+  </button>
+
+  @if (isOpen()) {
+    <div class="border-t border-slate-100 p-5">
+      <label
+        for="sessionAttachments"
+        class="flex h-24 cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 px-3 text-center text-sm text-slate-500 transition hover:border-[#0B8EEA] hover:text-[#0B8EEA]"
+      >
+        <i class="fa-solid fa-paperclip mr-2"></i>
+        <span>Drop X-rays or photos here</span>
+      </label>
+
+      <input
+        id="sessionAttachments"
+        type="file"
+        multiple
+        accept="image/*"
+        class="hidden"
+        (change)="onFilesSelected($event)"
+      />
+
+      @if ((session()?.attachments?.length ?? 0) > 0) {
+        <div class="mt-4">
+          <p class="mb-2 text-xs font-bold uppercase text-slate-500">Uploaded attachments</p>
+
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            @for (attachment of session()?.attachments; track attachment.id) {
+              <div class="relative overflow-hidden rounded-xl border border-slate-200 bg-white">
+                <button
+                  type="button"
+                  (click)="deleteAttachment(attachment.id)"
+                  class="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-red-500 shadow transition hover:bg-red-500 hover:text-white"
+                >
+                  <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+
+                <a [href]="attachment.fileUrl" target="_blank" rel="noopener noreferrer">
+                  <img
+                    [src]="attachment.fileUrl"
+                    [alt]="attachment.fileName"
+                    class="h-28 w-full object-cover"
+                  />
+
+                  <div class="p-2">
+                    <p class="truncate text-xs font-semibold text-slate-700">
+                      {{ attachment.fileName }}
+                    </p>
+                  </div>
+                </a>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (selectedFiles().length > 0) {
+        <div class="mt-4">
+          <p class="mb-2 text-xs font-bold uppercase text-slate-500">New attachments</p>
+
+          <div class="space-y-2">
+            @for (item of selectedFiles(); track item.preview; let index = $index) {
+              <div class="flex items-center gap-4 rounded-xl border border-slate-200 p-3">
+                <img
+                  [src]="item.preview"
+                  [alt]="item.file.name"
+                  class="h-16 w-16 rounded-lg border object-cover"
+                />
+
+                <div class="min-w-0 flex-1">
+                  <p class="truncate font-semibold text-slate-800">
+                    {{ item.file.name }}
+                  </p>
+
+                  <p class="text-xs text-slate-500">
+                    {{ (item.file.size / 1024 / 1024).toFixed(2) }} MB
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  (click)="removeSelectedAttachment(index)"
+                  class="text-slate-400 transition hover:text-red-500"
+                >
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

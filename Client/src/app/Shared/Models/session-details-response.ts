@@ -7,6 +7,7 @@ export interface SessionDetailsResponse {
   status: number;
   editedTranscript: string;
   attachments: Attachment[];
+  audioFileUrl: string | null;
 }
 
 interface Attachment {

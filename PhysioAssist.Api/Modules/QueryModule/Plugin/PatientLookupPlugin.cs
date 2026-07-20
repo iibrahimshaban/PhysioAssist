@@ -1,4 +1,5 @@
 ﻿using Microsoft.SemanticKernel;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
 using System.ComponentModel;
 
 namespace PhysioAssist.Api.Modules.QueryModule.Plugin;

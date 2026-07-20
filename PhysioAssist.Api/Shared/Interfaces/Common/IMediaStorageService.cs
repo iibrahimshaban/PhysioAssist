@@ -1,0 +1,11 @@
+namespace PhysioAssist.Api.Shared.Interfaces.Common;
+
+public interface IMediaStorageService
+{
+    Task<string> UploadImageAsync(IFormFile file, string folder, string publicId);
+    Task<string> UploadClinicalImageAsync(IFormFile file, string folder, string publicId);
+    Task DeleteImageAsync(string publicId);
+    Task DeleteImageByUrlAsync(string imageUrl);
+    Task<string> UploadAudioAsync(IFormFile file, string folder, string publicId);
+    Task<string> UploadRawFileAsync(Stream fileStream, string folder, string publicId, string fileExtension);
+}

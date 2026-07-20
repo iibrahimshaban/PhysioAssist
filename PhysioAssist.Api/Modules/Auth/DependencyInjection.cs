@@ -5,6 +5,7 @@ using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.Auth.JwtService;
 using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Persistence;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
 using System.Text;
 
 namespace PhysioAssist.Api.Modules.Auth;
@@ -20,6 +21,9 @@ public static class DependencyInjection
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAccountService, AccountService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IReceptionistService, ReceptionistService>();
+
         services.AddSingleton<IJwtProvider, JwtProvider>();
         services.AddScoped<IAuthQueryService, AuthQueryService>();
 

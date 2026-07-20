@@ -1,15 +1,22 @@
+using Microsoft.Extensions.Options;
+using QRCoder;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Options;
-using PhysioAssist.Api.Shared.Interfaces;
+using IQRService = PhysioAssist.Api.Shared.Interfaces.Common.IQRService;
 
 namespace PhysioAssist.Api.Shared.QR;
 
-public class QRService(IOptions<QRTokenOptions> options, ILogger<QRService> logger) : IQRService
+public class QRService(
+    IOptions<QRTokenOptions> options,
+    IMediaStorageService mediaStorageService,
+    ILogger<QRService> logger) : IQRService
 {
     private readonly QRTokenOptions _options = options.Value;
+    private readonly IMediaStorageService _mediaStorageService = mediaStorageService;
     private readonly ILogger<QRService> _logger = logger;
+
+    // ---------- Signed token generation / validation (unchanged) ----------
 
     public Result<string> GenerateToken(QRTokenPayload payload)
     {
@@ -49,14 +56,8 @@ public class QRService(IOptions<QRTokenOptions> options, ILogger<QRService> logg
             var json = Encoding.UTF8.GetString(FromBase64Url(token));
             payload = JsonSerializer.Deserialize<QRTokenPayload>(json);
         }
-        catch (JsonException)
-        {
-            return InvalidTokenResult();
-        }
-        catch (FormatException)
-        {
-            return InvalidTokenResult();
-        }
+        catch (JsonException) { return InvalidTokenResult(); }
+        catch (FormatException) { return InvalidTokenResult(); }
 
         if (payload is null || payload.TargetId == Guid.Empty || string.IsNullOrWhiteSpace(payload.Nonce) || string.IsNullOrWhiteSpace(payload.Signature))
             return InvalidTokenResult();
@@ -90,6 +91,41 @@ public class QRService(IOptions<QRTokenOptions> options, ILogger<QRService> logg
         return Result.Success(ToBase64Url(hash));
     }
 
+    // ---------- QR image generation (merged in) ----------
+
+    public byte[] GenerateQrImageBytes(string content)
+    {
+        using var qrGenerator = new QRCodeGenerator();
+        using var qrCodeData = qrGenerator.CreateQrCode(content, QRCodeGenerator.ECCLevel.Q);
+        var qrCode = new PngByteQRCode(qrCodeData);
+        return qrCode.GetGraphic(20);
+    }
+
+    public async Task<Result<string>> GenerateQrImageUrlAsync(string content, string folder, string publicId)
+    {
+        var qrCodeBytes = GenerateQrImageBytes(content);
+
+        using var stream = new MemoryStream(qrCodeBytes);
+        var formFile = new FormFile(stream, 0, qrCodeBytes.Length, publicId, $"{publicId}.png")
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "image/png"
+        };
+
+        try
+        {
+            var url = await _mediaStorageService.UploadImageAsync(formFile, folder, publicId);
+            return Result.Success(url);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to upload QR image for {PublicId}", publicId);
+            return Result.Failure<string>(QRErrors.ImageUploadFailed);
+        }
+    }
+
+    // ---------- private helpers (unchanged) ----------
+
     private Result<QRTokenPayload> InvalidTokenResult()
     {
         _logger.LogWarning("QR token validation failed because the token was invalid.");
@@ -103,20 +139,12 @@ public class QRService(IOptions<QRTokenOptions> options, ILogger<QRService> logg
         return ToBase64Url(hmac.ComputeHash(Encoding.UTF8.GetBytes(signingInput)));
     }
 
-    private static string ToBase64Url(byte[] bytes)
-    {
-        return Convert.ToBase64String(bytes)
-            .TrimEnd('=')
-            .Replace('+', '-')
-            .Replace('/', '_');
-    }
+    private static string ToBase64Url(byte[] bytes) =>
+        Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
     private static byte[] FromBase64Url(string value)
     {
-        var padded = value
-            .Replace('-', '+')
-            .Replace('_', '/');
-
+        var padded = value.Replace('-', '+').Replace('_', '/');
         padded = padded.PadRight(padded.Length + (4 - padded.Length % 4) % 4, '=');
         return Convert.FromBase64String(padded);
     }

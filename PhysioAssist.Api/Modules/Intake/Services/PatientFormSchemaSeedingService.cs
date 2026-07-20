@@ -1,5 +1,6 @@
 ﻿using PhysioAssist.Api.Modules.Intake.DTOs.FormSchemas;
 using PhysioAssist.Api.Modules.Intake.Helpers;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -28,8 +29,8 @@ public class PatientFormSchemaSeedingService(IIntakeService intakeService) : IPa
         {
             Name = string.IsNullOrWhiteSpace(clinicName)
                 ? "Default Intake Form"
-                : $"{clinicName} - Default Intake Form",
-            Description = "Auto-generated starter intake form. Edit sections and questions as needed.",
+                : $"{clinicName} - Form",
+            Description = "welecome to our clinic, please fill out the form",
             SchemaJson = schemaJson,
             IsDefault = true,
         };
