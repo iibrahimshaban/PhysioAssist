@@ -11,7 +11,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 public class AppointmentService(
     IUnitOfWork unitOfWork,
     IAppointmentValidator validator,
-    INotificationService notificationService,
+    PhysioAssist.Api.Modules.Notification.Interfaces.INotificationService notificationService,
     IAppointmentContactResolver contactResolver)
     : IAppointmentService
 {
@@ -19,7 +19,7 @@ public class AppointmentService(
 
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IAppointmentValidator _validator = validator;
-    private readonly INotificationService _notificationService = notificationService;
+    private readonly PhysioAssist.Api.Modules.Notification.Interfaces.INotificationService _notificationService = notificationService;
     private readonly IAppointmentContactResolver _contactResolver = contactResolver;
 
     public async Task<Result<ScheduleSlotDto>> CreateAsync(CreateAppointmentRequest request, CancellationToken cancellationToken = default)
