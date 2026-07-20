@@ -1,8 +1,8 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Infrastructure.CloudinaryClient;
+
 public class CloudinaryService(Cloudinary cloudinary) : IMediaStorageService
 {
     private readonly Cloudinary _cloudinary = cloudinary;
@@ -53,6 +53,26 @@ public class CloudinaryService(Cloudinary cloudinary) : IMediaStorageService
         if (string.IsNullOrEmpty(publicId))
             return;
         await DeleteImageAsync(publicId);
+    }
+    //----------------------------------------------------------------------------------------------------
+    public async Task<string> UploadAudioAsync(IFormFile file, string folder, string publicId)
+    {
+        await using var stream = file.OpenReadStream();
+
+        var uploadParams = new VideoUploadParams
+        {
+            File = new FileDescription(file.FileName, stream),
+            Folder = folder,
+            PublicId = publicId,
+            Overwrite = true
+        };
+
+        var result = await _cloudinary.UploadAsync(uploadParams);
+
+        if (result.Error is not null)
+            throw new InvalidOperationException(result.Error.Message);
+
+        return result.SecureUrl.ToString();
     }
     //---------------------------------------------------------------------------------------------------
     public async Task<string> UploadRawFileAsync(Stream fileStream, string folder, string publicId, string fileExtension)

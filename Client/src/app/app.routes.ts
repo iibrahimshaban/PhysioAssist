@@ -42,8 +42,5 @@ export const routes: Routes = [
     path: 'public',
     loadChildren: () => import('./Features/intake/intake.routes').then((m) => m.publicIntakeRoutes),
   },
-
-  { path: 'initial-report', loadComponent: () => import('./Features/initial-report/initial-report.component').then(m => m.InitialReportComponent) },
-
   { path: '**', redirectTo: 'not-found' },
 ];
