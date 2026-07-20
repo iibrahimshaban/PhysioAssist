@@ -13,6 +13,7 @@ using PhysioAssist.Api.Modules.Auth;
 using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Modules.DocumentationModule;
 using PhysioAssist.Api.Modules.Intake;
+using PhysioAssist.Api.Modules.Notification;
 using PhysioAssist.Api.Modules.PatientModule;
 using PhysioAssist.Api.Modules.PatientModule.Services;
 using PhysioAssist.Api.Modules.QueryModule;
@@ -153,11 +154,13 @@ public static class DependancyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IScheduleSlotRepository, ScheduleSlotRepository>();
+        services.AddScoped<IAppointmentContactResolver, AppointmentContactResolver>();
         services.AddScoped<IWorkingScheduleRepository, WorkingScheduleRepository>();
         services.AddScoped<IWorkingScheduleDayRepository, WorkingScheduleDayRepository>();
         services.AddScoped<IAppointmentValidator, AppointmentValidator>();
         services.AddScoped<IAppointmentService, AppointmentService>();
         services.AddScoped<IWorkingScheduleService, WorkingScheduleService>();
+        services.AddNotificationModule();
         services
             .AddOptions<MailSettings>()
             .BindConfiguration(MailSettings.SectionName)

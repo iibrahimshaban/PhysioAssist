@@ -36,7 +36,20 @@ export const routes: Routes = [
     path: 'app',
     component: MainLayoutComponent,
     canActivate: [authGuard],
-    loadChildren: () => import('./Layout/main-layout/main-layout.routes').then((m) => m.MainLayoutRoutes),
+    loadChildren: () =>
+      import('./Layout/main-layout/main-layout.routes').then((m) => m.MainLayoutRoutes),
+  },
+  {
+    path: 'working-schedule',
+    loadComponent: () =>
+      import('./Features/WorkingSchedule/working-schedule.component').then(
+        (m) => m.WorkingScheduleComponent,
+      ),
+  },
+  {
+    path: 'schedule',
+    loadComponent: () =>
+      import('./Features/Schedule/schedule-page.component').then((m) => m.SchedulePageComponent),
   },
   {
     path: 'public',
