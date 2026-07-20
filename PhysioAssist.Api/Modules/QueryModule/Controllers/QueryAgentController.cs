@@ -4,7 +4,10 @@ using PhysioAssist.Api.Modules.QueryModule.Interfaces;
 
 namespace PhysioAssist.Api.Modules.QueryModule.Controllers
 {
-    public class QueryAgentController : Controller
+#pragma warning disable SKEXP0110
+    [Route("api")]
+    [ApiController]
+    public class QueryAgentController : ControllerBase
     {
         private readonly ChatCompletionAgent _agent;
         private readonly IChatHistoryStore _historyStore;
@@ -23,6 +26,9 @@ namespace PhysioAssist.Api.Modules.QueryModule.Controllers
         [HttpGet("ask")]
         public async Task<IActionResult> Ask([FromQuery] string conversationId, [FromQuery] string question, CancellationToken ct)
         {
+            if (string.IsNullOrWhiteSpace(conversationId))
+                return BadRequest("conversationId is required.");
+
             if (string.IsNullOrWhiteSpace(question))
                 return BadRequest("Question is required.");
 
@@ -66,7 +72,8 @@ namespace PhysioAssist.Api.Modules.QueryModule.Controllers
             if (result.IsSuccess)
                 return Ok(new { result = result.Value, response = "The conversation cleared successfully" });
 
-            return NotFound(new { result = false , response = "The conversation does not exist" });
+            return NotFound(new { result = false, response = "The conversation does not exist" });
         }
     }
+#pragma warning restore SKEXP0110
 }

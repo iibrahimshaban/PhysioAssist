@@ -1,0 +1,18 @@
+@let m = message();
+
+<div class="flex" [class.justify-end]="m.role === 'user'">
+  <div
+    class="max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed mb-3.5 shadow-md"
+    [class.bg-blue-600]="m.role === 'user'"
+    [class.text-white]="m.role === 'user'"
+    [class.bg-gray-100]="m.role === 'assistant'"
+    [class.text-gray-800]="m.role === 'assistant'"
+    [class.opacity-60]="m.status === 'sending'">
+
+    <p class="whitespace-pre-wrap">{{ m.content }}</p>
+
+    @if (m.status === 'error') {
+      <p class="mt-1 text-xs font-medium text-red-200">Couldn't send. Tap to retry.</p>
+    }
+  </div>
+</div>

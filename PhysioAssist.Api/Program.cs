@@ -1,7 +1,6 @@
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
 using PhysioAssist.Api;
-using PhysioAssist.Api.Modules.DocumentationModule.Seed;
 using PhysioAssist.Api.Shared.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
