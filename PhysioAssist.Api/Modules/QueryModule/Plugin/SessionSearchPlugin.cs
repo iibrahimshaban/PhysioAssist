@@ -1,4 +1,5 @@
 ﻿using Microsoft.SemanticKernel;
+using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 using System.ComponentModel;
 using System.Text;
 

@@ -1,6 +1,5 @@
 using PhysioAssist.Api.Modules.InitialReportModule.Repositories;
 using PhysioAssist.Api.Modules.InitialReportModule.Services;
-using PhysioAssist.Api.Shared.Interfaces;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule;
 

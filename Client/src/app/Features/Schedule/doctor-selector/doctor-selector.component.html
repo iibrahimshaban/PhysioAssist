@@ -1,0 +1,6 @@
+<select class="doctor-selector" [value]="selectedDoctorId() ?? ''" (change)="onSelect($event)">
+  <option value="" disabled>Select a doctor</option>
+  @for (doctor of doctors(); track doctor.id) {
+    <option [value]="doctor.id">{{ doctor.displayLabel }}</option>
+  }
+</select>

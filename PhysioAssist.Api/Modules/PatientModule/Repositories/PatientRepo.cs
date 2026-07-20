@@ -27,7 +27,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
             return await _context.Patients.ToListAsync();
         }
 
-        public async Task<Patient?> GetByIdAsync(int id)
+        public async Task<Patient?> GetByIdAsync(Guid id)
         {
             return await _context.Patients.FindAsync(id);
         }
@@ -52,6 +52,13 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
         public void Update(Patient entity)
         {
             _context.Patients.Update(entity);
+        }
+        public async Task<IEnumerable<Patient>> GetByDoctorId(Guid doctorId, CancellationToken cancellation)
+        {
+            return await _context.DoctorPatients
+                .Where(dp => dp.DoctorId == doctorId)
+                .Select(dp => dp.Patient)
+                .ToListAsync(cancellation);
         }
     }
 }

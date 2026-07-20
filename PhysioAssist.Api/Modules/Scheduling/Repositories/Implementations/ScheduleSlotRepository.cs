@@ -14,8 +14,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations
 
         public Task<bool> HasOverlapAsync(
         Guid doctorId,
-        DateTime slotStart,
-        DateTime slotEnd,
+        DateTimeOffset slotStart,
+        DateTimeOffset slotEnd,
         Guid? excludeAppointmentId = null,
         CancellationToken cancellationToken = default)
         {
@@ -33,7 +33,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations
 
         public async Task<List<ScheduleSlot>> GetDoctorAppointmentsForDayAsync(
             Guid doctorId,
-            DateTime date,
+            DateTimeOffset date,
             CancellationToken cancellationToken = default)
         {
             var dayStart = date.Date;
@@ -50,8 +50,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations
 
         public async Task<List<ScheduleSlot>> GetDoctorAppointmentsAsync(
             Guid doctorId,
-            DateTime from,
-            DateTime to,
+            DateTimeOffset from,
+            DateTimeOffset to,
             CancellationToken cancellationToken = default)
         {
             return await _context.Set<ScheduleSlot>()
@@ -60,6 +60,49 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations
                     x.SlotStart >= from &&
                     x.SlotEnd <= to)
                 .OrderBy(x => x.SlotStart)
+                .ToListAsync(cancellationToken);
+        }
+
+        // Repositories/Implementations/ScheduleSlotRepository.cs — add this method to the existing class
+        public Task<List<ScheduleSlot>> GetCancelledAppointmentsAsync(
+            Guid doctorId,
+            DateTimeOffset? from,
+            DateTimeOffset? to,
+            CancellationToken cancellationToken = default)
+        {
+            var query = _context.ScheduleSlots
+                .Where(s => s.DoctorId == doctorId && s.Status == SlotStatus.Cancelled);
+
+            if (from.HasValue)
+                query = query.Where(s => s.SlotStart >= from.Value);
+
+            if (to.HasValue)
+                query = query.Where(s => s.SlotStart <= to.Value);
+
+            // Most recently cancelled first — matches how a receptionist would want
+            // to review cancellations (newest first), unlike appointment-day queries
+            // which order chronologically ascending.
+            return query.OrderByDescending(s => s.SlotStart).ToListAsync(cancellationToken);
+        }
+
+
+        public Task<List<ScheduleSlot>> GetBookedAppointmentsAsync(
+            Guid doctorId,
+            CancellationToken cancellationToken = default)
+        {
+            return _context.ScheduleSlots
+                .Where(s => s.DoctorId == doctorId && s.Status == SlotStatus.Booked )
+                .ToListAsync(cancellationToken);
+        }
+
+        
+        public Task<List<ScheduleSlot>> GetFutureBookedAppointmentsAsync(
+            Guid doctorId,
+            DateTimeOffset from,
+            CancellationToken cancellationToken = default)
+        {
+            return _context.ScheduleSlots
+                .Where(s => s.DoctorId == doctorId && s.Status == SlotStatus.Booked && s.SlotStart >= from)
                 .ToListAsync(cancellationToken);
         }
     }

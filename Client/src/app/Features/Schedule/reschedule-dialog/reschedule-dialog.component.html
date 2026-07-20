@@ -1,0 +1,77 @@
+<!-- components/reschedule-dialog/reschedule-dialog.component.html -->
+@if (isOpen() && appointment(); as a) {
+  <div class="drawer-backdrop" (click)="onClose()"></div>
+  <div class="drawer">
+    <div class="drawer__header">
+      <h2 class="drawer__title">Reschedule Appointment</h2>
+      <button type="button" class="drawer__close" (click)="onClose()">✕</button>
+    </div>
+
+    <div class="drawer__section">
+      <span class="drawer__label">Current Time</span>
+      <span class="drawer__value">
+        {{ a.slotStart | date:'EEE, MMM d · h:mm a' }} – {{ a.slotEnd | date:'h:mm a' }}
+      </span>
+    </div>
+
+    <div class="form-field">
+      <span class="form-field__label">Choose a Working Day</span>
+      @if (loading()) {
+        <span class="drawer__value">Loading availability...</span>
+      } @else if (workingDays().length === 0) {
+        <span class="drawer__value">No availability in the next 30 days.</span>
+      } @else {
+        <div class="day-chip-row">
+          @for (day of workingDays(); track day.date.getTime()) {
+            <button type="button" class="day-chip"
+              [class.day-chip--active]="selectedDay()?.date?.getTime() === day.date.getTime()"
+              (click)="selectDay(day)">
+              {{ day.date | date:'EEE, MMM d' }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    @if (selectedDay(); as day) {
+      <div class="form-field">
+        <span class="form-field__label">Choose an Available Window</span>
+        <div class="interval-grid">
+          @for (interval of day.intervals; track interval.start.getTime()) {
+            <button type="button" class="interval-btn"
+              [class.interval-btn--active]="selectedInterval()?.start?.getTime() === interval.start.getTime()"
+              (click)="selectInterval(interval)">
+              {{ interval.start | date:'h:mm a' }} – {{ interval.end | date:'h:mm a' }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    @if (selectedInterval()) {
+      <div class="form-field">
+        <span class="form-field__label">Exact Start Time (within the window above)</span>
+        <input
+          type="time"
+          class="form-field__input"
+          [min]="timeInputMin()"
+          [max]="timeInputMax()"
+          [value]="selectedTime()"
+          (input)="onTimeInput($event)"
+        />
+        @if (!isTimeValid()) {
+          <span class="form-field__hint form-field__hint--error">
+            Must fit within {{ timeInputMin() }} – {{ timeInputMax() }} to preserve the original duration.
+          </span>
+        } @else {
+          <span class="form-field__hint">Duration stays {{ originalDurationMinutes() }} min, same as the original appointment.</span>
+        }
+      </div>
+    }
+
+    <div class="drawer__actions">
+      <button type="button" class="drawer-btn drawer-btn--primary" [disabled]="!isTimeValid()" (click)="onConfirm()">Confirm</button>
+      <button type="button" class="drawer-btn" (click)="onClose()">Cancel</button>
+    </div>
+  </div>
+}

@@ -1,6 +1,9 @@
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
+using Microsoft.Extensions.Options;
 using PhysioAssist.Api;
+using PhysioAssist.Api.Infrastructure.GroqClient;
+using PhysioAssist.Api.Modules.DocumentationModule.Seed;
 using PhysioAssist.Api.Shared.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +14,14 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddGlobalServicesRegistration(builder.Configuration);
 
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
+
+
 var app = builder.Build();
+
+var options = app.Services.GetRequiredService<IOptions<GroqPatientSummaryOptions>>().Value;
+app.Logger.LogInformation("Groq patient summary model: {Model}", options.ChatModel);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -47,5 +57,6 @@ app.UseHangfireDashboard("/jobs", new DashboardOptions
 app.MapControllers();
 
 await DataSeeder.SeedAsync(app.Services);
+await TestDataSeeder.SeedAsync(app.Services);
 
 app.Run();

@@ -6,9 +6,9 @@ using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.Auth.Errors;
 using PhysioAssist.Api.Modules.Auth.JwtService;
 using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Consts;
 using PhysioAssist.Api.Shared.Helpers;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
+using PhysioAssist.Api.Shared.Interfaces.Exposed;
 using System.Security.Cryptography;
 
 namespace PhysioAssist.Api.Modules.Auth.Services;
@@ -19,7 +19,9 @@ public class AuthService(
         SignInManager<ApplicationUser> signInManager,
         ApplicationDbContext context,
         ICustomEmailService emailService,
-        IMediaStorageService storageService
+        IMediaStorageService storageService,
+        IPatientFormSchemaSeedingService formSchemaSeedingService,
+        ILogger<AuthService> _logger
         ) : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
@@ -28,6 +30,7 @@ public class AuthService(
     private readonly ApplicationDbContext _context = context;
     private readonly ICustomEmailService _emailService = emailService;
     private readonly IMediaStorageService _storageService= storageService;
+    private readonly IPatientFormSchemaSeedingService _formSchemaSeedingService = formSchemaSeedingService;
 
     private static readonly int RefreshTokenExpiryInDays = 90;
     private const int OtpExpiryIn = 15;
@@ -81,7 +84,7 @@ public class AuthService(
         {
             Id = userId.ToString(),
             Email = request.Email,
-            UserName = request.UserName,
+            UserName = request.Email,
             FirstName = request.FirstName,
             LastName = request.LastName,
             IsDisabled = false,
@@ -108,6 +111,7 @@ public class AuthService(
 
         await _context.Doctors.AddAsync(new Doctor
         {
+            Id = userId,
             UserId = userId.ToString(),
             ClinicName = request.ClinicName,
         }, cancellationToken);
@@ -240,6 +244,20 @@ public class AuthService(
         await _userManager.UpdateAsync(user);
         await _userManager.AddToRoleAsync(user, DefaultRoles.SoloDoctor);
 
+        var doctor = await _context.Doctors
+        .FirstOrDefaultAsync(d => d.UserId == user.Id, cancellationToken);
+
+        if (doctor is not null)
+        {
+            var seedResult = await _formSchemaSeedingService.SeedDefaultSchemaAsync(
+                doctor.Id, doctor.ClinicName, cancellationToken);
+
+            if (seedResult.IsFailure)
+                _logger.LogWarning(
+                    "Failed to seed default form schema for doctor {DoctorId}: {Error}",
+                    doctor.Id, seedResult.Error);
+        }
+
         return Result.Success();
     }
 
@@ -367,17 +385,27 @@ public class AuthService(
     {
         var roles = await _userManager.GetRolesAsync(user);
 
-        var permissions = await (from r in _context.Roles
-                                 join rc in _context.RoleClaims
-                                 on r.Id equals rc.RoleId
-                                 where roles.Contains(r.Name!)
-                                 select rc.ClaimValue)
-                                 .Distinct()
-                                 .ToListAsync();
+        var rolePermissions = await (from r in _context.Roles
+                                     join rc in _context.RoleClaims
+                                     on r.Id equals rc.RoleId
+                                     where roles.Contains(r.Name!) && rc.ClaimType == Permissions.Type
+                                     select rc.ClaimValue)
+                                     .ToListAsync();
 
-        return (roles, permissions);
+        var userPermissions = await _context.UserClaims
+            .Where(uc => uc.UserId == user.Id && uc.ClaimType == Permissions.Type)
+            .Select(uc => uc.ClaimValue)
+            .ToListAsync();
+
+        var permissions = rolePermissions
+            .Concat(userPermissions)
+            .Where(p => !string.IsNullOrEmpty(p))
+            .Distinct()
+            .ToList();
+
+        return (roles, permissions!);
     }
 
-    
+
 }
 

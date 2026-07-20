@@ -1,6 +1,6 @@
 ﻿using Microsoft.Data.SqlTypes;
 using Microsoft.Extensions.Options;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 using System.Net.Http.Headers;
 
 namespace PhysioAssist.Api.Infrastructure.GitHubModelsClient;
@@ -31,7 +31,7 @@ public class GitHubModelsEmbeddingService : IEmbeddingService
 
         var result = await response.Content.ReadFromJsonAsync<EmbeddingResponse>(cancellationToken: ct);
 
-        return new SqlVector<float>(result.Data[0].Embedding);
+        return new SqlVector<float>(result!.Data[0].Embedding);
     }
 
     private sealed record EmbeddingResponse(EmbeddingData[] Data);

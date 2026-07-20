@@ -8,5 +8,6 @@ public class InitialReport : AuditableEntity
     public Guid PatientId { get; set; }
     public string? TreatmentPlanPdfUrl { get; set; }
     public bool IsDeleted { get; set; } = false;
+    public string? ObjectiveFindings { get; set; }
     public ICollection<ReportAttachment> Attachments { get; set; } = [];
 }

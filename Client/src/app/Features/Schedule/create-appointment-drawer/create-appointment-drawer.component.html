@@ -1,0 +1,37 @@
+@if (isOpen()) {
+  <div class="drawer-backdrop" (click)="onCancel()"></div>
+  <div class="drawer">
+    <div class="drawer__header">
+      <h2 class="drawer__title">New Appointment</h2>
+      <button type="button" class="drawer__close" (click)="onCancel()">✕</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="drawer__form">
+      <label class="form-field">
+        <span class="form-field__label">Patient ID</span>
+        <input type="text" formControlName="patientId" placeholder="Patient GUID (temporary)" class="form-field__input" />
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">Start Time</span>
+        <input type="time" formControlName="startTime" class="form-field__input" />
+      </label>
+
+      <div class="form-field">
+        <span class="form-field__label">Duration</span>
+        <div class="duration-buttons">
+          @for (option of durationOptions; track option) {
+            <button type="button" class="duration-btn"
+              [class.duration-btn--active]="form.value.durationMinutes === option"
+              (click)="selectDuration(option)">{{ option }}m</button>
+          }
+        </div>
+      </div>
+
+      <div class="drawer__actions">
+        <button type="submit" class="drawer-btn drawer-btn--primary" [disabled]="form.invalid">Create</button>
+        <button type="button" class="drawer-btn" (click)="onCancel()">Cancel</button>
+      </div>
+    </form>
+  </div>
+}
