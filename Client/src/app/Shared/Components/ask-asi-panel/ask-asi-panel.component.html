@@ -48,17 +48,30 @@
             type="text"
             [ngModel]="queryText()"
             (ngModelChange)="queryText.set($event)"
-            (keydown.enter)="onEnter($event)"
+            (keydown.enter)="onEnter($any($event))"
             placeholder="Ask a question..."
             class="flex w-full rounded-xl border border-gray-300 bg-transparent px-3 py-1 shadow-sm transition-colors
             placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[oklch(58%_.16_240)] disabled:cursor-not-allowed disabled:opacity-50
             h-12 pr-12 text-base"/>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-               class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400">
-            <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
-            <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v3" />
-          </svg>
+
+          <button
+            type="button"
+            (click)="send()"
+            [disabled]="loading() || !queryText().trim()"
+            class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-400 transition hover:text-blue-600 disabled:cursor-not-allowed disabled:text-gray-300"
+            aria-label="Send">
+            @if (loading()) {
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="h-4 w-4 animate-spin">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" stroke-opacity="0.25" />
+                <path d="M21 12a9 9 0 00-9-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+              </svg>
+            }
+          </button>
         </div>
 
         <div class="mt-4 flex gap-2">
@@ -154,22 +167,37 @@
               rows="1"
               [ngModel]="queryText()"
               (ngModelChange)="queryText.set($event)"
-              (keydown.enter)="onEnter($event)"
+              (keydown.enter)="onEnter($any($event))"
               placeholder="Ask a follow-up..."
               class="max-h-28 flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-blue-500"
             ></textarea>
-            <button
-              type="button"
-              (click)="send()"
-              [disabled]="loading() || !queryText().trim()"
-              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[oklch(58%_.16_240)] text-white transition hover:bg-[oklch(58%_.16_240/.9)] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
-              aria-label="Send"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
-                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-              </svg>
-            </button>
+            @if (loading())
+            {
+              <button
+                type="button"
+                (click)="stop()"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-800 text-white transition hover:bg-gray-900"
+                aria-label="Stop generating"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5">
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                </svg>
+              </button>
+            }
+            @else
+            {
+              <button
+                type="button"
+                (click)="send()"
+                [disabled]="!queryText().trim()"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[oklch(58%_.16_240)] text-white transition hover:bg-[oklch(58%_.16_240/.9)] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
+                aria-label="Send">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                </svg>
+              </button>
+            }
           </div>
         </div>
       </div>

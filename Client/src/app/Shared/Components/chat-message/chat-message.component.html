@@ -9,7 +9,15 @@
     [class.text-gray-800]="m.role === 'assistant'"
     [class.opacity-60]="m.status === 'sending'">
 
-    <p class="whitespace-pre-wrap">{{ m.content }}</p>
+    @if (m.status === 'sending' && !m.content) {
+      <span class="flex gap-1 py-1">
+        <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]"></span>
+        <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></span>
+        <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400"></span>
+      </span>
+    } @else {
+      <p class="whitespace-pre-wrap">{{ m.content }}</p>
+    }
 
     @if (m.status === 'error') {
       <p class="mt-1 text-xs font-medium text-red-200">Couldn't send. Tap to retry.</p>
