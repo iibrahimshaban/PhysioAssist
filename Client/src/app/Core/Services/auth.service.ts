@@ -51,7 +51,6 @@ export class AuthService {
   register(request: RegisterRequest) {
     const form = new FormData();
     form.append('email', request.email);
-    form.append('userName', request.userName);
     form.append('firstName', request.firstName);
     form.append('lastName', request.lastName);
     form.append('password', request.password);

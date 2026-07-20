@@ -69,7 +69,6 @@ export class RegisterComponent {
     this.auth.register({
       firstName: firstName!,
       lastName: lastName!,
-      userName,
       clinicName: clinicName!,
       email: email!,
       password: password!,

@@ -20,7 +20,6 @@ export interface LoginRequest {
 /** AuthService builds the FormData — controller uses [FromForm] */
 export interface RegisterRequest {
   email: string;
-  userName: string;
   firstName: string;
   lastName: string;
   password: string;

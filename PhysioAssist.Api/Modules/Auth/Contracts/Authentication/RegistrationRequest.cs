@@ -5,7 +5,6 @@ public record RegistrationRequest(
     string Password,
     string FirstName,
     string LastName,
-    string UserName,
     string ClinicName,
     IFormFile? ProfilePhoto
     );

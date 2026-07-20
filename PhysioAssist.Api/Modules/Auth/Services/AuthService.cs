@@ -84,7 +84,7 @@ public class AuthService(
         {
             Id = userId.ToString(),
             Email = request.Email,
-            UserName = request.UserName,
+            UserName = request.Email,
             FirstName = request.FirstName,
             LastName = request.LastName,
             IsDisabled = false,
