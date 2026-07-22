@@ -1,12 +1,8 @@
 using PhysioAssist.Api.Modules.InitialReportModule.DTOs;
 using PhysioAssist.Api.Modules.InitialReportModule.Repositories;
-using PhysioAssist.Api.Shared.Interfaces;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Services;
 
-// ⚠️ لسه محتاج أشوف محتوى IInitialReportQueryService.cs الفعلي في Shared/Interfaces
-// عشان أتأكد إن الـ method signatures هنا متطابقة تمامًا (أسماء الميثودز، نوع الإرجاع).
-// الكود التالي مبني على افتراض التصميم الأصلي.
 public class InitialReportQueryService(IInitialReportRepository reportRepository) : IInitialReportQueryService
 {
     private readonly IInitialReportRepository _reportRepository = reportRepository;

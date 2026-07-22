@@ -1,5 +1,4 @@
 ﻿using PhysioAssist.Api.Modules.Scheduling.DTO;
-using PhysioAssist.Api.Shared.ResultPattern;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Services.Interfaces
 {

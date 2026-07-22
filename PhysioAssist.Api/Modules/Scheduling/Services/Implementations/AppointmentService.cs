@@ -3,21 +3,24 @@ using PhysioAssist.Api.Modules.Scheduling.Entities;
 using PhysioAssist.Api.Modules.Scheduling.Errors;
 using PhysioAssist.Api.Modules.Scheduling.helpers;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
-using PhysioAssist.Api.Shared.Interfaces.Common;
-using PhysioAssist.Api.Shared.ResultPattern;
+using PhysioAssist.Api.Modules.Notification.DTO;
+using PhysioAssist.Api.Modules.Notification.Interfaces;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 
 public class AppointmentService(
     IUnitOfWork unitOfWork,
-    IAppointmentValidator validator)
+    IAppointmentValidator validator,
+    PhysioAssist.Api.Modules.Notification.Interfaces.INotificationService notificationService,
+    IAppointmentContactResolver contactResolver)
     : IAppointmentService
 {
-    // Maximum span (inclusive) allowed for an explicit from/to availability-range request.
     private const int MaxRangeDays = 31;
 
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IAppointmentValidator _validator = validator;
+    private readonly PhysioAssist.Api.Modules.Notification.Interfaces.INotificationService _notificationService = notificationService;
+    private readonly IAppointmentContactResolver _contactResolver = contactResolver;
 
     public async Task<Result<ScheduleSlotDto>> CreateAsync(CreateAppointmentRequest request, CancellationToken cancellationToken = default)
     {
@@ -32,11 +35,14 @@ public class AppointmentService(
             PatientId = request.PatientId,
             SlotStart = request.SlotStart,
             SlotEnd = request.SlotEnd,
-            Status = SlotStatus.Booked
+            Status = SlotStatus.Booked,
+            PackageId = request.PackageId
         };
 
         await _unitOfWork.ScheduleSlots.AddAsync(appointment);
         await _unitOfWork.SaveAsync(cancellationToken);
+
+        await NotifyAsync(appointment, _notificationService.NotifyAppointmentCreatedAsync, cancellationToken);
 
         return Result.Success(MapToDto(appointment));
     }
@@ -57,6 +63,8 @@ public class AppointmentService(
 
         await _unitOfWork.SaveAsync(cancellationToken);
 
+        await NotifyAsync(appointment, _notificationService.NotifyAppointmentCancelledAsync, cancellationToken);
+
         return Result.Success(MapToDto(appointment));
     }
 
@@ -72,10 +80,7 @@ public class AppointmentService(
         if (validation.IsFailure)
             return Result.Failure<ScheduleSlotDto>(validation.Error);
 
-        // Cancel-old + book-new — preserves an honest audit trail instead of
-        // silently rewriting the original appointment's times.
-        existing.Status = SlotStatus.Cancelled;
-
+        
         var result = await DeleteAsync(existing.Id, cancellationToken);
         if (result.IsSuccess)
         {
@@ -93,6 +98,7 @@ public class AppointmentService(
             await _unitOfWork.ScheduleSlots.AddAsync(replacement);
             await _unitOfWork.SaveAsync(cancellationToken);
 
+            await NotifyAsync(replacement, _notificationService.NotifyAppointmentRescheduledAsync, cancellationToken);
 
             return Result.Success(MapToDto(replacement));
         }
@@ -100,6 +106,7 @@ public class AppointmentService(
         {
             return Result.Failure<ScheduleSlotDto>(result.Error);
         }
+      
     }
 
     public async Task<Result<ScheduleSlotDto>> CompleteAsync(Guid appointmentId, CancellationToken cancellationToken = default)
@@ -117,6 +124,8 @@ public class AppointmentService(
         appointment.Status = SlotStatus.Completed;
 
         await _unitOfWork.SaveAsync(cancellationToken);
+
+        await NotifyAsync(appointment, _notificationService.NotifyAppointmentCompletedAsync, cancellationToken);
 
         return Result.Success(MapToDto(appointment));
     }
@@ -136,6 +145,8 @@ public class AppointmentService(
         appointment.Status = SlotStatus.NoShow;
 
         await _unitOfWork.SaveAsync(cancellationToken);
+
+        await NotifyAsync(appointment, _notificationService.NotifyAppointmentNoShowAsync, cancellationToken);
 
         return Result.Success(MapToDto(appointment));
     }
@@ -160,7 +171,7 @@ public class AppointmentService(
         var workingDay = await _unitOfWork.WorkingScheduleDays.GetWorkingDayAsync(doctorId, date.DayOfWeek, cancellationToken);
 
         if (workingDay is null)
-            return new List<AvailableIntervalDto>(); // doctor doesn't work this day — no availability, not an error
+            return new List<AvailableIntervalDto>();
 
         var appointments = await _unitOfWork.ScheduleSlots.GetDoctorAppointmentsForDayAsync(doctorId, date, cancellationToken);
 
@@ -169,6 +180,12 @@ public class AppointmentService(
 
     public async Task<Result> DeleteAsync(Guid appointmentId, CancellationToken cancellationToken = default)
     {
+        // NOTE: no notification is sent here by design. A hard delete means the
+        // record is being erased outright (e.g. created by mistake) — per your
+        // own controller docs, this is NOT the "appointment called off" flow
+        // (that's Cancel), so there's no meaningful "your appointment was
+        // deleted" message to send a patient about something that, from their
+        // perspective, should simply cease to have existed.
         var lookup = await GetOrNotFoundAsync(appointmentId, cancellationToken);
         if (lookup.IsFailure)
             return Result.Failure(lookup.Error);
@@ -191,16 +208,12 @@ public class AppointmentService(
 
         var (rangeStart, rangeEnd) = rangeResult.Value;
 
-        // Reuse the existing repository — don't duplicate the "doctor working?" check
-        // per day. A missing active schedule is a hard failure here (unlike the
-        // single-day endpoint, which returns an empty list for a non-working day).
         var schedule = await _unitOfWork.WorkingSchedules.GetActiveScheduleWithDaysAsync(doctorId, cancellationToken);
         if (schedule is null)
             return Result.Failure<IReadOnlyList<DailyAvailabilityDto>>(WorkingScheduleErrors.NoActiveScheduleFound(doctorId));
 
         var workingDaysByWeekday = schedule.Days.ToDictionary(d => d.Day);
 
-        // Single range query instead of one query per day.
         var appointments = await _unitOfWork.ScheduleSlots.GetDoctorAppointmentsAsync(doctorId, rangeStart, rangeEnd, cancellationToken);
 
         var appointmentsByDate = appointments
@@ -228,8 +241,6 @@ public class AppointmentService(
                     Intervals = intervals
                 });
             }
-            // Non-working weekdays inside the range are skipped, same philosophy
-            // as GetAvailabilityAsync (no working day => no entry, not an error).
 
             currentDate = currentDate.AddDays(1);
         }
@@ -243,9 +254,6 @@ public class AppointmentService(
         DateTimeOffset? to,
         CancellationToken cancellationToken = default)
     {
-        // Only validate a range if one was actually provided — unlike availability,
-        // "no range" is a valid, meaningful request here (return every cancelled
-        // appointment for this doctor), not something that needs a default window.
         if (from.HasValue || to.HasValue)
         {
             if (from.HasValue != to.HasValue)
@@ -271,14 +279,6 @@ public class AppointmentService(
             : Result.Success(appointment);
     }
 
-    /// <summary>
-    /// Resolves the effective [from, to] window for a range-availability request.
-    /// If both are omitted, defaults to the current calendar week.
-    /// ASSUMPTION: week is Sunday–Saturday — no existing week-start convention was
-    /// found elsewhere in the project. Adjust here if that's wrong.
-    /// ASSUMPTION: from/to must be supplied together; a single one without the other
-    /// is rejected rather than silently defaulted.
-    /// </summary>
     private static Result<(DateTimeOffset Start, DateTimeOffset End)> ResolveRange(DateTimeOffset? from, DateTimeOffset? to)
     {
         if (from is null && to is null)
@@ -305,6 +305,45 @@ public class AppointmentService(
         return Result.Success<(DateTimeOffset, DateTimeOffset)>((from.Value, to.Value));
     }
 
+    /// <summary>
+    /// Resolves patient/doctor display info for the given appointment and invokes
+    /// the matching notification method. Any failure — contact lookup failing,
+    /// or the notification call itself throwing — is swallowed here, never
+    /// propagated to the caller. By the time this runs, the appointment's own
+    /// database change has already been saved successfully; a notification
+    /// problem must never retroactively affect that already-completed operation.
+    /// </summary>
+    private async Task NotifyAsync(
+        ScheduleSlot appointment,
+        Func<AppointmentNotificationDto, CancellationToken, Task> notify,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var (patientName, patientEmail) = await _contactResolver.GetPatientContactAsync(appointment.PatientId, cancellationToken);
+            var doctorName = await _contactResolver.GetDoctorNameAsync(appointment.DoctorId, cancellationToken);
+
+            var dto = new AppointmentNotificationDto
+            {
+                PatientEmail = patientEmail,
+                PatientName = patientName,
+                DoctorName = doctorName,
+                SlotStart = appointment.SlotStart,
+                SlotEnd = appointment.SlotEnd
+            };
+
+            await notify(dto, cancellationToken);
+        }
+        catch
+        {
+            // Swallowed by design — see method summary. NotificationService
+            // already logs its own internal delivery failures; this catch only
+            // guards the CONTACT LOOKUP step itself failing (e.g. Patient/Doctor
+            // module unreachable), which NotificationService never sees since
+            // it's never invoked in that case.
+        }
+    }
+
     private static ScheduleSlotDto MapToDto(ScheduleSlot slot) => new()
     {
         Id = slot.Id,
@@ -314,5 +353,4 @@ public class AppointmentService(
         SlotEnd = slot.SlotEnd,
         Status = slot.Status.ToString()
     };
-
 }

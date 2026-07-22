@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlTypes;
 using Microsoft.Extensions.Options;
+using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
 using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 using System.Net.Http.Headers;
 
