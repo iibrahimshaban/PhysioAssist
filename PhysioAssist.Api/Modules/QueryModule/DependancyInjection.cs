@@ -1,10 +1,13 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
+using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
+using PhysioAssist.Api.Modules.QueryModule.Interfaces;
 using PhysioAssist.Api.Modules.QueryModule.Plugin;
 using PhysioAssist.Api.Modules.QueryModule.Prompts;
+using PhysioAssist.Api.Modules.QueryModule.Services;
 using PhysioAssist.Api.Shared.Options;
 using System.Net.Http.Headers;
 
@@ -15,9 +18,9 @@ public static class DependancyInjection
     public static IServiceCollection AddQueryModuleConfig(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<TavilyOptions>(
-            // reuse the same config section if Tavily is already configured app-wide,
-            // otherwise bind a PhysioAssist-specific section
             configuration.GetRequiredSection(TavilyOptions.SectionName));
+
+        services.AddSingleton<IChatHistoryStore, SessionChatHistoryStore>();
 
         services.AddHttpClient(nameof(WebSearchPlugin), (sp, client) =>
         {
@@ -50,6 +53,7 @@ public static class DependancyInjection
             kernel.Plugins.AddFromObject(searchPlugin, "SessionSearch");
             kernel.Plugins.AddFromObject(webSearchPlugin, "WebSearch");
 
+            #pragma warning disable SKEXP0110
             return new ChatCompletionAgent
             {
                 Name = "QueryAgent",
@@ -58,7 +62,12 @@ public static class DependancyInjection
                 Arguments = new KernelArguments(new OpenAIPromptExecutionSettings
                 {
                     FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
-                })
+                }),
+                //TODO: USE CHEAPER MODEL FOR SUMMARIZATION LIKE GPT4O-MINI or Something
+                HistoryReducer = new ChatHistorySummarizationReducer(
+                    service: kernel.GetRequiredService<IChatCompletionService>(),
+                    targetCount: 10,
+                    thresholdCount: 15)
             };
         });
 

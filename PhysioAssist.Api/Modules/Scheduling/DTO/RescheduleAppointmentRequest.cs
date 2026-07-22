@@ -2,7 +2,7 @@
 {
     public class RescheduleAppointmentRequest
     {
-        public DateTime NewSlotStart { get; init; }
-        public DateTime NewSlotEnd { get; init; }
+        public DateTimeOffset NewSlotStart { get; init; }
+        public DateTimeOffset NewSlotEnd { get; init; }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace PhysioAssist.Api.Shared.Helpers;
+namespace PhysioAssist.Api.Shared.Helpers;
 
 public static class EmailBodyBuilder
 {
@@ -104,4 +104,58 @@ public static class EmailBodyBuilder
             accentBg: "#fff7ed",
             footerNote: "For security, this code can only be used once and expires in 10 minutes."
         );
+    public static string ReportReady(string patientName, string pdfUrl)
+    {
+        return $"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
+    <body style="margin:0;padding:0;background:#f4f6fb;font-family:Arial,Helvetica,sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fb;padding:32px 0;">
+        <tr><td align="center">
+          <table width="520" cellpadding="0" cellspacing="0"
+                 style="background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+
+            <tr>
+              <td style="background:#0F766E;padding:24px;text-align:center;">
+                <span style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">
+                  Physio<span style="color:#99f6e4;">Assist</span>.
+                </span>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:32px 36px 24px;text-align:center;">
+                <p style="font-size:15px;color:#111827;margin:0 0 8px;text-align:left;">
+                  Hi <strong>{patientName}</strong>,
+                </p>
+                <p style="font-size:13px;color:#6b7280;line-height:1.7;margin:0 0 24px;text-align:left;">
+                  Your treatment plan is ready and attached to this email as a PDF. It also contains
+                  a QR code you can scan to access your profile anytime.
+                </p>
+
+                <a href="{pdfUrl}" style="display:inline-block;background:#0F766E;color:#ffffff;
+                   text-decoration:none;padding:12px 24px;border-radius:8px;font-size:13px;
+                   font-weight:600;">
+                  View Treatment Plan Online
+                </a>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="background:#f9fafb;border-top:1px solid #e5e7eb;
+                          padding:14px 36px;text-align:center;">
+                <p style="font-size:11px;color:#9ca3af;margin:0;">
+                  © 2025 PhysioAssist &bull; All rights reserved
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td></tr>
+      </table>
+    </body>
+    </html>
+    """;
+    }
 }

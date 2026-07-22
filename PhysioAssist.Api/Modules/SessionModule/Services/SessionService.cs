@@ -4,7 +4,7 @@ using PhysioAssist.Api.Modules.SessionModule.Errors;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Enums;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Modules.SessionModule.Services;
 
@@ -40,7 +40,7 @@ public class SessionService(
             PatientId = session.PatientId,
             DoctorId = session.DoctorId,
             ScheduleSlotId = session.ScheduleSlotId,
-            Summary = session.Summary,
+            Summary = session.SummaryText,
             Status = session.Status
         };
 
@@ -75,7 +75,7 @@ public class SessionService(
             PatientId = session.PatientId,
             DoctorId = session.DoctorId,
             ScheduleSlotId = session.ScheduleSlotId,
-            Summary = session.Summary,
+            Summary = session.SummaryText,
             Status = session.Status
         };
 
@@ -95,14 +95,14 @@ public class SessionService(
                     .FirstOrDefault() ?? "Unknown Patient",
 
                 SlotStart = _context.ScheduleSlots
-                    .Where(slot => slot.Id == s.ScheduleSlotId)
-                    .Select(slot => (DateTime?)slot.SlotStart)
-                    .FirstOrDefault(),
+                     .Where(slot => slot.Id == s.ScheduleSlotId)
+                     .Select(slot => (DateTime?)slot.SlotStart.DateTime) // Access .DateTime here
+                     .FirstOrDefault(),
 
-                SlotEnd = _context.ScheduleSlots
-                    .Where(slot => slot.Id == s.ScheduleSlotId)
-                    .Select(slot => (DateTime?)slot.SlotEnd)
-                    .FirstOrDefault(),
+                                SlotEnd = _context.ScheduleSlots
+                     .Where(slot => slot.Id == s.ScheduleSlotId)
+                     .Select(slot => (DateTime?)slot.SlotEnd.DateTime)   // Access .DateTime here
+                     .FirstOrDefault(),
 
                 DurationInMinutes = _context.ScheduleSlots
                     .Where(slot => slot.Id == s.ScheduleSlotId)

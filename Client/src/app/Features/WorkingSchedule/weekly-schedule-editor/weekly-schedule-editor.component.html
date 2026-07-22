@@ -1,0 +1,61 @@
+<div class="ws-weekly-editor">
+  @for (day of weekDays; track day.value; let i = $index) {
+    @let vm = dayViewModels[i];
+
+    <div class="ws-day-row" [class.ws-day-row--enabled]="vm.enabled" [formGroup]="dayGroup(i)">
+      <div class="ws-day-row-main">
+        <label class="ws-switch">
+          <input type="checkbox" formControlName="enabled" [attr.aria-label]="day.label" />
+          <span class="ws-switch-track"></span>
+          <span class="ws-switch-thumb"></span>
+        </label>
+
+        <span class="ws-day-name">{{ day.label }}</span>
+
+        @if (vm.durationLabel) {
+          <span class="ws-duration-chip">{{ vm.durationLabel }}</span>
+        } @else if (!vm.enabled) {
+          <span class="ws-off-chip">Off</span>
+        }
+      </div>
+
+      @if (vm.enabled) {
+        <div class="ws-day-row-details">
+          <div class="ws-time-fields">
+            <label class="ws-time-field">
+              <span class="ws-time-label">Start Time</span>
+              <input type="time" formControlName="startTime" />
+              @if (isRequiredError(i, 'startTime')) {
+                <span class="ws-field-error">Start time is required.</span>
+              }
+            </label>
+
+            <span class="ws-time-separator" aria-hidden="true">→</span>
+
+            <label class="ws-time-field">
+              <span class="ws-time-label">End Time</span>
+              <input type="time" formControlName="endTime" />
+              @if (isRequiredError(i, 'endTime')) {
+                <span class="ws-field-error">End time is required.</span>
+              }
+            </label>
+          </div>
+
+          @if (hasRangeError(i)) {
+            <p class="ws-field-error ws-field-error--row">End time must be after start time.</p>
+          }
+
+          <div class="ws-timeline" aria-hidden="true">
+            <div class="ws-timeline-track"></div>
+            <div class="ws-timeline-range" [style.left.%]="vm.barLeftPct" [style.width.%]="vm.barWidthPct"></div>
+          </div>
+          <div class="ws-timeline-ticks">
+            @for (tick of timelineTicks; track $index) {
+              <span>{{ tick }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

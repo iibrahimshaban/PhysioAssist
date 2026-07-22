@@ -1,5 +1,6 @@
-﻿using PhysioAssist.Api.Shared.Dtos.Transcription;
-using PhysioAssist.Api.Shared.Interfaces;
+using PhysioAssist.Api.Shared.Dtos.Transcription;
+using PhysioAssist.Api.Shared.Interfaces.Common;
+using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 
 namespace PhysioAssist.Api.Infrastructure.GroqClient;
 
@@ -15,13 +16,11 @@ public class RefinedTranscriptionService(
         if (transcription.IsFailure)
             return transcription;
 
-        Console.WriteLine("trascription: "+ transcription.Value.RawText);
 
         var refinement = await _refinement.RefineAsync(transcription.Value.RawText, cancellationToken);
         if (refinement.IsFailure)
             return transcription;         
 
-        Console.WriteLine("refinement transcription: " + refinement.Value);
 
         return Result.Success(transcription.Value with { RefinedText = refinement.Value });
     }

@@ -6,10 +6,6 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
 {
     public RegistrationRequestValidator()
     {
-        RuleFor(x => x.UserName)
-            .NotEmpty().WithMessage("Username is required.")
-            .Matches(RegexPattern.UserName).WithMessage("Username can only have letters and numbers")
-            .Length(3, 100).WithMessage("username must be greatter then 3 chars and less thean 100 char");
 
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("Username is required.")

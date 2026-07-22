@@ -74,15 +74,28 @@
       <!-- Form -->
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5" novalidate>
 
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-gray-700">Full name</label>
-          <input pInputText type="text" formControlName="fullName"
-                 placeholder="Dr. Sarah Ahmed" class="w-full"
-                 [class.ng-invalid]="isInvalid('fullName')"
-                 [class.ng-dirty]="isInvalid('fullName')"/>
-          @if (isInvalid('fullName')) {
-            <span class="text-xs text-red-500">{{ getFieldError('fullName') }}</span>
-          }
+        <div class="flex gap-3">
+          <div class="flex flex-col gap-1.5 flex-1">
+            <label class="text-sm font-medium text-gray-700">First name</label>
+            <input pInputText type="text" formControlName="firstName"
+                  placeholder="Sarah" class="w-full"
+                  [class.ng-invalid]="isInvalid('firstName')"
+                  [class.ng-dirty]="isInvalid('firstName')"/>
+            @if (isInvalid('firstName')) {
+              <span class="text-xs text-red-500">{{ getFieldError('firstName') }}</span>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1.5 flex-1">
+            <label class="text-sm font-medium text-gray-700">Last name</label>
+            <input pInputText type="text" formControlName="lastName"
+                  placeholder="Ahmed" class="w-full"
+                  [class.ng-invalid]="isInvalid('lastName')"
+                  [class.ng-dirty]="isInvalid('lastName')"/>
+            @if (isInvalid('lastName')) {
+              <span class="text-xs text-red-500">{{ getFieldError('lastName') }}</span>
+            }
+          </div>
         </div>
 
         <div class="flex flex-col gap-1.5">

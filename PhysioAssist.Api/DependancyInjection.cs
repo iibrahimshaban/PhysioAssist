@@ -1,8 +1,4 @@
-﻿using CloudinaryDotNet;
-using Hangfire;
-using Mapster;
-using MapsterMapper;
-using Microsoft.AspNetCore.Authorization;
+using CloudinaryDotNet;
 using Microsoft.OpenApi;
 using PhysioAssist.Api.Infrastructure.AutoComplete;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
@@ -11,6 +7,9 @@ using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Modules.Auth;
 using PhysioAssist.Api.Modules.Auth.Services;
+using PhysioAssist.Api.Modules.DocumentationModule;
+using PhysioAssist.Api.Modules.InitialReportModule;
+using PhysioAssist.Api.Modules.Intake;
 using PhysioAssist.Api.Modules.PatientModule;
 using PhysioAssist.Api.Modules.PatientModule.Services;
 using PhysioAssist.Api.Modules.QueryModule;
@@ -20,10 +19,12 @@ using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Modules.SessionModule.Services;
-using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Authorization;
 using PhysioAssist.Api.Shared.Email;
-using PhysioAssist.Api.Shared.Repositories;
+using PhysioAssist.Api.Shared.Interfaces.Documentation;
+using PhysioAssist.Api.Shared.Interfaces.Ingestion;
+using PhysioAssist.Api.Shared.Options;
+using PhysioAssist.Api.Shared.PdfService;
+using PhysioAssist.Api.Shared.QR;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
 
@@ -33,6 +34,8 @@ public static class DependancyInjection
 {
     public static IServiceCollection AddGlobalServicesRegistration(this IServiceCollection services, IConfiguration configuration)
     {
+        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
         services
             .AddSwaggerConfiguration()
             .AddHttpContextAccessor()
@@ -41,19 +44,61 @@ public static class DependancyInjection
             .AddPermissionAuthorization()
             .AddMailConfig()
             .AddExposedServicesConfig()
+            .AddDocumentationSummarizationConfig()
             .AddAutoCompleteService(configuration)
+            .AddPatientSummaryConfig(configuration)
             .AddEmbeddingConfig()
-            .AddAudioTranscriptionConfig()
             .AddDbContextConfiguration(configuration)
             .AddCorsConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration)
+            .AddAudioTranscriptionConfig()
             .AddHangfireBGJobs(configuration);
+
+
+        services.AddQrCodeConfig(configuration);
+        services.AddScoped<IPdfService, PdfService>();
+        services.AddScoped<INotificationService, PhysioAssist.Api.Shared.NotificationService.NotificationService>();
 
         services
            .AddAuthModule(configuration)
+           .AddIntakeModule()
            .AddSessionModule()
            .AddQueryModuleConfig(configuration)
-           .AddPatientModule();
+           .AddPatientModule()
+           .AddDocumentationModule()
+           .AddInitialReportModule();
+
+        return services;
+    }
+
+    private static IServiceCollection AddQrCodeConfig(this IServiceCollection services, IConfiguration configuration)
+    {
+
+        services
+            .AddOptions<QRTokenOptions>()
+            .BindConfiguration(QRTokenOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart(); ;
+
+        services
+            .AddOptions<FrontendSettings>()
+            .BindConfiguration(FrontendSettings.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddScoped<IQRService, QRService>();
+
+        return services;
+    }
+    private static IServiceCollection AddPatientSummaryConfig(this IServiceCollection services, IConfiguration configuration)
+    {
+        services
+            .AddOptions<GroqPatientSummaryOptions>()
+            .BindConfiguration(GroqPatientSummaryOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IPatientSummaryAiService, GroqPatientSummaryService>();
 
         return services;
     }
@@ -150,6 +195,8 @@ public static class DependancyInjection
         services.AddScoped<IAppointmentValidator, AppointmentValidator>();
         services.AddScoped<IAppointmentService, AppointmentService>();
         services.AddScoped<IWorkingScheduleService, WorkingScheduleService>();
+        services.AddScoped<IScheduleSlotQueryService, ScheduleSlotQueryService>();
+
         services
             .AddOptions<MailSettings>()
             .BindConfiguration(MailSettings.SectionName)
@@ -157,6 +204,32 @@ public static class DependancyInjection
             .ValidateOnStart();
 
         services.AddTransient<ICustomEmailService, EmailService>();
+
+        return services;
+    }
+    private static IServiceCollection AddDocumentationSummarizationConfig(this IServiceCollection services)
+    {
+
+        services.AddOptions<GitHubModelsDocumentationOptions>()
+             .BindConfiguration(GitHubModelsDocumentationOptions.SectionName)
+             .ValidateDataAnnotations()
+             .ValidateOnStart();
+
+        services.AddHttpClient<IDocumentationExtractionService, GitHubModelsDocumentationExtractionService>();
+
+        services.AddOptions<GroqSummarizationOptions>()
+            .BindConfiguration(GroqSummarizationOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<ISessionSummarizationService, GroqSessionSummarizationService>();
+
+        services.AddOptions<GroqRollupSummarizationOptions>()
+            .BindConfiguration(GroqRollupSummarizationOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IRollupSummarizationService, GroqRollupSummarizationService>();
 
         return services;
     }
@@ -188,26 +261,16 @@ public static class DependancyInjection
         services
             .AddOptions<GroqOptions>()
             .BindConfiguration(GroqOptions.SectionName)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+            .ValidateDataAnnotations();
 
         services
         .AddOptions<GeminiOptions>()
         .BindConfiguration(GeminiOptions.SectionName)
-        .ValidateDataAnnotations()
-        .ValidateOnStart();
+        .ValidateDataAnnotations();
 
         services.AddHttpClient<GroqWhisperClient>();
-        services.AddHttpClient<ITranscriptionRefinementService, GroqRefinementClient>();
+        services.AddHttpClient<ITranscriptionRefinementService,GroqRefinementClient>();
 
-        //register whisper 
-        //services.AddScoped<IAudioTranscriptionService>(sp =>
-        //    new RefinedTranscriptionService(
-        //        sp.GetRequiredService<GroqWhisperClient>(),
-        //        sp.GetRequiredService<ITranscriptionRefinementService>()
-        //    ));
-
-        //register gemini flash 
         services.AddHttpClient<IAudioTranscriptionService, GeminiTranscriptionClient>();
 
         return services;
@@ -249,21 +312,11 @@ public static class DependancyInjection
 
         services.AddSingleton<MultiLanguageTrieRegistry>();
         services.AddSingleton<MultiLanguageVocabularyLoader>();
-        //services.AddSingleton<VocabularyLoader>();
-        //services.AddSingleton<Trie>(sp =>
-        //{
-        //    var loader = sp.GetRequiredService<VocabularyLoader>();
-        //    return loader.LoadAsync().GetAwaiter().GetResult();
-        //});
 
-
-        // Bootstrap as IHostedService — runs before app accepts requests.
         services.AddHostedService<VocabularyBootstrapService>();
 
         services.AddSingleton<IAutoCompleteService, AutoCompleteService>();
 
-
-        // Application is allowed to cache HTTP responses.
         services.AddResponseCaching();
 
         return services;
