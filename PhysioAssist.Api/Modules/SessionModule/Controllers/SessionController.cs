@@ -127,9 +127,7 @@ namespace PhysioAssist.Api.Modules.SessionModule.Controllers
         }
 
         [HttpDelete("attachments/{attachmentId:guid}")]
-        public async Task<IActionResult> DeleteAttachment(
-    Guid attachmentId,
-    CancellationToken cancellationToken)
+        public async Task<IActionResult> DeleteAttachment(Guid attachmentId,CancellationToken cancellationToken)
         {
             var result = await _sessionService.DeleteAttachmentAsync(attachmentId, cancellationToken);
 

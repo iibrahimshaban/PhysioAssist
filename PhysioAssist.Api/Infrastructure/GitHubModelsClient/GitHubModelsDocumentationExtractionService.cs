@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
+using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
+using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Prompts;
 using PhysioAssist.Api.Shared.Interfaces.Documentation;
 using System.Net.Http.Headers;
 using System.Text.Json;

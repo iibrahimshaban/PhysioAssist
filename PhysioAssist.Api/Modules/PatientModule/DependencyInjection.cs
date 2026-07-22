@@ -1,7 +1,5 @@
 ﻿using PhysioAssist.Api.Modules.PatientModule.Repositories;
 using PhysioAssist.Api.Modules.PatientModule.Services;
-using PhysioAssist.Api.Shared.Interfaces.Common;
-using PhysioAssist.Api.Shared.Repositories;
 
 namespace PhysioAssist.Api.Modules.PatientModule
 {
@@ -13,6 +11,7 @@ namespace PhysioAssist.Api.Modules.PatientModule
             services.AddScoped<IPatientService, PatientService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IDoctorPatientRepo, DoctorPatientRepo>();
+            services.AddScoped<IPatientQueryService, PatientQueryService>();
             services.AddHttpContextAccessor();
             return services;
         }

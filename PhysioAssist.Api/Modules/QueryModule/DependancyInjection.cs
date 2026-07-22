@@ -3,7 +3,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
+using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
 using PhysioAssist.Api.Modules.QueryModule.Interfaces;
 using PhysioAssist.Api.Modules.QueryModule.Plugin;
 using PhysioAssist.Api.Modules.QueryModule.Prompts;
@@ -42,6 +42,7 @@ public static class DependancyInjection
 
         services.AddScoped<PatientLookupPlugin>();
         services.AddScoped<SessionSearchPlugin>();
+        services.AddScoped<AnswerTranslationPlugin>();
 
         services.AddScoped<ChatCompletionAgent>(sp =>
         {
@@ -51,6 +52,7 @@ public static class DependancyInjection
             var tavilyOptions = sp.GetRequiredService<IOptions<TavilyOptions>>();
             var tavilyClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(WebSearchPlugin));
             var summarizationService = sp.GetRequiredKeyedService<IChatCompletionService>("summarizationAI");
+            var TranslationPlugin = sp.GetRequiredService<AnswerTranslationPlugin>();
 
 
 
@@ -58,7 +60,7 @@ public static class DependancyInjection
                 .AddOpenAIChatCompletion(
                     modelId: options.ChatModel,
                     apiKey: options.Token,
-                    endpoint: new Uri("https://models.inference.ai.azure.com"))
+                    endpoint: new Uri(options.Endpoint))
                 .Build();
 
             var webSearchPlugin = new WebSearchPlugin(tavilyClient, tavilyOptions);
@@ -66,6 +68,7 @@ public static class DependancyInjection
             kernel.Plugins.AddFromObject(patientPlugin, "PatientLookup");
             kernel.Plugins.AddFromObject(searchPlugin, "SessionSearch");
             kernel.Plugins.AddFromObject(webSearchPlugin, "WebSearch");
+            kernel.Plugins.AddFromObject(TranslationPlugin, "AnswerTranslation");
 
             #pragma warning disable SKEXP0110
             return new ChatCompletionAgent

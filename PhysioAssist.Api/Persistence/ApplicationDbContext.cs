@@ -7,7 +7,6 @@ using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.Scheduling.Entities;
 using PhysioAssist.Api.Modules.SessionModule.Entities;
 using PhysioAssist.Api.Shared.Entities;
-using PhysioAssist.Api.Shared.Extensions;
 using System.Reflection;
 
 namespace PhysioAssist.Api.Persistence;
@@ -58,6 +57,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     // InitialReport
     public DbSet<InitialReport> InitialReports { get; set; }
     public DbSet<ReportAttachment> ReportAttachments { get; set; }
+    public DbSet<TreatmentSchedulePlan> TreatmentSchedulePlans { get; set; }
 
     // Session
     public DbSet<Session> Sessions { get; set; }
@@ -69,6 +69,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<ScheduleSlot> ScheduleSlots { get; set; }
     public DbSet<WorkingSchedule> workingSchedules { get; set; }
     public DbSet<WorkingScheduleDay> workingScheduleDays { get; set; }
+    public DbSet<DoctorSchedulingPreference> DoctorSchedulingPreferences { get; set; }
+    public DbSet<PatientSessionPackage> PatientSessionPackages { get; set; }
     //documentation 
     public DbSet<DocumentationSummary> DocumentationSummaries { get; set; }
     public DbSet<DocumentationTemplate> DocumentationTemplates { get; set; }
