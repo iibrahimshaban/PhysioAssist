@@ -1,51 +1,127 @@
 /* You can add global styles to this file, and also import other style files */
 @import 'tailwindcss';
 @import 'primeicons/primeicons.css';
+@import './app/Features/intake/intake-theme.css';
 html {
   color-scheme: light !important;
 }
 
+/* ── Design Tokens (Intake + shared app palette) ─────────── */
+:root {
+  /* Text */
+  --color-text-primary: #1E293B;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
 
+  /* Surfaces */
+  --color-page-bg: #F8FAFC;
+  --color-page-bg-alt: #F1F5F9;
+  --color-surface: #FFFFFF;
+  --color-surface-50: #F8FAFC;
+  --color-surface-100: #F1F5F9;
+  --color-border: #E2E8F0;
 
+  /* Primary - matching main app colors */
+  --color-primary: #1A7FD4;
+  --color-primary-soft: #EFF6FF;
+  --color-primary-dark: #1E40AF;
+  --color-primary-gradient-start: #1A7FD4;
+  --color-primary-gradient-end: #0EB8A0;
+  --color-accent-violet: #6366F1;
+  --color-accent-violet-soft: #EEF2FF;
+
+  /* Semantic */
+  --color-success-bg: #CCFBF1;
+  --color-success-text: #0D9488;
+  --color-success-light: #F0FDFA;
+  --color-success: #0D9488;
+  --color-success-border: #99F6E4;
+
+  --color-warning-bg: #FEF3C7;
+  --color-warning-text: #B45309;
+  --color-warning-light: #FFFBEB;
+  --color-warning: #FDE68A;
+  --color-warning-border: #FED7AA;
+
+  --color-danger: #DC2626;
+  --color-danger-light: #FEF2F2;
+  --color-danger-border: #FECACA;
+
+  --color-info: #3B82F6;
+  --color-info-light: #EFF6FF;
+  --color-info-border: #BFDBFE;
+  --color-info-text: #1D4ED8;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Typography scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-display: 1.75rem;
+
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Layout */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-full: 9999px;
+
+  --touch-target-min: 2.75rem;
+  --intake-mobile-max: 639px;
+}
 
 /* ── Page Layout ──────────────────────────────────────────── */
 .page-container {
   max-width: 80rem;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: var(--space-6);
 }
 
 .page-title {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: #0F172A;
+  font-size: var(--text-display);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-text-primary);
   letter-spacing: -0.025em;
   margin: 0;
 }
 
 .page-subtitle {
   font-size: 0.8125rem;
-  color: #64748B;
-  margin: 0.25rem 0 0;
+  color: var(--color-text-secondary);
+  margin: var(--space-1) 0 0;
+}
+
+@media (max-width: 639px) {
+  .page-container {
+    padding: var(--space-4) var(--space-3);
+  }
 }
 
 /* ── Reusable Module Components ───────────────────────────────────────── */
 
 /* f. Active Nav Item */
 .nav-item.active {
-  background-color: #DBEAFE;
-  color: #2563EB;
-  border-radius: 0.5rem;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-radius: var(--radius-md);
 }
-
-
-
-
-
-
-
-
-
 
 /* ── Success Checkmark ────────────────────────────────────── */
 .success-checkmark-check {

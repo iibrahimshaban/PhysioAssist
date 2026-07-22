@@ -73,4 +73,24 @@ export class IntakeApiService {
   convertToPatient(submissionId: string, request: ConvertIntakeToPatientRequest = {}): Observable<PreVisitIntakeResponse> {
     return this.http.post<PreVisitIntakeResponse>(`${this.baseUrl}/submissions/${submissionId}/convert-to-patient`, request);
   }
+
+  generateDefaultFormSchema(): Observable<FormSchemaResponse> {
+    return this.http.post<FormSchemaResponse>(`${this.baseUrl}/form-schemas/default`, {});
+  }
+
+  duplicateFormSchema(schemaId: string): Observable<FormSchemaResponse> {
+    return this.http.post<FormSchemaResponse>(`${this.baseUrl}/form-schemas/${schemaId}/duplicate`, {});
+  }
+
+  deleteFormSchema(schemaId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/form-schemas/${schemaId}`);
+  }
+
+  archiveFormSchema(schemaId: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/form-schemas/${schemaId}/archive`, {});
+  }
+
+  unarchiveFormSchema(schemaId: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/form-schemas/${schemaId}/unarchive`, {});
+  }
 }

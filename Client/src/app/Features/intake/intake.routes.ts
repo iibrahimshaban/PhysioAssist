@@ -5,6 +5,7 @@ import { SchemaBuilderComponent } from './pages/schema-builder/schema-builder.co
 import { SubmissionListComponent } from './pages/submission-list/submission-list.component';
 import { SubmissionDetailComponent } from './pages/submission-detail/submission-detail.component';
 import { PublicIntakeComponent } from './pages/public-intake/public-intake.component';
+import { ReceptionComponent } from './pages/reception/reception.component';
 import { permissionGuard } from '../../Core/Guards/permission-guard';
 
 export const intakeRoutes: Routes = [
@@ -12,6 +13,12 @@ export const intakeRoutes: Routes = [
     path: '',
     canActivate: [authGuard],
     children: [
+      {
+        path: 'reception',
+        component: ReceptionComponent,
+        canActivate: [permissionGuard],
+        data: { permissions: ['Intake:Review'] }
+      },
       {
         path: 'schemas',
         component: SchemaListComponent,
@@ -42,7 +49,7 @@ export const intakeRoutes: Routes = [
         canActivate: [permissionGuard],
         data: { permissions: ['Intake:Review'] }
       },
-      { path: '', redirectTo: 'schemas', pathMatch: 'full' }
+      { path: '', redirectTo: 'reception', pathMatch: 'full' }
     ]
   }
 ];

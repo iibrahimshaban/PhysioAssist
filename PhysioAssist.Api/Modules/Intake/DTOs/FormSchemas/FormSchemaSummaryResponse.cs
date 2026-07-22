@@ -10,4 +10,10 @@ public record FormSchemaSummaryResponse
     public bool IsDefault { get; init; }
     public DateTime? PublishedAt { get; init; }
     public DateTime CreatedAt { get; init; }
+    public int SubmissionCount { get; set; }
+    public int FieldsCount { get; set; }
+    public string ShortCode { get; init; } = string.Empty;
+    public Guid? OriginalFormId { get; init; }
+    public string? OriginalName { get; init; }
+    public int? CopyNumber { get; init; }
 }

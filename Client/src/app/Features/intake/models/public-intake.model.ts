@@ -14,7 +14,8 @@ export interface PublicIntakeFormResponse {
   formDescription?: string;
   schemaJson: string;
   version: number;
-  showPainMap:boolean;
+  showPainMap: boolean;
+  clinicName: string;
 }
 
 export interface PublicIntakeSubmissionResponse {

@@ -1,4 +1,4 @@
-﻿using PhysioAssist.Api.Modules.Intake.DTOs.DynamicForms;
+using PhysioAssist.Api.Modules.Intake.DTOs.DynamicForms;
 using System.Text.Json;
 
 namespace PhysioAssist.Api.Modules.Intake.Helpers;
@@ -165,5 +165,51 @@ public static class ExtractInputValuesHelper
         var age = today.Year - dob.Year;
         if (dob.Date > today.AddYears(-age)) age--;
         return age;
+    }
+
+    public static string? FindQuestionIdByText(DynamicFormSchemaDto? schema, string text)
+    {
+        if (schema == null) return null;
+        foreach (var section in schema.Sections)
+        {
+            foreach (var group in section.Groups)
+            {
+                foreach (var question in group.Questions)
+                {
+                    if (string.Equals(question.Text, text, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return question.QuestionId;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public static string GetWrapperKey(DynamicFormSchemaDto? schema, string questionId)
+    {
+        if (schema == null) return "text";
+        foreach (var section in schema.Sections)
+        {
+            foreach (var group in section.Groups)
+            {
+                foreach (var question in group.Questions)
+                {
+                    if (question.QuestionId == questionId)
+                    {
+                        return question.Type switch
+                        {
+                            "text" => "text",
+                            "email" => "text",
+                            "phone" => "text",
+                            "select" => "value",
+                            "date" => "date",
+                            _ => "text"
+                        };
+                    }
+                }
+            }
+        }
+        return "text";
     }
 }

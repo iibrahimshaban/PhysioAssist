@@ -1,4 +1,4 @@
-﻿namespace PhysioAssist.Api.Modules.Intake.Entities;
+namespace PhysioAssist.Api.Modules.Intake.Entities;
 
 public class PatientFormSchema : AuditableEntity
 {
@@ -13,4 +13,8 @@ public class PatientFormSchema : AuditableEntity
     public bool ShowPainMap { get; set; } = true;
     public string SchemaHash { get; set; } = string.Empty;
     public DateTime? PublishedAt { get; set; }
+    public string ShortCode { get; set; } = string.Empty;
+    public Guid? OriginalFormId { get; set; }
+    public string? OriginalName { get; set; }
+    public int? CopyNumber { get; set; }
 }

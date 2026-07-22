@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PreVisitIntakeResponse, IntakeStatus } from '../../../models';
+import { PreVisitIntakeResponse, IntakeStatus, getIntakeStatusLabel, getIntakeStatusPillClass } from '../../../models';
 
 @Component({
   selector: 'app-submission-row',
@@ -19,34 +19,11 @@ export class SubmissionRowComponent {
   }
 
   getQueueStatusLabel(status: IntakeStatus): string {
-    switch (status) {
-      case IntakeStatus.Pending:
-      case IntakeStatus.Submitted:
-      case IntakeStatus.InReview:
-        return 'Pending review';
-      case IntakeStatus.Approved: return 'Approved';
-      case IntakeStatus.Rejected: return 'Rejected';
-      case IntakeStatus.Converted: return 'Converted';
-      case IntakeStatus.Expired: return 'Expired';
-      default: return 'Unknown';
-    }
+    return getIntakeStatusLabel(status);
   }
 
   getStatusPillClass(status: IntakeStatus): string {
-    switch (status) {
-      case IntakeStatus.Pending:
-      case IntakeStatus.Submitted:
-      case IntakeStatus.InReview:
-        return 'status-badge-warning';
-      case IntakeStatus.Approved:
-      case IntakeStatus.Converted:
-        return 'status-badge-success';
-      case IntakeStatus.Rejected:
-      case IntakeStatus.Expired:
-        return 'status-badge-danger';
-      default:
-        return 'status-badge-neutral';
-    }
+    return getIntakeStatusPillClass(status);
   }
 
   timeAgo(isoDate: string): string {

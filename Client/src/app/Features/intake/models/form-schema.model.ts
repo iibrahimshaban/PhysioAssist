@@ -17,6 +17,11 @@ export interface FormSchemaResponse {
   publishedAt?: string;
   createdAt: string;
   updatedAt?: string;
+  shortCode: string;
+  originalFormId?: string;
+  originalName?: string;
+  copyNumber?: number;
+  showPainMap?: boolean;
 }
 
 export interface FormSchemaSummaryResponse {
@@ -28,6 +33,12 @@ export interface FormSchemaSummaryResponse {
   isDefault: boolean;
   publishedAt?: string;
   createdAt: string;
+  shortCode: string;
+  originalFormId?: string;
+  originalName?: string;
+  copyNumber?: number;
+  submissionCount?: number;
+  fieldsCount?: number;
 }
 
 export interface CreateFormSchemaRequest {
@@ -35,6 +46,7 @@ export interface CreateFormSchemaRequest {
   description?: string;
   schemaJson: string;
   isDefault: boolean;
+  showPainMap?: boolean;
 }
 
 export interface UpdateFormSchemaRequest {
@@ -42,6 +54,7 @@ export interface UpdateFormSchemaRequest {
   description?: string;
   schemaJson: string;
   isDefault: boolean;
+  showPainMap?: boolean;
 }
 
 export interface PublishFormSchemaRequest {

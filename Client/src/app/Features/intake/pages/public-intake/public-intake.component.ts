@@ -57,6 +57,23 @@ export class PublicIntakeComponent implements OnInit {
     && !this.submitted()
   );
 
+  schemaHasBodySelector(): boolean {
+    const schema = this.schema();
+    if (!schema) return false;
+
+    for (const section of schema.sections) {
+      for (const group of section.groups) {
+        for (const question of group.questions) {
+          if (question.type === 'bodyselector') {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const token = params.get('token');

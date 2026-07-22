@@ -51,4 +51,29 @@ public static class IntakeErrors
         "Intake.SubmissionNotFound",
         "The requested intake submission was not found.",
         StatusCodes.Status404NotFound);
+
+    public static readonly Error LockedQuestionRemoved = new(
+        "Intake.LockedQuestionRemoved",
+        "Locked questions cannot be removed.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error CopyLimitExceeded = new(
+        "Intake.CopyLimitExceeded",
+        "Maximum number of copies per form has been reached.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error CannotDeleteDefaultSchema = new(
+        "Intake.CannotDeleteDefaultSchema",
+        "Default form schema cannot be deleted.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error SchemaAlreadyArchived = new(
+        "Intake.SchemaAlreadyArchived",
+        "Form schema is already archived.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error SchemaNotArchived = new(
+        "Intake.SchemaNotArchived",
+        "Form schema is not archived.",
+        StatusCodes.Status400BadRequest);
 }

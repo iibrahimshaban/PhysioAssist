@@ -1,445 +1,389 @@
-<div class="intake-module page-container animate-fade-in">
-  <!-- Page Header -->
+<div class="intake-module form-templates-page">
+  <p-confirmDialog [style]="{ width: '420px' }" ariaLabel="Confirmation dialog" />
+
+  <!-- Header Section -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-           style="background: linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 100%);">
-        <i class="pi pi-file-edit text-white text-lg"></i>
-      </div>
-      <div>
-        <h1 class="page-title">Form Schemas</h1>
-        <p class="page-subtitle">Manage and publish your intake form templates</p>
-      </div>
+    <div>
+      <h1 class="page-title">Form templates</h1>
+      <p class="page-subtitle">All schemas you've built for patient intake</p>
     </div>
-    <p-button
-      label="Create Schema"
-      icon="pi pi-plus"
-      (onClick)="createSchema()"
-      severity="primary"
-      styleClass="shadow-sm">
-    </p-button>
+    <button class="btn-primary" (click)="createSchema()">
+      <i class="pi pi-plus"></i>
+      New form
+    </button>
   </div>
 
-  <!-- Main Card -->
-  <p-card>
-    <ng-template pTemplate="content">
-      <!-- Search Bar -->
-      <div class="mb-5 px-1">
-        <div class="relative">
-          <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] text-sm"></i>
-          <input
-            pInputText
-            type="text"
-            [(ngModel)]="searchTerm"
-            (input)="onSearch()"
-            placeholder="Search schemas by name or description..."
-            class="w-full !pl-10"
-            style="padding-left: 2.5rem !important;" />
+  <!-- Default Form Section -->
+  @if (defaultFormLoading()) {
+    <div class="default-section">
+      <div class="default-card default-card--loading">
+        <div class="default-card-badge default-card-badge--loading">
+          <i class="pi pi-spinner pi-spin"></i>
+          <span>Loading default template</span>
+        </div>
+        <div class="default-card-body">
+          <div class="default-card-icon default-card-icon--loading">
+            <i class="pi pi-file"></i>
+          </div>
+          <div class="default-card-content">
+            <span class="default-card-title">Loading your default intake form...</span>
+            <p class="default-card-desc">Please wait while we load the default template for the schema page.</p>
+          </div>
         </div>
       </div>
-
-      <!-- Loading Skeleton -->
-      @if (loading()) {
-        <div class="stagger-children">
-          @for (i of [1,2,3,4,5]; track i) {
-            <div class="skeleton-row">
-              <div class="skeleton skeleton-text" style="width: 160px; height: 14px;"></div>
-              <div class="skeleton skeleton-text" style="width: 200px; height: 12px;"></div>
-              <div class="skeleton skeleton-text" style="width: 40px; height: 12px;"></div>
-              <div class="skeleton" style="width: 70px; height: 24px; border-radius: 9999px;"></div>
-              <div class="skeleton skeleton-text" style="width: 24px; height: 14px;"></div>
-              <div class="skeleton skeleton-text" style="width: 100px; height: 12px;"></div>
-              <div class="flex gap-2">
-                <div class="skeleton" style="width: 32px; height: 32px; border-radius: 8px;"></div>
-                <div class="skeleton" style="width: 32px; height: 32px; border-radius: 8px;"></div>
-              </div>
-            </div>
-          }
+    </div>
+  } @else if (defaultForm()) {
+    <div class="default-section">
+      <div class="default-card" role="button" tabindex="0" (click)="editSchema(defaultForm()!.id)">
+        <div class="default-card-badge">
+          <i class="pi pi-star-fill"></i>
+          <span>Default Template</span>
         </div>
-      }
 
-      <!-- Error State -->
-      @if (!loading() && loadError()) {
-        <div class="empty-state py-12 animate-fade-in-up" role="alert">
-          <div class="empty-state-icon" style="background: var(--color-danger-light, #fef2f2); color: var(--color-danger); width: 5rem; height: 5rem; font-size: 2rem;">
-            <i class="pi pi-exclamation-triangle"></i>
+        <div class="default-card-body">
+          <div class="default-card-icon">
+            <i class="pi pi-file-edit"></i>
           </div>
-          <h3 class="empty-state-title">Failed to load schemas</h3>
-          <p class="empty-state-text">{{ loadError() }}</p>
-          <p-button label="Try Again" icon="pi pi-refresh" severity="warn" (onClick)="loadSchemas()" />
+          <div class="default-card-content">
+            <span class="default-card-title">{{ defaultForm()!.name }}</span>
+            <span class="default-card-short-code">{{ getFriendlyFormId(defaultForm()!) }}</span>
+            @if (defaultForm()!.description) {
+              <p class="default-card-desc">{{ defaultForm()!.description }}</p>
+            } @else {
+              <p class="default-card-desc">This default intake form is used when new patients begin their intake process.</p>
+            }
+          </div>
+        </div>
+
+        <div class="default-card-summary">
+          <div class="default-card-stat">
+            <span class="default-card-stat-value">{{ defaultFormSummary()?.fieldsCount ?? getFieldsCount(defaultForm()!.schemaJson) }}</span>
+            <span class="default-card-stat-label">Fields</span>
+          </div>
+          <div class="default-card-stat">
+            <span class="default-card-stat-value">{{ defaultFormSummary()?.submissionCount ?? '-' }}</span>
+            <span class="default-card-stat-label">Submissions</span>
+          </div>
+          <div class="default-card-stat">
+            <span class="default-card-stat-value">{{ relativeTime(defaultForm()!.updatedAt || defaultForm()!.createdAt) }}</span>
+            <span class="default-card-stat-label">Updated</span>
+          </div>
+        </div>
+
+        <div class="default-card-meta">
+          <span class="default-meta-item default-meta-item--id">{{ getFriendlyFormId(defaultForm()!) }}</span>
+          <span class="default-meta-item">{{ getStatusLabel(defaultForm()!.status) }}</span>
+          <span class="default-meta-item">Version {{ defaultForm()!.version }}</span>
+        </div>
+
+        <div class="default-card-actions-row" (click)="$event.stopPropagation()">
+          <button class="btn-outline btn-sm" (click)="editSchema(defaultForm()!.id)" pTooltip="Edit default form">
+            <i class="pi pi-pencil"></i> Edit
+          </button>
+          <button class="btn-outline btn-sm" (click)="previewSchema(defaultForm()!)" pTooltip="Preview default form">
+            <i class="pi pi-eye"></i> Preview
+          </button>
+          <button class="btn-outline btn-sm" (click)="duplicateSchema(defaultForm()!)" pTooltip="Duplicate default form">
+            <i class="pi pi-copy"></i> Duplicate
+          </button>
+          @if (defaultForm()?.status === FormSchemaStatus.Published) {
+            <button class="btn-outline btn-sm" (click)="openQrDialog(defaultForm()!)" pTooltip="QR Code">
+              <i class="pi pi-qrcode"></i> QR
+            </button>
+          }
+          @if (defaultForm()!.status === FormSchemaStatus.Draft) {
+            <button class="btn-primary btn-sm" (click)="publishSchema(defaultForm()!)" pTooltip="Publish default form">
+              <i class="pi pi-check-circle"></i> Publish
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  } @else if (!loading() && !defaultFormLoading()) {
+    <div class="default-section">
+      <div class="default-card default-card--empty" (click)="generateDefaultForm()">
+        <div class="default-card-badge default-card-badge--empty">
+          <i class="pi pi-star"></i>
+          <span>No Default Template</span>
+        </div>
+        <div class="default-card-body">
+          <div class="default-card-icon default-card-icon--empty">
+            <i class="pi pi-plus"></i>
+          </div>
+          <div class="default-card-content">
+            <span class="default-card-title">Set a default intake form</span>
+            <p class="default-card-desc">Click to auto-generate a default template with all question types, or mark an existing form as default.</p>
+          </div>
+          <div class="default-card-actions" (click)="$event.stopPropagation()">
+            <button class="btn-primary btn-sm" (click)="generateDefaultForm()">
+              <i class="pi pi-sparkles"></i> Generate Default
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Search + Sort Toolbar -->
+  <div class="toolbar">
+    <div class="search-bar">
+      <i class="pi pi-search search-icon"></i>
+      <input type="text" [(ngModel)]="searchTerm" (input)="onSearch()"
+        placeholder="Search form templates" class="search-input" />
+    </div>
+    <div class="sort-control">
+      <i class="pi pi-sort-alt sort-icon"></i>
+      <select class="sort-select" [value]="sortBy()" (change)="setSort($any($event.target).value)">
+        @for (opt of sortOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Status Filter Tabs -->
+  <div class="filter-tabs">
+    <button class="filter-tab" [class.filter-tab--active]="activeTab() === 'all'" (click)="setTab('all')">All</button>
+    <button class="filter-tab" [class.filter-tab--active]="activeTab() === 'published'" (click)="setTab('published')">Published</button>
+    <button class="filter-tab" [class.filter-tab--active]="activeTab() === 'draft'" (click)="setTab('draft')">Drafts</button>
+    <button class="filter-tab" [class.filter-tab--active]="activeTab() === 'archived'" (click)="setTab('archived')">Archived</button>
+  </div>
+
+  <!-- Loading Skeleton -->
+  @if (loading()) {
+    <div class="card-grid">
+      @for (_ of [1,2,3,4]; track _) {
+        <div class="skeleton-card">
+          <div class="skeleton-row skeleton-row--header">
+            <div class="skeleton-circle"></div>
+            <div class="skeleton-line skeleton-line--title"></div>
+          </div>
+          <div class="skeleton-line skeleton-line--desc"></div>
+          <div class="skeleton-stats">
+            <div class="skeleton-line skeleton-line--stat"></div>
+            <div class="skeleton-line skeleton-line--stat"></div>
+            <div class="skeleton-line skeleton-line--stat"></div>
+          </div>
+          <div class="skeleton-row skeleton-row--actions">
+            <div class="skeleton-btn"></div>
+            <div class="skeleton-btn"></div>
+            <div class="skeleton-btn"></div>
+          </div>
         </div>
       }
+    </div>
+  }
 
-      <!-- Content -->
-      @if (!loading() && !loadError()) {
+  <!-- Error State -->
+  @if (!loading() && loadError()) {
+    <div class="error-state" role="alert">
+      <i class="pi pi-exclamation-triangle"></i>
+      <p class="error-title">Failed to load schemas</p>
+      <p class="error-text">{{ loadError() }}</p>
+      <button class="btn-outline" (click)="loadSchemas()"><i class="pi pi-refresh"></i> Try Again</button>
+    </div>
+  }
 
-        <!-- ─── MOBILE: stacked card list (< 640 px) ─────────────────────── -->
-        @if (isMobile()) {
-          @if (filteredSchemas().length === 0) {
-            <div class="empty-state py-12">
-              <div class="empty-state-icon" style="width: 5rem; height: 5rem; font-size: 2rem;">
-                <i class="pi pi-inbox"></i>
-              </div>
-              <h3 class="empty-state-title text-lg">No schemas found</h3>
-              <p class="empty-state-text">
-                @if (searchTerm) { No schemas match your search. Try a different term. }
-                @else { Get started by creating your first intake form schema. }
-              </p>
-              @if (!searchTerm) {
-                <p-button label="Create Your First Schema" icon="pi pi-plus" (onClick)="createSchema()" />
-              }
-            </div>
-          } @else {
-            <div class="space-y-3">
-              @for (schema of filteredSchemas(); track schema.id) {
-                <div class="schema-card" (click)="editSchema(schema.id)">
-                  <!-- Card top row: icon + name + status pill -->
-                  <div class="flex items-center gap-2.5 mb-2">
-                    <div class="schema-card-icon"
-                         [style.background]="schema.status === FormSchemaStatus.Published ? 'var(--color-success-light, #ecfdf5)' : 'var(--color-page-bg, #f1f5f9)'">
-                      <i class="pi text-xs"
-                         [class.pi-check-circle]="schema.status === FormSchemaStatus.Published"
-                         [class.pi-file-edit]="schema.status !== FormSchemaStatus.Published"
-                         [style.color]="schema.status === FormSchemaStatus.Published ? 'var(--color-success, #22c55e)' : 'var(--color-text-secondary, #94a3b8)'"></i>
-                    </div>
-                    <span class="font-semibold text-[var(--color-text-primary)] flex-1 truncate">{{ schema.name }}</span>
-                    <span class="status-badge" [ngClass]="getStatusBadgeClass(schema.status)">
-                      {{ getStatusLabel(schema.status) }}
-                    </span>
-                  </div>
-
-                  <!-- Description -->
-                  @if (schema.description) {
-                    <p class="text-sm text-[var(--color-text-secondary)] mb-2 line-clamp-2">{{ schema.description }}</p>
-                  }
-
-                  <!-- Meta row: version + default star + date -->
-                  <div class="flex items-center gap-2 mb-3">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-[var(--color-page-bg)] border border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs font-medium">
-                      v{{ schema.version }}
-                    </span>
-                    @if (schema.isDefault) {
-                      <i class="pi pi-star-fill text-amber-400 text-sm animate-pulse-slow"></i>
-                    }
-                    @if (schema.publishedAt) {
-                      <span class="text-xs text-[var(--color-text-secondary)] ml-auto">{{ schema.publishedAt | date:'MMM d, y' }}</span>
-                    }
-                  </div>
-
-                  <!-- Action buttons -->
-                  <div class="card-actions" (click)="$event.stopPropagation()">
-                    <p-button
-                      icon="pi pi-pencil"
-                      [rounded]="true"
-                      severity="secondary"
-                      size="small"
-                      pTooltip="Edit"
-                      tooltipPosition="top"
-                      (onClick)="editSchema(schema.id)">
-                    </p-button>
-
-                    @if (schema.status === FormSchemaStatus.Draft) {
-                      <p-button
-                        icon="pi pi-check-circle"
-                        [rounded]="true"
-                        severity="success"
-                        size="small"
-                        pTooltip="Publish"
-                        tooltipPosition="top"
-                        (onClick)="publishSchema(schema)"
-                        [loading]="publishLoading() === schema.id">
-                      </p-button>
-                    }
-
-                    @if (schema.status === FormSchemaStatus.Published) {
-                      <p-button
-                        icon="pi pi-qrcode"
-                        [rounded]="true"
-                        severity="help"
-                        size="small"
-                        pTooltip="Generate QR Link"
-                        tooltipPosition="top"
-                        (onClick)="openQrDialog(schema.id)">
-                      </p-button>
-                    }
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        }
-
-        <!-- ─── DESKTOP: p-table (≥ 640 px) ───────────────────────────────── -->
-        @if (!isMobile()) {
-          <p-table
-            [value]="filteredSchemas()"
-            [paginator]="true"
-            [rows]="10"
-            [showCurrentPageReport]="true"
-            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} schemas"
-            [rowHover]="true"
-            styleClass="p-datatable-sm cursor-pointer">
-
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Version</th>
-                <th>Status</th>
-                <th>Default</th>
-                <th>Published</th>
-                <th class="text-center" style="width: 140px;">Actions</th>
-              </tr>
-            </ng-template>
-
-            <ng-template pTemplate="body" let-schema>
-              <tr class="animate-fade-in" (click)="editSchema(schema.id)" style="cursor: pointer;">
-                <td>
-                  <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                         [style.background]="schema.status === FormSchemaStatus.Published ? 'var(--color-success-light, #ecfdf5)' : 'var(--color-page-bg, #f1f5f9)'">
-                      <i class="pi text-sm"
-                         [class.pi-check-circle]="schema.status === FormSchemaStatus.Published"
-                         [class.pi-file-edit]="schema.status !== FormSchemaStatus.Published"
-                         [style.color]="schema.status === FormSchemaStatus.Published ? 'var(--color-success, #22c55e)' : 'var(--color-text-secondary, #94a3b8)'"></i>
-                    </div>
-                    <span class="font-semibold text-[var(--color-text-primary)]">{{ schema.name }}</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="text-[var(--color-text-secondary)] text-sm">{{ schema.description || '—' }}</span>
-                </td>
-                <td>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-[var(--color-page-bg)] border border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs font-medium">
-                    v{{ schema.version }}
-                  </span>
-                </td>
-                <td>
-                  <span class="status-badge" [ngClass]="getStatusBadgeClass(schema.status)">
-                    {{ getStatusLabel(schema.status) }}
-                  </span>
-                </td>
-                <td>
-                  @if (schema.isDefault) {
-                    <div class="flex items-center gap-1.5">
-                      <i class="pi pi-star-fill text-amber-400 text-sm animate-pulse-slow"></i>
-                    </div>
-                  } @else {
-                    <span class="text-[var(--color-text-secondary)] opacity-50">—</span>
-                  }
-                </td>
-                <td>
-                  <span class="text-sm text-[var(--color-text-secondary)]">
-                    {{ schema.publishedAt ? (schema.publishedAt | date: 'MMM d, y') : '—' }}
-                  </span>
-                </td>
-                <td>
-                  <div class="flex gap-1.5 justify-center">
-                    <p-button
-                      icon="pi pi-pencil"
-                      [rounded]="true"
-                      severity="secondary"
-                      size="small"
-                      pTooltip="Edit"
-                      tooltipPosition="top"
-                      (onClick)="handleActionClick($event, () => editSchema(schema.id))">
-                    </p-button>
-
-                    @if (schema.status === FormSchemaStatus.Draft) {
-                      <p-button
-                        icon="pi pi-check-circle"
-                        [rounded]="true"
-                        severity="success"
-                        size="small"
-                        pTooltip="Publish"
-                        tooltipPosition="top"
-                        (onClick)="handleActionClick($event, () => publishSchema(schema))"
-                        [loading]="publishLoading() === schema.id">
-                      </p-button>
-                    }
-
-                    @if (schema.status === FormSchemaStatus.Published) {
-                      <p-button
-                        icon="pi pi-qrcode"
-                        [rounded]="true"
-                        severity="help"
-                        size="small"
-                        pTooltip="Generate QR Link"
-                        tooltipPosition="top"
-                        (onClick)="handleActionClick($event, () => openQrDialog(schema.id))">
-                      </p-button>
-                    }
-                  </div>
-                </td>
-              </tr>
-            </ng-template>
-
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td colspan="7">
-                  <div class="empty-state py-12">
-                    <div class="empty-state-icon" style="width: 5rem; height: 5rem; font-size: 2rem;">
-                      <i class="pi pi-inbox"></i>
-                    </div>
-                    <h3 class="empty-state-title text-lg">No schemas found</h3>
-                    <p class="empty-state-text">
-                      @if (searchTerm) {
-                        No schemas match your search. Try a different term.
-                      } @else {
-                        Get started by creating your first intake form schema.
-                      }
-                    </p>
-                    @if (!searchTerm) {
-                      <p-button
-                        label="Create Your First Schema"
-                        icon="pi pi-plus"
-                        (onClick)="createSchema()">
-                      </p-button>
-                    }
-                  </div>
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        }
+  <!-- Empty State -->
+  @if (!loading() && !loadError() && filteredSchemas().length === 0) {
+    <div class="empty-state">
+      <i class="pi pi-file-edit empty-icon"></i>
+      <p class="empty-title">
+        @if (searchTerm || activeTab() !== 'all') { No schemas match your filters. Try a different term or tab. }
+        @else { No form templates yet. }
+      </p>
+      @if (!searchTerm && activeTab() === 'all') {
+        <button class="btn-primary" (click)="createSchema()"><i class="pi pi-plus"></i> Create Your First Template</button>
       }
-    </ng-template>
-  </p-card>
+    </div>
+  }
+
+  <!-- Card Grid -->
+  @if (!loading() && !loadError() && filteredSchemas().length > 0) {
+    <div class="card-grid">
+      @for (schema of paginatedSchemas(); track trackById($index, schema)) {
+        <div class="form-card" [ngClass]="getCardBorderClass(schema.status)" [class.form-card--copied]="schema.originalFormId" (click)="editSchema(schema.id)">
+          <!-- Logo + Header -->
+          <div class="card-header">
+            <div class="card-icon" [class.card-icon--published]="schema.status === FormSchemaStatus.Published"
+              [class.card-icon--draft]="schema.status === FormSchemaStatus.Draft"
+              [class.card-icon--archived]="schema.status === FormSchemaStatus.Archived">
+              <i class="pi pi-file-edit"></i>
+            </div>
+            <div class="card-title-group">
+              <div class="card-title-row">
+                <span class="card-title">{{ schema.name }}</span>
+                @if (schema.isDefault) {
+                  <span class="badge-default"><i class="pi pi-check"></i> Default</span>
+                }
+                @if (schema.originalFormId) {
+                  <span class="badge-copied"><i class="pi pi-copy"></i> Copied</span>
+                }
+              </div>
+              <span class="card-short-code">{{ getFriendlyFormId(schema) }}</span>
+              @if (schema.originalName) {
+                <span class="card-copy-origin">Original: {{ schema.originalName }}</span>
+              }
+            </div>
+          </div>
+
+          <!-- Description -->
+          @if (schema.description) {
+            <p class="card-description">{{ schema.description }}</p>
+          } @else {
+            <p class="card-description card-description--empty">No description</p>
+          }
+
+          <!-- Stats Row -->
+          <div class="card-stats">
+            <div class="stat">
+              <span class="stat-value">{{ schema.fieldsCount }}</span>
+              <span class="stat-label">FIELDS</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+              <span class="stat-value">{{ schema.submissionCount }}</span>
+              <span class="stat-label">SUBMISSIONS</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+              <span class="stat-value">{{ relativeTime(schema.publishedAt || schema.createdAt) }}</span>
+              <span class="stat-label">UPDATED</span>
+            </div>
+          </div>
+
+          <!-- Status + Version Row -->
+          <div class="card-footer-row">
+            <div class="card-status-row">
+              <span class="status-dot" [class.status-dot--published]="schema.status === FormSchemaStatus.Published"
+                [class.status-dot--draft]="schema.status === FormSchemaStatus.Draft"
+                [class.status-dot--archived]="schema.status === FormSchemaStatus.Archived"></span>
+              <span class="status-text">{{ getStatusLabel(schema.status) }}</span>
+            </div>
+            <span class="version-badge">v{{ schema.version }}</span>
+          </div>
+
+          <!-- Actions Row -->
+          <div class="card-actions" (click)="$event.stopPropagation()">
+            <button class="action-btn" (click)="editSchema(schema.id)" pTooltip="Edit schema" tooltipPosition="top">
+              <i class="pi pi-pencil"></i> Edit
+            </button>
+            @if (!schema.isDefault) {
+              <button class="action-btn action-btn--danger" (click)="confirmDelete(schema)"
+                [disabled]="isLoading(schema.id, 'delete')" pTooltip="Delete" tooltipPosition="top">
+                @if (isLoading(schema.id, 'delete')) { <i class="pi pi-spin pi-spinner"></i> }
+                @else { <i class="pi pi-trash"></i> }
+                Delete
+              </button>
+            }
+            <button class="action-btn" (click)="previewSchema(schema)" pTooltip="Preview schema" tooltipPosition="top">
+              <i class="pi pi-eye"></i> Preview
+            </button>
+            <button class="action-btn" (click)="duplicateSchema(schema)"
+              [disabled]="isLoading(schema.id, 'duplicate')" pTooltip="Create a copy" tooltipPosition="top">
+              @if (isLoading(schema.id, 'duplicate')) { <i class="pi pi-spin pi-spinner"></i> }
+              @else { <i class="pi pi-copy"></i> }
+              Duplicate
+            </button>
+            <div class="action-spacer"></div>
+            @if (schema.status === FormSchemaStatus.Archived) {
+              <button class="action-btn action-btn--archive" (click)="confirmUnarchive(schema)"
+                [disabled]="isLoading(schema.id, 'unarchive')" pTooltip="Unarchive" tooltipPosition="top">
+                @if (isLoading(schema.id, 'unarchive')) { <i class="pi pi-spin pi-spinner"></i> }
+                @else { <i class="pi pi-undo"></i> }
+                Unarchive
+              </button>
+            } @else {
+              <button class="action-btn action-btn--archive" (click)="confirmArchive(schema)"
+                [disabled]="isLoading(schema.id, 'archive')" pTooltip="Archive" tooltipPosition="top">
+                @if (isLoading(schema.id, 'archive')) { <i class="pi pi-spin pi-spinner"></i> }
+                @else { <i class="pi pi-archive"></i> }
+                Archive
+              </button>
+            }
+            @if (schema.status === FormSchemaStatus.Published) {
+              <button class="action-icon-btn" (click)="quickShare(schema)"
+                pTooltip="Quick Share" tooltipPosition="top">
+                <i class="pi pi-share-alt"></i>
+              </button>
+              <button class="action-icon-btn" (click)="openQrDialog(schema)"
+                pTooltip="QR Code" tooltipPosition="top">
+                <i class="pi pi-qrcode"></i>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <span class="pagination-info">Showing {{ ((currentPage() - 1) * pageSize) + 1 }} to {{ Math.min(currentPage() * pageSize, filteredSchemas().length) }} of {{ filteredSchemas().length }} schemas</span>
+        <div class="pagination-controls">
+          <button class="page-btn" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1"><i class="pi pi-chevron-left"></i></button>
+          @for (page of pages(); track page) {
+            <button class="page-btn" [class.page-btn--active]="currentPage() === page" (click)="goToPage(page)">{{ page }}</button>
+          }
+          <button class="page-btn" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()"><i class="pi pi-chevron-right"></i></button>
+        </div>
+      </div>
+    }
+  }
 
   <!-- QR Link Dialog -->
-  <p-dialog
-    [(visible)]="qrDialogVisible"
-    [modal]="true"
-    [closable]="true"
-    [dismissableMask]="true"
-    [focusOnShow]="false"
-    [style]="{ width: '480px' }">
-
+  <p-dialog [(visible)]="qrDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true" [focusOnShow]="false" [style]="{ width: 'min(480px, calc(100vw - 2rem))' }">
     <ng-template pTemplate="header">
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg flex items-center justify-center"
-             style="background: linear-gradient(135deg, var(--color-primary) 0%, #7c3aed 100%);">
-          <i class="pi pi-qrcode text-white"></i>
-        </div>
+        <div class="qr-dialog-icon"><i class="pi pi-qrcode text-white"></i></div>
         <div>
           <h3 class="font-bold text-base m-0">Generate QR Link</h3>
           <p class="text-xs text-[var(--color-text-secondary)] m-0">Create a public intake URL</p>
         </div>
       </div>
     </ng-template>
-
     @if (!qrResult()) {
       <div class="space-y-5">
         <div>
-          <label class="block text-sm font-semibold text-[var(--color-text-primary)] mb-2">
-            <i class="pi pi-clock text-xs mr-1.5 text-[var(--color-text-secondary)]"></i>
-            Expiry (months)
-          </label>
-          <p-inputNumber
-            [(ngModel)]="expiryMonths"
-            [min]="1"
-            [max]="24"
-            [showButtons]="true"
-            class="w-full">
-          </p-inputNumber>
-          <p class="text-xs text-[var(--color-text-secondary)] mt-1.5">
-            Link will expire after this period. Max: 24 months (2 years).
-          </p>
+          <label class="qr-url-label"><i class="pi pi-clock text-xs mr-1.5 text-[var(--color-text-secondary)]"></i> Expiry (months)</label>
+          <p-inputNumber [(ngModel)]="expiryMonths" [min]="1" [max]="24" [showButtons]="true" class="w-full"></p-inputNumber>
+          <p class="text-xs text-[var(--color-text-secondary)] mt-1.5">Link will expire after this period. Max: 24 months.</p>
         </div>
       </div>
     } @else {
       <div class="space-y-5 animate-fade-in-up">
-        <!-- Success indicator -->
-        <div class="flex items-center gap-3 p-3 rounded-xl" style="background: var(--color-success-light, #f0fdf4);">
-          <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style="background: var(--color-success);">
-            <i class="pi pi-check text-white text-sm"></i>
-          </div>
-          <div>
-            <p class="text-sm font-semibold text-[rgb(var(--intake-color-success))] m-0">Link generated successfully</p>
-            <p class="text-xs text-[rgb(var(--intake-color-success))] opacity-80 m-0">Share this URL or print the QR code for the reception desk</p>
-          </div>
+        <div class="qr-success-banner">
+          <div class="qr-success-icon"><i class="pi pi-check text-white text-sm"></i></div>
+          <div><p class="text-sm font-semibold text-[var(--color-success-text)] m-0">Link generated successfully</p><p class="text-xs text-[var(--color-success-text)] opacity-80 m-0">Share this URL or print the QR code</p></div>
         </div>
-
-        <!-- QR image -->
         @if (qrImageUrl()) {
-          <div class="flex flex-col items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-            <img [src]="qrImageUrl()" alt="QR code for the public intake form" class="w-48 h-48 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)]" />
-            <p class="text-xs text-[var(--color-text-secondary)] m-0 text-center">Scan this code to open the intake form on a phone.</p>
-          </div>
+          <div class="qr-image-container"><img [src]="qrImageUrl()" alt="QR code" class="qr-image" /><p class="text-xs text-[var(--color-text-secondary)] m-0 text-center">Scan to open the intake form on a phone.</p></div>
         }
-
-        <!-- Public URL -->
         <div>
-          <label class="qr-url-label">
-            <i class="pi pi-globe text-[10px] mr-1"></i>
-            Public URL
-          </label>
+          <label class="qr-url-label"><i class="pi pi-globe text-[10px] mr-1"></i> Public URL</label>
           <div class="flex gap-2 mt-2">
-            <input
-              pInputText
-              [ngModel]="qrPublicUrl()"
-              readonly
-              class="flex-1 !bg-[var(--color-page-bg)] font-mono text-sm min-w-0 truncate" />
-            <p-button
-              icon="pi pi-copy"
-              [outlined]="true"
-              severity="secondary"
-              (onClick)="copyToClipboard(qrPublicUrl())"
-              pTooltip="Copy URL">
-            </p-button>
-            <p-button
-              icon="pi pi-external-link"
-              [outlined]="true"
-              severity="primary"
-              (onClick)="openUrl(qrPublicUrl())"
-              pTooltip="Open in new tab">
-            </p-button>
+            <input pInputText [ngModel]="qrPublicUrl()" readonly class="flex-1 !bg-[var(--color-page-bg)] font-mono text-sm min-w-0 truncate" />
+            <button class="btn-icon-only" (click)="copyToClipboard(qrPublicUrl())" pTooltip="Copy URL"><i class="pi pi-copy"></i></button>
+            <button class="btn-icon-only btn-icon-only--primary" (click)="openUrl(qrPublicUrl())" pTooltip="Open in new tab"><i class="pi pi-external-link"></i></button>
           </div>
         </div>
-
-        <!-- Expiry info -->
-        <div class="flex items-center gap-2 p-3 rounded-lg bg-[var(--color-page-bg)]">
-          <i class="pi pi-calendar text-[var(--color-text-secondary)] text-sm"></i>
-          <div>
-            <p class="text-xs text-[var(--color-text-secondary)] m-0">Expires</p>
-            <p class="text-sm font-medium text-[var(--color-text-primary)] m-0">{{ qrResult()?.expiresAt | date:'medium' }}</p>
-          </div>
-        </div>
+        <div class="expiry-info"><i class="pi pi-calendar text-[var(--color-text-secondary)] text-sm"></i><div><p class="text-xs text-[var(--color-text-secondary)] m-0">Expires</p><p class="text-sm font-medium text-[var(--color-text-primary)] m-0">{{ qrResult()?.expiresAt | date:'medium' }}</p></div></div>
       </div>
     }
-
     <ng-template pTemplate="footer">
       @if (!qrResult()) {
         <div class="flex justify-end gap-2">
-          <p-button
-            label="Cancel"
-            severity="secondary"
-            [outlined]="true"
-            (onClick)="closeQrDialog()">
-          </p-button>
-          <p-button
-            label="Generate Link"
-            icon="pi pi-link"
-            (onClick)="generateQr()"
-            [loading]="qrLoading()">
-          </p-button>
+          <button class="btn-outline" (click)="closeQrDialog()">Cancel</button>
+          <button class="btn-primary" (click)="generateQr()" [disabled]="qrLoading()">@if (qrLoading()) { <i class="pi pi-spin pi-spinner"></i> }<i class="pi pi-link"></i> Generate Link</button>
         </div>
       } @else {
         <div class="flex justify-between gap-2">
-          <p-button
-            label="Print QR"
-            icon="pi pi-print"
-            severity="secondary"
-            [outlined]="true"
-            (onClick)="printQrCode()">
-          </p-button>
-          <p-button
-            label="Done"
-            icon="pi pi-check"
-            (onClick)="closeQrDialog()">
-          </p-button>
+          <button class="btn-outline" (click)="printQrCode()"><i class="pi pi-print"></i> Print QR</button>
+          <button class="btn-primary" (click)="closeQrDialog()"><i class="pi pi-check"></i> Done</button>
         </div>
       }
     </ng-template>
   </p-dialog>
+
+
 </div>

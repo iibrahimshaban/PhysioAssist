@@ -6,7 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
-import { PreVisitIntakeResponse, IntakeStatus } from '../../models';
+import { PreVisitIntakeResponse, IntakeStatus, getIntakeStatusLabel, getIntakeStatusPillClass } from '../../models';
 
 import { SubmissionFiltersBarComponent } from './submission-filters-bar/submission-filters-bar.component';
 import { SubmissionSummaryStatsComponent } from './submission-summary-stats/submission-summary-stats.component';
@@ -37,6 +37,7 @@ export class SubmissionListComponent implements OnInit {
   readonly submissions = signal<PreVisitIntakeResponse[]>([]);
   readonly searchTerm = signal('');
   readonly selectedStatus = signal<IntakeStatus | null>(null);
+  private loadRequestId = 0;
 
   readonly statusOptions = [
     { label: 'All Statuses', value: null },
@@ -64,7 +65,15 @@ export class SubmissionListComponent implements OnInit {
   );
 
   readonly approvedCount = computed(() =>
-    this.submissions().filter(s => s.status === IntakeStatus.Approved || s.status === IntakeStatus.Converted).length
+    this.submissions().filter(s => s.status === IntakeStatus.Approved).length
+  );
+
+  readonly rejectedCount = computed(() =>
+    this.submissions().filter(s => s.status === IntakeStatus.Rejected).length
+  );
+
+  readonly convertedCount = computed(() =>
+    this.submissions().filter(s => s.status === IntakeStatus.Converted).length
   );
 
   ngOnInit(): void {
@@ -72,15 +81,18 @@ export class SubmissionListComponent implements OnInit {
   }
 
   loadSubmissions(): void {
+    const requestId = ++this.loadRequestId;
     this.loading.set(true);
     this.error.set(null);
 
     this.intakeApi.getSubmissions(this.selectedStatus() ?? undefined).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
+        if (requestId !== this.loadRequestId) return;
         this.submissions.set(data);
         this.loading.set(false);
       },
       error: () => {
+        if (requestId !== this.loadRequestId) return;
         this.error.set('Failed to load submissions. Please try again.');
         this.loading.set(false);
         this.snackbar.error('Error', ['Could not load intake submissions.']);
@@ -120,34 +132,11 @@ export class SubmissionListComponent implements OnInit {
    * split (e.g. show "In Review" separately).
    */
   getQueueStatusLabel(status: IntakeStatus): string {
-    switch (status) {
-      case IntakeStatus.Pending:
-      case IntakeStatus.Submitted:
-      case IntakeStatus.InReview:
-        return 'Pending review';
-      case IntakeStatus.Approved: return 'Approved';
-      case IntakeStatus.Rejected: return 'Rejected';
-      case IntakeStatus.Converted: return 'Converted';
-      case IntakeStatus.Expired: return 'Expired';
-      default: return 'Unknown';
-    }
+    return getIntakeStatusLabel(status);
   }
 
   getStatusPillClass(status: IntakeStatus): string {
-    switch (status) {
-      case IntakeStatus.Pending:
-      case IntakeStatus.Submitted:
-      case IntakeStatus.InReview:
-        return 'bg-amber-50 text-amber-700';
-      case IntakeStatus.Approved:
-      case IntakeStatus.Converted:
-        return 'bg-emerald-50 text-emerald-700';
-      case IntakeStatus.Rejected:
-      case IntakeStatus.Expired:
-        return 'bg-rose-50 text-rose-700';
-      default:
-        return 'bg-slate-100 text-slate-600';
-    }
+    return getIntakeStatusPillClass(status);
   }
 
   /** "Checked in Xd ago" style relative time, matching the reception-queue design. */
