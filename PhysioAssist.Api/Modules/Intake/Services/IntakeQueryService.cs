@@ -26,9 +26,9 @@ public class IntakeQueryService(ApplicationDbContext context) : IIntakeQueryServ
         var response = new PreVisitIntakeDataResponse(
             intake.Id,
             intake.DoctorId,
-            intake.FormSchemaId,
+            intake.FormSchemaId,  
             intake.FormSchemaVersion,
-            intake.FormSubmissionData,
+            intake.FormSubmissionData, 
             intake.PainPointsData,
             intake.Status,
             intake.ConvertedToPatientId,

@@ -48,5 +48,16 @@ export class PatientService {
   getWithSlots() {
   return this.http.get<any[]>(`${this.apiUrl}/with-slots`);
 }
-  
+  getOverview(id: string) {
+  return this.http.get<any>(`${this.apiUrl}/${id}/overview`);
+}
+
+getFormSchema(schemaId: string) {
+  return this.http.get<any>(`https://localhost:7097/api/intake/form-schemas/${schemaId}`);
+}
+
+updateOverviewSubmission(patientId: string, body: { formSubmissionData: string }) {
+  return this.http.put(`${this.apiUrl}/${patientId}/overview/submission-data`, body);
+}
+
 }

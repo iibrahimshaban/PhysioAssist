@@ -1,4 +1,5 @@
-﻿using PhysioAssist.Api.Modules.PatientModule.Repositories;
+﻿using PhysioAssist.Api.Modules.Intake.QueryServices;
+using PhysioAssist.Api.Modules.PatientModule.Repositories;
 using PhysioAssist.Api.Modules.PatientModule.Services;
 using PhysioAssist.Api.Shared.Interfaces.Common;
 using PhysioAssist.Api.Shared.Repositories;
@@ -13,6 +14,8 @@ namespace PhysioAssist.Api.Modules.PatientModule
             services.AddScoped<IPatientService, PatientService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IDoctorPatientRepo, DoctorPatientRepo>();
+            services.AddScoped<IPatientOverviewIntakeQueryService, PatientOverviewIntakeQueryService>();
+            services.AddScoped<IPatientOverviewIntakeCommandService, PatientOverviewIntakeCommandService>();
             services.AddHttpContextAccessor();
             return services;
         }
