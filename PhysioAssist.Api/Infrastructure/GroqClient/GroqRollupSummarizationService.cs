@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
+using PhysioAssist.Api.Infrastructure.GroqClient.Options;
+using PhysioAssist.Api.Infrastructure.GroqClient.Prompts;
 using PhysioAssist.Api.Shared.Interfaces.Documentation;
 using System.Net.Http.Headers;
 

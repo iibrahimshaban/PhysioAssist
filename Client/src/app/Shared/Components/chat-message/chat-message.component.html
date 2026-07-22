@@ -16,8 +16,11 @@
         <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400"></span>
       </span>
     } @else {
-      <p class="whitespace-pre-wrap">{{ m.content }}</p>
-    }
+    <div class="prose prose-sm max-w-none [&_p]:my-1 [&_ul]:my-1.5 [&_h3]:mt-2 [&_h3]:mb-1"
+        dir="auto"
+        [innerHTML]="m.content | markdown">
+    </div>
+}
 
     @if (m.status === 'error') {
       <p class="mt-1 text-xs font-medium text-red-200">Couldn't send. Tap to retry.</p>

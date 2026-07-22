@@ -1,10 +1,7 @@
 ﻿using PhysioAssist.Api.Modules.SessionModule.Contracts;
 using PhysioAssist.Api.Modules.SessionModule.Entities;
 using PhysioAssist.Api.Modules.SessionModule.Errors;
-using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Enums;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
-using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Modules.SessionModule.Services;
 
@@ -395,8 +392,6 @@ public class SessionService(
 
         return Result.Success();
     }
-
-
 
 
     public async Task<Result> DeleteAttachmentAsync(
