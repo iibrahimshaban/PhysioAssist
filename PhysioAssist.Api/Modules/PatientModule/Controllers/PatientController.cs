@@ -88,5 +88,19 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
             var result = await _patientService.GetPatientsWithSlotsAsync(doctorId, ct);
             return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
         }
+
+        [HttpGet("{id}/overview")]
+        public async Task<IActionResult> GetOverview(Guid id, CancellationToken ct)
+        {
+            var result = await _patientService.GetPatientOverviewAsync(id, ct);
+            return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+        }
+
+        [HttpPut("{id}/overview/submission-data")]
+        public async Task<IActionResult> UpdateOverviewSubmissionData(Guid id, [FromBody] UpdateSubmissionDataRequest request, CancellationToken ct)
+        {
+            var result = await _patientService.UpdatePatientOverviewSubmissionAsync(id, request.FormSubmissionData, ct);
+            return result.IsSuccess ? NoContent() : result.ToProblem();
+        }
     }
 }

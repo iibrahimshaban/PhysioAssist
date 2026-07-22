@@ -10,4 +10,5 @@ public class InitialReport : AuditableEntity
     public bool IsDeleted { get; set; } = false;
     public string? ObjectiveFindings { get; set; }
     public ICollection<ReportAttachment> Attachments { get; set; } = [];
+    public TreatmentSchedulePlan? TreatmentSchedulePlan { get; set; }
 }

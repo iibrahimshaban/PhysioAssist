@@ -2,8 +2,7 @@
 using PhysioAssist.Api.Modules.Scheduling.Entities;
 using PhysioAssist.Api.Modules.Scheduling.Errors;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
-using PhysioAssist.Api.Shared.Interfaces.Common;
-using PhysioAssist.Api.Shared.ResultPattern;
+
 
 
 
@@ -13,6 +12,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IAppointmentService _appointmentService = appointmentService;
+        
 
         public async Task<Result<WorkingScheduleDto>> CreateAsync(CreateWorkingScheduleRequest request, CancellationToken cancellationToken = default)
         {
@@ -222,7 +222,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations
 
                 if (!stillFits)
                 {
-                    appointment.Status = SlotStatus.Cancelled;
+                    await   _appointmentService.CancelAsync(appointment.Id, cancellationToken);
                 }
             }
         }

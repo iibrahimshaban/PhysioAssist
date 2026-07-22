@@ -4,24 +4,24 @@ using PhysioAssist.Api.Infrastructure.AutoComplete;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
 using PhysioAssist.Api.Infrastructure.GeminiClient;
 using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
+using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
 using PhysioAssist.Api.Infrastructure.GroqClient;
+using PhysioAssist.Api.Infrastructure.GroqClient.Options;
 using PhysioAssist.Api.Modules.Auth;
 using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Modules.DocumentationModule;
 using PhysioAssist.Api.Modules.InitialReportModule;
 using PhysioAssist.Api.Modules.Intake;
+using PhysioAssist.Api.Modules.Notification;
 using PhysioAssist.Api.Modules.PatientModule;
-using PhysioAssist.Api.Modules.PatientModule.Services;
 using PhysioAssist.Api.Modules.QueryModule;
-using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
-using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
-using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
-using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Modules.Scheduling;
 using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Shared.Email;
 using PhysioAssist.Api.Shared.Interfaces.Documentation;
 using PhysioAssist.Api.Shared.Interfaces.Ingestion;
+using PhysioAssist.Api.Shared.Interfaces.Scheduling;
 using PhysioAssist.Api.Shared.Options;
 using PhysioAssist.Api.Shared.PdfService;
 using PhysioAssist.Api.Shared.QR;
@@ -43,7 +43,6 @@ public static class DependancyInjection
             .AddMapsterConfiguration()
             .AddPermissionAuthorization()
             .AddMailConfig()
-            .AddExposedServicesConfig()
             .AddDocumentationSummarizationConfig()
             .AddAutoCompleteService(configuration)
             .AddPatientSummaryConfig(configuration)
@@ -58,6 +57,8 @@ public static class DependancyInjection
         services.AddQrCodeConfig(configuration);
         services.AddScoped<IPdfService, PdfService>();
         services.AddScoped<INotificationService, PhysioAssist.Api.Shared.NotificationService.NotificationService>();
+        services.AddScoped<IAnswerTranslationService, GitHubModelsAnswerTranslationService>();
+        services.AddScoped<IPatientTimePreferenceParser, GitHubModelsTimePreferenceParser>();
 
         services
            .AddAuthModule(configuration)
@@ -66,7 +67,8 @@ public static class DependancyInjection
            .AddQueryModuleConfig(configuration)
            .AddPatientModule()
            .AddDocumentationModule()
-           .AddInitialReportModule();
+           .AddInitialReportModule()
+           .AddSchedulingModule(configuration);
 
         return services;
     }
@@ -189,13 +191,8 @@ public static class DependancyInjection
        
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IScheduleSlotRepository, ScheduleSlotRepository>();
-        services.AddScoped<IWorkingScheduleRepository, WorkingScheduleRepository>();
-        services.AddScoped<IWorkingScheduleDayRepository, WorkingScheduleDayRepository>();
-        services.AddScoped<IAppointmentValidator, AppointmentValidator>();
-        services.AddScoped<IAppointmentService, AppointmentService>();
-        services.AddScoped<IWorkingScheduleService, WorkingScheduleService>();
-        services.AddScoped<IScheduleSlotQueryService, ScheduleSlotQueryService>();
+        services.AddNotificationModule();
+        
 
         services
             .AddOptions<MailSettings>()
@@ -319,11 +316,6 @@ public static class DependancyInjection
 
         services.AddResponseCaching();
 
-        return services;
-    }
-    private static IServiceCollection AddExposedServicesConfig(this IServiceCollection services)
-    {
-        services.AddScoped<IPatientQueryService, PatientQueryService>();
         return services;
     }
 }

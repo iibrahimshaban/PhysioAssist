@@ -45,6 +45,29 @@ IDoctorPatientRepo _doctorPatientRepo) : IPatientQueryService
         return Result.Success(response);
 
     }
+
+    public async Task<Result<List<PatientResponse>>> GetAllPatientsForDoctorAsync(Guid doctorId,CancellationToken ct = default)
+    {
+        var patientIds = await _dbContext.DoctorPatients
+            .Where(dp => dp.DoctorId == doctorId)
+            .Select(dp => dp.PatientId)
+            .ToListAsync(ct);
+
+        var patients = await _dbContext.Patients
+            .Where(p => patientIds.Contains(p.Id))
+            .ToListAsync(ct);
+
+        if (!patients.Any())
+        {
+            return Result.Failure<List<PatientResponse>>(PatientErrors.NotFound);
+        }
+
+        var response = patients.Adapt<List<PatientResponse>>();
+
+        return Result.Success(response);
+    }
+
+   
     public async Task<Result<Guid>> CreatePatientFromIntakeAsync(CreatePatientFromIntakeRequest request,
     CancellationToken cancellationToken = default)
     {

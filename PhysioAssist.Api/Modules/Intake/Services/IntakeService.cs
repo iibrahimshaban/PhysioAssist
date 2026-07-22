@@ -413,6 +413,7 @@ public class IntakeService(
         DateTime? dateOfBirth = ExtractInputValuesHelper.ExtractAnswerDate(submission, "question_default_dob", "date");
         var job = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_job", "text");
 
+
         if (string.IsNullOrWhiteSpace(fullName))
             return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSubmission);
 

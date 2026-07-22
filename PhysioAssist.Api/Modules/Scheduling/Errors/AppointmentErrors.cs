@@ -1,7 +1,4 @@
-﻿using PhysioAssist.Api.Modules.Scheduling.Entities;
-using PhysioAssist.Api.Shared.ResultPattern;
-
-namespace PhysioAssist.Api.Modules.Scheduling.Errors
+﻿namespace PhysioAssist.Api.Modules.Scheduling.Errors
 {
     /// <summary>
     /// Centralized catalog of domain errors that can occur while working with

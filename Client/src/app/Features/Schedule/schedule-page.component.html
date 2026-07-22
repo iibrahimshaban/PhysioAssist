@@ -9,11 +9,7 @@
       (viewModeChanged)="scheduleService.setView($event)"
       
     />
-    <app-doctor-selector
-      [doctors]="doctors"
-      [selectedDoctorId]="scheduleService.selectedDoctorId()"
-      (doctorSelected)="onDoctorSelected($event)"
-    />
+   
   </div>
 
   @if (scheduleService.selectedDoctorId()) {

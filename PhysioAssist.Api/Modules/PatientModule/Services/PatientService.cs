@@ -17,6 +17,9 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         private readonly IDoctorPatientRepo _doctorPatientRepo;
         private readonly IScheduleSlotQueryService _scheduleSlotQueryService;
         private readonly ApplicationDbContext _context;
+        private readonly IPatientOverviewIntakeQueryService _overviewIntakeQueryService;
+        private readonly IPatientOverviewIntakeCommandService _overviewIntakeCommandService;
+
 
         public PatientService(
             IPatientRepo patientRepo,
@@ -24,6 +27,8 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             IMapper mapper,
             IDoctorPatientRepo doctorPatientRepo,
             IScheduleSlotQueryService scheduleSlotQueryService,
+            IPatientOverviewIntakeQueryService overviewIntakeQueryService,
+            IPatientOverviewIntakeCommandService overviewIntakeCommandService,
             ApplicationDbContext context,
             IHttpContextAccessor httpContextAccessor)
         {
@@ -31,6 +36,8 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             _unitOfWork = unitOfWork;
             _doctorPatientRepo = doctorPatientRepo;
             _scheduleSlotQueryService = scheduleSlotQueryService;
+            _overviewIntakeQueryService = overviewIntakeQueryService;
+            _overviewIntakeCommandService = overviewIntakeCommandService;
             _context = context;
         }
 
@@ -185,6 +192,31 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
                 .ToList();
 
             return Result.Success<IEnumerable<PatientWithNextSlotResponse>>(result);
+        }
+
+        public async Task<Result<PatientOverviewResponse>> GetPatientOverviewAsync(Guid patientId, CancellationToken ct = default)
+        {
+            var patient = await _patientRepo.GetByIdAsync(patientId);
+            if (patient is null)
+                return Result.Failure<PatientOverviewResponse>(PatientErrors.NotFound);
+
+            var response = patient.Adapt<PatientOverviewResponse>();
+
+            var overviewResult = await _overviewIntakeQueryService.GetOverviewDataForPatientAsync(patientId, ct);
+            if (overviewResult.IsSuccess)
+            {
+                response.FormSubmissionData = overviewResult.Value.FormSubmissionData;
+                response.PainPointsJson = overviewResult.Value.PainPointsJson;
+                response.DoctorInfoJson = overviewResult.Value.DoctorInfoJson;
+            }
+
+            return Result.Success(response);
+        }
+
+
+        public async Task<Result> UpdatePatientOverviewSubmissionAsync(Guid patientId, string formSubmissionData, CancellationToken ct = default)
+        {
+            return await _overviewIntakeCommandService.UpdateFormSubmissionDataAsync(patientId, formSubmissionData, ct);
         }
     }
 }

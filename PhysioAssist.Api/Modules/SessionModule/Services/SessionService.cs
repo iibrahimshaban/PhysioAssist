@@ -1,10 +1,7 @@
 ﻿using PhysioAssist.Api.Modules.SessionModule.Contracts;
 using PhysioAssist.Api.Modules.SessionModule.Entities;
 using PhysioAssist.Api.Modules.SessionModule.Errors;
-using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Enums;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
-using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Modules.SessionModule.Services;
 
@@ -123,7 +120,10 @@ public class SessionService(
                         FileName = a.FileName,
                         FileType = a.FileType
                     })
-                    .ToList()
+                    .ToList(),
+                AudioFileUrl = s.Transcription == null
+                ? null
+                : s.Transcription.AudioFileUrl
             })
             .FirstOrDefaultAsync();
 
@@ -133,14 +133,15 @@ public class SessionService(
         return Result.Success(session);
     }
     public async Task<Result<string>> CreateAudioTranscriptionAsync(
-        Guid sessionId,
-        CreateAudioTranscriptionRequest request,
-        CancellationToken cancellationToken = default)
+      Guid sessionId,
+      CreateAudioTranscriptionRequest request,
+      CancellationToken cancellationToken = default)
     {
         if (request.AudioFile is null || request.AudioFile.Length == 0)
             return Result.Failure<string>(SessionErrors.EmptyAudioFile);
 
-        var session = await _context.Sessions.FindAsync([sessionId], cancellationToken);
+        var session = await _context.Sessions
+            .FindAsync([sessionId], cancellationToken);
 
         if (session is null)
             return Result.Failure<string>(SessionErrors.SessionNotFound);
@@ -154,16 +155,41 @@ public class SessionService(
             Prompt: request.Prompt
         );
 
-        var transcriptionResult = await _audioTranscriptionService.TranscribeAsync(
-            transcriptionRequest,
-            cancellationToken
-        );
+        var transcriptionResult =
+            await _audioTranscriptionService.TranscribeAsync(
+                transcriptionRequest,
+                cancellationToken
+            );
 
         if (transcriptionResult.IsFailure)
             return Result.Failure<string>(transcriptionResult.Error);
 
+        string audioUrl;
+
+        try
+        {
+            audioUrl = await _mediaStorageService.UploadAudioAsync(
+                request.AudioFile,
+                "session-audio",
+                $"{sessionId}/{Guid.CreateVersion7()}"
+            );
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<string>(
+                new Error(
+                    "Session.AudioUploadFailed",
+                    $"Failed to upload the session audio. {ex.Message}",
+                    StatusCodes.Status500InternalServerError
+                )
+            );
+        }
+
         var transcription = await _context.SessionTranscriptions
-            .FirstOrDefaultAsync(t => t.SessionId == sessionId, cancellationToken);
+            .FirstOrDefaultAsync(
+                t => t.SessionId == sessionId,
+                cancellationToken
+            );
 
         if (transcription is null)
         {
@@ -172,36 +198,52 @@ public class SessionService(
                 SessionId = sessionId
             };
 
-            await _context.SessionTranscriptions.AddAsync(transcription, cancellationToken);
+            await _context.SessionTranscriptions.AddAsync(
+                transcription,
+                cancellationToken
+            );
         }
 
-        transcription.RawTranscript = transcriptionResult.Value.RawText;
-        transcription.EditedTranscript = transcriptionResult.Value.RefinedText;
-        transcription.AudioFileUrl = string.Empty;
-        transcription.Language = transcriptionResult.Value.DetectedLanguage;
-        transcription.DurationSeconds = (int)(transcriptionResult.Value.DurationSeconds ?? 0);
-        transcription.Status = TranscriptionStatus.Completed;
+        transcription.RawTranscript =
+            transcriptionResult.Value.RawText;
+
+        transcription.EditedTranscript =
+            transcriptionResult.Value.RefinedText;
+
+        transcription.AudioFileUrl = audioUrl;
+
+        transcription.Language =
+            transcriptionResult.Value.DetectedLanguage;
+
+        transcription.DurationSeconds =
+            (int)(transcriptionResult.Value.DurationSeconds ?? 0);
+
+        transcription.Status =
+            TranscriptionStatus.Completed;
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        var textForEmbedding = string.IsNullOrWhiteSpace(transcription.EditedTranscript)
-            ? transcription.RawTranscript
-            : transcription.EditedTranscript;
+        var textForEmbedding =
+            string.IsNullOrWhiteSpace(transcription.EditedTranscript)
+                ? transcription.RawTranscript
+                : transcription.EditedTranscript;
 
-        var embeddingResult = await _sessionEmbeddingService.GenerateAndStoreEmbeddingAsync(
-            transcription.Id,
-            textForEmbedding,
-            cancellationToken
-        );
+        var embeddingResult =
+            await _sessionEmbeddingService.GenerateAndStoreEmbeddingAsync(
+                transcription.Id,
+                textForEmbedding,
+                cancellationToken
+            );
 
         if (embeddingResult.IsFailure)
         {
-            Console.WriteLine(embeddingResult.Error.Description);
+            Console.WriteLine(
+                embeddingResult.Error.Description
+            );
         }
 
         return Result.Success(textForEmbedding);
     }
-
     public async Task<Result> UploadAttachmentsAsync(
       Guid sessionId,
       UploadSessionAttachmentRequest request,
@@ -350,8 +392,6 @@ public class SessionService(
 
         return Result.Success();
     }
-
-
 
 
     public async Task<Result> DeleteAttachmentAsync(
