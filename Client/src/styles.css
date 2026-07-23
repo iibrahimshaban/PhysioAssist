@@ -116,14 +116,14 @@ html {
 
 /* ── Reusable Module Components ───────────────────────────────────────── */
 
-/* f. Active Nav Item */
+/* Active Nav Item */
 .nav-item.active {
   background-color: var(--color-primary-soft);
   color: var(--color-primary);
   border-radius: var(--radius-md);
 }
 
-/* ── Success Checkmark ────────────────────────────────────── */
+/* Success Checkmark */
 .success-checkmark-check {
   stroke-dasharray: 30;
   stroke-dashoffset: 30;
@@ -134,3 +134,122 @@ html {
   to { stroke-dashoffset: 0; }
 }
 
+/* ── PrimeNG Dialog & ConfirmDialog Overrides (Intake Theme Buttons) ───── */
+
+/* Dialog Overlay Backdrop Blur */
+.p-dialog-mask,
+.p-component-overlay {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+/* Dialog Container Box */
+.p-dialog {
+  border-radius: 1.25rem !important;
+  border: 1px solid var(--color-border, #e2e8f0) !important;
+  background: #ffffff !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  overflow: hidden !important;
+}
+
+.p-dialog .p-dialog-header {
+  padding: 1.25rem 1.5rem !important;
+  border-bottom: 1px solid var(--color-border, #e2e8f0) !important;
+  background: #ffffff !important;
+  color: var(--color-text-primary, #0f172a) !important;
+}
+
+.p-dialog .p-dialog-header .p-dialog-title {
+  font-weight: 700 !important;
+  font-size: 1.125rem !important;
+}
+
+.p-dialog .p-dialog-header-close {
+  width: 2rem !important;
+  height: 2rem !important;
+  border-radius: 50% !important;
+  color: var(--color-text-secondary, #64748b) !important;
+  transition: all 0.2s ease !important;
+}
+
+.p-dialog .p-dialog-header-close:hover {
+  background: var(--color-page-bg, #f1f5f9) !important;
+  color: var(--color-text-primary, #0f172a) !important;
+}
+
+.p-dialog .p-dialog-content {
+  padding: 1.25rem 1.5rem !important;
+  background: #ffffff !important;
+  color: var(--color-text-primary, #0f172a) !important;
+}
+
+.p-dialog .p-dialog-footer {
+  padding: 1rem 1.5rem !important;
+  border-top: 1px solid var(--color-border, #e2e8f0) !important;
+  background: var(--color-page-bg, #f8fafc) !important;
+}
+
+/* Dialog Action Buttons (Apply Intake Primary Theme Blue, NO GREEN) */
+.p-dialog .p-button,
+.p-confirm-dialog-accept,
+.p-dialog .p-button-primary,
+.p-dialog .p-button-success {
+  background: var(--color-primary, #1a7fd4) !important;
+  border-color: var(--color-primary, #1a7fd4) !important;
+  color: #ffffff !important;
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  padding: 0.625rem 1.25rem !important;
+  font-size: 0.875rem !important;
+  box-shadow: 0 2px 6px rgba(26, 127, 212, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+
+.p-dialog .p-button:hover:not(:disabled),
+.p-confirm-dialog-accept:hover:not(:disabled),
+.p-dialog .p-button-primary:hover:not(:disabled),
+.p-dialog .p-button-success:hover:not(:disabled) {
+  background: var(--color-primary-dark, #0e5fa3) !important;
+  border-color: var(--color-primary-dark, #0e5fa3) !important;
+  box-shadow: 0 4px 10px rgba(14, 95, 163, 0.3) !important;
+  transform: translateY(-1px);
+}
+
+/* Dialog Secondary / Cancel Buttons */
+.p-confirm-dialog-reject,
+.p-dialog .p-button-secondary,
+.p-dialog .p-button-outlined {
+  background: #ffffff !important;
+  border: 1px solid var(--color-border, #e2e8f0) !important;
+  color: var(--color-text-secondary, #64748b) !important;
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  padding: 0.625rem 1.25rem !important;
+  font-size: 0.875rem !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  transition: all 0.2s ease !important;
+}
+
+.p-confirm-dialog-reject:hover,
+.p-dialog .p-button-secondary:hover,
+.p-dialog .p-button-outlined:hover {
+  background: var(--color-page-bg, #f8fafc) !important;
+  color: var(--color-text-primary, #0f172a) !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Dialog Danger Action Buttons (e.g. Delete) */
+.p-confirm-dialog-accept.p-button-danger,
+.p-dialog .p-button-danger {
+  background: var(--color-danger, #dc2626) !important;
+  border-color: var(--color-danger, #dc2626) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25) !important;
+}
+
+.p-confirm-dialog-accept.p-button-danger:hover,
+.p-dialog .p-button-danger:hover {
+  background: #b91c1c !important;
+  border-color: #b91c1c !important;
+}

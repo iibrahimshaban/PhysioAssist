@@ -1,29 +1,99 @@
-<!-- Filters -->
-<div class="intake-filters-bar mb-5">
-  <div class="relative flex-1 min-w-0 intake-search-wrapper">
-    <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] text-sm pointer-events-none"></i>
-    <input
-      type="search"
-      [ngModel]="searchTerm"
-      (ngModelChange)="searchChange.emit($event)"
-      placeholder="Search by patient name..."
-      class="intake-search-input"
-      aria-label="Search submissions"
-      #searchInput />
-  </div>
+<div class="filters-bar-container mb-6">
+  <!-- Top Row: Search + Sort + View Mode Toggle -->
+  <div class="filters-top-row flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 mb-4">
 
-  <!-- Pill-scroll wrapper: hides native scrollbar, only scrolls on genuinely narrow screens -->
-  <div class="filter-pill-scroller">
-    <div class="segmented-control" role="group" aria-label="Filter by status">
-      @for (opt of statusOptions; track opt.label) {
+    <!-- Search Input Box -->
+    <div class="relative flex-1 min-w-0 search-box-wrapper">
+      <i class="pi pi-search search-icon" aria-hidden="true"></i>
+      <input
+        type="text"
+        [ngModel]="searchTerm"
+        (ngModelChange)="onSearchInput($event)"
+        placeholder="Search patient name, submission code, or symptoms..."
+        class="search-input"
+        aria-label="Search submissions" />
+
+      @if (searchTerm) {
         <button
           type="button"
-          class="segmented-tab"
-          [class.active]="selectedStatus === opt.value"
-          (click)="statusChange.emit(opt.value)">
-          {{ opt.label }}
+          (click)="onClearSearch()"
+          class="clear-search-btn"
+          title="Clear search"
+          aria-label="Clear search text">
+          <i class="pi pi-times"></i>
         </button>
       }
     </div>
+
+    <!-- Right Controls: Sort & View Mode -->
+    @if (mode === 'archive') {
+      <div class="filters-controls flex items-center gap-2 shrink-0">
+        <!-- Sort Dropdown -->
+        <div class="relative flex items-center sort-select-wrapper">
+          <i class="pi pi-sort-alt text-xs text-[var(--color-text-secondary)] absolute left-3 pointer-events-none"></i>
+          <select
+            [ngModel]="sortOption"
+            (ngModelChange)="onSortSelect($event)"
+            class="sort-select pl-8 pr-4 py-2"
+            aria-label="Sort submissions">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="name">Patient Name (A-Z)</option>
+            <option value="pain">Pain Regions (High to Low)</option>
+          </select>
+        </div>
+
+        <!-- View Toggle Buttons (Desktop / Tablet) -->
+        <div class="view-toggle-group hidden sm:inline-flex" role="group" aria-label="View mode toggle">
+          <button
+            type="button"
+            class="view-toggle-btn"
+            [class.active]="viewMode === 'cards'"
+            (click)="onViewModeToggle('cards')"
+            title="Card Grid View"
+            aria-label="Switch to Card Grid View">
+            <i class="pi pi-th-large"></i>
+          </button>
+          <button
+            type="button"
+            class="view-toggle-btn"
+            [class.active]="viewMode === 'table'"
+            (click)="onViewModeToggle('table')"
+            title="Compact Table View"
+            aria-label="Switch to Table View">
+            <i class="pi pi-list"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Bottom Row: Status Filter Chips Bar -->
+  <div class="status-chips-bar flex items-center justify-between gap-2 overflow-x-auto pb-1">
+    <div class="status-chips-scroll flex items-center gap-1.5 min-w-max">
+      @for (opt of statusOptions; track opt.label) {
+        <button
+          type="button"
+          class="status-chip"
+          [class.active]="selectedStatus === opt.value"
+          (click)="onStatusSelect(opt.value)">
+          <span>{{ opt.label }}</span>
+          @if (opt.count !== undefined) {
+            <span class="chip-count">{{ opt.count }}</span>
+          }
+        </button>
+      }
+    </div>
+
+    @if (searchTerm || selectedStatus !== null) {
+      <button
+        type="button"
+        (click)="clearFilters.emit()"
+        class="clear-all-chip shrink-0"
+        title="Clear all active filters">
+        <i class="pi pi-filter-slash text-xs"></i>
+        <span>Reset</span>
+      </button>
+    }
   </div>
 </div>

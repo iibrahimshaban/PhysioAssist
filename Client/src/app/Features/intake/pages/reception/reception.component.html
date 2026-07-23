@@ -1,215 +1,176 @@
-<div class="intake-module reception-page" aria-live="polite">
+<div class="intake-module max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8" aria-live="polite">
 
-  <!-- ── Page Header ──────────────────────────────────────────── -->
-  <div class="reception-header">
-    <div class="reception-header-left">
-      <div class="reception-header-top">
-        <h1 class="page-title">Reception queue</h1>
-        <span class="reception-count-badge">
-          {{ submissions().length }}
-          <span class="reception-count-label">patient{{ submissions().length !== 1 ? 's' : '' }}</span>
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-[var(--color-text-primary,#0f172a)] tracking-tight">
+          Reception Queue
+        </h1>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-primary-soft)] text-[var(--color-primary)] border border-[var(--color-border,#e2e8f0)]">
+          {{ submissions().length }} Active
         </span>
       </div>
-      <p class="page-subtitle">Patients waiting for check-in or currently in review</p>
+      <p class="text-sm text-[var(--color-text-secondary,#64748b)] mt-1">
+        Patients waiting for check-in or currently in review (auto-refreshes every 30s)
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3 self-start sm:self-auto">
+      @if (lastRefreshed()) {
+        <span class="text-xs text-[var(--color-text-secondary,#64748b)] flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          Synced at {{ lastRefreshed() | date:'shortTime' }}
+        </span>
+      }
+      <button
+        type="button"
+        (click)="loadReception()"
+        [disabled]="loading()"
+        class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-[var(--color-text-secondary,#64748b)] hover:text-[var(--color-text-primary,#0f172a)] bg-[var(--color-surface,#ffffff)] border border-[var(--color-border,#e2e8f0)] hover:border-[var(--color-primary,#0b8eea)] rounded-xl transition-all shadow-xs"
+        aria-label="Refresh queue">
+        <i class="pi pi-refresh text-xs" [class.animate-spin]="loading()"></i>
+        <span>Refresh</span>
+      </button>
     </div>
   </div>
 
-  <!-- ── Error State ──────────────────────────────────────────── -->
+  <!-- Summary KPI Stats -->
+  <app-submission-summary-stats
+    [totalCount]="submissions().length"
+    [pendingCount]="waitingCount()"
+    [inReviewCount]="inReviewCount()"
+    [approvedCount]="0"
+    [convertedCount]="0"
+    [todayCount]="todayCount()"
+    [selectedStatus]="selectedStatus()"
+    [loading]="loading()"
+    [mode]="'reception'"
+    (selectStatus)="onStatusChange($event)" />
+
+  <!-- Error State -->
   @if (error()) {
-    <div class="reception-error" role="alert">
-      <div class="reception-error-icon">
+    <div class="bg-[var(--color-surface,#ffffff)] rounded-2xl shadow-sm border border-red-200 p-8 text-center" role="alert">
+      <div class="w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4 text-2xl">
         <i class="pi pi-exclamation-triangle"></i>
       </div>
-      <h3 class="reception-error-title">Failed to load queue</h3>
-      <p class="reception-error-text">{{ error() }}</p>
-      <p-button label="Try Again" icon="pi pi-refresh" severity="info" (onClick)="loadReception()" />
+      <h3 class="text-base font-bold text-[var(--color-text-primary,#0f172a)] mb-1">Failed to load queue</h3>
+      <p class="text-sm text-[var(--color-text-secondary,#64748b)] mb-4">{{ error() }}</p>
+      <button
+        type="button"
+        (click)="loadReception()"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary,#0b8eea)] text-white font-semibold rounded-xl hover:opacity-90 transition-all text-sm">
+        <i class="pi pi-refresh text-xs"></i>
+        Try Again
+      </button>
     </div>
   }
 
   @if (!error()) {
-    <!-- ── Summary Stats Cards ────────────────────────────────── -->
-    <div class="reception-stats-grid">
-      <button type="button" class="reception-stat-card" (click)="setFilter('all')" aria-label="Filter by waiting">
-        <div class="reception-stat-icon stat-icon-warning">
-          <i class="pi pi-clock"></i>
-        </div>
-        <div class="reception-stat-body">
-          <span class="reception-stat-value">{{ waitingCount() }}</span>
-          <span class="reception-stat-label">Waiting</span>
-        </div>
-        @if (activeFilter() === 'all') {
-          <i class="pi pi-check-circle reception-stat-check"></i>
-        }
-      </button>
-      <button type="button" class="reception-stat-card" (click)="setFilter(IntakeStatus.InReview)" aria-label="Filter by in review">
-        <div class="reception-stat-icon stat-icon-info">
-          <i class="pi pi-eye"></i>
-        </div>
-        <div class="reception-stat-body">
-          <span class="reception-stat-value">{{ inReviewCount() }}</span>
-          <span class="reception-stat-label">In review</span>
-        </div>
-        @if (activeFilter() === IntakeStatus.InReview) {
-          <i class="pi pi-check-circle reception-stat-check"></i>
-        }
-      </button>
-      <div class="reception-stat-card">
-        <div class="reception-stat-icon stat-icon-success">
-          <i class="pi pi-calendar"></i>
-        </div>
-        <div class="reception-stat-body">
-          <span class="reception-stat-value">{{ todayCount() }}</span>
-          <span class="reception-stat-label">Today</span>
-        </div>
-      </div>
-    </div>
+    <div class="bg-[var(--color-surface,#ffffff)] rounded-2xl shadow-sm border border-[var(--color-border,#e2e8f0)] p-4 sm:p-6">
 
-    <!-- ── Filter Tabs ────────────────────────────────────────── -->
-    <div class="reception-filter-wrapper">
-      <div class="reception-filter-bar" role="tablist">
-        @for (tab of filterTabs; track tab.value) {
-          <button
-            type="button"
-            class="reception-filter-tab"
-            [class.active]="activeFilter() === tab.value"
-            (click)="setFilter(tab.value)"
-            role="tab"
-            [attr.aria-selected]="activeFilter() === tab.value">
-            <i class="{{ tab.icon }}" aria-hidden="true"></i>
-            <span>{{ tab.label }}</span>
-            <span class="reception-filter-count">{{ getFilterCount(tab.value) }}</span>
-          </button>
-        }
-      </div>
-    </div>
-
-    <!-- ── Search + List Card ─────────────────────────────────── -->
-    <div class="reception-card-wrapper">
-      <!-- Sticky Search -->
-      <div class="reception-search-bar">
-        <div class="reception-search-inner">
-          <i class="pi pi-search reception-search-icon" aria-hidden="true"></i>
-          <input
-            type="search"
-            [ngModel]="searchTerm()"
-            (ngModelChange)="searchTerm.set($event); currentPage.set(1)"
-            placeholder="Search by patient name..."
-            class="reception-search-input"
-            aria-label="Search patients in queue" />
-          @if (searchTerm()) {
-            <button
-              type="button"
-              class="reception-search-clear"
-              (click)="clearSearch()"
-              aria-label="Clear search">
-              <i class="pi pi-times"></i>
-            </button>
-          }
-        </div>
-      </div>
+      <!-- Filters & Controls Bar -->
+      <app-submission-filters-bar
+        [searchTerm]="searchTerm()"
+        [selectedStatus]="selectedStatus()"
+        [statusOptions]="statusOptions()"
+        [mode]="'reception'"
+        (searchChange)="onSearch($event)"
+        (statusChange)="onStatusChange($event)"
+        (clearFilters)="clearFilters()" />
 
       <!-- Loading Skeleton -->
       @if (loading()) {
-        <div class="reception-skeleton-list">
-          @for (i of [1, 2, 3]; track i) {
-            <div class="skeleton-row">
-              <div class="skeleton skeleton-avatar"></div>
-              <div class="flex flex-col gap-1.5 flex-1 min-w-0">
-                <div class="skeleton skeleton-text" style="width: 45%; height: 14px"></div>
-                <div class="skeleton skeleton-text" style="width: 30%; height: 12px"></div>
-              </div>
-            </div>
+        <div class="space-y-3">
+          @for (i of [1,2,3]; track i) {
+            <div class="bg-[var(--color-page-bg,#f8fafc)] rounded-xl border border-[var(--color-border,#e2e8f0)] p-4 h-[72px] animate-pulse"></div>
           }
         </div>
       }
 
-      <!-- Content -->
+      <!-- Submissions Content -->
       @if (!loading()) {
         @if (filteredSubmissions().length === 0) {
-          <div class="reception-empty">
-            <div class="reception-empty-icon">
-              @if (searchTerm()) {
-                <i class="pi pi-search"></i>
-              } @else {
-                <i class="pi pi-inbox"></i>
-              }
+          <!-- Empty State -->
+          <div class="text-center py-12 sm:py-16">
+            <div class="w-16 h-16 rounded-full bg-[var(--color-page-bg,#f1f5f9)] text-[var(--color-text-muted,#94a3b8)] flex items-center justify-center mx-auto mb-4 text-2xl">
+              <i class="pi pi-inbox"></i>
             </div>
-            <h3 class="reception-empty-title">
-              @if (searchTerm()) {
-                No matching patients
-              } @else if (activeFilter() === IntakeStatus.InReview) {
-                No patients in review
-              } @else {
-                All caught up
-              }
+            <h3 class="text-lg font-bold text-[var(--color-text-primary,#0f172a)] mb-1">
+              @if (searchTerm()) { No matching waiting patients } @else { All caught up! }
             </h3>
-            <p class="reception-empty-text">
+            <p class="text-sm text-[var(--color-text-secondary,#64748b)] mb-6 max-w-sm mx-auto">
               @if (searchTerm()) {
-                Try adjusting your search.
-              } @else if (activeFilter() === IntakeStatus.InReview) {
-                Move a patient to "In review" status to see them here.
+                We couldn't find any active patient submissions matching your search criteria.
               } @else {
-                New intake forms will appear here automatically.
+                There are no active patients waiting in the reception queue at this moment.
               }
             </p>
             @if (searchTerm()) {
-              <p-button label="Clear Search" icon="pi pi-times" [text]="true" (onClick)="clearSearch()" />
+              <button
+                type="button"
+                (click)="clearFilters()"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-page-bg,#f1f5f9)] hover:bg-[var(--color-border,#e2e8f0)] text-[var(--color-text-primary,#0f172a)] font-semibold rounded-xl text-sm transition-all border border-[var(--color-border,#e2e8f0)]">
+                <i class="pi pi-filter-slash text-xs"></i>
+                Clear Search
+              </button>
             }
           </div>
         } @else {
-          <div class="reception-rows" role="list">
+          <!-- Active Rows List -->
+          <div class="space-y-3">
             @for (row of paginatedSubmissions(); track row.id) {
-              <app-submission-row [submission]="row" (selected)="viewSubmission($event)" />
+              <app-submission-row
+                [submission]="row"
+                (selected)="viewSubmission($event)" />
             }
           </div>
 
-          <!-- Pagination -->
+          <!-- Pagination Bar -->
           @if (totalPages() > 1) {
-            <div class="reception-pagination">
-              <div class="reception-pagination-info">
-                <span>{{ ((currentPage() - 1) * pageSize()) + 1 }}–{{ pageEndIndex() }}</span>
-                <span class="hidden sm:inline"> of {{ filteredSubmissions().length }}</span>
+            <div class="submission-pagination">
+              <div class="submission-pagination-info">
+                <span>Showing </span>
+                <span class="font-semibold text-[var(--color-text-primary,#0f172a)]">
+                  {{ ((currentPage() - 1) * pageSize()) + 1 }}–{{ pageEndIndex() }}
+                </span>
+                <span> of {{ filteredSubmissions().length }} in queue</span>
               </div>
-              <div class="reception-pagination-controls">
+
+              <div class="submission-pagination-controls">
                 <button
-                  class="reception-page-btn"
+                  type="button"
+                  class="submission-page-btn"
                   (click)="goToPage(currentPage() - 1)"
                   [disabled]="currentPage() === 1"
                   aria-label="Previous page">
-                  <i class="pi pi-chevron-left"></i>
+                  <i class="pi pi-chevron-left text-xs"></i>
                 </button>
+
                 @for (page of pageNumbers(); track page) {
                   <button
-                    class="reception-page-btn"
-                    [class.reception-page-btn--active]="currentPage() === page"
-                    (click)="goToPage(page)"
-                    [attr.aria-current]="currentPage() === page ? 'page' : undefined">
+                    type="button"
+                    class="submission-page-btn"
+                    [class.submission-page-btn--active]="currentPage() === page"
+                    (click)="goToPage(page)">
                     {{ page }}
                   </button>
                 }
+
                 <button
-                  class="reception-page-btn"
+                  type="button"
+                  class="submission-page-btn"
                   (click)="goToPage(currentPage() + 1)"
                   [disabled]="currentPage() === totalPages()"
                   aria-label="Next page">
-                  <i class="pi pi-chevron-right"></i>
+                  <i class="pi pi-chevron-right text-xs"></i>
                 </button>
               </div>
-            </div>
-          }
-
-          @if (submissions().length > 0) {
-            <div class="reception-footer">
-              <span>{{ filteredSubmissions().length }} of {{ submissions().length }}</span>
-              @if (activeFilter() !== 'all') {
-                <button type="button" class="reception-footer-link" (click)="setFilter('all'); currentPage.set(1)">
-                  Show all
-                </button>
-              }
             </div>
           }
         }
       }
+
     </div>
   }
 </div>

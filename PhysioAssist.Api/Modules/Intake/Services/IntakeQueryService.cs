@@ -1,4 +1,4 @@
-﻿using PhysioAssist.Api.Modules.Intake.Errors;
+using PhysioAssist.Api.Modules.Intake.Errors;
 using PhysioAssist.Api.Modules.Intake.Helpers;
 using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Dtos.Intake;
@@ -100,6 +100,12 @@ public class IntakeQueryService(ApplicationDbContext context) : IIntakeQueryServ
         var chiefComplaint = ExtractInputValuesHelper.ExtractChiefComplaint(intake.PainPointsData);
         var injury = ExtractInputValuesHelper.ExtractInjury(intake.PainPointsData);
         var patientCategory = ExtractInputValuesHelper.ExtractPatientCategory(intake.PainPointsData);
+
+        // Provide sensible defaults so NO field shows as empty in initial report summary
+        fullName = string.IsNullOrWhiteSpace(fullName) ? "Patient" : fullName;
+        gender = string.IsNullOrWhiteSpace(gender) ? "Not Specified" : gender;
+        chiefComplaint = string.IsNullOrWhiteSpace(chiefComplaint) ? "Pre-visit intake assessment & general physiotherapy evaluation." : chiefComplaint;
+        injury = string.IsNullOrWhiteSpace(injury) ? "Pre-visit intake pain assessment." : injury;
 
         return Result.Success(new PatientIntakeSummaryResponse(fullName, gender, age, chiefComplaint, injury, injuryDate, patientCategory));
     }

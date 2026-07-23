@@ -1,29 +1,58 @@
 <button
   type="button"
   (click)="selected.emit(submission)"
-  class="submission-row-card">
-  <div class="submission-row-main">
-    <div class="avatar-chip submission-row-avatar">
+  class="submission-card-item">
+
+  <!-- Left: Avatar + Details -->
+  <div class="submission-card-main">
+    <!-- Gradient Avatar -->
+    <div
+      class="submission-card-avatar"
+      [style.background]="getAvatarGradient(submission.patientName, submission.id)">
       {{ getInitials(submission.patientName) }}
     </div>
-    <div class="submission-row-body">
-      <div class="submission-row-header">
-        <span class="submission-row-name">{{ submission.patientName || 'Unnamed patient' }}</span>
-        <span class="status-badge submission-row-badge" [ngClass]="getStatusPillClass(submission.status)">
+
+    <!-- Info Block -->
+    <div class="submission-card-body">
+      <!-- Title + Badges -->
+      <div class="submission-card-header">
+        <h4 class="submission-card-name">
+          {{ getDisplayName(submission) }}
+        </h4>
+
+        @if (submission.shortCode) {
+          <span class="submission-code-badge">
+            {{ getShortCodeDisplay(submission.shortCode) }}
+          </span>
+        }
+
+        <span class="status-badge submission-card-badge" [ngClass]="getStatusPillClass(submission.status)">
           {{ getQueueStatusLabel(submission.status) }}
         </span>
       </div>
-      <p class="submission-row-meta">
-        <span class="submission-row-meta-item">
+
+      <!-- Metadata Line -->
+      <div class="submission-card-meta">
+        <span class="meta-item">
           <i class="pi pi-clock" aria-hidden="true"></i>
-          Checked in {{ timeAgo(submission.submittedAt) }}
+          Submitted {{ timeAgo(submission.submittedAt) }}
         </span>
-        <span class="submission-row-meta-sep" aria-hidden="true">&middot;</span>
-        <span class="submission-row-meta-item">{{ submission.painRegionCount }} pain region(s)</span>
-      </p>
+
+        <span class="meta-sep" aria-hidden="true">&bull;</span>
+
+        <span class="meta-item">
+          <i class="pi pi-heart" aria-hidden="true"></i>
+          {{ submission.painRegionCount }} pain {{ submission.painRegionCount === 1 ? 'region' : 'regions' }}
+        </span>
+      </div>
     </div>
   </div>
-  <span class="submission-row-chevron" aria-hidden="true">
-    <i class="pi pi-chevron-right"></i>
-  </span>
+
+  <!-- Right: Hover Action Chevron -->
+  <div class="submission-card-action">
+    <span class="action-label hidden md:inline-block">View Details</span>
+    <div class="action-icon-box">
+      <i class="pi pi-arrow-right text-xs"></i>
+    </div>
+  </div>
 </button>

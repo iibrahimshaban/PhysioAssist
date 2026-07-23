@@ -8,8 +8,8 @@ import { IntakeApiService } from '../../services/intake-api.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
 import { PreVisitIntakeResponse, IntakeStatus } from '../../models';
 import { SubmissionRowComponent } from '../submission-list/submission-row/submission-row.component';
-
-type ReceptionFilter = 'all' | IntakeStatus.Pending | IntakeStatus.InReview;
+import { SubmissionSummaryStatsComponent } from '../submission-list/submission-summary-stats/submission-summary-stats.component';
+import { SubmissionFiltersBarComponent } from '../submission-list/submission-filters-bar/submission-filters-bar.component';
 
 @Component({
   selector: 'app-reception',
@@ -18,7 +18,9 @@ type ReceptionFilter = 'all' | IntakeStatus.Pending | IntakeStatus.InReview;
     CommonModule,
     FormsModule,
     ButtonModule,
-    SubmissionRowComponent
+    SubmissionRowComponent,
+    SubmissionSummaryStatsComponent,
+    SubmissionFiltersBarComponent
   ],
   templateUrl: './reception.component.html',
   styleUrl: './reception.component.css'
@@ -33,7 +35,7 @@ export class ReceptionComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly submissions = signal<PreVisitIntakeResponse[]>([]);
   readonly searchTerm = signal('');
-  readonly activeFilter = signal<ReceptionFilter>('all');
+  readonly selectedStatus = signal<IntakeStatus | null>(null);
   readonly lastRefreshed = signal<Date | null>(null);
 
   // Pagination signals
@@ -45,24 +47,44 @@ export class ReceptionComponent implements OnInit {
 
   readonly IntakeStatus = IntakeStatus;
 
-  readonly filterTabs: { value: ReceptionFilter; label: string; icon: string }[] = [
-    { value: 'all',       label: 'All waiting',   icon: 'pi pi-inbox' },
-    { value: IntakeStatus.Pending,   label: 'Pending',    icon: 'pi pi-clock' },
-    { value: IntakeStatus.InReview,  label: 'In review',  icon: 'pi pi-eye' },
-  ];
+  readonly statusCounts = computed(() => {
+    const list = this.submissions();
+    const map: Record<string | number, number> = {
+      all: list.length,
+      [IntakeStatus.Pending]: 0,
+      [IntakeStatus.InReview]: 0
+    };
+    for (const s of list) {
+      if (map[s.status] !== undefined) {
+        map[s.status]++;
+      }
+    }
+    return map;
+  });
+
+  readonly statusOptions = computed(() => {
+    const counts = this.statusCounts();
+    return [
+      { label: 'All Waiting', value: null, count: counts['all'] },
+      { label: 'Pending', value: IntakeStatus.Pending, count: counts[IntakeStatus.Pending] },
+      { label: 'In Review', value: IntakeStatus.InReview, count: counts[IntakeStatus.InReview] }
+    ];
+  });
 
   readonly filteredSubmissions = computed(() => {
     const term = this.searchTerm().toLowerCase().trim();
-    const filter = this.activeFilter();
+    const status = this.selectedStatus();
     let list = this.submissions();
 
-    if (filter !== 'all') {
-      list = list.filter(s => s.status === filter);
+    if (status !== null) {
+      list = list.filter(s => s.status === status);
     }
 
     if (!term) return list;
     return list.filter(s =>
-      (s.patientName ?? '').toLowerCase().includes(term)
+      (s.patientName ?? '').toLowerCase().includes(term) ||
+      (s.shortCode ?? '').toLowerCase().includes(term) ||
+      `#${s.shortCode ?? ''}`.toLowerCase().includes(term)
     );
   });
 
@@ -93,9 +115,7 @@ export class ReceptionComponent implements OnInit {
   });
 
   readonly waitingCount = computed(() =>
-    this.submissions().filter(s =>
-      s.status === IntakeStatus.Pending
-    ).length
+    this.submissions().filter(s => s.status === IntakeStatus.Pending || s.status === IntakeStatus.Submitted).length
   );
 
   readonly inReviewCount = computed(() =>
@@ -134,11 +154,11 @@ export class ReceptionComponent implements OnInit {
         if (requestId !== this.loadRequestId) return;
         this.submissions.set(data.filter(submission =>
           submission.status === IntakeStatus.Pending ||
+          submission.status === IntakeStatus.Submitted ||
           submission.status === IntakeStatus.InReview
         ));
         this.loading.set(false);
         this.lastRefreshed.set(new Date());
-        this.currentPage.set(1);
       },
       error: () => {
         if (requestId !== this.loadRequestId) return;
@@ -151,18 +171,19 @@ export class ReceptionComponent implements OnInit {
     });
   }
 
-  setFilter(filter: ReceptionFilter): void {
-    this.activeFilter.set(filter);
+  onSearch(term: string): void {
+    this.searchTerm.set(term);
     this.currentPage.set(1);
   }
 
-  getFilterCount(filter: ReceptionFilter): number {
-    if (filter === 'all') return this.submissions().length;
-    return this.submissions().filter(submission => submission.status === filter).length;
+  onStatusChange(status: IntakeStatus | null): void {
+    this.selectedStatus.set(status);
+    this.currentPage.set(1);
   }
 
-  clearSearch(): void {
+  clearFilters(): void {
     this.searchTerm.set('');
+    this.selectedStatus.set(null);
     this.currentPage.set(1);
   }
 

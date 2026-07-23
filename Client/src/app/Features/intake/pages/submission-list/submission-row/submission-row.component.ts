@@ -14,8 +14,43 @@ export class SubmissionRowComponent {
   @Output() selected = new EventEmitter<PreVisitIntakeResponse>();
 
   getInitials(name: string | undefined): string {
-    if (!name) return '?';
-    return name.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    if (!name || !name.trim()) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  getAvatarGradient(name: string | undefined, id: string): string {
+    const gradients = [
+      'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', // Indigo to Violet
+      'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', // Blue
+      'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', // Cyan
+      'linear-gradient(135deg, #10b981 0%, #047857 100%)', // Emerald
+      'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', // Amber
+      'linear-gradient(135deg, #ec4899 0%, #be185d 100%)', // Pink
+    ];
+    const key = name || id || 'default';
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % gradients.length;
+    return gradients[index];
+  }
+
+  getDisplayName(submission: PreVisitIntakeResponse): string {
+    if (submission.patientName && submission.patientName.trim()) {
+      return submission.patientName.trim();
+    }
+    if (submission.shortCode) {
+      return `Unnamed Patient (#${submission.shortCode})`;
+    }
+    return 'Unnamed Patient';
+  }
+
+  getShortCodeDisplay(code?: string): string {
+    if (!code) return '';
+    return code.startsWith('#') ? code : `#${code}`;
   }
 
   getQueueStatusLabel(status: IntakeStatus): string {
@@ -27,6 +62,7 @@ export class SubmissionRowComponent {
   }
 
   timeAgo(isoDate: string): string {
+    if (!isoDate) return '';
     const diffMs = Date.now() - new Date(isoDate).getTime();
     const minutes = Math.floor(diffMs / 60000);
     const hours = Math.floor(minutes / 60);

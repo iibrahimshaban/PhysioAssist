@@ -333,6 +333,8 @@ export class SubmissionDetailComponent implements OnInit {
       icon: 'pi pi-info-circle',
       acceptLabel: 'Yes, Proceed',
       rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-primary',
+      rejectButtonStyleClass: 'p-button-secondary',
       accept: () => this.updateStatus(action.status),
     });
   }
@@ -368,15 +370,12 @@ export class SubmissionDetailComponent implements OnInit {
 
     this.updating.set(true);
 
-    // Always send the current data — edited version if the doctor was editing,
-    // otherwise whatever's already loaded. No conditional branching needed since
-    // both fields are sent in every case now.
     const submission = this.isEditing() ? this.editedSubmission() : this.submissionData();
     const painMap = this.isEditing() ? this.editedPainMap() : this.painMapPayload();
 
     const request: ConvertIntakeToPatientRequest = {
-      formSubmissionData: submission ? JSON.stringify(submission) : undefined,
-      painPointsData: painMap && painMap.regions.length > 0 ? JSON.stringify(painMap) : undefined,
+      formSubmissionData: submission ? JSON.stringify(submission) : (this.details()?.formSubmissionData ?? '{}'),
+      painPointsData: painMap && painMap.regions && painMap.regions.length > 0 ? JSON.stringify(painMap) : (this.details()?.painPointsData ?? undefined),
     };
 
     this.intakeApi.convertToPatient(id, request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -388,7 +387,6 @@ export class SubmissionDetailComponent implements OnInit {
         this.editedSubmission.set(null);
         this.editedPainMap.set(null);
 
-        // works from a refresh / shared link.
         if (res?.convertedToPatientId) {
           this.router.navigate(['/app/initial-report', res.convertedToPatientId], {
             state: {
@@ -399,13 +397,13 @@ export class SubmissionDetailComponent implements OnInit {
               }
             }
           });
-        }else {
+        } else {
           this.router.navigate(['/app/intake/submissions']);
         }
       },
       error: (err: any) => {
         this.updating.set(false);
-        const msg = err?.error?.detail || err?.error?.title || 'Could not convert submission to patient.';
+        const msg = err?.error?.detail || err?.error?.title || err?.error?.message || 'Could not convert submission to patient.';
         this.snackbar.error('Conversion Failed', [msg]);
       }
     });
@@ -433,27 +431,58 @@ export class SubmissionDetailComponent implements OnInit {
   }
 
   formatAnswerValue(answer: SubmissionAnswerDto): string {
-    if (answer.value == null) return '—';
+    return this.formatValueRecursive(answer?.value);
+  }
 
-    if (typeof answer.value === 'object' && !Array.isArray(answer.value)) {
-      const dict = answer.value as Record<string, any>;
+  formatValueRecursive(val: any): string {
+    if (val == null || val === '') return '—';
+
+    // Booleans
+    if (typeof val === 'boolean') return val ? 'Yes' : 'No';
+
+    // Primitives (strings, numbers)
+    if (typeof val === 'string' || typeof val === 'number') {
+      const str = String(val).trim();
+      return str || '—';
+    }
+
+    // Arrays
+    if (Array.isArray(val)) {
+      if (val.length === 0) return '—';
+      const items = val.map(item => this.formatValueRecursive(item)).filter(item => item !== '—');
+      return items.length > 0 ? items.join(', ') : '—';
+    }
+
+    // Objects
+    if (typeof val === 'object') {
+      const dict = val as Record<string, any>;
       const keys = Object.keys(dict);
+      if (keys.length === 0) return '—';
+
+      // Single key object e.g. { "value": "xyz" } or { "text": "xyz" }
       if (keys.length === 1) {
-        const inner = dict[keys[0]];
-        if (inner == null) return '—';
-        if (Array.isArray(inner)) return inner.length === 0 ? '—' : inner.join(', ');
-        if (typeof inner === 'boolean') return inner ? 'Yes' : 'No';
-        return String(inner);
+        return this.formatValueRecursive(dict[keys[0]]);
       }
-      return String(answer.value);
+
+      // Multiple keys e.g. { value: "Option 1", notes: "Detail" }
+      const pairs: string[] = [];
+      for (const key of keys) {
+        const itemVal = dict[key];
+        if (itemVal != null && itemVal !== '') {
+          const formatted = this.formatValueRecursive(itemVal);
+          if (formatted !== '—') {
+            const cleanKey = key
+              .replace(/([A-Z])/g, ' $1')
+              .replace(/^./, str => str.toUpperCase())
+              .trim();
+            pairs.push(`${cleanKey}: ${formatted}`);
+          }
+        }
+      }
+      return pairs.length > 0 ? pairs.join(' · ') : '—';
     }
 
-    if (Array.isArray(answer.value)) {
-      if (answer.value.length === 0) return '—';
-      return answer.value.join(', ');
-    }
-    if (typeof answer.value === 'boolean') return answer.value ? 'Yes' : 'No';
-    return String(answer.value);
+    return String(val);
   }
 
   getStatusLabel(status: IntakeStatus): string {

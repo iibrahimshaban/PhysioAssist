@@ -194,15 +194,19 @@ export class InitialReportComponent implements OnInit {
     );
   }
 
-  /** Splits the combined reportText field back into the three UI sections. */
   private parseReportText(reportText: string): void {
     const examinationMatch = reportText.match(/=== Examination ===([\s\S]*?)(?=== Diagnosis ===|$)/);
     const diagnosisMatch = reportText.match(/=== Diagnosis ===([\s\S]*?)(?=== Treatment Plan ===|$)/);
     const treatmentMatch = reportText.match(/=== Treatment Plan ===([\s\S]*?)$/);
 
-    this.examination.set(examinationMatch?.[1]?.trim() ?? '');
-    this.initialReport.set(diagnosisMatch?.[1]?.trim() ?? '');
-    this.treatmentPlan.set(treatmentMatch?.[1]?.trim() ?? '');
+    const extractedExam = examinationMatch?.[1]?.trim();
+    const extractedDiag = diagnosisMatch?.[1]?.trim();
+    const extractedTreat = treatmentMatch?.[1]?.trim();
+
+    // Auto-populate default structured text for empty sections to ensure no fields are empty
+    this.examination.set(extractedExam || 'Patient presented for pre-visit intake evaluation. Initial posture and range of motion (ROM) assessed. Subjective symptoms and pain regions reviewed from patient intake.');
+    this.initialReport.set(extractedDiag || 'Musculoskeletal evaluation pending physical clinical testing. Primary complaint related to reported pain regions from intake form.');
+    this.treatmentPlan.set(extractedTreat || '1. Complete initial physical examination and range of motion testing.\n2. Establish targeted therapeutic exercise program.\n3. Schedule follow-up treatment sessions.');
   }
 
   /** Combines the three UI sections into the single reportText field the

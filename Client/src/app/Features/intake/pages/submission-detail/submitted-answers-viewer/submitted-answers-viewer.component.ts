@@ -74,26 +74,57 @@ export class SubmittedAnswersViewerComponent {
   }
 
   formatAnswerValue(answer: SubmissionAnswerDto): string {
-    if (answer.value == null) return '—';
+    return this.formatValueRecursive(answer?.value);
+  }
 
-    if (typeof answer.value === 'object' && !Array.isArray(answer.value)) {
-      const dict = answer.value as Record<string, any>;
+  formatValueRecursive(val: any): string {
+    if (val == null || val === '') return '—';
+
+    // Booleans
+    if (typeof val === 'boolean') return val ? 'Yes' : 'No';
+
+    // Primitives (strings, numbers)
+    if (typeof val === 'string' || typeof val === 'number') {
+      const str = String(val).trim();
+      return str || '—';
+    }
+
+    // Arrays
+    if (Array.isArray(val)) {
+      if (val.length === 0) return '—';
+      const items = val.map(item => this.formatValueRecursive(item)).filter(item => item !== '—');
+      return items.length > 0 ? items.join(', ') : '—';
+    }
+
+    // Objects
+    if (typeof val === 'object') {
+      const dict = val as Record<string, any>;
       const keys = Object.keys(dict);
+      if (keys.length === 0) return '—';
+
+      // Single key object e.g. { "value": "xyz" } or { "text": "xyz" }
       if (keys.length === 1) {
-        const inner = dict[keys[0]];
-        if (inner == null) return '—';
-        if (Array.isArray(inner)) return inner.length === 0 ? '—' : inner.join(', ');
-        if (typeof inner === 'boolean') return inner ? 'Yes' : 'No';
-        return String(inner);
+        return this.formatValueRecursive(dict[keys[0]]);
       }
-      return String(answer.value);
+
+      // Multiple keys e.g. { value: "Option 1", notes: "Detail" }
+      const pairs: string[] = [];
+      for (const key of keys) {
+        const itemVal = dict[key];
+        if (itemVal != null && itemVal !== '') {
+          const formatted = this.formatValueRecursive(itemVal);
+          if (formatted !== '—') {
+            const cleanKey = key
+              .replace(/([A-Z])/g, ' $1')
+              .replace(/^./, str => str.toUpperCase())
+              .trim();
+            pairs.push(`${cleanKey}: ${formatted}`);
+          }
+        }
+      }
+      return pairs.length > 0 ? pairs.join(' · ') : '—';
     }
 
-    if (Array.isArray(answer.value)) {
-      if (answer.value.length === 0) return '—';
-      return answer.value.join(', ');
-    }
-    if (typeof answer.value === 'boolean') return answer.value ? 'Yes' : 'No';
-    return String(answer.value);
+    return String(val);
   }
 }

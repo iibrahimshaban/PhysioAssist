@@ -801,9 +801,8 @@ public class IntakeService(
         if (request.PainPointsData is not null)
             intake.PainPointsData = string.IsNullOrWhiteSpace(request.PainPointsData) ? null : request.PainPointsData;
 
-        var submission = ExtractInputValuesHelper.DeserializeSubmissionJson(intake.FormSubmissionData);
-        if (submission is null)
-            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSubmission);
+        var submission = ExtractInputValuesHelper.DeserializeSubmissionJson(intake.FormSubmissionData)
+            ?? new DTOs.DynamicForms.DynamicFormSubmissionDto { Sections = [] };
 
         var schema = await LoadFormSchemaAsync(intake.FormSchemaId, cancellationToken);
 

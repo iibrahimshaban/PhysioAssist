@@ -312,6 +312,8 @@ export class SchemaListComponent implements OnInit {
       icon: 'pi pi-archive',
       acceptLabel: 'Archive',
       rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-primary',
+      rejectButtonStyleClass: 'p-button-secondary',
       accept: () => this.archiveSchema(schema.id)
     });
   }
@@ -338,6 +340,8 @@ export class SchemaListComponent implements OnInit {
       icon: 'pi pi-archive',
       acceptLabel: 'Unarchive',
       rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-primary',
+      rejectButtonStyleClass: 'p-button-secondary',
       accept: () => this.unarchiveSchema(schema.id)
     });
   }

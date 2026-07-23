@@ -37,6 +37,8 @@ export class SubmissionListComponent implements OnInit {
   readonly submissions = signal<PreVisitIntakeResponse[]>([]);
   readonly searchTerm = signal('');
   readonly selectedStatus = signal<IntakeStatus | null>(null);
+  readonly sortOption = signal<string>('newest');
+  readonly viewMode = signal<'cards' | 'table'>('cards');
 
   // Pagination signals
   readonly currentPage = signal(1);
@@ -44,19 +46,42 @@ export class SubmissionListComponent implements OnInit {
 
   private loadRequestId = 0;
 
-  readonly statusOptions = [
-    { label: 'All Statuses', value: null },
-    { label: 'Pending', value: IntakeStatus.Pending },
-    { label: 'Submitted', value: IntakeStatus.Submitted },
-    { label: 'In Review', value: IntakeStatus.InReview },
-    { label: 'Approved', value: IntakeStatus.Approved },
-    { label: 'Rejected', value: IntakeStatus.Rejected },
-    { label: 'Converted', value: IntakeStatus.Converted },
-    { label: 'Expired', value: IntakeStatus.Expired },
-  ];
+  readonly statusCounts = computed(() => {
+    const list = this.submissions();
+    const map: Record<string | number, number> = {
+      all: list.length,
+      [IntakeStatus.Pending]: 0,
+      [IntakeStatus.Submitted]: 0,
+      [IntakeStatus.InReview]: 0,
+      [IntakeStatus.Approved]: 0,
+      [IntakeStatus.Rejected]: 0,
+      [IntakeStatus.Converted]: 0,
+      [IntakeStatus.Expired]: 0,
+    };
+    for (const s of list) {
+      if (map[s.status] !== undefined) {
+        map[s.status]++;
+      }
+    }
+    return map;
+  });
+
+  readonly statusOptions = computed(() => {
+    const counts = this.statusCounts();
+    return [
+      { label: 'All Statuses', value: null, count: counts['all'] },
+      { label: 'Pending', value: IntakeStatus.Pending, count: counts[IntakeStatus.Pending] },
+      { label: 'Submitted', value: IntakeStatus.Submitted, count: counts[IntakeStatus.Submitted] },
+      { label: 'In Review', value: IntakeStatus.InReview, count: counts[IntakeStatus.InReview] },
+      { label: 'Approved', value: IntakeStatus.Approved, count: counts[IntakeStatus.Approved] },
+      { label: 'Rejected', value: IntakeStatus.Rejected, count: counts[IntakeStatus.Rejected] },
+      { label: 'Converted', value: IntakeStatus.Converted, count: counts[IntakeStatus.Converted] },
+      { label: 'Expired', value: IntakeStatus.Expired, count: counts[IntakeStatus.Expired] },
+    ];
+  });
 
   readonly filteredSubmissions = computed(() => {
-    let list = this.submissions();
+    let list = [...this.submissions()];
 
     // Filter by status
     const status = this.selectedStatus();
@@ -68,9 +93,29 @@ export class SubmissionListComponent implements OnInit {
     const term = this.searchTerm().toLowerCase().trim();
     if (term) {
       list = list.filter(s =>
-        (s.patientName ?? '').toLowerCase().includes(term)
+        (s.patientName ?? '').toLowerCase().includes(term) ||
+        (s.shortCode ?? '').toLowerCase().includes(term) ||
+        `#${s.shortCode ?? ''}`.toLowerCase().includes(term)
       );
     }
+
+    // Sort list
+    const sort = this.sortOption();
+    list.sort((a, b) => {
+      if (sort === 'oldest') {
+        return new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
+      }
+      if (sort === 'name') {
+        const nameA = (a.patientName || 'Unnamed').toLowerCase();
+        const nameB = (b.patientName || 'Unnamed').toLowerCase();
+        return nameA.localeCompare(nameB);
+      }
+      if (sort === 'pain') {
+        return b.painRegionCount - a.painRegionCount;
+      }
+      // default 'newest'
+      return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+    });
 
     return list;
   });
@@ -102,17 +147,15 @@ export class SubmissionListComponent implements OnInit {
   });
 
   readonly pendingCount = computed(() =>
-    this.submissions().filter(s =>
-      s.status === IntakeStatus.Pending || s.status === IntakeStatus.Submitted || s.status === IntakeStatus.InReview
-    ).length
+    this.submissions().filter(s => s.status === IntakeStatus.Pending || s.status === IntakeStatus.Submitted).length
+  );
+
+  readonly inReviewCount = computed(() =>
+    this.submissions().filter(s => s.status === IntakeStatus.InReview).length
   );
 
   readonly approvedCount = computed(() =>
     this.submissions().filter(s => s.status === IntakeStatus.Approved).length
-  );
-
-  readonly rejectedCount = computed(() =>
-    this.submissions().filter(s => s.status === IntakeStatus.Rejected).length
   );
 
   readonly convertedCount = computed(() =>
@@ -129,7 +172,7 @@ export class SubmissionListComponent implements OnInit {
     this.error.set(null);
     this.currentPage.set(1);
 
-    this.intakeApi.getSubmissions(this.selectedStatus() ?? undefined).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.intakeApi.getSubmissions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         if (requestId !== this.loadRequestId) return;
         this.submissions.set(data);
@@ -152,14 +195,22 @@ export class SubmissionListComponent implements OnInit {
   onStatusChange(status: IntakeStatus | null): void {
     this.selectedStatus.set(status);
     this.currentPage.set(1);
-    this.loadSubmissions();
+  }
+
+  onSortChange(sort: string): void {
+    this.sortOption.set(sort);
+    this.currentPage.set(1);
+  }
+
+  onViewModeChange(mode: 'cards' | 'table'): void {
+    this.viewMode.set(mode);
   }
 
   clearFilters(): void {
     this.searchTerm.set('');
     this.selectedStatus.set(null);
+    this.sortOption.set('newest');
     this.currentPage.set(1);
-    this.loadSubmissions();
   }
 
   goToPage(page: number): void {
@@ -178,8 +229,28 @@ export class SubmissionListComponent implements OnInit {
   }
 
   getInitials(name: string | undefined): string {
-    if (!name) return '?';
-    return name.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    if (!name || !name.trim()) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  getAvatarGradient(name: string | undefined, id: string): string {
+    const gradients = [
+      'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+      'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+      'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+      'linear-gradient(135deg, #10b981 0%, #047857 100%)',
+      'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+      'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
+    ];
+    const key = name || id || 'default';
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % gradients.length;
+    return gradients[index];
   }
 
   getQueueStatusLabel(status: IntakeStatus): string {
@@ -191,6 +262,7 @@ export class SubmissionListComponent implements OnInit {
   }
 
   timeAgo(isoDate: string): string {
+    if (!isoDate) return '';
     const diffMs = Date.now() - new Date(isoDate).getTime();
     const minutes = Math.floor(diffMs / 60000);
     const hours = Math.floor(minutes / 60);
