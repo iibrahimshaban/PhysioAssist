@@ -1,16 +1,19 @@
-﻿using Mapster;
-using PhysioAssist.Api.Modules.PatientModule.Entities;
+﻿using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Errors;
 using PhysioAssist.Api.Modules.PatientModule.Repositories;
-using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Dtos.Patient;
-using PhysioAssist.Api.Shared.Interfaces.Common;
-using PhysioAssist.Api.Shared.Interfaces.Exposed;
+using PhysioAssist.Api.Shared.Interfaces.Ingestion;
+using PhysioAssist.Api.Shared.Interfaces.Scheduling;
 
 namespace PhysioAssist.Api.Modules.PatientModule.Services;
 
-public class PatientQueryService(ApplicationDbContext dbContext, IUnitOfWork _unitOfWork, IPatientRepo _patientRepo,
-IDoctorPatientRepo _doctorPatientRepo) : IPatientQueryService
+public class PatientQueryService(
+    ApplicationDbContext dbContext,
+    IUnitOfWork _unitOfWork, IPatientRepo _patientRepo,
+    IDoctorPatientRepo _doctorPatientRepo,
+    IQueryTranslationService _translationService,
+    IPatientTimePreferenceParser _preferenceParser,
+    ILogger<PatientQueryService> _logger) : IPatientQueryService
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
 
@@ -67,7 +70,7 @@ IDoctorPatientRepo _doctorPatientRepo) : IPatientQueryService
         return Result.Success(response);
     }
 
-   
+
     public async Task<Result<Guid>> CreatePatientFromIntakeAsync(CreatePatientFromIntakeRequest request,
     CancellationToken cancellationToken = default)
     {
@@ -84,26 +87,126 @@ IDoctorPatientRepo _doctorPatientRepo) : IPatientQueryService
             DateOfBirth = request.DateOfBirth,
             QRCodeToken = $"patient-qr-{Guid.NewGuid():N}",
             Occupation = request.Occupation ?? string.Empty,
-            Status = PatientStatus.Active
+            Status = PatientStatus.Active,
+            PatientFreeTime = request.FreeTime ?? string.Empty
         };
 
-        await _patientRepo.AddAsync(patient);
-        await _unitOfWork.SaveAsync(cancellationToken);
-
-        var doctorPatient = new DoctorPatient
+        if (!string.IsNullOrWhiteSpace(request.FreeTime))
         {
-            DoctorId = request.DoctorId,
-            PatientId = patient.Id,
-            IsPrimary = true,
-            AssignedAt = DateTime.UtcNow,
-            AccessLevel = AccessLevel.FullAccess,
-            Category = request.PatientCategory,
-            Status = DoctorPatientStatus.Active
-        };
+            try
+            {
+                var englishFreeTime = await _translationService.TranslateToEnglishAsync(request.FreeTime, cancellationToken);
+                var preferenceResult = await _preferenceParser.ParseAsync(englishFreeTime, cancellationToken);
 
-        await _doctorPatientRepo.AddAsync(doctorPatient);
-        await _unitOfWork.SaveAsync(cancellationToken);
+                if (preferenceResult.IsSuccess)
+                {
+                    patient.ParsedPreferredDayToken = preferenceResult.Value.DayToken;
+                    patient.ParsedPreferredTimeFrom = preferenceResult.Value.PreferredTimeFrom;
+                    patient.ParsedPreferredTimeTo = preferenceResult.Value.PreferredTimeTo;
+                    patient.ParsedPreferredWeekdays = preferenceResult.Value.PreferredWeekdays;
+                }
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                _logger.LogWarning(ex,
+                    "Free-time translation/parsing unavailable during intake conversion for {FreeTime}; proceeding without parsed preference.",
+                    request.FreeTime);
+            }
+        }
+
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            await _patientRepo.AddAsync(patient);
+            await _unitOfWork.SaveAsync(cancellationToken);
+
+            var doctorPatient = new DoctorPatient
+            {
+                DoctorId = request.DoctorId,
+                PatientId = patient.Id,
+                IsPrimary = true,
+                AssignedAt = DateTime.UtcNow,
+                AccessLevel = AccessLevel.FullAccess,
+                Category = request.PatientCategory,
+                Status = DoctorPatientStatus.Active
+            };
+
+            await _doctorPatientRepo.AddAsync(doctorPatient);
+            await _unitOfWork.SaveAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
 
         return Result.Success(patient.Id);
+    }
+
+    public async Task<Result<PatientTimePreferenceInfo>> GetPatientTimePreferenceAsync(
+    Guid patientId, CancellationToken cancellationToken = default)
+    {
+        var patient = await _patientRepo.GetByIdAsync(patientId);
+
+        if (patient is null)
+            return Result.Failure<PatientTimePreferenceInfo>(PatientErrors.NotFound);
+
+        return Result.Success(new PatientTimePreferenceInfo(
+            patient.ParsedPreferredDayToken,
+            patient.ParsedPreferredWeekdays,
+            patient.ParsedPreferredTimeFrom,
+            patient.ParsedPreferredTimeTo)
+            );
+    }
+    public async Task<Result<PatientTimePreferenceInfo>> ResolvePatientTimePreferenceAsync(
+        Guid patientId,
+        string? freeTimeOverrideText,
+        bool persistOverride,
+        CancellationToken cancellationToken = default)
+    {
+        // No override typed this session — behave exactly as before, read whatever's
+        // already persisted on the patient.
+        if (string.IsNullOrWhiteSpace(freeTimeOverrideText))
+            return await GetPatientTimePreferenceAsync(patientId, cancellationToken);
+
+        var patient = await _patientRepo.GetByIdAsync(patientId);
+        if (patient is null)
+            return Result.Failure<PatientTimePreferenceInfo>(PatientErrors.NotFound);
+
+        var parsed = new PatientTimePreferenceDto();
+        try
+        {
+            var englishFreeTime = await _translationService.TranslateToEnglishAsync(freeTimeOverrideText, cancellationToken);
+            var preferenceResult = await _preferenceParser.ParseAsync(englishFreeTime, cancellationToken);
+
+            if (preferenceResult.IsSuccess)
+                parsed = preferenceResult.Value;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex,
+                "Free-time translation/parsing unavailable while resolving override for patient {PatientId}; proceeding without parsed preference.",
+                patientId);
+        }
+
+        if (persistOverride)
+        {
+            patient.PatientFreeTime = freeTimeOverrideText;
+            patient.ParsedPreferredDayToken = parsed.DayToken;
+            patient.ParsedPreferredTimeFrom = parsed.PreferredTimeFrom;
+            patient.ParsedPreferredTimeTo = parsed.PreferredTimeTo;
+            patient.ParsedPreferredWeekdays = parsed.PreferredWeekdays;
+
+            await _unitOfWork.SaveAsync(cancellationToken);
+        }
+
+        // Parsed value drives *this* search either way — persisted or not.
+        return Result.Success(new PatientTimePreferenceInfo(
+            parsed.DayToken,
+            parsed.PreferredWeekdays,
+            parsed.PreferredTimeFrom,
+            parsed.PreferredTimeTo));
     }
 }

@@ -8,11 +8,5 @@ public enum RelativeDayToken
     DayAfterTomorrow,
     ThisWeek,
     NextWeek,
-    Sunday,
-    Monday,
-    Tuesday,
-    Wednesday,
-    Thursday,
-    Friday,
-    Saturday
+    SpecificWeekdays  
 }

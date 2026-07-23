@@ -9,5 +9,5 @@ public class PatientSessionPackageDto
     public int ScheduledSessions { get; init; }
     public int RemainingSessions { get; init; }
     public PackageStatus Status { get; init; }
-    public Guid FirstScheduleSlotId { get; init; }
+    public Guid? FirstScheduleSlotId { get; init; }
 }

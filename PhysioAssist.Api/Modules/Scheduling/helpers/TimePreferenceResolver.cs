@@ -14,18 +14,50 @@ public static class TimePreferenceResolver
             RelativeDayToken.DayAfterTomorrow => (today.AddDays(2), today.AddDays(2)),
             RelativeDayToken.ThisWeek => (today, EndOfWeek(today)),
             RelativeDayToken.NextWeek => (StartOfNextWeek(today), EndOfWeek(StartOfNextWeek(today))),
-            RelativeDayToken.Sunday => Single(NextOccurrence(today, DayOfWeek.Sunday)),
-            RelativeDayToken.Monday => Single(NextOccurrence(today, DayOfWeek.Monday)),
-            RelativeDayToken.Tuesday => Single(NextOccurrence(today, DayOfWeek.Tuesday)),
-            RelativeDayToken.Wednesday => Single(NextOccurrence(today, DayOfWeek.Wednesday)),
-            RelativeDayToken.Thursday => Single(NextOccurrence(today, DayOfWeek.Thursday)),
-            RelativeDayToken.Friday => Single(NextOccurrence(today, DayOfWeek.Friday)),
-            RelativeDayToken.Saturday => Single(NextOccurrence(today, DayOfWeek.Saturday)),
+
+            // Single AND multiple named weekdays now both live under SpecificWeekdays,
+            // distinguished only by how many bits are set in PreferredWeekdays.
+            RelativeDayToken.SpecificWeekdays => ResolveSpecificWeekdaysRange(preference.PreferredWeekdays, today),
+
             _ => (today, today.AddDays(7)) // Unspecified — default one-week search window
         };
     }
 
-    private static (DateOnly, DateOnly) Single(DateOnly date) => (date, date);
+    private static (DateOnly Start, DateOnly End) ResolveSpecificWeekdaysRange(DaysOfWeekFlags weekdays, DateOnly today)
+    {
+        if (weekdays == DaysOfWeekFlags.None)
+            // Shouldn't normally happen (parser should never emit SpecificWeekdays with
+            // no bits set), but fail safe with the same default window as Unspecified.
+            return (today, today.AddDays(7));
+
+        // Exactly one weekday requested — collapse to that single next occurrence,
+        // same behavior the old dedicated Sunday/Monday/etc. cases used to give.
+        if (IsSingleFlag(weekdays))
+        {
+            var target = ToDayOfWeek(weekdays);
+            var date = NextOccurrence(today, target);
+            return (date, date);
+        }
+
+        // Multiple weekdays requested (e.g. "Saturday, Monday, Wednesday") — can't
+        // collapse to one date, so widen to a 14-day window. The caller filters the
+        // resulting slots down to only the requested weekdays.
+        return (today, today.AddDays(14));
+    }
+
+    private static bool IsSingleFlag(DaysOfWeekFlags flags) => (flags & (flags - 1)) == 0;
+
+    private static DayOfWeek ToDayOfWeek(DaysOfWeekFlags flag) => flag switch
+    {
+        DaysOfWeekFlags.Sunday => DayOfWeek.Sunday,
+        DaysOfWeekFlags.Monday => DayOfWeek.Monday,
+        DaysOfWeekFlags.Tuesday => DayOfWeek.Tuesday,
+        DaysOfWeekFlags.Wednesday => DayOfWeek.Wednesday,
+        DaysOfWeekFlags.Thursday => DayOfWeek.Thursday,
+        DaysOfWeekFlags.Friday => DayOfWeek.Friday,
+        DaysOfWeekFlags.Saturday => DayOfWeek.Saturday,
+        _ => throw new ArgumentOutOfRangeException(nameof(flag), flag, "Not a single-day flag.")
+    };
 
     private static DateOnly NextOccurrence(DateOnly from, DayOfWeek target)
     {

@@ -26,7 +26,8 @@ public static class DependencyInjection
             .AddScoped<IAppointmentValidator, AppointmentValidator>()
             .AddScoped<IAppointmentService, AppointmentService>()
             .AddScoped<IWorkingScheduleService, WorkingScheduleService>()
-            .AddScoped<IScheduleSlotQueryService, ScheduleSlotQueryService>();
+            .AddScoped<IScheduleSlotQueryService, ScheduleSlotQueryService>()
+            .AddScoped<IPatientSessionSchedulingService, PatientSessionSchedulingService>();
 
         
 
@@ -40,7 +41,6 @@ public static class DependencyInjection
     {
         // Pure, deterministic candidate-building logic — no LLM involved.
         services.AddScoped<IDoctorScheduleRecommendationService, DoctorScheduleRecommendationService>();
-        services.AddScoped<IPatientSlotRecommendationService, PatientSlotRecommendationService>();
 
         // Thin SK wrapper exposing the recommendation service as a KernelFunction.
         services.AddScoped<DoctorSchedulePlugin>();

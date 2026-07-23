@@ -2,11 +2,9 @@
 
 public class PatientTimePreferenceDto
 {
-    public RelativeDayToken DayToken { get; init; } = RelativeDayToken.Unspecified;
-
-    /// <summary>Set only when the patient gave an unambiguous calendar date the model could resolve.</summary>
-    public DateOnly? ExplicitDate { get; init; }
-
-    public TimeOnly? PreferredTimeFrom { get; init; }
-    public TimeOnly? PreferredTimeTo { get; init; }
+    public RelativeDayToken DayToken { get; set; }
+    public DaysOfWeekFlags PreferredWeekdays { get; set; } 
+    public DateOnly? ExplicitDate { get; set; }
+    public TimeOnly? PreferredTimeFrom { get; set; }
+    public TimeOnly? PreferredTimeTo { get; set; }
 }

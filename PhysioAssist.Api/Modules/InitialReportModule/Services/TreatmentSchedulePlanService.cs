@@ -2,8 +2,6 @@
 using PhysioAssist.Api.Modules.InitialReportModule.Entities;
 using PhysioAssist.Api.Modules.InitialReportModule.Errors;
 using PhysioAssist.Api.Modules.InitialReportModule.Repositories;
-using PhysioAssist.Api.Modules.Scheduling.DTO.AgentDtos;
-using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Shared.Dtos.Schedule;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Services;
@@ -11,9 +9,7 @@ namespace PhysioAssist.Api.Modules.InitialReportModule.Services;
 public class TreatmentSchedulePlanService(
         ITreatmentSchedulePlanRepository _planRepository,
         IInitialReportRepository _reportRepository,
-        IIntakeQueryService _intakeQueryService,
-        IPatientSlotRecommendationService _slotRecommendationService,
-        IScheduleSlotQueryService _packageService,
+        IPatientSessionSchedulingService _PatientSessionSchedulingService,
         IUnitOfWork _unitOfWork) : ITreatmentSchedulePlanService
 {
 
@@ -41,8 +37,6 @@ public class TreatmentSchedulePlanService(
         }
         else if (plan.Status != TreatmentSchedulePlanStatus.Pending)
         {
-            // Already booked or handed to the receptionist — editing now would
-            // silently invalidate a decision that's already been acted on.
             return Result.Failure<TreatmentSchedulePlanResponse>(TreatmentSchedulePlanErrors.AlreadyResolved);
         }
         else
@@ -92,7 +86,7 @@ public class TreatmentSchedulePlanService(
         if (plan.Status != TreatmentSchedulePlanStatus.Pending)
             return Result.Failure<TreatmentSchedulePlanResponse>(TreatmentSchedulePlanErrors.AlreadyResolved);
 
-        var packageResult = await _packageService.CreatePackageWithFirstBookingAsync(new CreatePackageWithFirstBookingRequest
+        var packageResult = await _PatientSessionSchedulingService.CreatePackageWithFirstBookingAsync(new CreatePackageWithFirstBookingRequest
         {
             PatientId = report.PatientId,
             DoctorId = report.DoctorId,
@@ -134,30 +128,127 @@ public class TreatmentSchedulePlanService(
         _planRepository.Update(plan);
         await _unitOfWork.SaveAsync(cancellationToken);
 
-        // Deferred — the receptionist's own search flow (built separately) will
-        // recompute candidates when she actually works this.
         return Result.Success(MapToResponse(plan, []));
     }
 
     private async Task<IReadOnlyList<SlotCandidateDto>> GetCandidateSlotsAsync(
-        TreatmentSchedulePlan plan, Guid doctorId, Guid patientId, CancellationToken cancellationToken)
+    TreatmentSchedulePlan plan, Guid doctorId, Guid patientId, CancellationToken cancellationToken)
     {
         if (plan.Status != TreatmentSchedulePlanStatus.Pending)
             return [];
 
-        var freeTimeResult = await _intakeQueryService.GetPatientFreeTimeTextAsync(patientId, cancellationToken);
-        var freeTimeText = freeTimeResult.IsSuccess ? freeTimeResult.Value : null;
-
-        var slotsResult = await _slotRecommendationService.GetTopRecommendedSlotsAsync(
+        var slotsResult = await _PatientSessionSchedulingService.GetTopRecommendedSlotsAsync(
             doctorId,
             TimeSpan.FromMinutes(plan.SessionDurationMinutes),
-            freeTimeText ?? string.Empty, // empty -> "no preference", handled by the pipeline already
+            patientId,
             DefaultCandidateCount,
             cancellationToken);
 
-        // A recommendation-lookup failure shouldn't block the doctor from seeing/saving
-        // the plan itself — just show no candidates this time rather than erroring the whole request.
         return slotsResult.IsSuccess ? slotsResult.Value : [];
+    }
+    public async Task<Result<PatientSchedulingContextDto>> GetSchedulingContextForPatientAsync(
+    Guid patientId, CancellationToken cancellationToken = default)
+    {
+        var report = await _reportRepository.GetByPatientIdAsync(patientId);
+        if (report is null)
+            return Result.Success(new PatientSchedulingContextDto { State = PatientSchedulingState.NoInitialReport });
+
+        var plan = await _planRepository.GetByReportIdAsync(report.FirstOrDefault()!.Id, cancellationToken);
+        if (plan is null || plan.Status == TreatmentSchedulePlanStatus.Pending)
+            return Result.Success(new PatientSchedulingContextDto { State = PatientSchedulingState.PlanPending });
+
+        if (plan.Status == TreatmentSchedulePlanStatus.SentToReceptionist)
+        {
+            return Result.Success(new PatientSchedulingContextDto
+            {
+                State = PatientSchedulingState.ReadyToSchedule,
+                PendingPlan = new PendingTreatmentPlanDto
+                {
+                    TreatmentPlanId = plan.Id,
+                    ReportId = plan.ReportId,
+                    TotalSessions = plan.TotalSessions,
+                    SessionDurationMinutes = plan.SessionDurationMinutes,
+                    SessionsPerWeek = plan.SessionsPerWeek,
+                    MinimumGapBetweenSessionsDays = plan.MinimumGapBetweenSessionsDays,
+                    PreferredTimeOfDay = plan.PreferredTimeOfDay,
+                    PreferredDays = plan.PreferredDays,
+                    Priority = plan.Priority
+                }
+            });
+        }
+
+        // Status == Booked from here on.
+        if (plan.PackageId is null)
+            // Shouldn't happen — Booked should always carry a PackageId — but fail
+            // safe instead of crashing the receptionist's screen on bad data.
+            return Result.Failure<PatientSchedulingContextDto>(TreatmentSchedulePlanErrors.NotFound);
+
+        var summaryResult = await _PatientSessionSchedulingService.GetPackageSummaryAsync(plan.PackageId.Value, cancellationToken);
+        if (summaryResult.IsFailure)
+            return Result.Failure<PatientSchedulingContextDto>(summaryResult.Error);
+
+        return Result.Success(new PatientSchedulingContextDto
+        {
+            State = PatientSchedulingState.ActivePackage,
+            ActivePackage = summaryResult.Value
+        });
+    }
+
+    public async Task<Result<PatientSessionPackageSummaryDto>> ConvertPlanToPackageAsync(
+        Guid treatmentPlanId, ConvertPlanToPackageRequest request, CancellationToken cancellationToken = default)
+    {
+        var plan = await _planRepository.GetByIdAsync(treatmentPlanId);
+
+        if (plan is null)
+            return Result.Failure<PatientSessionPackageSummaryDto>(TreatmentSchedulePlanErrors.NotFound);
+
+        if (plan.Status != TreatmentSchedulePlanStatus.SentToReceptionist)
+            return Result.Failure<PatientSessionPackageSummaryDto>(TreatmentSchedulePlanErrors.AlreadyResolved);
+
+        var report = await _reportRepository.GetByIdAsync(plan.ReportId);
+        if (report is null)
+            return Result.Failure<PatientSessionPackageSummaryDto>(TreatmentSchedulePlanErrors.NotFound);
+
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
+        var packageResult = await _PatientSessionSchedulingService.CreatePackageAsync(new CreateSessionPackageRequest
+        {
+            PatientId = report.PatientId,
+            DoctorId = report.DoctorId,
+            TotalSessions = plan.TotalSessions,
+            SessionDuration = TimeSpan.FromMinutes(plan.SessionDurationMinutes),
+            SessionsPerWeek = request.SessionsPerWeek ?? plan.SessionsPerWeek,
+            MinimumGapBetweenSessionsDays = request.MinimumGapBetweenSessionsDays ?? plan.MinimumGapBetweenSessionsDays,
+            PreferredTimeOfDay = request.PreferredTimeOfDay ?? plan.PreferredTimeOfDay,
+            PreferredDays = request.PreferredDays ?? plan.PreferredDays,
+            Priority = request.Priority ?? plan.Priority,
+            FirstSessionSlot = null
+        }, cancellationToken);
+
+        if (packageResult.IsFailure)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return Result.Failure<PatientSessionPackageSummaryDto>(packageResult.Error);
+        }
+
+        plan.Status = TreatmentSchedulePlanStatus.Booked;
+        plan.PackageId = packageResult.Value.PackageId;
+
+        _planRepository.Update(plan);
+        await _unitOfWork.SaveAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        var summaryResult = await _PatientSessionSchedulingService.GetPackageSummaryAsync(packageResult.Value.PackageId, cancellationToken);
+        return summaryResult;
+    }
+    public async Task<Guid?> GetPlanDoctorIdAsync(Guid treatmentPlanId, CancellationToken cancellationToken = default)
+    {
+        var plan = await _planRepository.GetByIdAsync(treatmentPlanId);
+        if (plan is null)
+            return null;
+
+        var report = await _reportRepository.GetByIdAsync(plan.ReportId);
+        return report?.DoctorId;
     }
 
     private static TreatmentSchedulePlanResponse MapToResponse(TreatmentSchedulePlan plan, IReadOnlyList<SlotCandidateDto> candidates) => new(

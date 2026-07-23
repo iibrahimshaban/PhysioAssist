@@ -1,4 +1,4 @@
-﻿namespace PhysioAssist.Api.Modules.InitialReportModule.DTOs;
+﻿namespace PhysioAssist.Api.Shared.Enums;
 
 public enum TreatmentSchedulePlanStatus
 {

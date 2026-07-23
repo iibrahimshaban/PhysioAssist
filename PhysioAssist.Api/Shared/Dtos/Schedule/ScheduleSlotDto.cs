@@ -1,4 +1,4 @@
-﻿namespace PhysioAssist.Api.Modules.Scheduling.DTO
+﻿namespace PhysioAssist.Api.Shared.Dtos.Schedule
 {
     public class ScheduleSlotDto
     {

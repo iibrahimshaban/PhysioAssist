@@ -4,7 +4,6 @@ using PhysioAssist.Api.Modules.InitialReportModule.DTOs;
 using PhysioAssist.Api.Modules.InitialReportModule.Entities;
 using PhysioAssist.Api.Modules.InitialReportModule.Errors;
 using PhysioAssist.Api.Modules.InitialReportModule.Repositories;
-using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 using PhysioAssist.Api.Shared.Dtos.Pdf;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
 using PhysioAssist.Api.Shared.Interfaces.Documentation;
@@ -25,7 +24,7 @@ public class InitialReportService(
     IAuthQueryService _authQueryService,
     IOptions<FrontendSettings> _frontendSettings,
     IPatientSummaryAiService _patientSummaryAiService,
-    IScheduleSlotQueryService _scheduleSlotQueryService
+    IPatientSessionSchedulingService _PatientSessionSchedulingService
 ) : IInitialReportService
 {
     private readonly IInitialReportRepository _reportRepository = reportRepository;
@@ -215,7 +214,7 @@ public class InitialReportService(
         // 1b. Look up the patient's first booked session, if any, to print on the PDF.
         // Null-safe: if the patient somehow has no booked session yet, the section is
         // simply skipped rather than failing the whole report submission over it.
-        var firstSession = await _scheduleSlotQueryService.GetFirstBookedSessionForPatientAsync(patient.Value.Id);
+        var firstSession = await _PatientSessionSchedulingService.GetFirstBookedSessionForPatientAsync(patient.Value.Id);
 
         // 2. Generate treatment plan PDF, QR as its own section
         var summaryParagraphs = summaryResult.Value

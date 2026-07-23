@@ -1,0 +1,97 @@
+<div class="min-h-screen bg-[#f5fafc] p-6">
+  <div class="mx-auto max-w-5xl">
+
+    @if (isLoadingContext()) {
+      <div class="py-20 text-center text-slate-400">
+        <i class="pi pi-spin pi-spinner text-2xl"></i>
+        <p class="mt-2 text-sm">Loading...</p>
+      </div>
+    } @else if (context(); as ctx) {
+
+      @switch (ctx.state) {
+
+        @case (schedulingStateEnum.NoInitialReport) {
+          <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center">
+            <i class="pi pi-file-o text-3xl text-slate-300 mb-3 block"></i>
+            <p class="text-sm font-semibold text-slate-700">No initial report yet</p>
+            <p class="text-sm text-slate-400 mt-1">This patient doesn't have one — nothing to schedule.</p>
+          </div>
+        }
+
+        @case (schedulingStateEnum.PlanPending) {
+          <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center">
+            <i class="pi pi-hourglass text-3xl text-slate-300 mb-3 block"></i>
+            <p class="text-sm font-semibold text-slate-700">Plan not ready yet</p>
+            <p class="text-sm text-slate-400 mt-1">The doctor hasn't finished setting up a treatment plan for this patient.</p>
+          </div>
+        }
+
+        @case (schedulingStateEnum.ReadyToSchedule) {
+          @if (ctx.pendingPlan; as plan) {
+            <div class="mb-2">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Doctor's plan for this patient</p>
+              <app-pending-plan-summary [plan]="plan" />
+
+              <p-button
+                label="Create package & start booking"
+                icon="pi pi-check"
+                [disabled]="isCreatingPackage()"
+                (onClick)="onCreatePackage()"
+              />
+            </div>
+          }
+        }
+
+        @case (schedulingStateEnum.ActivePackage) {
+          @if (summary(); as s) {
+            <app-session-plan-header
+              [summary]="s"
+              [scheduledThisWeek]="round()?.scheduledThisWeek ?? 0"
+              [weeklyTargetCount]="round()?.weeklyTargetCount ?? 0"
+              [weekStart]="round()?.weekStart ?? null"
+              [weekEnd]="round()?.weekEnd ?? null"
+              (back)="onBack()"
+              (manualSchedule)="onManualSchedule()"
+            />
+
+            @if (isPackageActive()) {
+              <app-patient-free-time-editor
+                [freeTimeText]="freeTimeText()"
+                (freeTimeTextChange)="freeTimeText.set($event)"
+                (refresh)="onRefresh($event)"
+              />
+
+              <app-slot-candidates-grid
+                [round]="round()"
+                [isConfirming]="isConfirming()"
+                (pick)="onPickSlot($event)"
+                (manualSchedule)="onManualSchedule()"
+              />
+            } @else {
+              <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center">
+                <i class="pi pi-check-circle text-3xl mb-3 block"
+                   [class.text-green-500]="s.status === packageStatusEnum.Completed"
+                   [class.text-slate-300]="s.status !== packageStatusEnum.Completed"></i>
+                <p class="text-sm font-semibold text-slate-700">
+                  @if (s.status === packageStatusEnum.Completed) {
+                    Package complete
+                  } @else {
+                    Package cancelled
+                  }
+                </p>
+                <p class="text-sm text-slate-400 mt-1">
+                  @if (s.status === packageStatusEnum.Completed) {
+                    All {{ s.totalSessions }} sessions have been scheduled.
+                  } @else {
+                    This package has been cancelled.
+                  }
+                </p>
+              </div>
+            }
+          }
+        }
+      }
+    }
+
+  </div>
+</div>

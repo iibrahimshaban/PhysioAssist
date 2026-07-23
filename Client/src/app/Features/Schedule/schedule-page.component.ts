@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { AppointmentDrawerComponent } from './appointment-drawer/appointment-drawer.component';
 import { CalendarGridComponent } from './calendar-grid/calendar-grid.component';
 import { CalendarToolbarComponent } from './calendar-toolbar/calendar-toolbar.component';
@@ -10,7 +10,6 @@ import { Doctor, Appointment, AvailableInterval, CreateAppointmentRequest, Sched
 import { StatisticsPanelComponent } from './statistics-panel/statistics-panel.component';
 import { SchedulePageService, toIsoWithOffset } from '../../Core/Services/schedule-page.service';
 import { AuthService } from '../../Core/Services/auth.service'; // adjust path to match your actual file
-import { firstValueFrom } from 'rxjs';
 import { RescheduleDialogComponent } from "./reschedule-dialog/reschedule-dialog.component";
 
 @Component({
@@ -31,14 +30,14 @@ export class SchedulePageComponent {
   private readonly authService = inject(AuthService);
   protected readonly isRescheduleDialogOpen = signal(false);
   protected readonly reschedulingAppointment = signal<Appointment | null>(null);
-
-  // The doctor viewing their own calendar is always the logged-in user —
-  // no picker, no static list. `sub` from the JWT is the doctor's own ID.
   protected readonly currentDoctorId = computed(() => this.authService.currentUser()?.id ?? null);
 
+  // Bound automatically from ?patientId=... via withComponentInputBinding — set
+  // when arriving here via "Set schedule manually" from the receptionist booking
+  // flow. Absent entirely for the doctor's normal day-to-day calendar view.
+  patientId = input<string | null>(null);
+
   constructor() {
-    // Drive the schedule off whoever is logged in. Replaces the old flow where
-    // a DoctorSelectorComponent picked from a hardcoded array of fake IDs.
     effect(() => {
       const id = this.currentDoctorId();
       if (id) this.scheduleService.selectDoctor(id);
@@ -61,11 +60,6 @@ export class SchedulePageComponent {
   protected readonly emptyStateKind = computed(() => {
     return !this.scheduleService.selectedDoctorId() ? ('no-doctor' as const) : null;
   });
-
-  // onDoctorSelected removed — there's no manual doctor picker anymore for
-  // this page; the doctor is always the authenticated user. If a receptionist
-  // view needs to browse other doctors' calendars, that should be a separate
-  // route/component that explicitly passes a doctorId, not this one.
 
   protected onPrevious(): void {
     this.shiftDate(this.scheduleService.currentView() === 'day' ? -1 : -7);
