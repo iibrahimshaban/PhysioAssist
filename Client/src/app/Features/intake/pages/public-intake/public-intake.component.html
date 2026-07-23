@@ -125,13 +125,13 @@
         }
       </div>
 
-       <!-- Pain Map Section (only show if schema does not have its own bodyselector question) -->
-        @if (formData()?.showPainMap && !schemaHasBodySelector()) {
-         <div class="mb-6 sm:mb-8">
-           <h2 class="page-title">Pain point diagram</h2>
-           <app-body-pain-map (mapChange)="onPainMapChange($event)" />
-         </div>
-        }
+        <!-- Pain Map Section -->
+         @if (formData()?.showPainMap) {
+          <div class="mb-6 sm:mb-8">
+            <h2 class="page-title">Pain point diagram</h2>
+            <app-body-pain-map (mapChange)="onPainMapChange($event)" />
+          </div>
+         }
 
 
       <!-- Submit Buttons -->

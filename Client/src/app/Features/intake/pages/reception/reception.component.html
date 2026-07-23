@@ -16,23 +16,7 @@
       </p>
     </div>
 
-    <div class="flex items-center gap-3 self-start sm:self-auto">
-      @if (lastRefreshed()) {
-        <span class="text-xs text-[var(--color-text-secondary,#64748b)] flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          Synced at {{ lastRefreshed() | date:'shortTime' }}
-        </span>
-      }
-      <button
-        type="button"
-        (click)="loadReception()"
-        [disabled]="loading()"
-        class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-[var(--color-text-secondary,#64748b)] hover:text-[var(--color-text-primary,#0f172a)] bg-[var(--color-surface,#ffffff)] border border-[var(--color-border,#e2e8f0)] hover:border-[var(--color-primary,#0b8eea)] rounded-xl transition-all shadow-xs"
-        aria-label="Refresh queue">
-        <i class="pi pi-refresh text-xs" [class.animate-spin]="loading()"></i>
-        <span>Refresh</span>
-      </button>
-    </div>
+    
   </div>
 
   <!-- Summary KPI Stats -->
