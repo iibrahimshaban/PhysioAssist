@@ -20,6 +20,7 @@ export interface PublicIntakeFormResponse {
 
 export interface PublicIntakeSubmissionResponse {
   submissionId: string;
+  shortCode: string;
   submittedAt: string;
   message: string;
 }

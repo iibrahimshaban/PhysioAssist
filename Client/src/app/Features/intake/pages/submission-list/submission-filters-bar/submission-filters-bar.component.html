@@ -1,14 +1,15 @@
 <!-- Filters -->
-<div class="mb-5 flex flex-wrap gap-3">
-  <div class="relative flex-1 min-w-[200px]">
-    <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] text-sm"></i>
+<div class="intake-filters-bar mb-5">
+  <div class="relative flex-1 min-w-0 intake-search-wrapper">
+    <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] text-sm pointer-events-none"></i>
     <input
       type="search"
       [ngModel]="searchTerm"
       (ngModelChange)="searchChange.emit($event)"
       placeholder="Search by patient name..."
-      class="w-full text-sm pl-9 pr-3 py-2 border border-[var(--color-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-soft)] focus:border-[var(--color-primary)] bg-[var(--color-surface)] text-[var(--color-text-primary)]"
-      aria-label="Search submissions" />
+      class="intake-search-input"
+      aria-label="Search submissions"
+      #searchInput />
   </div>
 
   <!-- Pill-scroll wrapper: hides native scrollbar, only scrolls on genuinely narrow screens -->

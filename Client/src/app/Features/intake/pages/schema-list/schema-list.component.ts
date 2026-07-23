@@ -98,7 +98,6 @@ export class SchemaListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadSchemas();
-    this.loadDefaultForm();
   }
 
   private loadDefaultForm(): void {
@@ -243,6 +242,10 @@ export class SchemaListComponent implements OnInit {
 
   createSchema(): void {
     this.router.navigate(['/app/intake/schemas/new']);
+  }
+
+  openWizard(): void {
+    this.router.navigate(['/app/intake/schemas/wizard']);
   }
 
   editSchema(id: string): void {

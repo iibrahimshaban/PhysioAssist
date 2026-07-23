@@ -31,6 +31,7 @@ export interface FormQuestionDto {
   options?: string[];
   validationRules?: ValidationRuleDto[];
   conditions?: QuestionConditionDto[];
+  isLocked?: boolean;
 }
 
 export interface ValidationRuleDto {

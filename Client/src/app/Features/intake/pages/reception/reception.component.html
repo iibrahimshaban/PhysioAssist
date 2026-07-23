@@ -12,15 +12,6 @@
       </div>
       <p class="page-subtitle">Patients waiting for check-in or currently in review</p>
     </div>
-    <div class="reception-header-actions">
-      @if (lastRefreshed()) {
-        <span class="reception-refresh-indicator" [class.refreshing]="loading()">
-          <i class="pi pi-refresh" aria-hidden="true"></i>
-          <span class="reception-refresh-text">{{ lastRefreshed() | date:'HH:mm' }}</span>
-        </span>
-      }
-
-    </div>
   </div>
 
   <!-- ── Error State ──────────────────────────────────────────── -->
@@ -31,7 +22,7 @@
       </div>
       <h3 class="reception-error-title">Failed to load queue</h3>
       <p class="reception-error-text">{{ error() }}</p>
-      <p-button label="Try Again" icon="pi pi-refresh" severity="warn" (onClick)="loadReception()" />
+      <p-button label="Try Again" icon="pi pi-refresh" severity="info" (onClick)="loadReception()" />
     </div>
   }
 
@@ -46,7 +37,7 @@
           <span class="reception-stat-value">{{ waitingCount() }}</span>
           <span class="reception-stat-label">Waiting</span>
         </div>
-        @if (activeFilter() === IntakeStatus.Pending) {
+        @if (activeFilter() === 'all') {
           <i class="pi pi-check-circle reception-stat-check"></i>
         }
       </button>
@@ -101,7 +92,7 @@
           <input
             type="search"
             [ngModel]="searchTerm()"
-            (ngModelChange)="searchTerm.set($event)"
+            (ngModelChange)="searchTerm.set($event); currentPage.set(1)"
             placeholder="Search by patient name..."
             class="reception-search-input"
             aria-label="Search patients in queue" />
@@ -167,16 +158,51 @@
           </div>
         } @else {
           <div class="reception-rows" role="list">
-            @for (row of filteredSubmissions(); track row.id) {
+            @for (row of paginatedSubmissions(); track row.id) {
               <app-submission-row [submission]="row" (selected)="viewSubmission($event)" />
             }
           </div>
+
+          <!-- Pagination -->
+          @if (totalPages() > 1) {
+            <div class="reception-pagination">
+              <div class="reception-pagination-info">
+                <span>{{ ((currentPage() - 1) * pageSize()) + 1 }}–{{ pageEndIndex() }}</span>
+                <span class="hidden sm:inline"> of {{ filteredSubmissions().length }}</span>
+              </div>
+              <div class="reception-pagination-controls">
+                <button
+                  class="reception-page-btn"
+                  (click)="goToPage(currentPage() - 1)"
+                  [disabled]="currentPage() === 1"
+                  aria-label="Previous page">
+                  <i class="pi pi-chevron-left"></i>
+                </button>
+                @for (page of pageNumbers(); track page) {
+                  <button
+                    class="reception-page-btn"
+                    [class.reception-page-btn--active]="currentPage() === page"
+                    (click)="goToPage(page)"
+                    [attr.aria-current]="currentPage() === page ? 'page' : undefined">
+                    {{ page }}
+                  </button>
+                }
+                <button
+                  class="reception-page-btn"
+                  (click)="goToPage(currentPage() + 1)"
+                  [disabled]="currentPage() === totalPages()"
+                  aria-label="Next page">
+                  <i class="pi pi-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          }
 
           @if (submissions().length > 0) {
             <div class="reception-footer">
               <span>{{ filteredSubmissions().length }} of {{ submissions().length }}</span>
               @if (activeFilter() !== 'all') {
-                <button type="button" class="reception-footer-link" (click)="setFilter('all')">
+                <button type="button" class="reception-footer-link" (click)="setFilter('all'); currentPage.set(1)">
                   Show all
                 </button>
               }

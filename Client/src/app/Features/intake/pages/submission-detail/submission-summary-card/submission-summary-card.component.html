@@ -1,47 +1,49 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
   <!-- Patient Card -->
   <div class="lg:col-span-2 bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
-    <div class="p-5 sm:p-6">
-      <div class="flex items-start gap-4">
+    <div class="p-4 sm:p-6">
+      <div class="flex items-start gap-3 sm:gap-4">
         <!-- Patient avatar -->
-        <div class="avatar-chip !w-14 !h-14 !text-lg !rounded-2xl">
+        <div class="avatar-chip !w-12 !h-12 sm:!w-14 sm:!h-14 !text-base sm:!text-lg !rounded-xl sm:!rounded-2xl">
           {{ getInitials(patientName) }}
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-start justify-between gap-3 flex-wrap">
-            <h2 class="text-xl font-bold text-[var(--color-text-primary)] m-0 break-words capitalize">{{ patientName || 'Unnamed patient' }}</h2>
+            <h2 class="text-lg sm:text-xl font-bold text-[var(--color-text-primary)] m-0 break-words capitalize">{{ patientName || 'Unnamed patient' }}</h2>
             <span class="status-badge shrink-0" [ngClass]="getStatusPillClass(details.status)">
               {{ getStatusLabel(details.status) }}
             </span>
           </div>
           @if (patientEmail) {
             <p class="text-sm text-[var(--color-text-secondary)] mt-1 m-0 flex items-center gap-1.5">
-              <i class="pi pi-envelope text-xs"></i>{{ patientEmail }}
+              <i class="pi pi-envelope text-xs"></i>
+              <span class="truncate min-w-0">{{ patientEmail }}</span>
             </p>
           }
           @if (patientPhone) {
             <p class="text-sm text-[var(--color-text-secondary)] mt-0.5 m-0 flex items-center gap-1.5">
-              <i class="pi pi-phone text-xs"></i>{{ patientPhone }}
+              <i class="pi pi-phone text-xs"></i>
+              {{ patientPhone }}
             </p>
           }
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-4 mt-5 pt-5 border-t border-[var(--color-border)]">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5 pt-5 border-t border-[var(--color-border)]">
         <div class="detail-field">
           <p class="detail-label">Submitted</p>
           <p class="detail-value">{{ details.submittedAt | date:'MMM d, y, h:mm a' }}</p>
         </div>
-        <div class="detail-field col-span-2">
+        <div class="detail-field sm:col-span-1 col-span-2">
           <p class="detail-label">Submission ID</p>
-          <p class="detail-value font-mono text-xs break-all select-all">{{ details.id }}</p>
+          <p class="detail-value font-mono text-xs break-all select-all">{{ details.shortCode }}</p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Form Details Card -->
-  <div class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-5 sm:p-6">
+  <div class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-4 sm:p-6">
     <h3 class="text-sm font-bold text-[var(--color-text-primary)] uppercase tracking-wider mb-4 flex items-center gap-2">
       <i class="pi pi-file-edit text-[var(--color-primary)] text-xs"></i>
       Form Details

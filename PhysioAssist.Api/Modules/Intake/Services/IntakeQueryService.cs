@@ -61,11 +61,40 @@ public class IntakeQueryService(ApplicationDbContext context) : IIntakeQueryServ
 
         if (submission is not null)
         {
-            fullName = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_full_name", "text");
-            gender = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_gender", "radio");
-            var dob = ExtractInputValuesHelper.ExtractAnswerDate(submission, "question_default_dob", "date");
-            age = dob.HasValue ? ExtractInputValuesHelper.CalculateAge(dob.Value) : null;
-            injuryDate = ExtractInputValuesHelper.ExtractAnswerDate(submission, "question_default_injury_date", "date");
+            // FIXED: Load the schema to do dynamic lookup by text, not hardcoded IDs
+            var schema = await LoadFormSchemaAsync(intake.FormSchemaId);
+
+            if (schema is not null)
+            {
+                // Dynamic lookup by text (handles customized forms)
+                var fullNameQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Full Name")
+                    ?? ExtractInputValuesHelper.FindQuestionIdByText(schema, "Name");
+                var genderQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Gender");
+                var dobQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Date of Birth")
+                    ?? ExtractInputValuesHelper.FindQuestionIdByText(schema, "DOB");
+                var injuryDateQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Injury Date");
+
+                if (fullNameQId is not null)
+                    fullName = ExtractInputValuesHelper.ExtractAnswerString(submission, fullNameQId, ExtractInputValuesHelper.GetWrapperKey(schema, fullNameQId));
+                if (genderQId is not null)
+                    gender = ExtractInputValuesHelper.ExtractAnswerString(submission, genderQId, ExtractInputValuesHelper.GetWrapperKey(schema, genderQId));
+                if (dobQId is not null)
+                {
+                    var dob = ExtractInputValuesHelper.ExtractAnswerDate(submission, dobQId, ExtractInputValuesHelper.GetWrapperKey(schema, dobQId));
+                    age = dob.HasValue ? ExtractInputValuesHelper.CalculateAge(dob.Value) : null;
+                }
+                if (injuryDateQId is not null)
+                    injuryDate = ExtractInputValuesHelper.ExtractAnswerDate(submission, injuryDateQId, ExtractInputValuesHelper.GetWrapperKey(schema, injuryDateQId));
+            }
+            else
+            {
+                // Fallback to hardcoded IDs if schema can't be loaded (backward compatibility)
+                fullName = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_full_name", "text");
+                gender = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_gender", "radio");
+                var dob = ExtractInputValuesHelper.ExtractAnswerDate(submission, "question_default_dob", "date");
+                age = dob.HasValue ? ExtractInputValuesHelper.CalculateAge(dob.Value) : null;
+                injuryDate = ExtractInputValuesHelper.ExtractAnswerDate(submission, "question_default_injury_date", "date");
+            }
         }
 
         var chiefComplaint = ExtractInputValuesHelper.ExtractChiefComplaint(intake.PainPointsData);
@@ -73,5 +102,25 @@ public class IntakeQueryService(ApplicationDbContext context) : IIntakeQueryServ
         var patientCategory = ExtractInputValuesHelper.ExtractPatientCategory(intake.PainPointsData);
 
         return Result.Success(new PatientIntakeSummaryResponse(fullName, gender, age, chiefComplaint, injury, injuryDate, patientCategory));
+    }
+
+    private async Task<DTOs.DynamicForms.DynamicFormSchemaDto?> LoadFormSchemaAsync(Guid formSchemaId)
+    {
+        var schemaEntity = await _context.PatientFormSchemas
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == formSchemaId);
+
+        if (schemaEntity is null) return null;
+
+        try
+        {
+            return System.Text.Json.JsonSerializer.Deserialize<DTOs.DynamicForms.DynamicFormSchemaDto>(
+                schemaEntity.SchemaJson,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

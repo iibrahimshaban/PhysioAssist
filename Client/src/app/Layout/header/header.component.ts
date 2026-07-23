@@ -12,7 +12,7 @@ export class HeaderComponent {
   auth = inject(AuthService);
 
   menuOpen = signal(false);
- 
+  
   toggleMenu(): void { this.menuOpen.update(v => !v); }
   closeMenu(): void  { this.menuOpen.set(false); }
 }

@@ -3,7 +3,7 @@
  * Scoped utilities for the Intake feature. Color/spacing tokens live in :root (styles.css).
  */
 
-/* ─── Scoped token aliases (inherit global palette) ─────────────── */
+/* ─── Scoped token aliases (inherit global palette) ───────────────────────────────────────── */
 .intake-module,
 :host-context(.intake-module) {
   --intake-color-text-primary: var(--color-text-primary);
@@ -32,7 +32,7 @@
   --intake-color-surface-100: var(--color-surface-100);
 }
 
-/* ─── Scoped Page Title ─────────────────────────────────────────── */
+/* ─── Scoped Page Title ───────────────────────────────────────────────────────────────────── */
 .intake-module .page-title,
 :host-context(.intake-module) .page-title {
   font-size: var(--text-display);
@@ -63,7 +63,7 @@
   }
 }
 
-/* ─── Shared surface card (forms list pattern) ──────────────────── */
+/* ─── Shared surface card (forms list pattern) ───────────────────────────────────────────── */
 .intake-module .intake-surface-card,
 :host-context(.intake-module) .intake-surface-card {
   background: var(--color-surface);
@@ -80,7 +80,7 @@
   }
 }
 
-/* ─── Form field utilities ──────────────────────────────────────── */
+/* ─── Form field utilities ─────────────────────────────────────────────────────────────────── */
 .intake-module .intake-section-heading,
 :host-context(.intake-module) .intake-section-heading {
   font-size: var(--text-2xl);
@@ -233,7 +233,7 @@
   color: var(--color-text-secondary);
 }
 
-/* ─── a. Avatar-initials chip ───────────────────────────────────── */
+/* ─── a. Avatar-initials chip ──────────────────────────────────────────────────────────────── */
 .intake-module .avatar-chip,
 :host-context(.intake-module) .avatar-chip {
   display: inline-flex;
@@ -249,7 +249,7 @@
   font-size: var(--text-xs);
 }
 
-/* ─── b. Segmented filter control ───────────────────────────────── */
+/* ─── b. Segmented filter control ──────────────────────────────────────────────────────────── */
 .intake-module .filter-pill-scroller,
 :host-context(.intake-module) .filter-pill-scroller {
   display: flex;
@@ -303,12 +303,12 @@
 
 .intake-module .segmented-tab.active,
 :host-context(.intake-module) .segmented-tab.active {
-  background-color: var(--color-primary);
+  background: linear-gradient(145deg, var(--color-primary-gradient-start) 0%, var(--color-primary-gradient-end) 100%);
   color: var(--color-surface);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* ─── c. Status badge ───────────────────────────────────────────── */
+/* ─── c. Status badge ──────────────────────────────────────────────────────────────────────── */
 .intake-module .status-badge,
 :host-context(.intake-module) .status-badge {
   display: inline-flex;
@@ -354,7 +354,7 @@
   }
 }
 
-/* ─── d. Stat box row ───────────────────────────────────────────── */
+/* ─── d. Stat box row ──────────────────────────────────────────────────────────────────────── */
 .intake-module .stat-box-row,
 :host-context(.intake-module) .stat-box-row {
   display: flex;
@@ -390,7 +390,7 @@
   color: var(--color-text-primary);
 }
 
-/* ─── e. Card action row ────────────────────────────────────────── */
+/* ─── e. Card action row ───────────────────────────────────────────────────────────────────── */
 .intake-module .card-actions,
 :host-context(.intake-module) .card-actions {
   display: flex;
@@ -466,7 +466,7 @@
   background-color: var(--color-danger-light);
 }
 
-/* ─── f. Active nav item ────────────────────────────────────────── */
+/* ─── f. Active Nav Item ───────────────────────────────────────────────────────────────────── */
 .intake-module .nav-item.active,
 :host-context(.intake-module) .nav-item.active {
   background-color: var(--color-primary-soft);
@@ -474,7 +474,7 @@
   border-radius: var(--radius-md);
 }
 
-/* ─── Empty state ───────────────────────────────────────────────── */
+/* ─── Empty state ──────────────────────────────────────────────────────────────────────────── */
 .intake-module .empty-state,
 :host-context(.intake-module) .empty-state {
   display: flex;
@@ -516,7 +516,7 @@
   line-height: 1.6;
 }
 
-/* ─── Loading spinner ───────────────────────────────────────────── */
+/* ─── Loading spinner ──────────────────────────────────────────────────────────────────────── */
 .intake-module .premium-spinner,
 :host-context(.intake-module) .premium-spinner {
   width: 2.5rem;
@@ -531,7 +531,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ─── Animations ────────────────────────────────────────────────── */
+/* ─── Animations ───────────────────────────────────────────────────────────────────────────── */
 .intake-module .animate-fade-in,
 :host-context(.intake-module) .animate-fade-in {
   animation: intakeFadeIn 0.3s ease-out;
@@ -562,7 +562,7 @@
   50% { opacity: 0.5; }
 }
 
-/* ─── Skeleton loading ──────────────────────────────────────────── */
+/* ─── Skeleton loading ─────────────────────────────────────────────────────────────────────── */
 .intake-module .stagger-children > *,
 :host-context(.intake-module) .stagger-children > * {
   animation: intakeFadeIn 0.3s ease-out both;
@@ -615,7 +615,7 @@
   100% { background-position: -200% 0; }
 }
 
-/* ─── Success checkmark ─────────────────────────────────────────── */
+/* ─── Success Checkmark ────────────────────────────────────────────────────────────────────── */
 .intake-module .success-checkmark-check,
 :host-context(.intake-module) .success-checkmark-check {
   stroke-dasharray: 30;
@@ -627,14 +627,15 @@
   to { stroke-dashoffset: 0; }
 }
 
-/* ─── Mobile layout helpers (< 640px) ───────────────────────────── */
+/* ─── Mobile layout helpers (< 640px) ─────────────────────────────────────────────────────── */
 @media (max-width: 639px) {
   .intake-module .card-actions button,
   .intake-module .card-actions .p-button,
   :host-context(.intake-module) .card-actions button,
   :host-context(.intake-module) .card-actions .p-button {
-    flex: 1 1 calc(50% - var(--space-2));
+    flex: 1 1 100%;
     justify-content: center;
+    width: 100%;
   }
 
   .intake-module .stat-box-row,
@@ -642,4 +643,191 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* ─── Safe area padding utilities ─────────────────────────────────────────────────────────── */
+.intake-module .safe-bottom,
+:host-context(.intake-module) .safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* ─── Touch-friendly target sizes ─────────────────────────────────────────────────────────── */
+@media (max-width: 639px) {
+  .intake-module .touch-target,
+  :host-context(.intake-module) .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .intake-module .touch-target-sm,
+  :host-context(.intake-module) .touch-target-sm {
+    min-height: 36px;
+    min-width: 36px;
+  }
+}
+
+/* ─── Responsive text truncation ──────────────────────────────────────────────────────────── */
+.intake-module .truncate-mobile,
+:host-context(.intake-module) .truncate-mobile {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 480px) {
+  .intake-module .truncate-mobile,
+  :host-context(.intake-module) .truncate-mobile {
+    max-width: 120px;
+  }
+}
+
+/* ─── Filters bar layout (Submission list) ────────────────────────────────── */
+.intake-module .intake-filters-bar,
+:host-context(.intake-module) .intake-filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 639px) {
+  .intake-module .intake-filters-bar,
+  :host-context(.intake-module) .intake-filters-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+.intake-module .intake-search-wrapper,
+:host-context(.intake-module) .intake-search-wrapper {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .intake-module .intake-search-wrapper,
+  :host-context(.intake-module) .intake-search-wrapper {
+    flex: 1 1 200px;
+    max-width: 280px;
+  }
+}
+
+.intake-module .intake-search-input,
+:host-context(.intake-module) .intake-search-input {
+  width: 100%;
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-page-bg);
+  color: var(--color-text-primary);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  min-height: 2.25rem;
+}
+
+.intake-module .intake-search-input:focus,
+:host-context(.intake-module) .intake-search-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.intake-module .intake-search-input::placeholder,
+:host-context(.intake-module) .intake-search-input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+@media (min-width: 640px) {
+  .intake-module .intake-search-input,
+  :host-context(.intake-module) .intake-search-input {
+    font-size: 0.875rem;
+  }
+}
+
+/* ─── Full-width button helper for mobile ─────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .intake-module .btn-full-mobile,
+  :host-context(.intake-module) .btn-full-mobile {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ─── Mobile-friendly action buttons (full width on small screens) ────────────────────────── */
+@media (max-width: 639px) {
+  .intake-module .btn-action-mobile,
+  :host-context(.intake-module) .btn-action-mobile {
+    flex: 1 1 100%;
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+/* ─── Enhanced card hover for touch devices ───────────────────────────────────────────────── */
+@media (hover: none) {
+  .intake-module .hover-lift:active,
+  :host-context(.intake-module) .hover-lift:active {
+    transform: scale(0.98);
+  }
+}
+
+/* ─── PrimeNG Dialog Overrides (theme-colored buttons) ──────────────────────────────────── */
+.intake-module .p-dialog .p-button.p-button-success,
+:host-context(.intake-module) .p-dialog .p-button.p-button-success {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: white !important;
+}
+.intake-module .p-dialog .p-button.p-button-success:hover,
+:host-context(.intake-module) .p-dialog .p-button.p-button-success:hover {
+  background: var(--color-primary-dark) !important;
+  border-color: var(--color-primary-dark) !important;
+}
+
+.intake-module .p-dialog .p-confirm-dialog-accept,
+:host-context(.intake-module) .p-dialog .p-confirm-dialog-accept {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: white !important;
+}
+.intake-module .p-dialog .p-confirm-dialog-accept:hover,
+:host-context(.intake-module) .p-dialog .p-confirm-dialog-accept:hover {
+  background: var(--color-primary-dark) !important;
+  border-color: var(--color-primary-dark) !important;
+}
+
+/* Improve dialog header styling */
+.intake-module .p-dialog .p-dialog-header,
+:host-context(.intake-module) .p-dialog .p-dialog-header {
+  border-bottom: 1px solid var(--color-border);
+  padding: 1.25rem 1.5rem;
+}
+
+.intake-module .p-dialog .p-dialog-content,
+:host-context(.intake-module) .p-dialog .p-dialog-content {
+  padding: 1.5rem;
+}
+
+.intake-module .p-dialog .p-dialog-footer,
+:host-context(.intake-module) .p-dialog .p-dialog-footer {
+  border-top: 1px solid var(--color-border);
+  padding: 1rem 1.5rem;
+}
+
+.intake-module .p-dialog .p-dialog-header .p-dialog-title,
+:host-context(.intake-module) .p-dialog .p-dialog-header .p-dialog-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-text-primary);
+}
+
+/* Improve confirm dialog icon - use primary color */
+.intake-module .p-confirm-dialog .p-dialog-content .p-confirm-dialog-icon,
+:host-context(.intake-module) .p-confirm-dialog .p-dialog-content .p-confirm-dialog-icon {
+  color: var(--color-primary) !important;
+  font-size: 1.25rem;
 }

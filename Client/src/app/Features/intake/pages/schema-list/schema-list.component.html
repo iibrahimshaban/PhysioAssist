@@ -7,10 +7,16 @@
       <h1 class="page-title">Form templates</h1>
       <p class="page-subtitle">All schemas you've built for patient intake</p>
     </div>
-    <button class="btn-primary" (click)="createSchema()">
-      <i class="pi pi-plus"></i>
-      New form
-    </button>
+    <div class="flex items-center gap-2">
+      <button class="btn-outline" (click)="openWizard()">
+        <i class="pi pi-magic"></i>
+        Guided Wizard
+      </button>
+      <button class="btn-primary" (click)="createSchema()">
+        <i class="pi pi-plus"></i>
+        New form
+      </button>
+    </div>
   </div>
 
   <!-- Default Form Section -->

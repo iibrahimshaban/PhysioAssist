@@ -1,4 +1,5 @@
 using MapsterMapper;
+using PhysioAssist.Api.Modules.Intake.Constants;
 using PhysioAssist.Api.Modules.Intake.DTOs.DynamicForms;
 using PhysioAssist.Api.Modules.Intake.DTOs.FormSchemas;
 using PhysioAssist.Api.Modules.Intake.DTOs.PublicAccess;
@@ -146,6 +147,9 @@ public class IntakeService(
         if (schemaDto is null)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.InvalidSchema);
 
+        // NEW: Merge core fields into the schema (injects any missing hard-required fields)
+        schemaDto = MergeCoreFields(schemaDto);
+
         var validationResult = _dynamicFormValidationService.ValidateSchema(schemaDto);
         if (validationResult.IsFailure)
             return Result.Failure<FormSchemaResponse>(validationResult.Error);
@@ -154,12 +158,16 @@ public class IntakeService(
         if (nameExists)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.SchemaNameDuplicated);
 
+        // Re-serialize with core fields merged
+        var mergedSchemaJson = SerializeSchemaJson(schemaDto);
+
         var schema = _mapper.Map<PatientFormSchema>(request);
         schema.DoctorId = doctorId;
-        schema.SchemaHash = ComputeSchemaHash(request.SchemaJson);
+        schema.SchemaHash = ComputeSchemaHash(mergedSchemaJson);
         schema.CreatedById = DefaultUsers.UserId;
         schema.CreatedAt = DateTime.UtcNow;
         schema.ShortCode = await GenerateUniqueFormShortCodeAsync(cancellationToken);
+        schema.SchemaJson = mergedSchemaJson; // Use the merged JSON
 
         if (request.IsDefault)
         {
@@ -186,32 +194,63 @@ public class IntakeService(
         if (schemaDto is null)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.InvalidSchema);
 
+        // NEW: Ensure core fields are still present (guard against deletion via update)
+        var ensureCoreResult = EnsureCoreFieldsPresent(schemaDto);
+        if (ensureCoreResult.IsFailure)
+            return Result.Failure<FormSchemaResponse>(ensureCoreResult.Error);
+
         var validationResult = _dynamicFormValidationService.ValidateSchema(schemaDto);
         if (validationResult.IsFailure)
             return Result.Failure<FormSchemaResponse>(validationResult.Error);
 
+        // Check locked questions — extended to also protect Required flag and Type on locked fields
         var oldSchemaDto = DeserializeSchemaJson(schema.SchemaJson);
         if (oldSchemaDto is not null)
         {
-            var lockedIds = oldSchemaDto.Sections
+            var lockedQuestions = oldSchemaDto.Sections
                 .SelectMany(s => s.Groups)
                 .SelectMany(g => g.Questions)
                 .Where(q => q.IsLocked)
-                .Select(q => q.QuestionId)
-                .ToHashSet();
+                .ToList();
 
-            if (lockedIds.Count > 0)
+            if (lockedQuestions.Count > 0)
             {
+                var lockedIds = lockedQuestions.Select(q => q.QuestionId).ToHashSet();
                 var newIds = schemaDto.Sections
                     .SelectMany(s => s.Groups)
                     .SelectMany(g => g.Questions)
                     .Select(q => q.QuestionId)
                     .ToHashSet();
 
+                // Check removal
                 var missingLocked = lockedIds.Where(id => !newIds.Contains(id)).ToList();
                 if (missingLocked.Count > 0)
                 {
                     return Result.Failure<FormSchemaResponse>(IntakeErrors.LockedQuestionRemoved);
+                }
+
+                // Check modification of Required flag and Type on locked fields
+                foreach (var oldQuestion in lockedQuestions)
+                {
+                    var newQuestion = schemaDto.Sections
+                        .SelectMany(s => s.Groups)
+                        .SelectMany(g => g.Questions)
+                        .FirstOrDefault(q => q.QuestionId == oldQuestion.QuestionId);
+
+                    if (newQuestion is not null)
+                    {
+                        // Cannot disable Required on a locked field
+                        if (oldQuestion.Required && !newQuestion.Required)
+                        {
+                            return Result.Failure<FormSchemaResponse>(IntakeErrors.CoreFieldRequiredFlagChanged);
+                        }
+
+                        // Cannot change Type on a locked field
+                        if (!string.Equals(oldQuestion.Type, newQuestion.Type, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return Result.Failure<FormSchemaResponse>(IntakeErrors.CoreFieldTypeChanged);
+                        }
+                    }
                 }
             }
         }
@@ -257,6 +296,15 @@ public class IntakeService(
             var existingResponse = _mapper.Map<FormSchemaResponse>(schema);
             return Result.Success(existingResponse);
         }
+
+        // NEW: Pre-publish validation — ensure schema has all core fields properly configured
+        var schemaDto = DeserializeSchemaJson(schema.SchemaJson);
+        if (schemaDto is null)
+            return Result.Failure<FormSchemaResponse>(IntakeErrors.InvalidSchema);
+
+        var publishValidationResult = _dynamicFormValidationService.ValidateSchemaForPublish(schemaDto);
+        if (publishValidationResult.IsFailure)
+            return Result.Failure<FormSchemaResponse>(publishValidationResult.Error);
 
         schema.Status = FormSchemaStatus.Published;
         schema.PublishedAt = DateTime.UtcNow;
@@ -316,8 +364,26 @@ public class IntakeService(
 
     private async Task SeedDefaultSchemaAsync(Guid doctorId, CancellationToken cancellationToken)
     {
+        // Re-check if schemas were just created by another concurrent request (race condition guard)
+        var existingSchemas = await _patientFormSchemaRepository.GetByDoctorAsync(doctorId, cancellationToken);
+        if (existingSchemas.Count > 0)
+            return;
+
+        // Also check if a default already exists by name (another safety net)
+        var nameExists = await _patientFormSchemaRepository.ExistsNameForDoctorAsync(doctorId, "Default Intake Form", null, cancellationToken);
+        if (nameExists)
+            return;
+
         var defaultDto = DefaultIntakeSchemaTemplate.Build();
-        var defaultJson = JsonSerializer.Serialize(defaultDto, _jsonOptions);
+        var defaultJson = SerializeSchemaJson(defaultDto);
+
+        // Re-merge core fields into the default template to ensure they're always present
+        var dto = DeserializeSchemaJson(defaultJson);
+        if (dto is not null)
+        {
+            dto = MergeCoreFields(dto);
+            defaultJson = SerializeSchemaJson(dto);
+        }
 
         var schema = new PatientFormSchema
         {
@@ -360,8 +426,31 @@ public class IntakeService(
 
     public async Task<Result<FormSchemaResponse>> GenerateDefaultFormSchemaAsync(Guid doctorId, CancellationToken cancellationToken = default)
     {
+        // Check if a default schema already exists — if so, return it instead of creating a duplicate
+        var existingDefault = await _patientFormSchemaRepository.GetDefaultForDoctorAsync(doctorId, cancellationToken);
+        if (existingDefault is not null)
+        {
+            var response = _mapper.Map<FormSchemaResponse>(existingDefault);
+            return Result.Success(response);
+        }
+
+        // Also check if any schema named "Default Intake Form" exists (another safety net)
+        var nameExists = await _patientFormSchemaRepository.ExistsNameForDoctorAsync(doctorId, "Default Intake Form", null, cancellationToken);
+        if (nameExists)
+        {
+            // Fetch it since it exists by name but isn't marked as default
+            var schemas = await _patientFormSchemaRepository.GetByDoctorAsync(doctorId, cancellationToken);
+            var nameMatch = schemas.FirstOrDefault(s => s.Name == "Default Intake Form");
+            if (nameMatch is not null)
+            {
+                var response = _mapper.Map<FormSchemaResponse>(nameMatch);
+                return Result.Success(response);
+            }
+        }
+
         var schemaDto = DefaultIntakeSchemaTemplate.Build();
-        var schemaJson = JsonSerializer.Serialize(schemaDto, _jsonOptions);
+        schemaDto = MergeCoreFields(schemaDto);
+        var schemaJson = SerializeSchemaJson(schemaDto);
 
         var createRequest = new CreateFormSchemaRequest
         {
@@ -417,19 +506,29 @@ public class IntakeService(
             attempt++;
         } while (await _patientFormSchemaRepository.ExistsNameForDoctorAsync(doctorId, newName, null, cancellationToken));
 
+        // Merge core fields into the duplicated schema to ensure they're present
+        var duplicatedSchemaDto = DeserializeSchemaJson(originalSchema.SchemaJson);
+        if (duplicatedSchemaDto is not null)
+        {
+            duplicatedSchemaDto = MergeCoreFields(duplicatedSchemaDto);
+        }
+        var duplicatedJson = duplicatedSchemaDto is not null
+            ? SerializeSchemaJson(duplicatedSchemaDto)
+            : originalSchema.SchemaJson;
+
         // Create new schema
         var newSchema = new PatientFormSchema
         {
             Name = newName,
             ShortCode = await GenerateUniqueFormShortCodeAsync(cancellationToken),
             Description = originalSchema.Description,
-            SchemaJson = originalSchema.SchemaJson,
+            SchemaJson = duplicatedJson,
             DoctorId = doctorId,
             Version = 1,
             Status = FormSchemaStatus.Draft,
             IsDefault = false,
             ShowPainMap = originalSchema.ShowPainMap,
-            SchemaHash = originalSchema.SchemaHash,
+            SchemaHash = ComputeSchemaHash(duplicatedJson),
             OriginalFormId = rootOriginalId,
             CopyNumber = nextCopyNumber,
             OriginalName = originalName,
@@ -610,16 +709,29 @@ public class IntakeService(
     {
         var intakes = await _preVisitIntakeRepository.GetByDoctorAsync(doctorId, status, cancellationToken);
 
+        // Pre-load all schemas for these intakes so we can extract patient names
+        // dynamically (handles customized forms where question IDs differ from defaults).
+        var schemaIds = intakes.Select(i => i.FormSchemaId).Distinct().ToList();
+        var schemas = await _context.PatientFormSchemas
+            .AsNoTracking()
+            .Where(s => schemaIds.Contains(s.Id))
+            .ToDictionaryAsync(s => s.Id, s => DeserializeSchemaJson(s.SchemaJson), cancellationToken);
+
         foreach (var intake in intakes)
         {
             _logger.LogInformation("IntakeService.GetSubmissionsAsync: intake.Id={IntakeId}, formSubmissionData={FormSubmissionData}", 
                 intake.Id, intake.FormSubmissionData);
-            var patientName = ExtractInputValuesHelper.ExtractPatientNameSafe(intake.FormSubmissionData);
+            var schema = schemas.GetValueOrDefault(intake.FormSchemaId);
+            var patientName = ExtractInputValuesHelper.ExtractPatientNameSafe(intake.FormSubmissionData, schema);
             _logger.LogInformation("IntakeService.GetSubmissionsAsync: intake.Id={IntakeId}, extracted patientName={PatientName}", 
                 intake.Id, patientName);
         }
 
-        var responses = intakes.Select(MapToPreVisitIntakeResponse).ToList();
+        var responses = intakes.Select(i =>
+        {
+            var schema = schemas.GetValueOrDefault(i.FormSchemaId);
+            return MapToPreVisitIntakeResponse(i, schema);
+        }).ToList();
 
         return Result.Success<IReadOnlyList<PreVisitIntakeResponse>>(responses);
     }
@@ -755,6 +867,167 @@ public class IntakeService(
         return Result.Success(MapToPreVisitIntakeResponse(intake));
     }
 
+    // ─── Core Field Management ──────────────────────────────────────
+
+    /// <summary>
+    /// Merges all hard-required core fields into the schema if they are missing.
+    /// This ensures every new schema always has the minimum required fields.
+    /// Returns the modified schema (records are immutable, so we return a new instance).
+    /// </summary>
+    private static DynamicFormSchemaDto MergeCoreFields(DynamicFormSchemaDto schema)
+    {
+        if (schema.Sections is null || schema.Sections.Count == 0)
+        {
+            // No sections exist — create a dedicated section for core fields
+            return schema with
+            {
+                Sections = new List<FormSectionDto>
+                {
+                    new()
+                    {
+                        SectionId = "section_core_required",
+                        Title = CoreFieldConstants.CoreSectionTitle,
+                        Order = 1,
+                        Groups = new List<FormGroupDto>
+                        {
+                            new()
+                            {
+                                GroupId = "group_core_required",
+                                Title = CoreFieldConstants.CoreGroupTitle,
+                                Order = 1,
+                                Questions = CoreFieldConstants.HardRequiredFields.ToList(),
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        // Collect all existing question IDs and texts in the schema
+        var existingQuestionIds = new HashSet<string>();
+        var existingQuestionTexts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var section in schema.Sections)
+        {
+            foreach (var group in section.Groups)
+            {
+                foreach (var question in group.Questions)
+                {
+                    existingQuestionIds.Add(question.QuestionId);
+                    existingQuestionTexts.Add(question.Text);
+                }
+            }
+        }
+
+        // Determine which core fields need to be added
+        var fieldsToAdd = new List<FormQuestionDto>();
+        foreach (var coreField in CoreFieldConstants.HardRequiredFields)
+        {
+            // Skip if a question with the same ID or same text already exists
+            if (existingQuestionIds.Contains(coreField.QuestionId))
+                continue;
+
+            if (existingQuestionTexts.Contains(coreField.Text))
+                continue;
+
+            fieldsToAdd.Add(coreField);
+        }
+
+        if (fieldsToAdd.Count == 0)
+            return schema;
+
+        // Add missing core fields to the first section/group, or create one
+        var firstSection = schema.Sections[0];
+        if (firstSection.Groups is null || firstSection.Groups.Count == 0)
+        {
+            // Rebuild the section with the new group using 'with' syntax
+            var updatedSections = new List<FormSectionDto>(schema.Sections);
+            updatedSections[0] = firstSection with
+            {
+                Groups = new List<FormGroupDto>
+                {
+                    new()
+                    {
+                        GroupId = "group_core_required",
+                        Title = CoreFieldConstants.CoreGroupTitle,
+                        Order = 1,
+                        Questions = fieldsToAdd,
+                    }
+                }
+            };
+            return schema with { Sections = updatedSections };
+        }
+        else
+        {
+            var firstGroup = firstSection.Groups[0];
+            var maxOrder = firstGroup.Questions.Count > 0
+                ? firstGroup.Questions.Max(q => q.Order)
+                : 0;
+
+            // Rebuild the questions list with core fields appended
+            var updatedQuestions = new List<FormQuestionDto>(firstGroup.Questions);
+            foreach (var field in fieldsToAdd)
+            {
+                maxOrder++;
+                updatedQuestions.Add(field with { Order = maxOrder });
+            }
+
+            // Rebuild the group and section
+            var updatedGroups = new List<FormGroupDto>(firstSection.Groups);
+            updatedGroups[0] = firstGroup with { Questions = updatedQuestions };
+
+            var updatedSections = new List<FormSectionDto>(schema.Sections);
+            updatedSections[0] = firstSection with { Groups = updatedGroups };
+
+            return schema with { Sections = updatedSections };
+        }
+    }
+
+    /// <summary>
+    /// Ensures all core fields are present in the schema.
+    /// Used as a domain guard clause in UpdateFormSchemaAsync.
+    /// </summary>
+    private static Result EnsureCoreFieldsPresent(DynamicFormSchemaDto schema)
+    {
+        var missingFields = new List<string>();
+
+        foreach (var coreField in CoreFieldConstants.HardRequiredFields)
+        {
+            var found = false;
+            foreach (var section in schema.Sections)
+            {
+                if (found) break;
+                foreach (var group in section.Groups)
+                {
+                    if (found) break;
+                    foreach (var question in group.Questions)
+                    {
+                        if (question.QuestionId == coreField.QuestionId ||
+                            string.Equals(question.Text, coreField.Text, StringComparison.OrdinalIgnoreCase))
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!found)
+            {
+                missingFields.Add(coreField.Text);
+            }
+        }
+
+        if (missingFields.Count > 0)
+        {
+            return Result.Failure(IntakeErrors.CoreFieldsMissing(missingFields));
+        }
+
+        return Result.Success();
+    }
+
+    // ─── Serialization ──────────────────────────────────────────────
+
     private DynamicFormSchemaDto? DeserializeSchemaJson(string schemaJson)
     {
         try
@@ -767,6 +1040,11 @@ public class IntakeService(
         }
     }
 
+    private static string SerializeSchemaJson(DynamicFormSchemaDto schemaDto)
+    {
+        return JsonSerializer.Serialize(schemaDto, _jsonOptions);
+    }
+
     private static string ComputeSchemaHash(string schemaJson)
     {
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(schemaJson));
@@ -776,8 +1054,6 @@ public class IntakeService(
             .Replace('/', '_');
     }
 
-
-
     private async Task<DynamicFormSchemaDto?> LoadFormSchemaAsync(Guid formSchemaId, CancellationToken cancellationToken)
     {
         var schemaEntity = await _patientFormSchemaRepository.GetByIdAsync(formSchemaId, cancellationToken);
@@ -785,12 +1061,12 @@ public class IntakeService(
         return DeserializeSchemaJson(schemaEntity.SchemaJson);
     }
     
-    private PreVisitIntakeResponse MapToPreVisitIntakeResponse(PreVisitIntake intake)
+    private PreVisitIntakeResponse MapToPreVisitIntakeResponse(PreVisitIntake intake, DynamicFormSchemaDto? schema = null)
     {
         var response = _mapper.Map<PreVisitIntakeResponse>(intake);
         return response with
         {
-            PatientName = ExtractInputValuesHelper.ExtractPatientNameSafe(intake.FormSubmissionData),
+            PatientName = ExtractInputValuesHelper.ExtractPatientNameSafe(intake.FormSubmissionData, schema),
             PainRegionCount = ExtractInputValuesHelper.CountPainRegions(intake.PainPointsData)
         };
     }

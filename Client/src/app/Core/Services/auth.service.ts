@@ -149,9 +149,13 @@ export class AuthService {
       const decoded = jwtDecode<JwtPayload>(token);
       const isExpired = (decoded.exp ?? 0) * 1000 < Date.now();
 
-      if (isExpired || !isExpired) {
-        this.currentUser.set(this.buildUser(decoded));
+      if (isExpired) {
+        // Token is expired — clear storage; the auth interceptor will attempt refresh
+        this.clearStorage();
+        return;
       }
+
+      this.currentUser.set(this.buildUser(decoded));
     } catch {
       this.clearStorage();
     }

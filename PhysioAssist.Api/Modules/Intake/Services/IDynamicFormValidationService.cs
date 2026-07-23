@@ -6,4 +6,5 @@ public interface IDynamicFormValidationService
 {
     Result ValidateSchema(DynamicFormSchemaDto schema);
     Result ValidateSubmissionAgainstSchema(DynamicFormSchemaDto schema, DynamicFormSubmissionDto submission);
+    Result ValidateSchemaForPublish(DynamicFormSchemaDto schema);
 }

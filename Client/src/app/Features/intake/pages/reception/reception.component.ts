@@ -9,7 +9,7 @@ import { SnackbarService } from '../../../../Core/Services/snackbar.service';
 import { PreVisitIntakeResponse, IntakeStatus } from '../../models';
 import { SubmissionRowComponent } from '../submission-list/submission-row/submission-row.component';
 
-type ReceptionFilter = 'all' | IntakeStatus.Pending | IntakeStatus.Submitted | IntakeStatus.InReview;
+type ReceptionFilter = 'all' | IntakeStatus.Pending | IntakeStatus.InReview;
 
 @Component({
   selector: 'app-reception',
@@ -35,6 +35,11 @@ export class ReceptionComponent implements OnInit {
   readonly searchTerm = signal('');
   readonly activeFilter = signal<ReceptionFilter>('all');
   readonly lastRefreshed = signal<Date | null>(null);
+
+  // Pagination signals
+  readonly currentPage = signal(1);
+  readonly pageSize = signal(10);
+
   private autoRefreshHandle: ReturnType<typeof setInterval> | null = null;
   private loadRequestId = 0;
 
@@ -43,7 +48,6 @@ export class ReceptionComponent implements OnInit {
   readonly filterTabs: { value: ReceptionFilter; label: string; icon: string }[] = [
     { value: 'all',       label: 'All waiting',   icon: 'pi pi-inbox' },
     { value: IntakeStatus.Pending,   label: 'Pending',    icon: 'pi pi-clock' },
-    { value: IntakeStatus.Submitted, label: 'Submitted',  icon: 'pi pi-send' },
     { value: IntakeStatus.InReview,  label: 'In review',  icon: 'pi pi-eye' },
   ];
 
@@ -62,9 +66,35 @@ export class ReceptionComponent implements OnInit {
     );
   });
 
+  // Pagination computed values
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filteredSubmissions().length / this.pageSize())));
+
+  readonly paginatedSubmissions = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return this.filteredSubmissions().slice(start, start + this.pageSize());
+  });
+
+  readonly pageEndIndex = computed(() =>
+    Math.min(this.currentPage() * this.pageSize(), this.filteredSubmissions().length)
+  );
+
+  readonly pageNumbers = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const delta = 2;
+    const range: number[] = [];
+
+    for (let i = 1; i <= total; i++) {
+      if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+        range.push(i);
+      }
+    }
+    return range;
+  });
+
   readonly waitingCount = computed(() =>
     this.submissions().filter(s =>
-      s.status === IntakeStatus.Pending || s.status === IntakeStatus.Submitted
+      s.status === IntakeStatus.Pending
     ).length
   );
 
@@ -104,11 +134,11 @@ export class ReceptionComponent implements OnInit {
         if (requestId !== this.loadRequestId) return;
         this.submissions.set(data.filter(submission =>
           submission.status === IntakeStatus.Pending ||
-          submission.status === IntakeStatus.Submitted ||
           submission.status === IntakeStatus.InReview
         ));
         this.loading.set(false);
         this.lastRefreshed.set(new Date());
+        this.currentPage.set(1);
       },
       error: () => {
         if (requestId !== this.loadRequestId) return;
@@ -123,6 +153,7 @@ export class ReceptionComponent implements OnInit {
 
   setFilter(filter: ReceptionFilter): void {
     this.activeFilter.set(filter);
+    this.currentPage.set(1);
   }
 
   getFilterCount(filter: ReceptionFilter): number {
@@ -132,10 +163,16 @@ export class ReceptionComponent implements OnInit {
 
   clearSearch(): void {
     this.searchTerm.set('');
+    this.currentPage.set(1);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
   }
 
   viewSubmission(submission: PreVisitIntakeResponse): void {
     this.router.navigate(['/app/intake/submissions', submission.id]);
   }
-
 }

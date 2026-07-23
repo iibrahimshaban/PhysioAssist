@@ -99,6 +99,7 @@ public class IntakeMappingConfig : IRegister
 
         config.NewConfig<PreVisitIntake, PublicIntakeSubmissionResponse>()
             .Map(dest => dest.SubmissionId, src => src.Id)
+            .Map(dest => dest.ShortCode, src => src.ShortCode)
             .Map(dest => dest.SubmittedAt, src => src.SubmittedAt)
             .Ignore(dest => dest.Message);
     }

@@ -21,21 +21,21 @@ html {
   --color-surface-100: #F1F5F9;
   --color-border: #E2E8F0;
 
-  /* Primary - matching main app colors */
-  --color-primary: #1A7FD4;
+  /* Primary - matching main app colors (Auth gradient colors) */
+  --color-primary: #1a7fd4;
   --color-primary-soft: #EFF6FF;
-  --color-primary-dark: #1E40AF;
-  --color-primary-gradient-start: #1A7FD4;
-  --color-primary-gradient-end: #0EB8A0;
+  --color-primary-dark: #0e5fa3;
+  --color-primary-gradient-start: #1a7fd4;
+  --color-primary-gradient-end: #0eb8a0;
   --color-accent-violet: #6366F1;
   --color-accent-violet-soft: #EEF2FF;
 
-  /* Semantic */
-  --color-success-bg: #CCFBF1;
-  --color-success-text: #0D9488;
-  --color-success-light: #F0FDFA;
-  --color-success: #0D9488;
-  --color-success-border: #99F6E4;
+  /* Semantic - NO GREEN */
+  --color-success-bg: #EFF6FF;
+  --color-success-text: #1a7fd4;
+  --color-success-light: #F1F5F9;
+  --color-success: #1a7fd4;
+  --color-success-border: #BFDBFE;
 
   --color-warning-bg: #FEF3C7;
   --color-warning-text: #B45309;
@@ -47,10 +47,10 @@ html {
   --color-danger-light: #FEF2F2;
   --color-danger-border: #FECACA;
 
-  --color-info: #3B82F6;
+  --color-info: #1a7fd4;
   --color-info-light: #EFF6FF;
   --color-info-border: #BFDBFE;
-  --color-info-text: #1D4ED8;
+  --color-info-text: #1a7fd4;
 
   /* Spacing scale */
   --space-1: 0.25rem;
@@ -133,3 +133,4 @@ html {
 @keyframes drawCheck {
   to { stroke-dashoffset: 0; }
 }
+

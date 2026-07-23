@@ -14,6 +14,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { AccordionModule } from 'primeng/accordion';
 import { DividerModule } from 'primeng/divider';
+import { DialogModule } from 'primeng/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { DynamicFormEngineService } from '../../services/dynamic-form-engine.service';
@@ -36,6 +37,31 @@ interface QuestionTypeOption {
   icon: string;
 }
 
+// Core field IDs that are locked by the system
+const CORE_FIELD_IDS = new Set([
+  'core_full_name',
+  'core_email',
+  'core_phone',
+  'core_gender',
+  'core_dob',
+  'core_occupation'
+]);
+
+// Core field texts for matching
+const CORE_FIELD_TEXTS = new Set([
+  'Full Name',
+  'Email Address',
+  'Phone Number',
+  'Gender',
+  'Date of Birth',
+  'Occupation'
+]);
+
+interface PublishValidationIssue {
+  fieldName: string;
+  issue: string;
+}
+
 @Component({
   selector: 'app-schema-builder',
   standalone: true,
@@ -53,7 +79,8 @@ interface QuestionTypeOption {
     TooltipModule,
     SelectButtonModule,
     AccordionModule,
-    DividerModule
+    DividerModule,
+    DialogModule
   ],
   templateUrl: './schema-builder.component.html',
   styleUrl: './schema-builder.component.css'
@@ -75,6 +102,10 @@ export class SchemaBuilderComponent implements OnInit {
   selectedMode = signal<BuilderMode>('schema');
   schemaVersion = signal(1);
 
+  // Pre-publish validation
+  showPublishValidationDialog = signal(false);
+  publishValidationIssues = signal<PublishValidationIssue[]>([]);
+
   // Form Schema Signal
   formSchema = signal<DynamicFormSchemaDto>({
     schemaVersion: 1,
@@ -93,6 +124,37 @@ export class SchemaBuilderComponent implements OnInit {
       .filter(q => !current || q.questionId !== current.questionId)
       .map(q => ({ label: q.text, value: q.questionId }));
   });
+
+  // Pre-publish validation computed
+  prePublishValidation = computed(() => {
+    const issues: PublishValidationIssue[] = [];
+    const schema = this.formSchema();
+    const allQuestions = this.engine.getAllQuestions(schema);
+
+    // Check each core field
+    for (const coreId of CORE_FIELD_IDS) {
+      const found = allQuestions.find(q => q.questionId === coreId);
+      if (!found) {
+        // Try matching by text
+        const byText = allQuestions.find(q => CORE_FIELD_TEXTS.has(q.text));
+        if (!byText) {
+          issues.push({ fieldName: coreId.replace('core_', '').replace('_', ' '), issue: 'Missing from schema' });
+          continue;
+        }
+        if (!byText.required) {
+          issues.push({ fieldName: byText.text, issue: 'Required flag is disabled' });
+        }
+      } else {
+        if (!found.required) {
+          issues.push({ fieldName: found.text, issue: 'Required flag is disabled' });
+        }
+      }
+    }
+
+    return issues;
+  });
+
+  canPublish = computed(() => this.prePublishValidation().length === 0);
 
   // Expansion state
   private expandedSections = signal<Set<string>>(new Set());
@@ -251,6 +313,11 @@ export class SchemaBuilderComponent implements OnInit {
     return this.questionTypes.find(t => t.value === type)?.icon || 'pi pi-question';
   }
 
+  // Check if a question is a locked core field
+  isQuestionLocked(question: FormQuestionDto): boolean {
+    return question.isLocked === true || CORE_FIELD_IDS.has(question.questionId);
+  }
+
   // CRUD operations
   addSection(): void {
     const schema = this.formSchema();
@@ -273,6 +340,16 @@ export class SchemaBuilderComponent implements OnInit {
 
   deleteSection(sectionId: string): void {
     const schema = this.formSchema();
+    const section = schema.sections.find(s => s.sectionId === sectionId);
+    if (section) {
+      // Check if section contains locked questions
+      const hasLocked = section.groups.some(g => g.questions.some(q => this.isQuestionLocked(q)));
+      if (hasLocked) {
+        this.snackbar.warning('Cannot delete', ['This section contains locked required fields and cannot be removed.']);
+        return;
+      }
+    }
+
     this.formSchema.set({
       ...schema,
       sections: schema.sections.filter(s => s.sectionId !== sectionId)
@@ -309,6 +386,16 @@ export class SchemaBuilderComponent implements OnInit {
     const section = schema.sections.find(s => s.sectionId === sectionId);
 
     if (section) {
+      const group = section.groups.find(g => g.groupId === groupId);
+      if (group) {
+        // Check if group contains locked questions
+        const hasLocked = group.questions.some(q => this.isQuestionLocked(q));
+        if (hasLocked) {
+          this.snackbar.warning('Cannot delete', ['This group contains locked required fields and cannot be removed.']);
+          return;
+        }
+      }
+
       section.groups = section.groups.filter(g => g.groupId !== groupId);
       this.formSchema.set({ ...schema });
 
@@ -345,6 +432,12 @@ export class SchemaBuilderComponent implements OnInit {
     const schema = this.formSchema();
     const section = schema.sections.find(s => s.sectionId === sectionId);
     const group = section?.groups.find(g => g.groupId === groupId);
+    const question = group?.questions.find(q => q.questionId === questionId);
+
+    if (question && this.isQuestionLocked(question)) {
+      this.snackbar.warning('Cannot delete', ['This field is locked and cannot be removed.']);
+      return;
+    }
 
     if (group) {
       group.questions = group.questions.filter(q => q.questionId !== questionId);
@@ -474,6 +567,14 @@ export class SchemaBuilderComponent implements OnInit {
   }
 
   publish(): void {
+    // Run pre-publish validation
+    const issues = this.prePublishValidation();
+    if (issues.length > 0) {
+      this.publishValidationIssues.set(issues);
+      this.showPublishValidationDialog.set(true);
+      return;
+    }
+
     const existing = this.selectedSchema();
     if (!existing) {
       this.saveDraftWithCallback(() => this.doPublish());

@@ -55,12 +55,27 @@ public static class ExtractInputValuesHelper
         return DateTime.TryParse(raw, out var date) ? date : null;
     }
 
-    public static string? ExtractPatientNameSafe(string formSubmissionData)
+    public static string? ExtractPatientNameSafe(string formSubmissionData, DynamicFormSchemaDto? schema = null)
     {
         var submission = DeserializeSubmissionJson(formSubmissionData);
-        return submission is null
-            ? null
-            : ExtractAnswerString(submission, "question_default_full_name", "text");
+        if (submission is null)
+            return null;
+
+        // If we have the schema, look up the question ID dynamically by matching the question text.
+        // This handles customized forms where question IDs differ from the defaults.
+        if (schema is not null)
+        {
+            var questionId = FindQuestionIdByText(schema, "Full Name")
+                          ?? FindQuestionIdByText(schema, "Name");
+            if (questionId is not null)
+            {
+                var wrapperKey = GetWrapperKey(schema, questionId);
+                return ExtractAnswerString(submission, questionId, wrapperKey);
+            }
+        }
+
+        // Fallback: try the default question ID (works for unmodified default schemas).
+        return ExtractAnswerString(submission, "question_default_full_name", "text");
     }
 
     public static int CountPainRegions(string? painPointsData)

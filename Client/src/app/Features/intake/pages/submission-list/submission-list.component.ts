@@ -37,6 +37,11 @@ export class SubmissionListComponent implements OnInit {
   readonly submissions = signal<PreVisitIntakeResponse[]>([]);
   readonly searchTerm = signal('');
   readonly selectedStatus = signal<IntakeStatus | null>(null);
+
+  // Pagination signals
+  readonly currentPage = signal(1);
+  readonly pageSize = signal(10);
+
   private loadRequestId = 0;
 
   readonly statusOptions = [
@@ -51,11 +56,49 @@ export class SubmissionListComponent implements OnInit {
   ];
 
   readonly filteredSubmissions = computed(() => {
+    let list = this.submissions();
+
+    // Filter by status
+    const status = this.selectedStatus();
+    if (status !== null) {
+      list = list.filter(s => s.status === status);
+    }
+
+    // Filter by search term
     const term = this.searchTerm().toLowerCase().trim();
-    if (!term) return this.submissions();
-    return this.submissions().filter(s =>
-      (s.patientName ?? '').toLowerCase().includes(term)
-    );
+    if (term) {
+      list = list.filter(s =>
+        (s.patientName ?? '').toLowerCase().includes(term)
+      );
+    }
+
+    return list;
+  });
+
+  // Pagination computed values
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filteredSubmissions().length / this.pageSize())));
+
+  readonly paginatedSubmissions = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return this.filteredSubmissions().slice(start, start + this.pageSize());
+  });
+
+  readonly pageEndIndex = computed(() =>
+    Math.min(this.currentPage() * this.pageSize(), this.filteredSubmissions().length)
+  );
+
+  readonly pageNumbers = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const delta = 2; // pages to show around current
+    const range: number[] = [];
+
+    for (let i = 1; i <= total; i++) {
+      if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+        range.push(i);
+      }
+    }
+    return range;
   });
 
   readonly pendingCount = computed(() =>
@@ -84,6 +127,7 @@ export class SubmissionListComponent implements OnInit {
     const requestId = ++this.loadRequestId;
     this.loading.set(true);
     this.error.set(null);
+    this.currentPage.set(1);
 
     this.intakeApi.getSubmissions(this.selectedStatus() ?? undefined).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
@@ -102,18 +146,31 @@ export class SubmissionListComponent implements OnInit {
 
   onSearch(term: string): void {
     this.searchTerm.set(term);
-    // Filtering itself is reactive via the filteredSubmissions computed signal.
+    this.currentPage.set(1);
   }
 
   onStatusChange(status: IntakeStatus | null): void {
     this.selectedStatus.set(status);
+    this.currentPage.set(1);
     this.loadSubmissions();
   }
 
   clearFilters(): void {
     this.searchTerm.set('');
     this.selectedStatus.set(null);
+    this.currentPage.set(1);
     this.loadSubmissions();
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
   }
 
   viewSubmission(submission: PreVisitIntakeResponse): void {
@@ -125,12 +182,6 @@ export class SubmissionListComponent implements OnInit {
     return name.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2);
   }
 
-  /**
-   * Collapses Pending/Submitted/InReview into a single "Pending review" pill to
-   * match the reception-queue design — this is a queue view, so anything not yet
-   * finalized reads the same way. Adjust the status list here if you want a finer
-   * split (e.g. show "In Review" separately).
-   */
   getQueueStatusLabel(status: IntakeStatus): string {
     return getIntakeStatusLabel(status);
   }
@@ -139,7 +190,6 @@ export class SubmissionListComponent implements OnInit {
     return getIntakeStatusPillClass(status);
   }
 
-  /** "Checked in Xd ago" style relative time, matching the reception-queue design. */
   timeAgo(isoDate: string): string {
     const diffMs = Date.now() - new Date(isoDate).getTime();
     const minutes = Math.floor(diffMs / 60000);

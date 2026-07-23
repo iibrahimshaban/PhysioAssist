@@ -1,3 +1,139 @@
 @import '../../intake-theme.css';
 
 :host { display: block; }
+
+/* ─── Pagination ─────────────────────────────────────────────────────── */
+.submission-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 0 0.25rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 639px) {
+  .submission-pagination {
+    gap: 0.5rem;
+    flex-direction: column;
+  }
+}
+
+.submission-pagination-info {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  order: 1;
+}
+
+@media (min-width: 640px) {
+  .submission-pagination-info { order: 0; margin-right: auto; }
+}
+
+.submission-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.1875rem;
+  order: 2;
+}
+
+.submission-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.4375rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.submission-page-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.submission-page-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.submission-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.submission-page-btn--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.submission-page-btn--active:hover {
+  background: var(--color-primary-dark, #0b6bbf);
+  color: white;
+}
+
+.submission-page-size {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  order: 3;
+}
+
+.submission-page-size-select {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 0.75rem;
+  outline: none;
+  cursor: pointer;
+  min-height: 1.75rem;
+}
+
+.submission-page-size-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-soft);
+}
+
+/* ─── Mobile optimization for pagination ─────────────────────────────── */
+@media (max-width: 480px) {
+  .submission-page-btn {
+    min-width: 2rem;
+    height: 1.875rem;
+    font-size: 0.6875rem;
+    padding: 0 0.3125rem;
+  }
+
+  .submission-pagination-info {
+    font-size: 0.6875rem;
+  }
+
+  .submission-page-size-select {
+    font-size: 0.6875rem;
+    padding: 0.1875rem 0.375rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .submission-page-btn {
+    min-width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.625rem;
+    padding: 0 0.25rem;
+    border-radius: 0.375rem;
+  }
+}

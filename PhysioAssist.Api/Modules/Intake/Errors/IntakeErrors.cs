@@ -76,4 +76,55 @@ public static class IntakeErrors
         "Intake.SchemaNotArchived",
         "Form schema is not archived.",
         StatusCodes.Status400BadRequest);
+
+    // ─── Core / Minimum Required Field Errors ───────────────
+
+    public static readonly Error CoreFieldMissing = new(
+        "Intake.CoreFieldMissing",
+        "One or more required core fields are missing from the schema.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error CoreFieldTypeChanged = new(
+        "Intake.CoreFieldTypeChanged",
+        "The type of a locked core field cannot be changed.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error CoreFieldRequiredFlagChanged = new(
+        "Intake.CoreFieldRequiredFlagChanged",
+        "The required flag of a locked core field cannot be disabled.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error RequiredFieldEmpty = new(
+        "Intake.RequiredFieldEmpty",
+        "One or more required fields have empty values in the submission.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error PublishValidationFailed = new(
+        "Intake.PublishValidationFailed",
+        "The schema cannot be published because it does not meet the minimum requirements.",
+        StatusCodes.Status400BadRequest);
+
+    /// <summary>
+    /// Creates a detailed error for missing core fields listing which ones are missing.
+    /// </summary>
+    public static Error CoreFieldsMissing(IReadOnlyList<string> missingFieldNames)
+    {
+        var details = string.Join(", ", missingFieldNames);
+        return new Error(
+            "Intake.CoreFieldMissing",
+            $"The following required core fields are missing from the schema: {details}.",
+            StatusCodes.Status400BadRequest);
+    }
+
+    /// <summary>
+    /// Creates a detailed error for empty required fields in a submission.
+    /// </summary>
+    public static Error RequiredFieldsEmpty(IReadOnlyList<string> emptyFieldNames)
+    {
+        var details = string.Join(", ", emptyFieldNames);
+        return new Error(
+            "Intake.RequiredFieldEmpty",
+            $"The following required fields cannot be empty: {details}.",
+            StatusCodes.Status400BadRequest);
+    }
 }

@@ -47,7 +47,7 @@
 .intake-field-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(11, 142, 234, 0.12);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
 .intake-field-help,

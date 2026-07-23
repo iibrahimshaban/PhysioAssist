@@ -72,13 +72,37 @@ export class SubmissionDetailComponent implements OnInit {
   /** These three are extracted from submissionData() (or editedSubmission() while
    *  editing) rather than the backend response — PreVisitIntakeDetailsResponse no
    *  longer carries patientName/Email/Phone directly, but formSubmissionData is
-   *  already included in this response, so no extra request is needed. Matches the
-   *  same default question IDs the backend uses elsewhere (ConvertToPatientAsync,
-   *  GetSubmissionsAsync) — same fragility caveat applies: breaks only if a doctor
-   *  deletes and recreates these exact seeded questions. */
-  readonly patientNameDisplay = computed(() => this.extractAnswer('question_default_full_name'));
-  readonly patientEmailDisplay = computed(() => this.extractAnswer('question_default_email'));
-  readonly patientPhoneDisplay = computed(() => this.extractAnswer('question_default_phone'));
+   *  already included in this response, so no extra request is needed.
+   *  
+   *  Uses the loaded schema to dynamically find question IDs by text, so this
+   *  works even when doctors customize the form (which regenerates question IDs). */
+  readonly patientNameDisplay = computed(() => {
+    const questionId = this.findQuestionIdByText('Full Name') ?? this.findQuestionIdByText('Name') ?? 'question_default_full_name';
+    return this.extractAnswer(questionId);
+  });
+  readonly patientEmailDisplay = computed(() => {
+    const questionId = this.findQuestionIdByText('Email') ?? this.findQuestionIdByText('E-mail') ?? 'question_default_email';
+    return this.extractAnswer(questionId);
+  });
+  readonly patientPhoneDisplay = computed(() => {
+    const questionId = this.findQuestionIdByText('Phone') ?? this.findQuestionIdByText('Phone Number') ?? 'question_default_phone';
+    return this.extractAnswer(questionId);
+  });
+
+  private findQuestionIdByText(text: string): string | undefined {
+    const s = this.schema();
+    if (!s) return undefined;
+    for (const section of s.sections) {
+      for (const group of section.groups) {
+        for (const question of group.questions) {
+          if (question.text.toLowerCase() === text.toLowerCase()) {
+            return question.questionId;
+          }
+        }
+      }
+    }
+    return undefined;
+  }
 
   private extractAnswer(questionId: string): string | undefined {
     const data = this.isEditing() ? this.editedSubmission() : this.submissionData();
