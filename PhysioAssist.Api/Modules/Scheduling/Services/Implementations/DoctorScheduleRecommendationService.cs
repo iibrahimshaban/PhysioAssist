@@ -1,6 +1,7 @@
 ﻿using PhysioAssist.Api.Modules.Scheduling.DTO.AgentDtos;
 using PhysioAssist.Api.Modules.Scheduling.Entities;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Shared.Dtos.Schedule;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 

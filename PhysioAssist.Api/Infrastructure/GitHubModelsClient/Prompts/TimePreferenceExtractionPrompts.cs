@@ -13,7 +13,8 @@ public static class TimePreferenceExtractionPrompts
 
                 Output EXACTLY this JSON shape:
                 {
-                  "dayToken": "<one of: Unspecified, Today, Tomorrow, DayAfterTomorrow, ThisWeek, NextWeek, Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday>",
+                  "dayToken": "<one of: Unspecified, Today, Tomorrow, DayAfterTomorrow, ThisWeek, NextWeek, SpecificWeekdays>",
+                  "weekdays": ["<array of zero or more of: Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday>"],
                   "explicitDate": "<yyyy-MM-dd if the user gave (or you can compute) an unambiguous calendar date, otherwise null>",
                   "timeFrom": "<HH:mm 24-hour if the user gave a lower time bound, otherwise null>",
                   "timeTo": "<HH:mm 24-hour if the user gave an upper time bound, otherwise null>"
@@ -23,38 +24,64 @@ public static class TimePreferenceExtractionPrompts
                 SECTION 1 — DAY EXTRACTION
                 =====================================================================
 
-                - "today" -> dayToken "Today".
-                - "tomorrow" -> dayToken "Tomorrow".
-                - "day after tomorrow" / "the day after tomorrow" -> dayToken "DayAfterTomorrow".
-                - "this week" / "sometime this week" / "later this week" -> dayToken "ThisWeek".
-                - "next week" -> dayToken "NextWeek".
-                - A bare weekday name, with or without "this"/"next"/"on" in front
-                  (e.g. "Monday", "this Monday", "next Monday", "on Monday") -> use the matching
-                  weekday token (e.g. "Monday"). Do NOT compute or output an actual date yourself
-                  for these — the weekday token alone is correct regardless of "this"/"next".
+                - "today" -> dayToken "Today", weekdays [].
+                - "tomorrow" -> dayToken "Tomorrow", weekdays [].
+                - "day after tomorrow" / "the day after tomorrow" -> dayToken "DayAfterTomorrow", weekdays [].
+                - "this week" / "sometime this week" / "later this week" -> dayToken "ThisWeek", weekdays [].
+                - "next week" -> dayToken "NextWeek", weekdays [].
+
+                - NAMED WEEKDAYS (one or more): any mention of one or more specific weekday
+                  names, with or without "this"/"next"/"on" in front (e.g. "Monday",
+                  "this Monday", "next Monday", "on Monday", "Saturday, Monday, Wednesday",
+                  "Tue or Thu", "Mondays and Wednesdays") -> dayToken "SpecificWeekdays",
+                  and list EVERY named weekday in "weekdays" as its own array entry — even
+                  when only one weekday is named (e.g. "Monday" -> weekdays ["Monday"]).
+                  Do NOT compute or output an actual date yourself for these — the weekday
+                  name(s) alone are correct regardless of "this"/"next".
+                    * EXCEPTION — "X or Y, whichever is sooner/first/works" phrasing is NOT
+                      a multi-day preference. It means the user wants ONE day, whichever of
+                      the named days comes first from today. In this case pick whichever
+                      named weekday is chronologically nearer to today and output ONLY that
+                      single weekday in "weekdays" (still dayToken "SpecificWeekdays" with
+                      one entry) — do not list both.
+
                 - RELATIVE "in N days" PHRASES:
                     * "in 1 day" / "in a day" -> dayToken "Tomorrow".
                     * "in 2 days" -> dayToken "DayAfterTomorrow".
                     * "in 3 days" or more (e.g. "in 4 days", "in a week", "in 10 days") -> there is
                       no relative token far enough out, so instead COMPUTE explicitDate as
-                      today + N days (using today's date above) and leave dayToken "Unspecified".
+                      today + N days (using today's date above) and leave dayToken "Unspecified",
+                      weekdays [].
                       Only do this when N is a clear, stated number — never guess a number.
+
                 - EXPLICIT CALENDAR DATES: use "explicitDate" ONLY when the user gave (or "in N days"
                   above requires you to compute) a specific calendar date you can resolve
                   unambiguously using today's date (e.g. "August 5th" -> the nearest future
                   August 5th; "on the 12th" -> the nearest future 12th of any month). If the date is
-                  ambiguous or you cannot resolve it confidently, leave dayToken "Unspecified" and
-                  explicitDate null — never guess.
+                  ambiguous or you cannot resolve it confidently, leave dayToken "Unspecified",
+                  weekdays [], and explicitDate null — never guess.
+
                 - VAGUE / NO-PREFERENCE DAY PHRASES: "anytime", "any day", "whenever", "whenever works",
                   "no preference", "I'm flexible", "ASAP", "as soon as possible", "the sooner the
-                  better", "sometime soon", "sometime this month" -> dayToken "Unspecified". Do NOT
-                  invent a specific day or date for these — "soon"/"ASAP" is a plea for priority,
-                  not a resolvable date, and the caller already defaults Unspecified to an immediate
-                  search window.
-                - If no day is mentioned at all, dayToken is "Unspecified" and explicitDate is null.
-                - If both a relative token AND a computable explicit date would apply, prefer the
-                  relative token (Today/Tomorrow/DayAfterTomorrow/weekday name) since it's simpler
-                  and already handled correctly downstream; only use explicitDate when no token fits.
+                  better", "sometime soon", "sometime this month" -> dayToken "Unspecified",
+                  weekdays []. Do NOT invent a specific day or date for these — "soon"/"ASAP" is a
+                  plea for priority, not a resolvable date, and the caller already defaults
+                  Unspecified to an immediate search window.
+
+                - If no day is mentioned at all, dayToken is "Unspecified", weekdays [], and
+                  explicitDate is null.
+
+                - If both named weekday(s) AND a computable explicit date would apply, prefer
+                  "SpecificWeekdays" since it's simpler and already handled correctly downstream;
+                  only use explicitDate when no weekday name fits.
+
+                - "weekdays" (meaning Mon-Fri) or "weekends" (meaning Sat-Sun) as a category, not
+                  specific day names -> dayToken "SpecificWeekdays" with every day in that category
+                  listed (e.g. "weekdays" -> weekdays ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+                  "weekends" -> weekdays ["Saturday","Sunday"]).
+
+                - The "weekdays" array must be empty [] for every dayToken value OTHER than
+                  "SpecificWeekdays". Never populate it alongside Today/Tomorrow/ThisWeek/etc.
 
                 =====================================================================
                 SECTION 2 — TIME EXTRACTION
@@ -78,6 +105,12 @@ public static class TimePreferenceExtractionPrompts
                     * "not before <time>" behaves like "after <time>" (sets timeFrom only).
                       "not after <time>" / "no later than <time>" behaves like "before <time>"
                       (sets timeTo only).
+                    * IMPORTANT: time-bound extraction is completely INDEPENDENT of how many
+                      days/weekdays were named. A multi-weekday list (e.g. "Saturday, Monday,
+                      Wednesday between 10am and 1pm") must NEVER cause timeFrom/timeTo to be
+                      dropped, narrowed, or left null. Extract the time exactly as you would for
+                      a single-day request — populate BOTH timeFrom and timeTo here since
+                      "between 10am and 1pm" gives two explicit bounds.
 
                 NAMED TIME-OF-DAY BUCKETS (use these fixed ranges; both bounds set):
                     * "morning"        -> timeFrom "06:00", timeTo "12:00".
@@ -124,38 +157,62 @@ public static class TimePreferenceExtractionPrompts
                 =====================================================================
                 SECTION 3 — WORKED EXAMPLES
                 =====================================================================
-                    * "after 6pm"                  -> timeFrom "18:00", timeTo null.
-                    * "after 6am"                  -> timeFrom "06:00", timeTo null.
-                    * "at 6am"                      -> timeFrom "06:00", timeTo null.
-                    * "every day at 6 am"           -> dayToken "Unspecified", timeFrom "06:00", timeTo null.
-                    * "before noon"                 -> timeFrom null, timeTo "12:00".
-                    * "before 9am"                  -> timeFrom null, timeTo "09:00".
-                    * "not before 10am"             -> timeFrom "10:00", timeTo null.
-                    * "no later than 3pm"           -> timeFrom null, timeTo "15:00".
-                    * "between 2pm and 5pm"         -> timeFrom "14:00", timeTo "17:00".
-                    * "from 9am to noon"            -> timeFrom "09:00", timeTo "12:00".
-                    * "morning"                     -> timeFrom "06:00", timeTo "12:00".
-                    * "in the afternoon, after 1pm" -> timeFrom "13:00", timeTo "17:00".
-                    * "tomorrow morning"            -> dayToken "Tomorrow", timeFrom "06:00", timeTo "12:00".
-                    * "next Sunday evening"         -> dayToken "Sunday", timeFrom "17:00", timeTo "22:00".
-                    * "in 2 days after 3pm"         -> dayToken "DayAfterTomorrow", timeFrom "15:00", timeTo null.
-                    * "in 5 days"                   -> dayToken "Unspecified", explicitDate "<today+5>".
-                    * "ASAP, anytime works"         -> dayToken "Unspecified", explicitDate null, timeFrom null, timeTo null.
-                    * "August 5th in the morning"   -> explicitDate "<nearest future Aug 5>", timeFrom "06:00", timeTo "12:00".
-                    * "avoid mornings"              -> dayToken "Unspecified", timeFrom null, timeTo null (cannot represent
-                                                       an exclusion as a single range; leave null rather than guess).
+                    * "after 6pm"                  -> dayToken "Unspecified", weekdays [], timeFrom "18:00", timeTo null.
+                    * "after 6am"                  -> dayToken "Unspecified", weekdays [], timeFrom "06:00", timeTo null.
+                    * "at 6am"                     -> dayToken "Unspecified", weekdays [], timeFrom "06:00", timeTo null.
+                    * "every day at 6 am"          -> dayToken "Unspecified", weekdays [], timeFrom "06:00", timeTo null.
+                    * "before noon"                -> dayToken "Unspecified", weekdays [], timeFrom null, timeTo "12:00".
+                    * "before 9am"                 -> dayToken "Unspecified", weekdays [], timeFrom null, timeTo "09:00".
+                    * "not before 10am"            -> dayToken "Unspecified", weekdays [], timeFrom "10:00", timeTo null.
+                    * "no later than 3pm"          -> dayToken "Unspecified", weekdays [], timeFrom null, timeTo "15:00".
+                    * "between 2pm and 5pm"        -> dayToken "Unspecified", weekdays [], timeFrom "14:00", timeTo "17:00".
+                    * "from 9am to noon"           -> dayToken "Unspecified", weekdays [], timeFrom "09:00", timeTo "12:00".
+                    * "morning"                    -> dayToken "Unspecified", weekdays [], timeFrom "06:00", timeTo "12:00".
+                    * "in the afternoon, after 1pm" -> dayToken "Unspecified", weekdays [], timeFrom "13:00", timeTo "17:00".
+                    * "tomorrow morning"           -> dayToken "Tomorrow", weekdays [], timeFrom "06:00", timeTo "12:00".
+                    * "Monday"                     -> dayToken "SpecificWeekdays", weekdays ["Monday"], timeFrom null, timeTo null.
+                    * "next Sunday evening"        -> dayToken "SpecificWeekdays", weekdays ["Sunday"], timeFrom "17:00", timeTo "22:00".
+                    * "Saturday, Monday, Wednesday between 10am and 1pm"
+                                                    -> dayToken "SpecificWeekdays",
+                                                       weekdays ["Saturday","Monday","Wednesday"],
+                                                       timeFrom "10:00", timeTo "13:00".
+                    * "Tuesday or Thursday, whichever is sooner"
+                                                    -> dayToken "SpecificWeekdays",
+                                                       weekdays [ONLY the one of Tuesday/Thursday
+                                                       that is chronologically nearer to today],
+                                                       timeFrom null, timeTo null.
+                    * "any weekday morning"        -> dayToken "SpecificWeekdays",
+                                                       weekdays ["Monday","Tuesday","Wednesday","Thursday","Friday"],
+                                                       timeFrom "06:00", timeTo "12:00".
+                    * "weekends only"              -> dayToken "SpecificWeekdays", weekdays ["Saturday","Sunday"],
+                                                       timeFrom null, timeTo null.
+                    * "in 2 days after 3pm"        -> dayToken "DayAfterTomorrow", weekdays [], timeFrom "15:00", timeTo null.
+                    * "in 5 days"                  -> dayToken "Unspecified", weekdays [], explicitDate "<today+5>".
+                    * "ASAP, anytime works"        -> dayToken "Unspecified", weekdays [], explicitDate null,
+                                                       timeFrom null, timeTo null.
+                    * "August 5th in the morning"  -> dayToken "Unspecified", weekdays [],
+                                                       explicitDate "<nearest future Aug 5>",
+                                                       timeFrom "06:00", timeTo "12:00".
+                    * "avoid mornings"             -> dayToken "Unspecified", weekdays [], timeFrom null, timeTo null
+                                                       (cannot represent an exclusion as a single range; leave null
+                                                       rather than guess).
 
                 =====================================================================
                 SECTION 4 — OUTPUT DISCIPLINE
                 =====================================================================
-                - Double-check before responding: if the user only gave one bound (an "after",
+                - Double-check before responding: if the user only gave one time bound (an "after",
                   "before", "at", "around", "not before", or "no later than" phrase, or a bare time
                   with no range wording), exactly one of timeFrom/timeTo must be null. Having both
                   fields hold the same value, or both being non-null, for a single-bound phrase is
                   WRONG.
+                - "weekdays" must be a non-empty array whenever dayToken is "SpecificWeekdays", and
+                  must be exactly [] for every other dayToken value. These two must never disagree.
                 - Never invent a day, date, or time the user did not state or that isn't directly
                   computable from a stated relative offset (e.g. never guess "Friday" just because
                   today happens to be near a weekend).
+                - A list of multiple weekdays must NEVER cause time-bound extraction to be skipped,
+                  narrowed, or nulled — Section 2's rules apply exactly the same regardless of how
+                  many weekdays are listed.
                 - Never include any text outside the JSON object — no markdown fences, no
                   explanation, no trailing commentary.
                 """;

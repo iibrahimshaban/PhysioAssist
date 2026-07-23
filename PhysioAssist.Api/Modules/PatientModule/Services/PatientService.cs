@@ -173,7 +173,9 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             var patients = await _patientRepo.GetByDoctorId(doctorId, ct);
 
             // 5. Build slot lookup
-            var slotLookup = slots.ToDictionary(s => s.PatientId);
+            var slotLookup = slots
+                .GroupBy(s => s.PatientId)
+                .ToDictionary(g => g.Key, g => g.OrderBy(s => s.SlotStart).First());
 
             // 6. Merge and order
             var result = patients

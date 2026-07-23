@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
 using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Prompts;
 using PhysioAssist.Api.Shared.Interfaces.Scheduling;
@@ -91,9 +90,20 @@ public class GitHubModelsTimePreferenceParser : IPatientTimePreferenceParser
     {
         Enum.TryParse<RelativeDayToken>(raw.DayToken, ignoreCase: true, out var dayToken);
 
+        var weekdays = DaysOfWeekFlags.None;
+        if (raw.Weekdays is { Count: > 0 })
+        {
+            foreach (var day in raw.Weekdays)
+            {
+                if (Enum.TryParse<DaysOfWeekFlags>(day, ignoreCase: true, out var flag))
+                    weekdays |= flag;
+            }
+        }
+
         return new PatientTimePreferenceDto
         {
-            DayToken = dayToken, // defaults to Unspecified (enum value 0) if parsing failed
+            DayToken = dayToken,
+            PreferredWeekdays = weekdays,
             ExplicitDate = DateOnly.TryParse(raw.ExplicitDate, out var explicitDate) ? explicitDate : null,
             PreferredTimeFrom = TimeOnly.TryParse(raw.TimeFrom, out var from) ? from : null,
             PreferredTimeTo = TimeOnly.TryParse(raw.TimeTo, out var to) ? to : null
@@ -103,6 +113,11 @@ public class GitHubModelsTimePreferenceParser : IPatientTimePreferenceParser
     private sealed record ChatCompletionResponse(List<Choice> Choices);
     private sealed record Choice(ChatMessage Message);
     private sealed record ChatMessage(string Content);
-
-    private sealed record RawTimePreference(string? DayToken, string? ExplicitDate, string? TimeFrom, string? TimeTo);
+    private sealed record RawTimePreference(
+    string? DayToken,
+    List<string>? Weekdays,
+    string? ExplicitDate,
+    string? TimeFrom,
+    string? TimeTo
+        );
 }

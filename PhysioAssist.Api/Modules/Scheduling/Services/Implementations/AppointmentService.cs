@@ -5,6 +5,7 @@ using PhysioAssist.Api.Modules.Scheduling.helpers;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Modules.Notification.DTO;
 using PhysioAssist.Api.Modules.Notification.Interfaces;
+using PhysioAssist.Api.Shared.Dtos.Schedule;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 

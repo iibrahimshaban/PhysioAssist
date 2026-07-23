@@ -20,6 +20,11 @@ export class CreateAppointmentDrawerComponent {
   prefillStart = input<Date | null>(null);
   prefillEnd = input<Date | null>(null);
 
+  // Set when arriving here from the receptionist booking flow via
+  // /app/schedule?patientId=... — pre-selects this patient once the roster
+  // for the doctor has loaded, so the receptionist doesn't have to search again.
+  prefillPatientId = input<string | null>(null);
+
   closeRequested = output<void>();
   createRequested = output<CreateAppointmentRequest>();
 
@@ -43,6 +48,10 @@ export class CreateAppointmentDrawerComponent {
   protected readonly guestId = signal<string | null>(null);
 
   private patientsLoadedForDoctor: string | null = null;
+  // Guards against re-applying the prefill after the receptionist has
+  // deliberately picked a different patient, and against re-triggering on
+  // every unrelated signal change.
+  private prefillAppliedForPatientId: string | null = null;
 
   protected readonly filteredPatients = computed(() => {
     const term = this.patientSearchTerm().trim().toLowerCase();
@@ -71,6 +80,22 @@ export class CreateAppointmentDrawerComponent {
       const doctorId = this.doctorId();
       if (open && doctorId && this.patientsLoadedForDoctor !== doctorId) {
         this.loadPatients(doctorId);
+      }
+    });
+
+    // Once the roster is loaded and a prefillPatientId was supplied, pre-select
+    // that patient automatically — but only once per id, so it doesn't fight
+    // the receptionist if she deliberately picks someone else afterward.
+    effect(() => {
+      const prefillId = this.prefillPatientId();
+      const list = this.patients();
+      if (!prefillId || list.length === 0) return;
+      if (this.prefillAppliedForPatientId === prefillId) return;
+      const match = list.find(p => p.id === prefillId);
+      if (match) {
+        this.patientMode.set('existing');
+        this.selectPatient(match);
+        this.prefillAppliedForPatientId = prefillId;
       }
     });
   }

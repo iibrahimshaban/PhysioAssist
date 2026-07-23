@@ -2,10 +2,8 @@
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Repositories;
 
-public class TreatmentSchedulePlanRepository(ApplicationDbContext context) : ITreatmentSchedulePlanRepository
+public class TreatmentSchedulePlanRepository(ApplicationDbContext context) : BaseRepository<TreatmentSchedulePlan>(context), ITreatmentSchedulePlanRepository
 {
-    private readonly ApplicationDbContext _context = context;
-
     public async Task<TreatmentSchedulePlan?> GetByReportIdAsync(Guid reportId, CancellationToken cancellationToken = default)
     {
         return await _context.Set<TreatmentSchedulePlan>()

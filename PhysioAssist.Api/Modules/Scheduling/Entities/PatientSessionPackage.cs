@@ -18,11 +18,6 @@ public class PatientSessionPackage : AuditableEntity
     public int ScheduledSessions { get; set; }
     public int RemainingSessions { get; set; }
     public PackageStatus Status { get; set; } = PackageStatus.Active;
-
-    // --- Optional treatment-plan scheduling preferences ---
-    // All default to "no restriction" — a patient the doctor didn't specify anything
-    // for is treated as free at all times, matching the recommendation service's
-    // existing fallback behavior.
     public int SessionsPerWeek { get; set; } = 3;
     public int MinimumGapBetweenSessionsDays { get; set; } = 2;
     public PreferredTimeOfDay PreferredTimeOfDay { get; set; } = PreferredTimeOfDay.Unspecified;

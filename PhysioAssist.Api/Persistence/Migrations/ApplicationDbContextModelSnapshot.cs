@@ -900,6 +900,21 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<string>("Occupation")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("ParsedPreferredDayToken")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly?>("ParsedPreferredTimeFrom")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly?>("ParsedPreferredTimeTo")
+                        .HasColumnType("time");
+
+                    b.Property<int>("ParsedPreferredWeekdays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PatientFreeTime")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");

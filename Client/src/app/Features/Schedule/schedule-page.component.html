@@ -75,9 +75,10 @@
     [doctorId]="scheduleService.selectedDoctorId()"
     [prefillStart]="scheduleService.createDrawerPrefill()?.start ?? null"
     [prefillEnd]="scheduleService.createDrawerPrefill()?.end ?? null"
+    [prefillPatientId]="patientId()"
     (closeRequested)="scheduleService.closeCreateDrawer()"
     (createRequested)="onCreateSubmit($event)"
-  />
+/>
 
   <div class="toast-stack">
     @for (toast of scheduleService.toasts(); track toast.id) {
