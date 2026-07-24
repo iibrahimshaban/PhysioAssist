@@ -1,6 +1,6 @@
 @import '../../intake-theme.css';
 
-/* ─── Page Layout (matches Form Templates) ──────────────────────────────── */
+/* ─── Page Layout ────────────────────────────────────────────────────── */
 .submission-page {
   max-width: 1024px;
   margin: 0 auto;
@@ -8,7 +8,7 @@
   min-width: 0;
 }
 
-/* ─── Page Header ────────────────────────────────────────────────────────── */
+/* ─── Page Header ────────────────────────────────────────────────────── */
 .page-header {
   margin-bottom: 1.5rem;
 }
@@ -39,7 +39,7 @@
   margin: 0.25rem 0 0;
 }
 
-/* ─── Error State (matches Form Templates) ──────────────────────────────── */
+/* ─── Error State ────────────────────────────────────────────────────── */
 .error-state {
   display: flex;
   flex-direction: column;
@@ -68,7 +68,7 @@
   color: #6b7780;
 }
 
-/* ─── Empty State (matches Form Templates) ──────────────────────────────── */
+/* ─── Empty State ────────────────────────────────────────────────────── */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -99,7 +99,7 @@
   line-height: 1.6;
 }
 
-/* ─── Buttons (matches Form Templates) ──────────────────────────────────── */
+/* ─── Buttons ────────────────────────────────────────────────────────── */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -137,7 +137,7 @@
 
 .btn-outline:hover { border-color: #d5e7f0; background: #f7fbfc; }
 
-/* ─── Skeleton ──────────────────────────────────────────────────────────── */
+/* ─── Skeleton ───────────────────────────────────────────────────────── */
 .skeleton-row {
   background: white;
   border: 1px solid #e8f1f7;
@@ -151,7 +151,7 @@
   100% { opacity: 0.6; }
 }
 
-/* ─── Table ──────────────────────────────────────────────────────────────── */
+/* ─── Table ──────────────────────────────────────────────────────────── */
 .table-wrapper {
   overflow-x: auto;
   border: 1px solid #e8f1f7;
@@ -215,7 +215,7 @@
 
 .link-btn:hover { text-decoration: underline; }
 
-/* ─── Pagination (matches Form Templates) ────────────────────────────────── */
+/* ─── Pagination ─────────────────────────────────────────────────────── */
 .pagination {
   display: flex;
   align-items: center;
@@ -259,7 +259,7 @@
 .page-btn--active { background: linear-gradient(145deg, var(--color-primary-gradient-start), var(--color-primary-gradient-end)); color: white; border-color: var(--color-primary); }
 .page-btn--active:hover { background: linear-gradient(145deg, var(--color-primary), var(--color-primary-gradient-end)); border-color: var(--color-primary); }
 
-/* ─── Responsive ──────────────────────────────────────────────────────────── */
+/* ─── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .pagination { flex-direction: column; gap: 0.75rem; }
 }

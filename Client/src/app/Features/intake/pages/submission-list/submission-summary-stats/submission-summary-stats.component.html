@@ -1,104 +1,73 @@
 @if (!loading) {
-  <div class="stats-grid">
+  <div class="metrics-bar">
     @if (mode === 'archive') {
-      <!-- Stat: Total Submissions (blue gradient) -->
-      <button
-        type="button"
-        class="stat-block stat-block--total"
-        [class.active]="selectedStatus === null"
-        (click)="onCardClick(null)">
-        <i class="pi pi-inbox stat-icon stat-icon--deco"></i>
-        <div class="stat-content">
-          <span class="stat-value">{{ totalCount }}</span>
-          <span class="stat-label">Total Submissions</span>
+      <!-- Total Submissions -->
+      <button type="button" class="metric-item" [class.active]="selectedStatus === null" (click)="onCardClick(null)">
+        <i class="pi pi-inbox metric-icon metric-icon--total"></i>
+        <div class="metric-content">
+          <span class="metric-value">{{ totalCount }}</span>
+          <span class="metric-label">Total Submissions</span>
         </div>
-        <i class="pi pi-inbox stat-bg-icon"></i>
       </button>
 
-      <!-- Stat: Pending Review (amber gradient) -->
-      <button
-        type="button"
-        class="stat-block stat-block--pending"
-        [class.active]="selectedStatus === IntakeStatus.Pending"
-        (click)="onCardClick(IntakeStatus.Pending)">
-        <i class="pi pi-clock stat-icon stat-icon--deco"></i>
-        <div class="stat-content">
-          <span class="stat-value">{{ pendingCount }}</span>
-          <span class="stat-label">Pending</span>
+      <!-- Pending -->
+      <button type="button" class="metric-item" [class.active]="selectedStatus === IntakeStatus.Pending" (click)="onCardClick(IntakeStatus.Pending)">
+        <i class="pi pi-clock metric-icon metric-icon--pending"></i>
+        <div class="metric-content">
+          <span class="metric-value">{{ pendingCount }}</span>
+          <span class="metric-label">Pending</span>
         </div>
-        <i class="pi pi-clock stat-bg-icon"></i>
         @if (pendingCount > 0) {
-          <span class="stat-pulse"></span>
+          <span class="metric-dot"></span>
         }
       </button>
 
-      <!-- Stat: In Review (purple gradient) -->
-      <button
-        type="button"
-        class="stat-block stat-block--review"
-        [class.active]="selectedStatus === IntakeStatus.InReview"
-        (click)="onCardClick(IntakeStatus.InReview)">
-        <i class="pi pi-eye stat-icon stat-icon--deco"></i>
-        <div class="stat-content">
-          <span class="stat-value">{{ inReviewCount }}</span>
-          <span class="stat-label">In Review</span>
+      <!-- In Review -->
+      <button type="button" class="metric-item" [class.active]="selectedStatus === IntakeStatus.InReview" (click)="onCardClick(IntakeStatus.InReview)">
+        <i class="pi pi-eye metric-icon metric-icon--review"></i>
+        <div class="metric-content">
+          <span class="metric-value">{{ inReviewCount }}</span>
+          <span class="metric-label">In Review</span>
         </div>
-        <i class="pi pi-eye stat-bg-icon"></i>
       </button>
 
-      <!-- Stat: Approved (emerald gradient) -->
-      <button
-        type="button"
-        class="stat-block stat-block--approved"
-        [class.active]="selectedStatus === IntakeStatus.Approved"
-        (click)="onCardClick(IntakeStatus.Approved)">
-        <i class="pi pi-check-circle stat-icon stat-icon--deco"></i>
-        <div class="stat-content">
-          <span class="stat-value">{{ approvedCount }}</span>
-          <span class="stat-label">Approved</span>
+      <!-- Approved -->
+      <button type="button" class="metric-item" [class.active]="selectedStatus === IntakeStatus.Approved" (click)="onCardClick(IntakeStatus.Approved)">
+        <i class="pi pi-check-circle metric-icon metric-icon--approved"></i>
+        <div class="metric-content">
+          <span class="metric-value">{{ approvedCount }}</span>
+          <span class="metric-label">Approved</span>
         </div>
-        <i class="pi pi-check-circle stat-bg-icon"></i>
       </button>
     } @else {
-      <!-- Stat: Waiting (amber gradient) -->
-      <button
-        type="button"
-        class="stat-block stat-block--pending"
-        [class.active]="selectedStatus === IntakeStatus.Pending"
-        (click)="onCardClick(IntakeStatus.Pending)">
-        <i class="pi pi-clock stat-icon stat-icon--deco"></i>
-        <div class="stat-content">
-          <span class="stat-value">{{ pendingCount }}</span>
-          <span class="stat-label">Waiting</span>
+      <!-- Waiting -->
+      <button type="button" class="metric-item" [class.active]="selectedStatus === IntakeStatus.Pending" (click)="onCardClick(IntakeStatus.Pending)">
+        <i class="pi pi-clock metric-icon metric-icon--pending"></i>
+        <div class="metric-content">
+          <span class="metric-value">{{ pendingCount }}</span>
+          <span class="metric-label">Waiting</span>
         </div>
-        <i class="pi pi-clock stat-bg-icon"></i>
         @if (pendingCount > 0) {
-          <span class="stat-pulse"></span>
+          <span class="metric-dot"></span>
         }
       </button>
 
-      <!-- Stat: In Review (purple gradient) -->
-      <button
-        type="button"
-        class="stat-block stat-block--review"
-        [class.active]="selectedStatus === IntakeStatus.InReview"
-        (click)="onCardClick(IntakeStatus.InReview)">
-        <i class="pi pi-eye stat-icon stat-icon--deco"></i>
-        <div class="stat-content">
-          <span class="stat-value">{{ inReviewCount }}</span>
-          <span class="stat-label">In Review</span>
+      <!-- In Review -->
+      <button type="button" class="metric-item" [class.active]="selectedStatus === IntakeStatus.InReview" (click)="onCardClick(IntakeStatus.InReview)">
+        <i class="pi pi-eye metric-icon metric-icon--review"></i>
+        <div class="metric-content">
+          <span class="metric-value">{{ inReviewCount }}</span>
+          <span class="metric-label">In Review</span>
         </div>
-        <i class="pi pi-eye stat-bg-icon"></i>
       </button>
 
-      <!-- Stat: Today's Arrivals (blue gradient) -->
-      <div class="stat-block stat-block--total">
-        <i class="pi pi-calendar stat-icon stat-icon--deco"></i>
-        <div class="stat-content">
-          <span class="stat-value">{{ todayCount }}</span>
-          <span class="stat-label">Today's Arrivals</span>
+      <!-- Today's Arrivals -->
+      <div class="metric-item">
+        <i class="pi pi-calendar metric-icon metric-icon--total"></i>
+        <div class="metric-content">
+          <span class="metric-value">{{ todayCount }}</span>
+          <span class="metric-label">Today's Arrivals</span>
         </div>
-        <i class="pi pi-calendar stat-bg-icon"></i>
       </div>
     }
   </div>
