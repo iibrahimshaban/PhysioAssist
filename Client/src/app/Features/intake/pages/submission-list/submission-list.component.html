@@ -1,56 +1,57 @@
-<div class="intake-module max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8" aria-live="polite">
+<div class="intake-module submission-page" aria-live="polite">
 
   <!-- Page Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-    <div>
-      <div class="flex items-center gap-3">
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-[var(--color-text-primary,#0f172a)] tracking-tight">
-          Submissions
-        </h1>
-        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-page-bg,#f1f5f9)] text-[var(--color-text-secondary,#64748b)] border border-[var(--color-border,#e2e8f0)]">
-          {{ submissions().length }} Total
-        </span>
+  <div class="max-w-7xl mx-auto pt-6 pb-2 px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-[var(--color-text-primary,#0f172a)] tracking-tight">
+            Submissions
+          </h1>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-page-bg,#f1f5f9)] text-[var(--color-text-secondary,#64748b)] border border-[var(--color-border,#e2e8f0)]">
+            {{ submissions().length }} Total
+          </span>
+        </div>
+        <p class="text-sm text-[var(--color-text-secondary,#64748b)] mt-1">
+          Manage pre-visit intake questionnaires submitted by patients
+        </p>
       </div>
-      <p class="text-sm text-[var(--color-text-secondary,#64748b)] mt-1">
-        Manage pre-visit intake questionnaires submitted by patients
-      </p>
     </div>
-
-    
   </div>
 
-  <!-- Summary KPI Stats -->
-  <app-submission-summary-stats
-    [totalCount]="submissions().length"
-    [pendingCount]="pendingCount()"
-    [inReviewCount]="inReviewCount()"
-    [approvedCount]="approvedCount()"
-    [convertedCount]="convertedCount()"
-    [selectedStatus]="selectedStatus()"
-    [loading]="loading()"
-    (selectStatus)="onStatusChange($event)" />
+  <!-- Content Area -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
 
-  <!-- Error State -->
-  @if (error()) {
-    <div class="bg-[var(--color-surface,#ffffff)] rounded-2xl shadow-sm border border-red-200 dark:border-red-900 p-8 text-center" role="alert">
-      <div class="w-14 h-14 rounded-full bg-red-50 text-red-500 dark:bg-red-950 dark:text-red-400 flex items-center justify-center mx-auto mb-4 text-2xl">
-        <i class="pi pi-exclamation-triangle"></i>
+    <!-- Summary KPI Stats -->
+    <app-submission-summary-stats
+      [totalCount]="submissions().length"
+      [pendingCount]="pendingCount()"
+      [inReviewCount]="inReviewCount()"
+      [approvedCount]="approvedCount()"
+      [convertedCount]="convertedCount()"
+      [selectedStatus]="selectedStatus()"
+      [loading]="loading()"
+      (selectStatus)="onStatusChange($event)" />
+
+    <!-- Error State -->
+    @if (error()) {
+      <div class="py-12 text-center" role="alert">
+        <div class="w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4 text-2xl">
+          <i class="pi pi-exclamation-triangle"></i>
+        </div>
+        <h3 class="text-base font-bold text-[var(--color-text-primary,#0f172a)] mb-1">Failed to load submissions</h3>
+        <p class="text-sm text-[var(--color-text-secondary,#64748b)] mb-4">{{ error() }}</p>
+        <button
+          type="button"
+          (click)="loadSubmissions()"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary,#0b8eea)] text-white font-semibold rounded-xl hover:opacity-90 transition-all text-sm">
+          <i class="pi pi-refresh text-xs"></i>
+          Try Again
+        </button>
       </div>
-      <h3 class="text-base font-bold text-[var(--color-text-primary,#0f172a)] mb-1">Failed to load submissions</h3>
-      <p class="text-sm text-[var(--color-text-secondary,#64748b)] mb-4">{{ error() }}</p>
-      <button
-        type="button"
-        (click)="loadSubmissions()"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary,#0b8eea)] text-white font-semibold rounded-xl hover:opacity-90 transition-all text-sm">
-        <i class="pi pi-refresh text-xs"></i>
-        Try Again
-      </button>
-    </div>
-  }
+    }
 
-  @if (!error()) {
-    <div class="bg-[var(--color-surface,#ffffff)] rounded-2xl shadow-sm border border-[var(--color-border,#e2e8f0)] p-4 sm:p-6">
-
+    @if (!error()) {
       <!-- Filters & Controls Bar -->
       <app-submission-filters-bar
         [searchTerm]="searchTerm()"
@@ -66,9 +67,9 @@
 
       <!-- Loading Skeleton -->
       @if (loading()) {
-        <div class="space-y-3">
+        <div class="space-y-3 mt-4">
           @for (i of [1,2,3,4]; track i) {
-            <div class="bg-[var(--color-page-bg,#f8fafc)] rounded-xl border border-[var(--color-border,#e2e8f0)] p-4 h-[72px] animate-pulse"></div>
+            <div class="h-[68px] animate-pulse bg-[var(--color-surface,#ffffff)] rounded-xl border border-[var(--color-border,#e2e8f0)]"></div>
           }
         </div>
       }
@@ -76,26 +77,28 @@
       <!-- Submissions Content -->
       @if (!loading()) {
         @if (filteredSubmissions().length === 0) {
-          <!-- Empty State -->
-          <div class="text-center py-12 sm:py-16">
-            <div class="w-16 h-16 rounded-full bg-[var(--color-page-bg,#f1f5f9)] text-[var(--color-text-muted,#94a3b8)] flex items-center justify-center mx-auto mb-4 text-2xl">
-              <i class="pi pi-inbox"></i>
+          <!-- Premium Empty State -->
+          <div class="empty-state-premium">
+            <div class="empty-blob">
+              <div class="empty-icon-wrap">
+                <i class="pi pi-inbox"></i>
+              </div>
             </div>
-            <h3 class="text-lg font-bold text-[var(--color-text-primary,#0f172a)] mb-1">
-              @if (searchTerm() || selectedStatus() !== null) { No matching submissions } @else { No submissions found }
-            </h3>
-            <p class="text-sm text-[var(--color-text-secondary,#64748b)] mb-6 max-w-sm mx-auto">
+            <h2 class="empty-title">
+              @if (searchTerm() || selectedStatus() !== null) { No matching submissions } @else { No submissions yet }
+            </h2>
+            <p class="empty-desc">
               @if (searchTerm() || selectedStatus() !== null) {
                 We couldn't find any patient submissions matching your active search or filter criteria.
               } @else {
-                Patient intake submissions will automatically appear here once patients complete the form.
+                Patient intake submissions will automatically appear here once patients complete the form. Share your intake form link with patients to get started.
               }
             </p>
             @if (searchTerm() || selectedStatus() !== null) {
               <button
                 type="button"
                 (click)="clearFilters()"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-page-bg,#f1f5f9)] hover:bg-[var(--color-border,#e2e8f0)] text-[var(--color-text-primary,#0f172a)] font-semibold rounded-xl text-sm transition-all border border-[var(--color-border,#e2e8f0)]">
+                class="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary,#0b8eea)] text-white font-semibold rounded-xl hover:opacity-90 transition-all text-sm shadow-md shadow-[var(--color-primary,#0b8eea)]/20">
                 <i class="pi pi-filter-slash text-xs"></i>
                 Clear All Filters
               </button>
@@ -103,9 +106,9 @@
           </div>
         } @else {
 
-          <!-- View Mode 1: Cards View -->
+          <!-- View Mode 1: Cards View (list rows) -->
           @if (viewMode() === 'cards') {
-            <div class="space-y-3">
+            <div class="mt-4">
               @for (row of paginatedSubmissions(); track row.id) {
                 <app-submission-row
                   [submission]="row"
@@ -116,7 +119,7 @@
 
           <!-- View Mode 2: Table View -->
           @if (viewMode() === 'table') {
-            <div class="overflow-x-auto rounded-xl border border-[var(--color-border,#e2e8f0)]">
+            <div class="overflow-x-auto rounded-xl border border-[var(--color-border,#e2e8f0)] mt-4">
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-[var(--color-page-bg,#f8fafc)] border-b border-[var(--color-border,#e2e8f0)] text-xs font-bold text-[var(--color-text-secondary,#64748b)] uppercase tracking-wider">
@@ -133,7 +136,6 @@
                     <tr
                       (click)="viewSubmission(row)"
                       class="hover:bg-[var(--color-page-bg,#f8fafc)] cursor-pointer transition-colors text-sm">
-                      <!-- Patient Cell -->
                       <td class="py-3 px-4">
                         <div class="flex items-center gap-3">
                           <div
@@ -146,32 +148,22 @@
                           </span>
                         </div>
                       </td>
-
-                      <!-- Code Cell -->
                       <td class="py-3 px-4">
                         <span class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--color-page-bg,#f1f5f9)] text-[var(--color-text-secondary,#64748b)] border border-[var(--color-border,#e2e8f0)]">
                           #{{ row.shortCode || 'N/A' }}
                         </span>
                       </td>
-
-                      <!-- Status Cell -->
                       <td class="py-3 px-4">
                         <span class="status-badge" [ngClass]="getStatusPillClass(row.status)">
                           {{ getQueueStatusLabel(row.status) }}
                         </span>
                       </td>
-
-                      <!-- Pain Regions Cell -->
                       <td class="py-3 px-4 text-[var(--color-text-secondary,#64748b)]">
                         {{ row.painRegionCount }} region(s)
                       </td>
-
-                      <!-- Submitted Cell -->
                       <td class="py-3 px-4 text-xs text-[var(--color-text-secondary,#64748b)]">
                         {{ timeAgo(row.submittedAt) }}
                       </td>
-
-                      <!-- Action Cell -->
                       <td class="py-3 px-4 text-right">
                         <button
                           type="button"
@@ -245,7 +237,6 @@
 
         }
       }
-
-    </div>
-  }
+    }
+  </div>
 </div>

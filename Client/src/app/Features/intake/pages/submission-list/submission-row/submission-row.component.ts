@@ -13,6 +13,8 @@ export class SubmissionRowComponent {
   @Input({ required: true }) submission!: PreVisitIntakeResponse;
   @Output() selected = new EventEmitter<PreVisitIntakeResponse>();
 
+  readonly IntakeStatus = IntakeStatus;
+
   getInitials(name: string | undefined): string {
     if (!name || !name.trim()) return '?';
     const parts = name.trim().split(/\s+/);
@@ -59,6 +61,46 @@ export class SubmissionRowComponent {
 
   getStatusPillClass(status: IntakeStatus): string {
     return getIntakeStatusPillClass(status);
+  }
+
+  getStatusAccentClass(status: IntakeStatus): string {
+    switch (status) {
+      case IntakeStatus.Pending:
+      case IntakeStatus.Submitted:
+        return 'accent-amber';
+      case IntakeStatus.InReview:
+        return 'accent-indigo';
+      case IntakeStatus.Approved:
+        return 'accent-emerald';
+      case IntakeStatus.Rejected:
+        return 'accent-red';
+      case IntakeStatus.Converted:
+        return 'accent-cyan';
+      case IntakeStatus.Expired:
+        return 'accent-gray';
+      default:
+        return 'accent-gray';
+    }
+  }
+
+  getStatusDotClass(status: IntakeStatus): string {
+    switch (status) {
+      case IntakeStatus.Pending:
+      case IntakeStatus.Submitted:
+        return 'dot-amber';
+      case IntakeStatus.InReview:
+        return 'dot-indigo';
+      case IntakeStatus.Approved:
+        return 'dot-emerald';
+      case IntakeStatus.Rejected:
+        return 'dot-red';
+      case IntakeStatus.Converted:
+        return 'dot-cyan';
+      case IntakeStatus.Expired:
+        return 'dot-gray';
+      default:
+        return 'dot-gray';
+    }
   }
 
   timeAgo(isoDate: string): string {
