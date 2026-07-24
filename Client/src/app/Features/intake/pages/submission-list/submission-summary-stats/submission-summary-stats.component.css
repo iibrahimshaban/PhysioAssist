@@ -3,7 +3,7 @@
   min-width: 0;
 }
 
-/* ─── Stats Grid ────────────────────────────────────────────────────────── */
+/* ─── Premium Stats Grid ────────────────────────────────────────────────── */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
@@ -30,22 +30,19 @@
   display: flex;
   align-items: flex-start;
   gap: 0.875rem;
-  padding: 1.25rem;
-  border: 1px solid #e8f1f7;
-  border-radius: 0.75rem;
+  padding: 1.25rem 1.25rem;
+  border: none;
+  border-radius: 1rem;
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
   min-height: 5.5rem;
-  background: #ffffff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .stat-block:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  border-color: #d5e7f0;
   transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .stat-block:active {
@@ -53,30 +50,49 @@
 }
 
 .stat-block.active {
-  border-color: var(--color-primary, #1a7fd4);
-  box-shadow: 0 0 0 2px rgba(26, 127, 212, 0.15), 0 6px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6), 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
-/* ─── Theme Colors (using Form Templates palette) ────────────────────────── */
-.stat-block--total .stat-value { color: #16263c; }
-.stat-block--total .stat-label { color: #6b7780; }
-.stat-block--total .stat-icon--deco { color: var(--color-primary, #1a7fd4); }
-.stat-block--total .stat-bg-icon { color: rgba(26, 127, 212, 0.08); }
+/* ─── Theme Gradients ────────────────────────────────────────────────────── */
+.stat-block--total {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.stat-block--total .stat-value { color: #1e40af; }
+.stat-block--total .stat-label { color: #3b82f6; }
+.stat-block--total .stat-icon--deco { color: #3b82f6; }
+.stat-block--total .stat-bg-icon { color: rgba(59, 130, 246, 0.12); }
+
+.stat-block--pending {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+}
 
 .stat-block--pending .stat-value { color: #92400e; }
 .stat-block--pending .stat-label { color: #d97706; }
 .stat-block--pending .stat-icon--deco { color: #d97706; }
-.stat-block--pending .stat-bg-icon { color: rgba(217, 119, 6, 0.08); }
+.stat-block--pending .stat-bg-icon { color: rgba(217, 119, 6, 0.12); }
+
+.stat-block--review {
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
 
 .stat-block--review .stat-value { color: #4338ca; }
 .stat-block--review .stat-label { color: #6366f1; }
 .stat-block--review .stat-icon--deco { color: #6366f1; }
-.stat-block--review .stat-bg-icon { color: rgba(99, 102, 241, 0.08); }
+.stat-block--review .stat-bg-icon { color: rgba(99, 102, 241, 0.12); }
+
+.stat-block--approved {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
 
 .stat-block--approved .stat-value { color: #065f46; }
 .stat-block--approved .stat-label { color: #059669; }
 .stat-block--approved .stat-icon--deco { color: #059669; }
-.stat-block--approved .stat-bg-icon { color: rgba(5, 150, 105, 0.08); }
+.stat-block--approved .stat-bg-icon { color: rgba(5, 150, 105, 0.12); }
 
 /* ─── Stat Content ──────────────────────────────────────────────────────── */
 .stat-content {
@@ -88,17 +104,17 @@
 }
 
 .stat-value {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.75rem;
+  font-weight: 800;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .stat-label {
   font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   opacity: 0.85;
 }
 
@@ -117,7 +133,7 @@
   bottom: -0.25rem;
   right: -0.25rem;
   font-size: 3rem;
-  opacity: 0.4;
+  opacity: 0.5;
   pointer-events: none;
   transform: rotate(8deg);
 }
@@ -127,8 +143,8 @@
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 0.625rem;
+  height: 0.625rem;
   border-radius: 9999px;
   background: #f59e0b;
   animation: stat-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -149,7 +165,7 @@
   }
 
   .stat-value {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
   }
 
   .stat-label {

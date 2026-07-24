@@ -1,105 +1,162 @@
 <div class="intake-module reception-page" aria-live="polite">
 
   <!-- Page Header -->
-  <div class="page-header">
+  <div class="max-w-7xl mx-auto pt-6 pb-2 px-4 sm:px-6 lg:px-8">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <div class="flex items-center gap-3">
-          <h1 class="page-title">Reception Queue</h1>
-          <span class="page-badge">{{ submissions().length }} Active</span>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-[var(--color-text-primary,#0f172a)] tracking-tight">
+            Reception Queue
+          </h1>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-primary-soft)] text-[var(--color-primary)] border border-[var(--color-border,#e2e8f0)]">
+            {{ submissions().length }} Active
+          </span>
         </div>
-        <p class="page-subtitle">Patients waiting for check-in or currently in review (auto-refreshes every 30s)</p>
+        <p class="text-sm text-[var(--color-text-secondary,#64748b)] mt-1">
+          Patients waiting for check-in or currently in review (auto-refreshes every 30s)
+        </p>
       </div>
     </div>
   </div>
 
-  <!-- Summary KPI Stats -->
-  <app-submission-summary-stats
-    [totalCount]="submissions().length"
-    [pendingCount]="waitingCount()"
-    [inReviewCount]="inReviewCount()"
-    [approvedCount]="0"
-    [convertedCount]="0"
-    [todayCount]="todayCount()"
-    [selectedStatus]="selectedStatus()"
-    [loading]="loading()"
-    [mode]="'reception'"
-    (selectStatus)="onStatusChange($event)" />
+  <!-- Content Area -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
 
-  <!-- Error State -->
-  @if (error()) {
-    <div class="error-state" role="alert">
-      <i class="pi pi-exclamation-triangle"></i>
-      <p class="error-title">Failed to load queue</p>
-      <p class="error-text">{{ error() }}</p>
-      <button class="btn-outline" (click)="loadReception()"><i class="pi pi-refresh"></i> Try Again</button>
-    </div>
-  }
-
-  @if (!error()) {
-    <!-- Filters & Controls Bar -->
-    <app-submission-filters-bar
-      [searchTerm]="searchTerm()"
+    <!-- Summary KPI Stats -->
+    <app-submission-summary-stats
+      [totalCount]="submissions().length"
+      [pendingCount]="waitingCount()"
+      [inReviewCount]="inReviewCount()"
+      [approvedCount]="0"
+      [convertedCount]="0"
+      [todayCount]="todayCount()"
       [selectedStatus]="selectedStatus()"
-      [statusOptions]="statusOptions()"
+      [loading]="loading()"
       [mode]="'reception'"
-      (searchChange)="onSearch($event)"
-      (statusChange)="onStatusChange($event)"
-      (clearFilters)="clearFilters()" />
+      (selectStatus)="onStatusChange($event)" />
 
-    <!-- Loading Skeleton -->
-    @if (loading()) {
-      <div class="space-y-3 mt-4">
-        @for (i of [1,2,3]; track i) {
-          <div class="skeleton-row h-[68px]"></div>
-        }
+    <!-- Error State -->
+    @if (error()) {
+      <div class="py-12 text-center" role="alert">
+        <div class="w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4 text-2xl">
+          <i class="pi pi-exclamation-triangle"></i>
+        </div>
+        <h3 class="text-base font-bold text-[var(--color-text-primary,#0f172a)] mb-1">Failed to load queue</h3>
+        <p class="text-sm text-[var(--color-text-secondary,#64748b)] mb-4">{{ error() }}</p>
+        <button
+          type="button"
+          (click)="loadReception()"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary,#0b8eea)] text-white font-semibold rounded-xl hover:opacity-90 transition-all text-sm">
+          <i class="pi pi-refresh text-xs"></i>
+          Try Again
+        </button>
       </div>
     }
 
-    <!-- Submissions Content -->
-    @if (!loading()) {
-      @if (filteredSubmissions().length === 0) {
-        <!-- Empty State -->
-        <div class="empty-state">
-          <i class="pi pi-inbox empty-icon"></i>
-          <p class="empty-title">
-            @if (searchTerm()) { No matching waiting patients } @else { All caught up! }
-          </p>
-          <p class="empty-text">
-            @if (searchTerm()) {
-              We couldn't find any active patient submissions matching your search criteria.
-            } @else {
-              There are no active patients waiting in the reception queue at this moment.
-            }
-          </p>
-          @if (searchTerm()) {
-            <button class="btn-primary" (click)="clearFilters()"><i class="pi pi-filter-slash"></i> Clear Search</button>
-          }
-        </div>
-      } @else {
-        <!-- Active Rows List -->
-        <div class="mt-4">
-          @for (row of paginatedSubmissions(); track row.id) {
-            <app-submission-row
-              [submission]="row"
-              (selected)="viewSubmission($event)" />
-          }
-        </div>
+    @if (!error()) {
+      <!-- Filters & Controls Bar -->
+      <app-submission-filters-bar
+        [searchTerm]="searchTerm()"
+        [selectedStatus]="selectedStatus()"
+        [statusOptions]="statusOptions()"
+        [mode]="'reception'"
+        (searchChange)="onSearch($event)"
+        (statusChange)="onStatusChange($event)"
+        (clearFilters)="clearFilters()" />
 
-        <!-- Pagination Bar -->
-        @if (totalPages() > 1) {
-          <div class="pagination">
-            <span class="pagination-info">Showing {{ ((currentPage() - 1) * pageSize()) + 1 }}–{{ pageEndIndex() }} of {{ filteredSubmissions().length }} in queue</span>
-            <div class="pagination-controls">
-              <button class="page-btn" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1"><i class="pi pi-chevron-left"></i></button>
-              @for (page of pageNumbers(); track page) {
-                <button class="page-btn" [class.page-btn--active]="currentPage() === page" (click)="goToPage(page)">{{ page }}</button>
-              }
-              <button class="page-btn" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()"><i class="pi pi-chevron-right"></i></button>
+      <!-- Loading Skeleton -->
+      @if (loading()) {
+        <div class="space-y-3 mt-4">
+          @for (i of [1,2,3]; track i) {
+            <div class="h-[68px] animate-pulse bg-[var(--color-surface,#ffffff)] rounded-xl border border-[var(--color-border,#e2e8f0)]"></div>
+          }
+        </div>
+      }
+
+      <!-- Submissions Content -->
+      @if (!loading()) {
+        @if (filteredSubmissions().length === 0) {
+          <!-- Premium Empty State -->
+          <div class="reception-empty">
+            <div class="reception-empty-blob">
+              <div class="reception-empty-icon">
+                <i class="pi pi-inbox"></i>
+              </div>
             </div>
+            <h2 class="reception-empty-title">
+              @if (searchTerm()) { No matching waiting patients } @else { All caught up! }
+            </h2>
+            <p class="reception-empty-desc">
+              @if (searchTerm()) {
+                We couldn't find any active patient submissions matching your search criteria.
+              } @else {
+                There are no active patients waiting in the reception queue at this moment. New submissions will appear here automatically.
+              }
+            </p>
+            @if (searchTerm()) {
+              <button
+                type="button"
+                (click)="clearFilters()"
+                class="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary,#0b8eea)] text-white font-semibold rounded-xl hover:opacity-90 transition-all text-sm shadow-md shadow-[var(--color-primary,#0b8eea)]/20">
+                <i class="pi pi-filter-slash text-xs"></i>
+                Clear Search
+              </button>
+            }
           </div>
+        } @else {
+          <!-- Active Rows List -->
+          <div class="mt-4">
+            @for (row of paginatedSubmissions(); track row.id) {
+              <app-submission-row
+                [submission]="row"
+                (selected)="viewSubmission($event)" />
+            }
+          </div>
+
+          <!-- Pagination Bar -->
+          @if (totalPages() > 1) {
+            <div class="submission-pagination">
+              <div class="submission-pagination-info">
+                <span>Showing </span>
+                <span class="font-semibold text-[var(--color-text-primary,#0f172a)]">
+                  {{ ((currentPage() - 1) * pageSize()) + 1 }}–{{ pageEndIndex() }}
+                </span>
+                <span> of {{ filteredSubmissions().length }} in queue</span>
+              </div>
+
+              <div class="submission-pagination-controls">
+                <button
+                  type="button"
+                  class="submission-page-btn"
+                  (click)="goToPage(currentPage() - 1)"
+                  [disabled]="currentPage() === 1"
+                  aria-label="Previous page">
+                  <i class="pi pi-chevron-left text-xs"></i>
+                </button>
+
+                @for (page of pageNumbers(); track page) {
+                  <button
+                    type="button"
+                    class="submission-page-btn"
+                    [class.submission-page-btn--active]="currentPage() === page"
+                    (click)="goToPage(page)">
+                    {{ page }}
+                  </button>
+                }
+
+                <button
+                  type="button"
+                  class="submission-page-btn"
+                  (click)="goToPage(currentPage() + 1)"
+                  [disabled]="currentPage() === totalPages()"
+                  aria-label="Next page">
+                  <i class="pi pi-chevron-right text-xs"></i>
+                </button>
+              </div>
+            </div>
+          }
         }
       }
     }
-  }
+  </div>
 </div>
