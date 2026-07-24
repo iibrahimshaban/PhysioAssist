@@ -11,4 +11,9 @@ public static class SchedulingErrors
         "SchedulingPackage.AlreadyComplete",
         "All sessions in this package have already been scheduled.",
         StatusCodes.Status409Conflict);
+
+    public static readonly Error DoctorHasNoActiveSchedule = new(
+        "SchedulingPackage.DoctorHasNoActiveSchedule",
+        "The selected doctor has no active schedule available.",
+        StatusCodes.Status400BadRequest);
 }

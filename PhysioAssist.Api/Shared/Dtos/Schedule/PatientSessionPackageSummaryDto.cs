@@ -11,6 +11,7 @@ public class PatientSessionPackageSummaryDto
     public required int NextSessionNumber { get; init; }
     public required PackageStatus Status { get; init; }
     public required int SessionsPerWeek { get; init; }
+    public required int minimumGapBetweenSessionsDays {  get; init; }
     public required TimeSpan SessionDuration { get; init; }
     public required string PatientFreeTimeText { get; init; }
 }

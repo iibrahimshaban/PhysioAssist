@@ -1,0 +1,47 @@
+<div class="bg-white border border-slate-200 rounded-2xl p-6">
+  @if (!overview().hasPackage) {
+    <div class="text-center py-6">
+      <i class="pi pi-calendar-times text-3xl text-slate-300 mb-2 block"></i>
+      <p class="text-sm font-semibold text-slate-700">No sessions yet</p>
+      <p class="text-sm text-slate-400 mt-1">This patient hasn't started a session package.</p>
+    </div>
+  } @else {
+    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-4">Schedule overview</p>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+      <div class="relative bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#0B8EEA] rounded-l-xl"></div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total</p>
+        <p class="text-xl font-bold text-slate-900 mt-1">{{ overview().totalSessions }}</p>
+      </div>
+      <div class="relative bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-green-500 rounded-l-xl"></div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Completed</p>
+        <p class="text-xl font-bold text-slate-900 mt-1">{{ overview().completedSessions }}</p>
+      </div>
+      <div class="relative bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-amber-500 rounded-l-xl"></div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Upcoming</p>
+        <p class="text-xl font-bold text-slate-900 mt-1">{{ overview().upcomingScheduledCount }}</p>
+      </div>
+      <div class="relative bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-slate-400 rounded-l-xl"></div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Remaining</p>
+        <p class="text-xl font-bold text-slate-900 mt-1">{{ overview().remainingSessions }}</p>
+      </div>
+    </div>
+
+    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Sessions</p>
+    <div class="space-y-2 max-h-64 overflow-y-auto">
+      @for (session of overview().sessions; track session.slotId) {
+        <div class="flex items-center justify-between border border-slate-100 rounded-lg px-3 py-2">
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-semibold text-slate-400 w-6">#{{ session.sessionNumber }}</span>
+            <span class="text-sm text-slate-700">{{ session.slotStart | date : 'EEE, MMM d · h:mm a' }}</span>
+          </div>
+          <p-tag [severity]="statusSeverity(session.status)" [value]="statusLabel(session.status)" />
+        </div>
+      }
+    </div>
+  }
+</div>

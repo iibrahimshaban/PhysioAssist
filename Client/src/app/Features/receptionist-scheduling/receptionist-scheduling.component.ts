@@ -61,8 +61,6 @@ export class ReceptionistSchedulingComponent {
         this.isLoadingContext.set(false);
 
         if (ctx.state === PatientSchedulingState.ActivePackage && ctx.activePackage) {
-          // Context already carried the full summary — reuse it instead of an
-          // extra round-trip to GetPackageSummaryAsync.
           this.schedulingService.summary.set(ctx.activePackage);
           this.freeTimeText.set(ctx.activePackage.patientFreeTimeText);
           if (ctx.activePackage.status === PackageStatus.Active) {

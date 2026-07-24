@@ -147,21 +147,7 @@ public class ReceptionistController(
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
 
-    private async Task<IActionResult?> EnsurePackageBelongsToCallerAsync(Guid packageId, CancellationToken cancellationToken)
-    {
-        var doctorId = await User.GetDoctorIdAsync(_dbContext, cancellationToken);
-        if (doctorId is null)
-            return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
-
-        var packageDoctorId = await _schedulingService.GetPackageDoctorIdAsync(packageId, cancellationToken);
-        if (packageDoctorId is null)
-            return Result.Failure(ReceptionistErrors.PackageNotFound).ToProblem();
-
-        if (packageDoctorId.Value != doctorId.Value)
-            return Result.Failure(ReceptionistErrors.PackageAccessDenied).ToProblem();
-
-        return null;
-    }
+    
     [HttpGet("packages/{packageId:guid}/summary")]
     [HasPermission(Permissions.GetSessionCandidates)]
     public async Task<IActionResult> GetPackageSummary(Guid packageId, CancellationToken cancellationToken)
@@ -207,6 +193,21 @@ public class ReceptionistController(
 
         if (planDoctorId.Value != doctorId.Value)
             return Result.Failure(TreatmentSchedulePlanErrors.AccessDenied).ToProblem();
+
+        return null;
+    }
+    private async Task<IActionResult?> EnsurePackageBelongsToCallerAsync(Guid packageId, CancellationToken cancellationToken)
+    {
+        var doctorId = await User.GetDoctorIdAsync(_dbContext, cancellationToken);
+        if (doctorId is null)
+            return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
+
+        var packageDoctorId = await _schedulingService.GetPackageDoctorIdAsync(packageId, cancellationToken);
+        if (packageDoctorId is null)
+            return Result.Failure(ReceptionistErrors.PackageNotFound).ToProblem();
+
+        if (packageDoctorId.Value != doctorId.Value)
+            return Result.Failure(ReceptionistErrors.PackageAccessDenied).ToProblem();
 
         return null;
     }
