@@ -125,7 +125,10 @@
         }
 
       </div>
+    }
 
+    @if (scheduleOverview(); as overview) {
+      <app-patient-schedule-overview [overview]="overview" class="block mb-6" />
     }
 
     @if (!isLoading() && !patient()) {

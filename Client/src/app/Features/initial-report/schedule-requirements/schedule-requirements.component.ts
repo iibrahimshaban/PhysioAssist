@@ -50,11 +50,11 @@ export class ScheduleRequirementsComponent implements OnInit {
   readonly sessionsPerWeekOptions = [1, 2, 3, 4, 5].map(n => ({ label: `${n}/week`, value: n }));
   readonly minimumGapOptions = [0, 1, 2, 3, 4, 5, 7].map(n => ({ label: `${n} day${n === 1 ? '' : 's'}`, value: n }));
   readonly preferredTimeOfDayOptions = [
-    { label: 'No preference', value: PreferredTimeOfDay.Unspecified },
-    { label: 'Morning', value: PreferredTimeOfDay.Morning },
-    { label: 'Afternoon', value: PreferredTimeOfDay.Afternoon },
-    { label: 'Evening', value: PreferredTimeOfDay.Evening },
-  ];
+  { label: 'No preference', value: PreferredTimeOfDay.Unspecified },
+  { label: 'Morning (6:00 AM – 12:00 PM)', value: PreferredTimeOfDay.Morning },
+  { label: 'Afternoon (12:00 PM – 5:00 PM)', value: PreferredTimeOfDay.Afternoon },
+  { label: 'Evening (5:00 PM – 10:00 PM)', value: PreferredTimeOfDay.Evening },
+];
   readonly preferredDaysOptions = [
     { label: 'Sunday', value: DaysOfWeekFlags.Sunday },
     { label: 'Monday', value: DaysOfWeekFlags.Monday },

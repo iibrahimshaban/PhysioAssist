@@ -71,8 +71,8 @@ public class PatientSessionSchedulingService(
     }
 
     public async Task<Result<SessionBookingRoundDto>> GetNextSessionCandidatesAsync(Guid packageId,
-        string? patientFreeTimeOverride = null, bool persistFreeTimeOverride = false,
-        CancellationToken cancellationToken = default)
+    string? patientFreeTimeOverride = null, bool persistFreeTimeOverride = false,
+    CancellationToken cancellationToken = default)
     {
         var package = await _context.Set<PatientSessionPackage>()
             .FirstOrDefaultAsync(p => p.Id == packageId, cancellationToken);
@@ -83,8 +83,6 @@ public class PatientSessionSchedulingService(
         if (package.RemainingSessions <= 0)
             return Result.Failure<SessionBookingRoundDto>(SchedulingErrors.PackageAlreadyComplete);
 
-        // Resolved once up front so every BuildRound call below — including the
-        // early-return branches — can hand it back without a second query.
         var patientFreeTimeText = string.IsNullOrWhiteSpace(patientFreeTimeOverride)
             ? await _context.Set<Patient>()
                 .Where(p => p.Id == package.PatientId)
@@ -98,58 +96,76 @@ public class PatientSessionSchedulingService(
             .Where(d => d.WorkingSchedule.DoctorId == package.DoctorId && d.WorkingSchedule.IsActive)
             .Select(d => d.Day)
             .ToListAsync(cancellationToken);
+
         var workingDays = workingDaysList.ToHashSet();
+
+        // No active schedule at all — searching forward would just spin uselessly.
+        if (workingDays.Count == 0)
+            return Result.Failure<SessionBookingRoundDto>(SchedulingErrors.DoctorHasNoActiveSchedule);
 
         var packageAnchor = DateOnly.FromDateTime(package.CreatedAt.Add(EgyptOffset));
         var cycleIndex = (today.DayNumber - packageAnchor.DayNumber) / 7;
-        var weekStart = packageAnchor.AddDays(cycleIndex * 7);
-        var weekEnd = WorkingWeekBoundaryHelper.GetCycleEnd(weekStart, workingDays);
-
         var weeklyTargetCount = Math.Min(package.SessionsPerWeek, package.RemainingSessions);
-
-        var scheduledThisWeek = weekEnd < weekStart
-            ? 0
-            : await _context.Set<ScheduleSlot>()
-                .Where(s => s.PackageId == packageId
-                            && s.Status != SlotStatus.Cancelled
-                            && s.SlotStart >= new DateTimeOffset(weekStart.ToDateTime(TimeOnly.MinValue), EgyptOffset)
-                            && s.SlotStart <= new DateTimeOffset(weekEnd.ToDateTime(TimeOnly.MaxValue), EgyptOffset))
-                .CountAsync(cancellationToken);
-
         var sessionNumber = package.ScheduledSessions + 1;
 
-        if (scheduledThisWeek >= weeklyTargetCount)
-            return Result.Success(BuildRound(package, sessionNumber, weeklyTargetCount, scheduledThisWeek,
-                weekStart, weekEnd, quotaMet: true, noRoom: false, candidates: [], patientFreeTimeText));
+        var existingSlotDates = (await _context.Set<ScheduleSlot>()
+                .Where(s => s.PackageId == packageId && s.Status != SlotStatus.Cancelled)
+                .Select(s => s.SlotStart)
+                .ToListAsync(cancellationToken))
+                .Select(d => DateOnly.FromDateTime(d.ToOffset(EgyptOffset).Date))
+                .ToList();
 
-        if (weekEnd < weekStart)
-            return Result.Success(BuildRound(package, sessionNumber, weeklyTargetCount, scheduledThisWeek,
-                weekStart, weekStart, quotaMet: false, noRoom: true, candidates: [], patientFreeTimeText));
+        var lastConfirmed = existingSlotDates.Count > 0 ? existingSlotDates.Max() : (DateOnly?)null;
 
-        var lastConfirmed = await _context.Set<ScheduleSlot>()
-            .Where(s => s.PackageId == packageId && s.Status != SlotStatus.Cancelled)
-            .OrderByDescending(s => s.SlotStart)
-            .Select(s => (DateOnly?)DateOnly.FromDateTime(s.SlotStart.ToOffset(EgyptOffset).Date))
-            .FirstOrDefaultAsync(cancellationToken);
+        const int MaxWeeksToSearch = 26; // ~6 months safety cap against unbounded search
 
-        var minDate = lastConfirmed.HasValue
-            ? lastConfirmed.Value.AddDays(package.MinimumGapBetweenSessionsDays)
-            : today;
+        DateOnly weekStart = default, weekEnd = default, minDate = default;
+        int scheduledThisWeek = 0;
+        var found = false;
 
-        if (minDate < weekStart)
-            minDate = weekStart;
+        for (var i = 0; i < MaxWeeksToSearch; i++)
+        {
+            var candidateStart = packageAnchor.AddDays((cycleIndex + i) * 7);
+            var candidateEnd = WorkingWeekBoundaryHelper.GetCycleEnd(candidateStart, workingDays);
 
-        if (minDate > weekEnd)
-            return Result.Success(BuildRound(package, sessionNumber, weeklyTargetCount, scheduledThisWeek,
-                weekStart, weekEnd, quotaMet: false, noRoom: true, candidates: [], patientFreeTimeText));
+            if (candidateEnd < candidateStart)
+                continue; // no working day inside this cycle — try next week
+
+            var candidateScheduled = existingSlotDates.Count(d => d >= candidateStart && d <= candidateEnd);
+
+            if (candidateScheduled >= weeklyTargetCount)
+                continue; // this week's quota already filled — try next week
+
+            var candidateMinDate = lastConfirmed.HasValue
+                ? lastConfirmed.Value.AddDays(package.MinimumGapBetweenSessionsDays)
+                : today;
+
+            if (candidateMinDate < candidateStart) candidateMinDate = candidateStart;
+            if (candidateMinDate < today) candidateMinDate = today; // never offer a past date
+
+            if (candidateMinDate > candidateEnd)
+                continue; // gap pushes past this week's end — try next week
+
+            weekStart = candidateStart;
+            weekEnd = candidateEnd;
+            minDate = candidateMinDate;
+            scheduledThisWeek = candidateScheduled;
+            found = true;
+            break;
+        }
+
+        if (!found)
+        {
+            var fallbackStart = packageAnchor.AddDays(cycleIndex * 7);
+            return Result.Success(BuildRound(package, sessionNumber, weeklyTargetCount, 0,
+                fallbackStart, fallbackStart, quotaMet: false, noRoom: true, candidates: [], patientFreeTimeText));
+        }
 
         var (packageFrom, packageTo) = MapPreferredTimeOfDay(package.PreferredTimeOfDay);
 
         TimeOnly? patientFrom = null;
         TimeOnly? patientTo = null;
 
-        // Uses the override if one was sent this round; otherwise falls back to
-        // whatever's persisted on the Patient record — same as before this change.
         var patientPreferenceResult = await _patientQueryService.ResolvePatientTimePreferenceAsync(
             package.PatientId, patientFreeTimeOverride, persistFreeTimeOverride, cancellationToken);
 
@@ -158,9 +174,6 @@ public class PatientSessionSchedulingService(
             patientFrom = patientPreferenceResult.Value.PreferredTimeFrom;
             patientTo = patientPreferenceResult.Value.PreferredTimeTo;
         }
-        // On failure we deliberately don't fail the whole round — just fall back to
-        // the package's own window alone, same "don't block booking over a lookup
-        // hiccup" philosophy used elsewhere in this service.
 
         var (preferredFrom, preferredTo) = IntersectTimeWindows(packageFrom, packageTo, patientFrom, patientTo);
 
@@ -392,6 +405,7 @@ public class PatientSessionSchedulingService(
             RemainingSessions = package.RemainingSessions,
             NextSessionNumber = nextSessionNumber,
             Status = package.Status,
+            minimumGapBetweenSessionsDays = package.MinimumGapBetweenSessionsDays,
             SessionsPerWeek = package.SessionsPerWeek,
             SessionDuration = package.SessionDuration,
             PatientFreeTimeText = patientFreeTimeText

@@ -1,4 +1,5 @@
-﻿using PhysioAssist.Api.Shared.Dtos.Schedule;
+﻿using PhysioAssist.Api.Shared.Dtos.Patient;
+using PhysioAssist.Api.Shared.Dtos.Schedule;
 
 namespace PhysioAssist.Api.Shared.Interfaces.Exposed;
 
@@ -7,5 +8,6 @@ public record ScheduleSlotResult(Guid PatientId, DateTimeOffset SlotStart, DateT
 public interface IScheduleSlotQueryService
 {
     Task<List<ScheduleSlotResult>> GetUpcomingSlotsForDoctorAsync(Guid doctorId, CancellationToken ct = default);
-    
+    Task<Result<PatientScheduleOverviewDto>> GetScheduleOverviewAsync(Guid patientId, CancellationToken cancellationToken = default);
+
 }

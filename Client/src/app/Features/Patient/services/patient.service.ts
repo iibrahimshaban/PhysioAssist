@@ -1,11 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { PatientScheduleOverviewDto } from '../../../Shared/Models/Patient.model';
+import { Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PatientService {
-  private apiUrl = 'https://localhost:7097/api/patient';
+  private apiUrl = `${environment.apiUrl}patient`;
 
   constructor(private http: HttpClient) {}
 
@@ -58,6 +61,10 @@ getFormSchema(schemaId: string) {
 
 updateOverviewSubmission(patientId: string, body: { formSubmissionData: string }) {
   return this.http.put(`${this.apiUrl}/${patientId}/overview/submission-data`, body);
+}
+
+getScheduleOverview(patientId: string): Observable<PatientScheduleOverviewDto> {
+  return this.http.get<PatientScheduleOverviewDto>(`${this.apiUrl}/${patientId}/schedule-overview`);
 }
 
 }

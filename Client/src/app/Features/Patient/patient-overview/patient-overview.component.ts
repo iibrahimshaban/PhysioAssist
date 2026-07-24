@@ -7,11 +7,13 @@ import { BodyPainMapComponent, BodyPainMapPayload } from '../../intake/component
 import { DynamicFormRendererComponent } from '../../intake/components/dynamic-form-renderer/dynamic-form-renderer.component';
 import { DynamicFormSubmissionDto } from '../../intake/models';
 import { AgePipe } from '../../../Shared/Pipes/age-pipe';
+import { PatientScheduleOverviewDto } from '../../../Shared/Models/Patient.model';
+import { PatientScheduleOverviewComponent } from "../patient-schedule-overview/patient-schedule-overview.component";
 
 @Component({
   selector: 'app-patient-overview',
   standalone: true,
-  imports: [CommonModule, ButtonModule, BodyPainMapComponent, DynamicFormRendererComponent, AgePipe],
+  imports: [CommonModule, ButtonModule, BodyPainMapComponent, DynamicFormRendererComponent, AgePipe, PatientScheduleOverviewComponent],
   templateUrl: './patient-overview.component.html',
   styleUrl: './patient-overview.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,6 +22,8 @@ export class PatientOverviewComponent implements OnInit {
   private readonly patientService = inject(PatientService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+
+  scheduleOverview = signal<PatientScheduleOverviewDto | null>(null);
 
   // Left as `any` to match what PatientService.getOverview()/getFormSchema()
   // already returned before this conversion — no shape change, just signals.
@@ -38,7 +42,11 @@ export class PatientOverviewComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-    if (!id) return;
+      if (!id) return;
+
+      this.patientService.getScheduleOverview(id).subscribe(overview => {
+        this.scheduleOverview.set(overview);
+      });
 
     this.isLoading.set(true);
     this.patientService.getOverview(id).subscribe({
@@ -186,9 +194,6 @@ export class PatientOverviewComponent implements OnInit {
     this.router.navigate(['/app/patients', this.patient()?.id]);
   }
 
-  // NOTE: assumed route — this is the receptionist-scheduling route you built
-  // earlier (`receptionist-scheduling/:patientId`). Adjust the path segment
-  // below if it's registered under a different parent path.
   continueScheduling(): void {
     const patientId = this.patient()?.id;
     if (!patientId) return;
