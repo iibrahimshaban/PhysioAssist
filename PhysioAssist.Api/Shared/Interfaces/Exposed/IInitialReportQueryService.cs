@@ -6,4 +6,5 @@ public interface IInitialReportQueryService
 {
     Task<List<InitialReportResponse>> GetPatientReportsAsync(Guid patientId);
     Task<InitialReportResponse?> GetReportWithAttachmentsAsync(Guid reportId);
+    Task<Result<string?>> GetTreatmentPlanTextAsync(Guid patientId, CancellationToken cancellationToken = default);
 }

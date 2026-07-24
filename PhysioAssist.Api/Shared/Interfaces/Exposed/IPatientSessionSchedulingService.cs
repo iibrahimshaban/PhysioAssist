@@ -20,10 +20,15 @@ public interface IPatientSessionSchedulingService
     /// actually-confirmed session, and the doctor's real working-day cycle.
     /// </summary>
     Task<Result<SessionBookingRoundDto>> GetNextSessionCandidatesAsync(
-        Guid packageId,
-        string? patientFreeTimeOverride = null,
-        bool persistFreeTimeOverride = false,
-        CancellationToken cancellationToken = default);
+         Guid packageId,
+         string? patientFreeTimeOverride = null,
+         bool persistFreeTimeOverride = false,
+         TimeSpan? sessionDurationOverride = null,
+         int? sessionsPerWeekOverride = null,
+         int? minimumGapOverrideDays = null,
+         PreferredTimeOfDay? preferredTimeOfDayOverride = null,
+         DaysOfWeekFlags? preferredDaysOverride = null,
+         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Books the chosen slot via IAppointmentService.CreateAsync, links it to the

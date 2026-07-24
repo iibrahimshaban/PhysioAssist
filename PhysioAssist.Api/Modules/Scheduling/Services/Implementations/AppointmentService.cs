@@ -93,7 +93,8 @@ public class AppointmentService(
                 PatientId = existing.PatientId,
                 SlotStart = request.NewSlotStart,
                 SlotEnd = request.NewSlotEnd,
-                Status = SlotStatus.Booked
+                Status = SlotStatus.Booked,
+                PackageId = existing.PackageId
             };
 
             await _unitOfWork.ScheduleSlots.AddAsync(replacement);

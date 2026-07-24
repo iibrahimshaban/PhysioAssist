@@ -106,3 +106,4 @@ export interface ConvertPlanToPackageRequest {
   preferredDays?: DaysOfWeekFlags | null;
   priority?: SchedulingPriority | null;
 }
+

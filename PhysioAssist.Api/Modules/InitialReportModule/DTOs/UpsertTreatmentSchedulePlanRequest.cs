@@ -1,4 +1,5 @@
 ﻿using PhysioAssist.Api.Modules.Scheduling.DTO.AgentDtos;
+using PhysioAssist.Api.Shared.Dtos.Schedule;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.DTOs;
 

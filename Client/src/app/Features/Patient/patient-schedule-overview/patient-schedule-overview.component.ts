@@ -14,22 +14,20 @@ export class PatientScheduleOverviewComponent {
   protected readonly slotStatusEnum = SlotStatus;
 
   protected statusSeverity(status: SlotStatus): 'success' | 'info' | 'danger' | 'secondary' {
-    switch (status) {
-      case SlotStatus.Completed: return 'success';
-      case SlotStatus.Booked: return 'info';
-      case SlotStatus.NoShow: return 'secondary';
-      case SlotStatus.Cancelled: return 'danger';
-      default: return 'secondary';
-    }
+  switch (status) {
+    case SlotStatus.Completed: return 'success';
+    case SlotStatus.Booked: return 'info';
+    case SlotStatus.NoShow: return 'danger';
+    case SlotStatus.Cancelled: return 'secondary';
   }
+}
 
-  protected statusLabel(status: SlotStatus): string {
-    switch (status) {
-      case SlotStatus.Completed: return 'Completed';
-      case SlotStatus.Booked: return 'Booked';
-      case SlotStatus.NoShow: return 'No Show';
-      case SlotStatus.Cancelled: return 'Cancelled';
-      default: return 'Unknown';
-    }
+protected statusLabel(status: SlotStatus): string {
+  switch (status) {
+    case SlotStatus.Completed: return 'Completed';
+    case SlotStatus.Booked: return 'Booked';
+    case SlotStatus.NoShow: return 'No-show';
+    case SlotStatus.Cancelled: return 'Cancelled';
   }
+}
 }

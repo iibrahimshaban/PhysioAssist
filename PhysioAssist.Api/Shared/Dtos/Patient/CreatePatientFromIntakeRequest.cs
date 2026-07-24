@@ -9,5 +9,6 @@ public sealed record CreatePatientFromIntakeRequest(
     string? Occupation,
     Guid DoctorId,
     PatientCategory PatientCategory,
-    string? FreeTime
+    string? FreeTime,
+    string? Notes
     );

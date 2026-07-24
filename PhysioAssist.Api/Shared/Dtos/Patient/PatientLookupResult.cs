@@ -2,5 +2,6 @@
 
 public sealed record PatientLookupResult(
     Guid Id, 
-    string FullName
+    string FullName,
+    string? CaseNotes
     );

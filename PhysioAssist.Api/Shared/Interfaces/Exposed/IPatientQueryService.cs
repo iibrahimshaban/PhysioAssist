@@ -13,4 +13,8 @@ public interface IPatientQueryService
     Task<Result<PatientTimePreferenceInfo>> GetPatientTimePreferenceAsync(Guid patientId, CancellationToken cancellationToken = default);
     Task<Result<PatientTimePreferenceInfo>> ResolvePatientTimePreferenceAsync(Guid patientId,string? freeTimeOverrideText,
         bool persistOverride, CancellationToken cancellationToken = default);
+
+    Task<Dictionary<Guid, PatientLookupResult>> GetPatientsByIdsAsync(
+        IEnumerable<Guid> patientIds,
+        CancellationToken cancellationToken = default);
 }

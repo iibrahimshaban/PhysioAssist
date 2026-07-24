@@ -413,6 +413,7 @@ public class IntakeService(
         DateTime? dateOfBirth = ExtractInputValuesHelper.ExtractAnswerDate(submission, "question_default_dob", "date");
         var job = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_job", "text");
         var freeTime = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_free_time", "text");
+        var PatientCaseNotes = ExtractInputValuesHelper.ExtractChiefComplaint(intake.PainPointsData);
 
 
         if (string.IsNullOrWhiteSpace(fullName))
@@ -428,7 +429,8 @@ public class IntakeService(
                 job,
                 doctorId,
                 ExtractInputValuesHelper.ExtractPatientCategory(intake.PainPointsData),
-                freeTime),
+                freeTime,
+                PatientCaseNotes),
             cancellationToken);
 
         if (createPatientResult.IsFailure)

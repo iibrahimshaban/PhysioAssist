@@ -15,6 +15,7 @@ public class Patient : AuditableEntity
     public TimeOnly? ParsedPreferredTimeTo { get; set; }
     public DaysOfWeekFlags ParsedPreferredWeekdays { get; set; } // stored as int bitmask
     public string QRCodeToken { get; set; } = string.Empty;
+    public string? PatientCaseNotes { get; set; } = string.Empty;
     public PatientStatus Status { get; set; } = PatientStatus.Active;
     public ICollection<DoctorPatient> DoctorPatients { get; set; } = [];
 }

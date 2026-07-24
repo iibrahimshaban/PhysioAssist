@@ -1,11 +1,12 @@
 ﻿using PhysioAssist.Api.Modules.Scheduling.Entities;
+using PhysioAssist.Api.Modules.Scheduling.Errors;
+using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Shared.Dtos.Patient;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 
-public class ScheduleSlotQueryService(ApplicationDbContext context) : IScheduleSlotQueryService
+public class ScheduleSlotQueryService(ApplicationDbContext _context, IPatientSessionPackageAdjustmentService _patientSessionPackageAdjustmentService) : IScheduleSlotQueryService
 {
-    private readonly ApplicationDbContext _context = context;
 
     public async Task<List<ScheduleSlotResult>> GetUpcomingSlotsForDoctorAsync(Guid doctorId, CancellationToken ct = default)
     {
@@ -20,9 +21,9 @@ public class ScheduleSlotQueryService(ApplicationDbContext context) : IScheduleS
     }
 
     public async Task<Result<PatientScheduleOverviewDto>> GetScheduleOverviewAsync(
-        Guid patientId, CancellationToken cancellationToken = default)
+       Guid patientId, CancellationToken cancellationToken = default)
     {
-        var latestPackage = await context.Set<PatientSessionPackage>()
+        var latestPackage = await _context.Set<PatientSessionPackage>()
             .Where(p => p.PatientId == patientId)
             .OrderByDescending(p => p.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
@@ -30,7 +31,7 @@ public class ScheduleSlotQueryService(ApplicationDbContext context) : IScheduleS
         if (latestPackage is null)
             return Result.Success(PatientScheduleOverviewDto.Empty());
 
-        var slots = await context.Set<ScheduleSlot>()
+        var slots = await _context.Set<ScheduleSlot>()
             .Where(s => s.PackageId == latestPackage.Id && s.Status != SlotStatus.Cancelled)
             .OrderBy(s => s.SlotStart)
             .ToListAsync(cancellationToken);
@@ -46,19 +47,79 @@ public class ScheduleSlotQueryService(ApplicationDbContext context) : IScheduleS
             })
             .ToList();
 
-        var now = DateTimeOffset.UtcNow;
-
         return Result.Success(new PatientScheduleOverviewDto
         {
             HasPackage = true,
             PackageId = latestPackage.Id,
             PackageStatus = latestPackage.Status,
             TotalSessions = latestPackage.TotalSessions,
-            CompletedSessions = sessionItems.Count(s => s.SlotStart < now),
+            CompletedSessions = sessionItems.Count(s => s.Status == SlotStatus.Completed),
             RemainingSessions = latestPackage.RemainingSessions,
-            UpcomingScheduledCount = sessionItems.Count(s => s.SlotStart >= now),
+            UpcomingScheduledCount = sessionItems.Count(s => s.Status == SlotStatus.Booked),
             Sessions = sessionItems
         });
+    }
+    public async Task<Result> MarkCompletedAsync(Guid scheduleSlotId, CancellationToken cancellationToken = default)
+    {
+        var slot = await _context.Set<ScheduleSlot>()
+            .FirstOrDefaultAsync(s => s.Id == scheduleSlotId, cancellationToken);
+
+        if (slot is null)
+            return Result.Failure(SchedulingErrors.SlotNotFound);
+
+        if (slot.Status == SlotStatus.Completed)
+            return Result.Success();
+
+        if (slot.Status != SlotStatus.Booked)
+            return Result.Failure(SchedulingErrors.SlotNotInBookedState);
+
+        slot.Status = SlotStatus.Completed;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
+    }
+
+    public async Task<Result> MarkNoShowAsync(Guid scheduleSlotId, bool countsAsUsed, CancellationToken cancellationToken = default)
+    {
+        var slot = await _context.Set<ScheduleSlot>()
+            .FirstOrDefaultAsync(s => s.Id == scheduleSlotId, cancellationToken);
+
+        if (slot is null)
+            return Result.Failure(SchedulingErrors.SlotNotFound);
+
+        if (slot.Status != SlotStatus.Booked)
+            return Result.Failure(SchedulingErrors.SlotNotInBookedState);
+
+        slot.Status = SlotStatus.NoShow;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        if (!countsAsUsed && slot.PackageId.HasValue)
+        {
+            var extendResult = await _patientSessionPackageAdjustmentService.ExtendByOneSessionAsync(slot.PackageId.Value, cancellationToken);
+            if (extendResult.IsFailure)
+                return extendResult;
+        }
+
+        return Result.Success();
+    }
+    public async Task<Result<IReadOnlyList<Guid>>> GetPriorSlotIdsInPackageAsync(
+        Guid scheduleSlotId, CancellationToken cancellationToken = default)
+    {
+        var current = await _context.Set<ScheduleSlot>()
+            .Where(s => s.Id == scheduleSlotId)
+            .Select(s => new { s.PackageId, s.SlotStart })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (current is null || current.PackageId is null)
+            return Result.Success<IReadOnlyList<Guid>>([]);
+
+        var priorSlotIds = await _context.Set<ScheduleSlot>()
+            .Where(s => s.PackageId == current.PackageId && s.SlotStart < current.SlotStart)
+            .OrderByDescending(s => s.SlotStart)
+            .Select(s => s.Id)
+            .ToListAsync(cancellationToken);
+
+        return Result.Success<IReadOnlyList<Guid>>(priorSlotIds);
     }
 
 }

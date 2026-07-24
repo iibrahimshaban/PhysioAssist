@@ -125,9 +125,9 @@ public class ReceptionistController(
 
         var result = await _schedulingService.GetNextSessionCandidatesAsync(
             packageId,
-            request?.PatientFreeTimeOverride,
-            request?.PersistFreeTimeOverride ?? false,
-            cancellationToken);
+            patientFreeTimeOverride: request?.PatientFreeTimeOverride,
+            persistFreeTimeOverride: request?.PersistFreeTimeOverride ?? false,
+            cancellationToken: cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
