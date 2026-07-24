@@ -2,7 +2,6 @@
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
 using PhysioAssist.Api.Modules.Scheduling.helpers;
 using PhysioAssist.Api.Modules.Scheduling.Plugins;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
@@ -10,7 +9,6 @@ using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
 using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Shared.Options;
-using PhysioAssist.Api.Shared.QR;
 
 namespace PhysioAssist.Api.Modules.Scheduling;
 
@@ -27,9 +25,13 @@ public static class DependencyInjection
             .AddScoped<IAppointmentService, AppointmentService>()
             .AddScoped<IWorkingScheduleService, WorkingScheduleService>()
             .AddScoped<IScheduleSlotQueryService, ScheduleSlotQueryService>()
-            .AddScoped<IPatientSessionSchedulingService, PatientSessionSchedulingService>();
+            .AddScoped<IPatientSessionSchedulingService, PatientSessionSchedulingService>()
+            .AddScoped<ITodaySessionsService, TodaySessionsQueryService>();
 
-        
+        services.AddScoped<IPatientSessionPackageAdjustmentService, PatientSessionPackageAdjustmentService>();
+        services.AddScoped<IPackageSchedulingStatusService, PackageSchedulingStatusService>();
+
+
 
         services
             .AddSchedulingAgentConfig(configuration);
@@ -65,7 +67,7 @@ public static class DependencyInjection
 
             kernel.Plugins.AddFromObject(schedulePlugin, "DoctorSchedule");
 
-#pragma warning disable SKEXP0110
+            #pragma warning disable SKEXP0110
             return new ChatCompletionAgent
             {
                 Name = "DaySchedulerAgent",

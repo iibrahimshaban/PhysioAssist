@@ -1,4 +1,5 @@
 using PhysioAssist.Api.Modules.InitialReportModule.DTOs;
+using PhysioAssist.Api.Modules.InitialReportModule.Entities;
 using PhysioAssist.Api.Modules.InitialReportModule.Repositories;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Services;
@@ -17,6 +18,12 @@ public class InitialReportQueryService(IInitialReportRepository reportRepository
     {
         var report = await _reportRepository.GetWithAttachmentsAsync(reportId);
         return report is null ? null : MapToResponse(report);
+    }
+    public async Task<Result<string?>> GetTreatmentPlanTextAsync(
+        Guid patientId, CancellationToken cancellationToken = default)
+    {
+        var plan = await _reportRepository.GetTreatmentPlanTextAsync(patientId, cancellationToken);
+        return Result.Success(plan);
     }
 
     private static InitialReportResponse MapToResponse(Entities.InitialReport report) => new(

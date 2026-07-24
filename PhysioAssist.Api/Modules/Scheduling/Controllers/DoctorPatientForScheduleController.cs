@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using PhysioAssist.Api.Modules.PatientModule.Services;
+﻿using Microsoft.AspNetCore.Mvc;
+using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces; // ASSUMPTION: adjust to wherever IPatientService actually lives
 using PhysioAssist.Api.Shared.Dtos.Patient;
-using PhysioAssist.Api.Shared.Extensions;
-using PhysioAssist.Api.Shared.ResultPattern;
+using PhysioAssist.Api.Shared.Dtos.Schedule;
+
 
 namespace PhysioAssist.Api.Modules.Scheduling.Controllers
 {
@@ -17,7 +15,12 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class DoctorPatientForScheduleController(IPatientQueryService patientService) : ControllerBase
+    public class DoctorPatientForScheduleController(
+        IPatientQueryService patientService, 
+        ITodaySessionsService _todaySessionsService,
+        IPackageSchedulingStatusService _packageSchedulingStatusService,
+        IPatientSessionPackageAdjustmentService _packageAdjustmentService,
+        IPatientSessionSchedulingService _schedulingService) : ControllerBase
     {
         private readonly IPatientQueryService _patientService = patientService;
 
@@ -41,13 +44,62 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         public async Task<ActionResult<List<PatientResponse>>> GetAllPatientsForDoctor(
             CancellationToken cancellationToken)
         {
-            var doctorIdClaim = User.GetUserId();
-            if (!Guid.TryParse(doctorIdClaim, out var doctorId))
-                return Unauthorized("No valid doctor identity found on the request.");
+            var doctorId = Guid.Parse(User.GetUserId()!);
 
             var result = await _patientService.GetAllPatientsForDoctorAsync(doctorId, cancellationToken);
 
             return result.IsFailure ? result.ToProblem() : Ok(result.Value);
+        }
+        [HttpGet("today-sessions")]
+        public async Task<IActionResult> GetTodaySessions(CancellationToken cancellationToken)
+        {
+            var doctorId = Guid.Parse(User.GetUserId()!);
+
+            var result = await _todaySessionsService.GetTodaySessionsAsync(doctorId, cancellationToken);
+            return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+        }
+        [HttpPost("{packageId:guid}/next-session-candidates")]
+        public async Task<IActionResult> GetNextSessionCandidates(
+            Guid packageId,
+            [FromBody] GetNextSessionCandidatesRequest request,
+            CancellationToken cancellationToken)
+        {
+            var result = await _schedulingService.GetNextSessionCandidatesAsync(
+                packageId,
+                request.PatientFreeTimeOverride,
+                request.PersistFreeTimeOverride,
+                request.SessionDurationOverride,
+                request.SessionsPerWeekOverride,
+                request.MinimumGapOverrideDays,
+                request.PreferredTimeOfDayOverride,
+                request.PreferredDaysOverride,
+                cancellationToken);
+
+            return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+        }
+
+        [HttpGet("session/{sessionId:guid}/next-booking-context")]
+        public async Task<IActionResult> GetNextBookingContext(Guid sessionId, CancellationToken cancellationToken)
+        {
+            var result = await _packageSchedulingStatusService.GetContextAsync(sessionId, cancellationToken);
+            return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+        }
+
+        [HttpPost("{packageId:guid}/extend")]
+        public async Task<IActionResult> ExtendPackage(Guid packageId, CancellationToken cancellationToken)
+        {
+            var result = await _packageAdjustmentService.ExtendByOneSessionAsync(packageId, cancellationToken);
+            return result.IsSuccess ? NoContent() : result.ToProblem();
+        }
+        [HttpPost("packages/{packageId:guid}/confirm-slot")]
+        public async Task<IActionResult> ConfirmSessionSlot(
+            Guid packageId,
+            [FromBody] SlotCandidateDto chosenSlot,
+            CancellationToken cancellationToken)
+        {
+
+            var result = await _schedulingService.ConfirmSessionSlotAsync(packageId, chosenSlot, cancellationToken);
+            return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
         }
     }
 }

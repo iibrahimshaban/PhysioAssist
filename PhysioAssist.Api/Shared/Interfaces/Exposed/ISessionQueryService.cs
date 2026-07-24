@@ -7,4 +7,9 @@ public interface ISessionQueryService
     Task<SessionTranscriptContext?> GetTranscriptContextAsync(Guid sessionId, CancellationToken ct = default);
     Task<List<SessionSummaryItem>> GetSessionSummariesForPatientAsync(
         Guid doctorId, Guid patientId, CancellationToken ct = default);
+
+    Task<Dictionary<Guid, SessionLookupDto>> GetSessionsByScheduleSlotIdsAsync(IEnumerable<Guid> scheduleSlotIds,
+        CancellationToken cancellationToken = default);
+
+    Task<Guid?> GetScheduleSlotIdBySessionIdAsync(Guid sessionId, CancellationToken cancellationToken = default);
 }
