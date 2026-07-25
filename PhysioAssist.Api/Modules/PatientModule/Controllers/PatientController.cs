@@ -102,6 +102,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
             var result = await _patientService.UpdatePatientOverviewSubmissionAsync(id, request.FormSubmissionData, ct);
             return result.IsSuccess ? NoContent() : result.ToProblem();
         }
+
         [HttpGet("{patientId:guid}/schedule-overview")]
         public async Task<IActionResult> GetScheduleOverview(Guid patientId, CancellationToken cancellationToken)
         {

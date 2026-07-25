@@ -78,6 +78,10 @@ public class PatientQueryService(
             ? $"converted-{Guid.NewGuid():N}@physioassist.local"
             : request.Email;
 
+        var existingPatient = await _patientRepo.GetByEmailAsync(resolvedEmail);
+        if (existingPatient is not null)
+            return Result.Failure<Guid>(PatientErrors.DuplicateEmail);
+
         var patient = new Patient
         {
             FullName = request.FullName,

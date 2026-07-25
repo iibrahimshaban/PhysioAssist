@@ -8,6 +8,9 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root',
 })
 export class PatientService {
+
+  private intakeUrl = '${environment.apiUrl}intake';
+
   private apiUrl = `${environment.apiUrl}patient`;
 
   constructor(private http: HttpClient) {}
@@ -56,15 +59,36 @@ export class PatientService {
 }
 
 getFormSchema(schemaId: string) {
-  return this.http.get<any>(`https://localhost:7097/api/intake/form-schemas/${schemaId}`);
+  return this.http.get<any>(`${this.intakeUrl}/form-schemas/${schemaId}`);
 }
 
-updateOverviewSubmission(patientId: string, body: { formSubmissionData: string }) {
+updateOverviewSubmission(patientId: string, body: { formSubmissionData: string; painPointsData: string | null }) {
   return this.http.put(`${this.apiUrl}/${patientId}/overview/submission-data`, body);
 }
 
+createDirectIntake(body: { formSchemaId: string; formSubmissionData: string; painPointsData: string | null }) {
+    return this.http.post<any>(`${this.intakeUrl}/direct`, body);
+  }
+
+  convertIntakeToPatient(intakeId: string) {
+    return this.http.post<any>(`${this.intakeUrl}/submissions/${intakeId}/convert-to-patient`, {
+      formSubmissionData: '',
+      painPointsData: ''
+    });
+  }
+
+  getDefaultFormSchema() {
+  return this.http.get<any>(`${this.intakeUrl}/form-schemas/default`);
+}
+
+getAllFormSchemas() {
+    return this.http.get<any[]>(`${this.intakeUrl}/form-schemas`);
+  }
+
+  createPatientFromIntake(body: { formSchemaId: string; formSubmissionData: string; painPointsData: string | null }) {
+    return this.http.post<any>(`${this.apiUrl}/create-from-intake`, body);
+  }
 getScheduleOverview(patientId: string): Observable<PatientScheduleOverviewDto> {
   return this.http.get<PatientScheduleOverviewDto>(`${this.apiUrl}/${patientId}/schedule-overview`);
 }
-
 }
