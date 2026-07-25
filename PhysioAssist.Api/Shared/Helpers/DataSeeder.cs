@@ -103,7 +103,10 @@ public static class DataSeeder
             Permissions.CreateReceptionist,
             Permissions.UpdateReceptionist,
             Permissions.CheckInPatients,
-            Permissions.ManageSchedule
+            Permissions.ManageSchedule,
+            Permissions.CreateSessionPackage,
+            Permissions.ConfirmSessionSlot,
+            Permissions.GetSessionCandidates
         };
 
         foreach (var permission in soloDoctorPermissions)

@@ -34,6 +34,15 @@ public static class Permissions
     [PermissionMetadata("Check in patients", "Mark arrivals and update queue.")]
     public const string CheckInPatients = "receptionist:check-in-patients";
 
+    [PermissionMetadata("Create session package", "Create a new patient treatment session package.")]
+    public const string CreateSessionPackage = "scheduling:create-session-package";
+
+    [PermissionMetadata("View session candidates", "View suggested slots for a patient's next session.")]
+    public const string GetSessionCandidates = "scheduling:get-session-candidates";
+
+    [PermissionMetadata("Confirm session slot", "Book a specific session slot for a patient.")]
+    public const string ConfirmSessionSlot = "scheduling:confirm-session-slot";
+
     public static IList<string?> GetAllPermissions() =>
         [.. typeof(Permissions).GetFields().Select(field => field.GetValue(field) as string)];
 

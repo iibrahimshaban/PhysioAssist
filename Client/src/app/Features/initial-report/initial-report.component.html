@@ -12,7 +12,7 @@
     <div class="mb-6">
       <div class="header-row flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-start gap-3">
-          <button pButton type="button" icon="pi pi-arrow-left" class="p-button-outlined p-button-rounded mt-1" (click)="goBack()" aria-label="Go back"></button>
+          <button pButton type="button" icon="pi pi-arrow-left" class="p-button-outlined p-button-rounded mt-1" (click)="goBack()" aria-label="Go back" title="Go back"></button>
           <div>
             <h1 class="text-3xl font-bold">Initial report</h1>
             <p class="header-subtitle mt-2">Create the initial assessment report with a guided review for the patient.</p>
@@ -186,6 +186,14 @@
         }
       </section>
 
+       <!-- Schedule requirements — new last section -->
+      @if (reportId) {
+        <app-schedule-requirements
+          [reportId]="reportId"
+          [readonlyMode]="readonlyMode()"
+          (planChanged)="onScheduleplanChanged($event)">
+        </app-schedule-requirements>
+      }
       <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-start sm:items-center mt-6">
         @if (readonlyMode()) {
           <button pButton type="button" label="Edit report" icon="pi pi-pencil" class="w-full sm:w-auto justify-center" (click)="enableEdit()"></button>

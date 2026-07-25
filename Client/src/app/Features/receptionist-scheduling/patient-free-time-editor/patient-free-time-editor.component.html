@@ -1,0 +1,31 @@
+<!-- Component .ts needs these PrimeNG modules imported: TextareaModule (pTextarea), CheckboxModule, ButtonModule -->
+
+<div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5">
+  <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Patient's free times</p>
+  <p class="text-sm text-slate-400 mt-1">
+    Optional — jot down when the patient said they're available. Helps you pick the right slot.
+  </p>
+
+  <textarea
+    pTextarea
+    rows="2"
+    class="w-full mt-3 text-sm"
+    placeholder="e.g. Mon &amp; Wed after 5pm, Sat morning before 11am, not available Fridays"
+    [ngModel]="freeTimeText()"
+    (ngModelChange)="freeTimeText.set($event)"
+  ></textarea>
+
+  <div class="flex items-center justify-between mt-4">
+    <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+      <p-checkbox [ngModel]="persistOverride()" (ngModelChange)="persistOverride.set($event)" [binary]="true" />
+      Update patient's saved availability
+    </label>
+
+    <p-button
+      label="Refresh available slots"
+      icon="pi pi-search"
+      size="small"
+      (onClick)="refresh.emit({ text: freeTimeText(), persist: persistOverride() })"
+    />
+  </div>
+</div>

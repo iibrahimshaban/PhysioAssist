@@ -1,13 +1,15 @@
 ﻿namespace PhysioAssist.Api.Shared.Enums
 {
-    public enum DayOfWeekFlag
+    [Flags]
+    public enum DaysOfWeekFlags
     {
-        Sunday = 0,
-        Monday = 1,
-        Tuesday = 2,
-        Wednesday = 3,
-        Thursday = 4,
-        Friday = 5,
-        Saturday = 6    
+        None = 0,
+        Sunday = 1 << 0,
+        Monday = 1 << 1,
+        Tuesday = 1 << 2,
+        Wednesday = 1 << 3,
+        Thursday = 1 << 4,
+        Friday = 1 << 5,
+        Saturday = 1 << 6
     }
 }

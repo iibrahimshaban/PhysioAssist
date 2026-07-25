@@ -1,12 +1,9 @@
 using PhysioAssist.Api.Modules.InitialReportModule.DTOs;
+using PhysioAssist.Api.Modules.InitialReportModule.Entities;
 using PhysioAssist.Api.Modules.InitialReportModule.Repositories;
-using PhysioAssist.Api.Shared.Interfaces;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Services;
 
-// ⚠️ لسه محتاج أشوف محتوى IInitialReportQueryService.cs الفعلي في Shared/Interfaces
-// عشان أتأكد إن الـ method signatures هنا متطابقة تمامًا (أسماء الميثودز، نوع الإرجاع).
-// الكود التالي مبني على افتراض التصميم الأصلي.
 public class InitialReportQueryService(IInitialReportRepository reportRepository) : IInitialReportQueryService
 {
     private readonly IInitialReportRepository _reportRepository = reportRepository;
@@ -21,6 +18,12 @@ public class InitialReportQueryService(IInitialReportRepository reportRepository
     {
         var report = await _reportRepository.GetWithAttachmentsAsync(reportId);
         return report is null ? null : MapToResponse(report);
+    }
+    public async Task<Result<string?>> GetTreatmentPlanTextAsync(
+        Guid patientId, CancellationToken cancellationToken = default)
+    {
+        var plan = await _reportRepository.GetTreatmentPlanTextAsync(patientId, cancellationToken);
+        return Result.Success(plan);
     }
 
     private static InitialReportResponse MapToResponse(Entities.InitialReport report) => new(

@@ -16,5 +16,7 @@ public class InitialReportConfiguration : IEntityTypeConfiguration<InitialReport
 
         builder.Property(r => r.TreatmentPlanPdfUrl)
                .HasMaxLength(500);
+
+
     }
 }

@@ -29,4 +29,7 @@ public interface IIntakeService
 
     // Intake Conversion
     Task<Result<PreVisitIntakeResponse>> ConvertToPatientAsync(Guid id, ConvertIntakeToPatientRequest request, Guid doctorId, CancellationToken cancellationToken = default);
+
+    // Direct Intake Creation (patient creattion)
+    Task<Result<PreVisitIntakeResponse>> CreateDirectIntakeAsync(CreateDirectIntakeRequest request, Guid doctorId, CancellationToken cancellationToken = default);
 }

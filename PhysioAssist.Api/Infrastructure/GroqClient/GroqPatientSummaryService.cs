@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
+using PhysioAssist.Api.Infrastructure.GroqClient.Options;
+using PhysioAssist.Api.Infrastructure.GroqClient.Prompts;
 using PhysioAssist.Api.Shared.Errors;
-using PhysioAssist.Api.Shared.Interfaces;
 using PhysioAssist.Api.Shared.Interfaces.Documentation;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace PhysioAssist.Api.Infrastructure.GroqClient;

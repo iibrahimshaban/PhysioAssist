@@ -1,8 +1,7 @@
-﻿using PhysioAssist.Api.Modules.Intake.Errors;
+﻿using PhysioAssist.Api.Modules.Intake.Entities;
+using PhysioAssist.Api.Modules.Intake.Errors;
 using PhysioAssist.Api.Modules.Intake.Helpers;
-using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Dtos.Intake;
-using PhysioAssist.Api.Shared.Interfaces.Exposed;
 
 namespace PhysioAssist.Api.Modules.Intake.Services;
 
@@ -26,9 +25,9 @@ public class IntakeQueryService(ApplicationDbContext context) : IIntakeQueryServ
         var response = new PreVisitIntakeDataResponse(
             intake.Id,
             intake.DoctorId,
-            intake.FormSchemaId,
+            intake.FormSchemaId,  
             intake.FormSchemaVersion,
-            intake.FormSubmissionData,
+            intake.FormSubmissionData, 
             intake.PainPointsData,
             intake.Status,
             intake.ConvertedToPatientId,
@@ -73,5 +72,24 @@ public class IntakeQueryService(ApplicationDbContext context) : IIntakeQueryServ
         var patientCategory = ExtractInputValuesHelper.ExtractPatientCategory(intake.PainPointsData);
 
         return Result.Success(new PatientIntakeSummaryResponse(fullName, gender, age, chiefComplaint, injury, injuryDate, patientCategory));
+    }
+    public async Task<Result<string?>> GetPatientFreeTimeTextAsync(Guid patientId, CancellationToken cancellationToken = default)
+    {
+        var intake = await _context.PreVisitIntakes
+            .Where(i => i.ConvertedToPatientId == patientId)
+            .OrderByDescending(i => i.ReviewedAt) // most recent conversion, in case of any edge case with more than one
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (intake is null)
+            return Result.Success<string?>(null); // no intake on file — not an error
+
+        var submission = ExtractInputValuesHelper.DeserializeSubmissionJson(intake.FormSubmissionData);
+
+        if (submission is null)
+            return Result.Success<string?>(null); // malformed/empty submission — same non-error fallback
+
+        var freeTimeText = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_free_time", "text");
+
+        return Result.Success(freeTimeText);
     }
 }

@@ -1,6 +1,7 @@
 export interface SessionDetailsResponse {
   id: string;
   patientName: string;
+  PatientId:string;
   slotStart: string;
   slotEnd: string;
   durationInMinutes: number;
@@ -8,6 +9,7 @@ export interface SessionDetailsResponse {
   editedTranscript: string;
   attachments: Attachment[];
   audioFileUrl: string | null;
+  treatmentPlan: string | null;
 }
 
 interface Attachment {

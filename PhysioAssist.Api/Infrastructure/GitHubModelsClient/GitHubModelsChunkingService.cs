@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
+using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
+using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Prompts;
 using PhysioAssist.Api.Shared.Dtos.Chunking;
 using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 using System.Net.Http.Headers;
@@ -39,7 +41,8 @@ public class GitHubModelsChunkingService : ITranscriptChunkingService
                 new { role = "system", content = SystemPrompt },
                 new { role = "user", content = text }
             },
-            temperature = 0.0
+            temperature = 0.0,
+            response_format = new { type = "json_object" }
         };
 
         using var response = await _httpClient.PostAsJsonAsync(_options.Endpoint, payload, ct);
@@ -56,9 +59,12 @@ public class GitHubModelsChunkingService : ITranscriptChunkingService
 
         try
         {
-            var chunks = JsonSerializer.Deserialize<List<ExtractedChunk>>(content, JsonOptions);
-            return chunks ?? [];
+            var wrapper = JsonSerializer.Deserialize<ChunksWrapper>(content, JsonOptions);
+            return wrapper?.Chunks ?? [];
         }
+
+        // Added response_format json_object to enforce structured JSON output from the model
+        // Changed deserialization to handle wrapped {"chunks": [...]} format
         catch (JsonException)
         {
             // Malformed JSON from the model — don't crash the pipeline, return empty
@@ -70,4 +76,6 @@ public class GitHubModelsChunkingService : ITranscriptChunkingService
     private sealed record ChatCompletionResponse(List<Choice> Choices);
     private sealed record Choice(ChatMessage Message);
     private sealed record ChatMessage(string Content);
+    private sealed record ChunksWrapper(List<ExtractedChunk> Chunks);
 }
+

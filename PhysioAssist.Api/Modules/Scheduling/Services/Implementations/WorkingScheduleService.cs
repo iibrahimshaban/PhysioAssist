@@ -1,10 +1,8 @@
-﻿using PhysioAssist.Api.Modules.Notification.Interfaces;
-using PhysioAssist.Api.Modules.Scheduling.DTO;
+﻿using PhysioAssist.Api.Modules.Scheduling.DTO;
 using PhysioAssist.Api.Modules.Scheduling.Entities;
 using PhysioAssist.Api.Modules.Scheduling.Errors;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
-using PhysioAssist.Api.Shared.Interfaces.Common;
-using PhysioAssist.Api.Shared.ResultPattern;
+
 
 
 

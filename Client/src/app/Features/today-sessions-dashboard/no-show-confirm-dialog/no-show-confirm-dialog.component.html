@@ -1,0 +1,31 @@
+<p-dialog
+      header="Mark as no-show"
+      [(visible)]="visibleModel"
+      [modal]="true"
+      [style]="{ width: '420px' }"
+      (onHide)="cancelled.emit()"
+    >
+      <p class="text-sm text-slate-600 mb-4">{{ patientName() }} didn't show up for this session. What should happen to their package?</p>
+
+      <div class="space-y-3">
+        <label class="flex items-start gap-2 cursor-pointer">
+          <p-radiobutton name="noShowMode" [value]="true" [(ngModel)]="countsAsUsed" inputId="counts" />
+          <span class="text-sm text-slate-700">
+            <span class="font-semibold block">Counts as used</span>
+            No make-up session — this one is spent.
+          </span>
+        </label>
+        <label class="flex items-start gap-2 cursor-pointer">
+          <p-radiobutton name="noShowMode" [value]="false" [(ngModel)]="countsAsUsed" inputId="reopen" />
+          <span class="text-sm text-slate-700">
+            <span class="font-semibold block">Reopen</span>
+            Patient still owes this session — a make-up slot is added.
+          </span>
+        </label>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-6">
+        <p-button label="Cancel" [text]="true" (onClick)="visibleModel = false" />
+        <p-button label="Confirm" severity="danger" (onClick)="onConfirm()" />
+      </div>
+    </p-dialog>

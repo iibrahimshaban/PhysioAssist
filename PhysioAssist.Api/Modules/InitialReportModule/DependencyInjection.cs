@@ -13,6 +13,10 @@ public static class DependencyInjection
         services.AddScoped<IInitialReportService, InitialReportService>();
         services.AddScoped<IInitialReportQueryService, InitialReportQueryService>();
 
+        services.AddScoped<ITreatmentSchedulePlanRepository, TreatmentSchedulePlanRepository>();
+        services.AddScoped<ITreatmentSchedulePlanService, TreatmentSchedulePlanService>();
+
+
         return services;
     }
 }

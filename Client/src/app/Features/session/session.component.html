@@ -15,6 +15,15 @@
         (record)="openRecordingModal()"
       ></app-session-notes>
 
+      <!-- Treatment plan -->
+      <app-treatment-plan
+        class="mt-4 block"
+        [isOpen]="treatmentPlanOpen()"
+        [plan]="treatmentPlan()"
+        (toggle)="toggleTreatmentPlan()"
+        (planChange)="onTreatmentPlanChanged($event)"
+      />
+
       <!-- Session information -->
       <app-session-info
         class="mt-4"
@@ -41,12 +50,13 @@
       ></app-session-actions>
     </section>
 
-    <!-- Dictation guide sidebar -->
-    <app-dictation-guide
-      class="lg:col-span-4"
-      [isOpen]="dictationGuideOpen()"
-      (toggle)="toggleDictationGuide()"
-    ></app-dictation-guide>
+    @if (sessionDetails(); as session) {
+    <app-next-session-booking
+      class="mt-4 block lg:col-span-4"
+      [sessionId]="session.id"
+      [patientId]="session.PatientId"
+    />
+  }
   </main>
 
   <!-- Recording modal -->

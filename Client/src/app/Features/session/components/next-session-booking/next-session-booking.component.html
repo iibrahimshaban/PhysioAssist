@@ -1,0 +1,132 @@
+<!-- next-session-booking.component.html -->
+@if (!isLoadingContext() && !hasNothingToShow()) {
+  <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="border-b border-slate-100 px-5 py-4">
+      <span class="text-sm font-bold uppercase text-slate-700">
+        @if (state() === stateEnum.LastSessionDecisionNeeded) {
+          Package finished
+        } @else if (state() === stateEnum.NotApplicable) {
+          Next session
+        } @else {
+          Book next session
+        }
+      </span>
+    </div>
+
+    <div class="px-5 py-5">
+      @if (state() === stateEnum.NotApplicable) {
+        <!-- Already booked — read-only. Nothing here is editable. -->
+        <div class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+          <i class="fa-solid fa-calendar-check text-lg text-[#0B8EEA]"></i>
+          <div>
+            <p class="text-sm font-semibold text-slate-800">Next session already scheduled</p>
+            <p class="mt-0.5 text-xs text-slate-500">
+              {{ nextScheduledSlotStart() | date: 'EEE, MMM d · h:mm a' }}
+            </p>
+          </div>
+        </div>
+      } @else if (bookedConfirmation(); as confirmed) {
+        <div class="rounded-xl border border-green-100 bg-green-50 p-4 text-center">
+          <i class="fa-solid fa-circle-check mb-2 block text-xl text-green-500"></i>
+          <p class="text-sm font-semibold text-slate-800">Next session booked</p>
+          <p class="mt-1 text-xs text-slate-500">{{ confirmed.start | date: 'MMM d · h:mm a' }}</p>
+        </div>
+      } @else if (state() === stateEnum.LastSessionDecisionNeeded && !round()) {
+        <p class="mb-4 text-sm text-slate-600">
+          This was the last session in the patient's package. Add another session, or send them
+          to the receptionist to decide?
+        </p>
+        <div class="flex flex-col gap-2">
+          <p-button
+            label="Book another session"
+            icon="pi pi-plus"
+            [loading]="isExtending()"
+            (onClick)="onExtendAndSearch()"
+          />
+          <p-button
+            label="Send to receptionist"
+            [outlined]="true"
+            (onClick)="onRedirectToReceptionist()"
+          />
+        </div>
+      } @else {
+        @if (!round()) {
+          <button
+            type="button"
+            class="mb-3 text-xs font-medium text-[#0B8EEA]"
+            (click)="showOverrides.set(!showOverrides())"
+          >
+            {{ showOverrides() ? 'Hide' : 'Adjust' }} duration / frequency for this search
+          </button>
+
+          @if (showOverrides()) {
+            <div class="mb-4 grid grid-cols-3 gap-3">
+              <div>
+                <label class="mb-1 block text-xs text-slate-500">Duration (min)</label>
+                <p-inputNumber
+                  [ngModel]="durationMinutesOverride()"
+                  (ngModelChange)="durationMinutesOverride.set($event)"
+                  [min]="5"
+                  styleClass="w-full"
+                />
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-slate-500">Sessions/week</label>
+                <p-inputNumber
+                  [ngModel]="sessionsPerWeekOverride()"
+                  (ngModelChange)="sessionsPerWeekOverride.set($event)"
+                  [min]="1"
+                  styleClass="w-full"
+                />
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-slate-500">Min gap (days)</label>
+                <p-inputNumber
+                  [ngModel]="minimumGapOverride()"
+                  (ngModelChange)="minimumGapOverride.set($event)"
+                  [min]="0"
+                  styleClass="w-full"
+                />
+              </div>
+            </div>
+          }
+
+          <p-button
+            label="Find available slots"
+            icon="pi pi-search"
+            [loading]="isSearching()"
+            (onClick)="onSearchSlots()"
+            styleClass="w-full"
+          />
+        }
+
+        @if (round(); as r) {
+          @if (r.candidates.length === 0) {
+            <p class="py-4 text-center text-sm text-slate-500">No open slots found this round.</p>
+          } @else {
+            <div class="space-y-2">
+              @for (candidate of r.candidates; track candidate.start) {
+                <button
+                  type="button"
+                  class="w-full rounded-xl border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:border-[#0B8EEA] hover:bg-[#0B8EEA]/5 disabled:opacity-50"
+                  [disabled]="isConfirming()"
+                  (click)="onPickSlot(candidate)"
+                >
+                  {{ candidate.start | date: 'EEE, MMM d · h:mm a' }}
+                </button>
+              }
+            </div>
+          }
+
+          <p-button
+            label="Redirect to receptionist instead"
+            [text]="true"
+            size="small"
+            styleClass="mt-3 w-full"
+            (onClick)="onRedirectToReceptionist()"
+          />
+        }
+      }
+    </div>
+  </div>
+}

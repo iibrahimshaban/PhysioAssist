@@ -13,4 +13,13 @@ public static class ReceptionistErrors
 
     public static readonly Error NotFound =
         new("Receptionist.NotFound", "Receptionist not found.", StatusCodes.Status404NotFound);
+
+    public static readonly Error DoctorNotResolved =
+        new("Receptionist.DoctorNotResolved", "Could not resolve the managing doctor for this account.", StatusCodes.Status403Forbidden);
+
+    public static readonly Error PackageNotFound =
+        new("Receptionist.PackageNotFound", "Session package not found.", StatusCodes.Status404NotFound);
+
+    public static readonly Error PackageAccessDenied =
+        new("Receptionist.PackageAccessDenied", "You do not have access to this package.", StatusCodes.Status403Forbidden);
 }

@@ -50,10 +50,11 @@ export class SessionService {
     return this.http.post<void>(`${this.api}/${sessionId}/attachments`, formData);
   }
 
-  completeSession(sessionId: string, editedTranscript: string, files: File[]) {
+  completeSession(sessionId: string, editedTranscript: string, files: File[], treatmentPlan: string) {
     const formData = new FormData();
 
     formData.append('EditedTranscript', editedTranscript);
+    formData.append('TreatmentPlanUpdated', treatmentPlan);
 
     for (const file of files) {
       formData.append('Files', file);
@@ -62,10 +63,11 @@ export class SessionService {
     return this.http.put<void>(`${this.api}/${sessionId}/complete`, formData);
   }
 
-  saveDraft(sessionId: string, editedTranscript: string, files: File[]) {
+  saveDraft(sessionId: string, editedTranscript: string, files: File[], treatmentPlan: string) {
     const formData = new FormData();
 
     formData.append('EditedTranscript', editedTranscript);
+    formData.append('TreatmentPlanUpdated', treatmentPlan);
 
     for (const file of files) {
       formData.append('Files', file);

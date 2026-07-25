@@ -3,14 +3,14 @@ import { ActivatedRoute } from '@angular/router';
 import { SessionService } from '../../Core/Services/session.service';
 import { SelectedAttachment } from '../../Shared/Models/selected-attachment';
 import { SessionDetailsResponse } from '../../Shared/Models/session-details-response';
-
-import { DictationGuideComponent } from './components/dictation-guide/dictation-guide.component';
 import { RecordingModalComponent } from './components/recording-modal/recording-modal.component';
 import { SessionActionsComponent } from './components/session-actions/session-actions.component';
 import { SessionAttachmentsComponent } from './components/session-attachments/session-attachments.component';
 import { SessionHeaderComponent } from './components/session-header/session-header.component';
 import { SessionInfoComponent } from './components/session-info/session-info.component';
 import { SessionNotesComponent } from './components/session-notes/session-notes.component';
+import { TreatmentPlanComponent } from './components/treatment-plan/treatment-plan.component';
+import { NextSessionBookingComponent } from './components/next-session-booking/next-session-booking.component';
 
 @Component({
   selector: 'app-session',
@@ -20,8 +20,9 @@ import { SessionNotesComponent } from './components/session-notes/session-notes.
     SessionInfoComponent,
     SessionAttachmentsComponent,
     SessionActionsComponent,
-    DictationGuideComponent,
     RecordingModalComponent,
+    NextSessionBookingComponent,
+    TreatmentPlanComponent
   ],
   templateUrl: './session.component.html',
   styleUrl: './session.component.css',
@@ -31,12 +32,13 @@ export class SessionComponent implements OnInit {
   private route = inject(ActivatedRoute);
   sessionDetails = signal<SessionDetailsResponse | null>(null);
   notes = signal('');
+  treatmentPlan = signal('');
 
   isSavingDraft = signal(false);
   isCompletingSession = signal(false);
 
   sessionInfoOpen = signal(true);
-  dictationGuideOpen = signal(false);
+  treatmentPlanOpen = signal(true);
 
   isRecordingModalOpen = signal(false);
   recordingSeconds = signal(0);
@@ -60,11 +62,13 @@ export class SessionComponent implements OnInit {
 
     this.loadSessionDetails(id);
   }
+
   private loadSessionDetails(id: string) {
     this.sessionService.getDetails(id).subscribe({
       next: (response) => {
         this.sessionDetails.set(response);
         this.notes.set(response.editedTranscript ?? '');
+        this.treatmentPlan.set(response.treatmentPlan ?? '');
       },
       error: (error) => {
         console.error('Failed to load session details', error);
@@ -76,12 +80,16 @@ export class SessionComponent implements OnInit {
     this.notes.set(value);
   }
 
+  onTreatmentPlanChanged(value: string) {
+    this.treatmentPlan.set(value);
+  }
+
   toggleSessionInfo() {
     this.sessionInfoOpen.update((value) => !value);
   }
 
-  toggleDictationGuide() {
-    this.dictationGuideOpen.update((value) => !value);
+  toggleTreatmentPlan() {
+    this.treatmentPlanOpen.update((value) => !value);
   }
 
   async openRecordingModal() {
@@ -172,28 +180,23 @@ export class SessionComponent implements OnInit {
 
     this.isSavingDraft.set(true);
 
-    this.sessionService.saveDraft(currentSession.id, this.notes(), files).subscribe({
-      next: () => {
-        this.clearSelectedAttachments();
+    this.sessionService
+      .saveDraft(currentSession.id, this.notes(), files, this.treatmentPlan())
+      .subscribe({
+        next: () => {
+          this.clearSelectedAttachments();
 
-        this.sessionDetails.update((current) =>
-          current
-            ? {
-                ...current,
-                status: 1,
-              }
-            : current,
-        );
+          this.sessionDetails.update((current) =>
+            current ? { ...current, status: 1, treatmentPlan: this.treatmentPlan() } : current,
+          );
 
-        this.isSavingDraft.set(false);
-
-        console.log('Draft saved successfully');
-      },
-      error: (error) => {
-        console.error(error);
-        this.isSavingDraft.set(false);
-      },
-    });
+          this.isSavingDraft.set(false);
+        },
+        error: (error) => {
+          console.error(error);
+          this.isSavingDraft.set(false);
+        },
+      });
   }
 
   completeSession() {
@@ -207,28 +210,23 @@ export class SessionComponent implements OnInit {
 
     this.isCompletingSession.set(true);
 
-    this.sessionService.completeSession(currentSession.id, this.notes(), files).subscribe({
-      next: () => {
-        this.clearSelectedAttachments();
+    this.sessionService
+      .completeSession(currentSession.id, this.notes(), files, this.treatmentPlan())
+      .subscribe({
+        next: () => {
+          this.clearSelectedAttachments();
 
-        this.sessionDetails.update((current) =>
-          current
-            ? {
-                ...current,
-                status: 2,
-              }
-            : current,
-        );
+          this.sessionDetails.update((current) =>
+            current ? { ...current, status: 2, treatmentPlan: this.treatmentPlan() } : current,
+          );
 
-        this.isCompletingSession.set(false);
-
-        console.log('Session completed successfully');
-      },
-      error: (error) => {
-        console.error(error);
-        this.isCompletingSession.set(false);
-      },
-    });
+          this.isCompletingSession.set(false);
+        },
+        error: (error) => {
+          console.error(error);
+          this.isCompletingSession.set(false);
+        },
+      });
   }
 
   deleteAttachment(attachmentId: string) {

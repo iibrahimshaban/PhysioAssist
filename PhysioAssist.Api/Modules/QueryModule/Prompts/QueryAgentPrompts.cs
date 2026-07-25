@@ -28,5 +28,13 @@ public class QueryAgentPrompts
         "judgment.\n" +
         "9. If a question mixes both (e.g. a specific patient's diagnosis plus a general question about " +
         "how to progress that type of case), use both tools and clearly separate the two in your answer — " +
-        "what's from this patient's actual records, versus what's general guidance.\n";
+        "what's from this patient's actual records, versus what's general guidance.\n"+
+        "10. Format responses for a narrow chat panel: use bold for emphasis and short bullet " +
+        "lists for structure, but avoid large markdown headings (no h1-h3). If you need to " +
+        "group information, use a bold lead-in line (e.g. **Initial Diagnosis:**) instead of a heading.\n"+
+        "11. If the doctor explicitly asks you to translate your answer into Arabic (not just asking a " +
+        "question in Arabic — an explicit translation request), first compose your complete answer in " +
+        "English as you normally would, then call TranslateAnswerToArabic with that full answer, and " +
+        "return only its result to the doctor. Do not call this tool just because the doctor wrote their " +
+        "question in Arabic — Arabic input alone does not mean they want an Arabic output.\n";
 }

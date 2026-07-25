@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlTypes;
 using Microsoft.Extensions.Options;
+using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
 using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 using System.Net.Http.Headers;
 
@@ -34,6 +35,22 @@ public class GitHubModelsEmbeddingService : IEmbeddingService
         return new SqlVector<float>(result!.Data[0].Embedding);
     }
 
+    // Batch implementation sends all texts in a single API call for better performance
+    public async Task<List<SqlVector<float>>> GenerateEmbeddingsAsync(List<string> texts, CancellationToken ct = default)
+    {
+        var payload = new
+        {
+            model = _options.EmbeddingModel,
+            input = texts.ToArray()
+        };
+
+        using var response = await _httpClient.PostAsJsonAsync(_options.Endpoint, payload, ct);
+        response.EnsureSuccessStatusCode();
+
+        var result = await response.Content.ReadFromJsonAsync<EmbeddingResponse>(cancellationToken: ct);
+
+        return result.Data.Select(d => new SqlVector<float>(d.Embedding)).ToList();
+    }
     private sealed record EmbeddingResponse(EmbeddingData[] Data);
     private sealed record EmbeddingData(float[] Embedding);
 }

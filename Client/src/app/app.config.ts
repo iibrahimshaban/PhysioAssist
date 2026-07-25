@@ -3,7 +3,7 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { errorInterceptor } from './Core/Interceptors/error-interceptor';
@@ -15,7 +15,7 @@ import { authInterceptor } from './Core/Interceptors/ath-interceptor';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding()),
     provideZonelessChangeDetection(),
     provideHttpClient(withInterceptors([authInterceptor,errorInterceptor, loadingInterceptor])),
     providePrimeNG({

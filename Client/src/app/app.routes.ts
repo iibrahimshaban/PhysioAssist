@@ -40,18 +40,6 @@ export const routes: Routes = [
       import('./Layout/main-layout/main-layout.routes').then((m) => m.MainLayoutRoutes),
   },
   {
-    path: 'working-schedule',
-    loadComponent: () =>
-      import('./Features/WorkingSchedule/working-schedule.component').then(
-        (m) => m.WorkingScheduleComponent,
-      ),
-  },
-  {
-    path: 'schedule',
-    loadComponent: () =>
-      import('./Features/Schedule/schedule-page.component').then((m) => m.SchedulePageComponent),
-  },
-  {
     path: 'public',
     loadChildren: () => import('./Features/intake/intake.routes').then((m) => m.publicIntakeRoutes),
   },

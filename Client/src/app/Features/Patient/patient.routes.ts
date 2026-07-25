@@ -9,7 +9,7 @@ export const patientRoutes: Routes = [
   {
     path: 'create',
     loadComponent: () =>
-      import('./patient-form/patient-form.component').then((m) => m.PatientFormComponent),
+      import('./patient-create/patient-create.component').then((m) => m.PatientCreateComponent),
   },
   {
     path: 'edit/:id',
@@ -18,7 +18,8 @@ export const patientRoutes: Routes = [
   },
   {
     path: ':id',
-    loadComponent: () =>
-      import('./patient-detail/patient-detail.component').then((m) => m.PatientDetailComponent),
+    redirectTo: ':id/overview',
+    pathMatch: 'full',
   },
+  { path: ':id/overview', loadComponent: () => import('./patient-overview/patient-overview.component').then(m => m.PatientOverviewComponent) },
 ];

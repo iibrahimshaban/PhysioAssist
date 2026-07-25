@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.Scheduling.DTO;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Shared.Dtos.Schedule;
 using PhysioAssist.Api.Shared.Extensions;
 using PhysioAssist.Api.Shared.ResultPattern;
 

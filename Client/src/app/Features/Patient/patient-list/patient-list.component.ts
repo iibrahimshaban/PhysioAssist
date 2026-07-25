@@ -79,8 +79,8 @@ export class PatientListComponent implements OnInit {
   }
 
   goToDetail(id: string) {
-    this.router.navigate(['app/patients', id]);
-  }
+  this.router.navigate(['/app/patients', id, 'overview']);
+}
 
   goToCreate() {
     this.router.navigate(['app/patients/create']);

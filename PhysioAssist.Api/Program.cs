@@ -2,7 +2,7 @@ using Hangfire;
 using HangfireBasicAuthenticationFilter;
 using Microsoft.Extensions.Options;
 using PhysioAssist.Api;
-using PhysioAssist.Api.Infrastructure.GroqClient;
+using PhysioAssist.Api.Infrastructure.GroqClient.Options;
 using PhysioAssist.Api.Modules.DocumentationModule.Seed;
 using PhysioAssist.Api.Shared.Helpers;
 

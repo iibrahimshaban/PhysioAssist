@@ -23,7 +23,8 @@ public class InitialReportService(
     IUnitOfWork unitOfWork,
     IAuthQueryService _authQueryService,
     IOptions<FrontendSettings> _frontendSettings,
-    IPatientSummaryAiService _patientSummaryAiService
+    IPatientSummaryAiService _patientSummaryAiService,
+    IPatientSessionSchedulingService _PatientSessionSchedulingService
 ) : IInitialReportService
 {
     private readonly IInitialReportRepository _reportRepository = reportRepository;
@@ -210,24 +211,40 @@ public class InitialReportService(
         var qrUrl = $"{_frontendSettings.Value.BaseUrl}/app/patients/{patient.Value.Id}";
         var qrBytes = _qrService.GenerateQrImageBytes(qrUrl);
 
+        // 1b. Look up the patient's first booked session, if any, to print on the PDF.
+        // Null-safe: if the patient somehow has no booked session yet, the section is
+        // simply skipped rather than failing the whole report submission over it.
+        var firstSession = await _PatientSessionSchedulingService.GetFirstBookedSessionForPatientAsync(patient.Value.Id);
+
         // 2. Generate treatment plan PDF, QR as its own section
         var summaryParagraphs = summaryResult.Value
             .Split(["\r\n\r\n", "\n\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .ToList();
 
-        var pdfContent = new PdfDocumentContent(
-                    Title: "PhysioAssist — Treatment Plan",
-                    Sections:
-                    [
-                        new PdfSection(null,
+        var sections = new List<PdfSection>
+            {
+                new(null,
                 [
                     $"Patient: {patient.Value.FullName}",
                     $"Doctor: {doctorFullName}",
                     $"Date: {DateTime.UtcNow:yyyy-MM-dd}"
                 ]),
-                new PdfSection("Your Summary", summaryParagraphs),
-                new PdfSection("Scan to access your profile", [], qrBytes)
-                    ]);
+                new("Your Summary", summaryParagraphs)
+            };
+
+        if (firstSession is not null)
+        {
+            sections.Add(new PdfSection("Your First Appointment",
+            [
+                $"{firstSession.SlotStart:dddd, MMMM d, yyyy} at {firstSession.SlotStart:h:mm tt}"
+            ]));
+        }
+
+        sections.Add(new PdfSection("Scan to access your profile", [], qrBytes));
+
+        var pdfContent = new PdfDocumentContent(
+                    Title: "PhysioAssist — Treatment Plan",
+                    Sections: sections);
 
         var pdfResult = await _pdfService.GeneratePdfAsync(
             pdfContent, $"treatment-plans/{report.Id}", $"treatment-plan-{report.Id}");

@@ -1,0 +1,291 @@
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { PatientService } from '../services/patient.service';
+import { BodyPainMapComponent, BodyPainMapPayload } from '../../intake/components/body-pain-map/body-pain-map.component';
+import { DynamicFormRendererComponent } from '../../intake/components/dynamic-form-renderer/dynamic-form-renderer.component';
+import { DynamicFormSubmissionDto } from '../../intake/models';
+import { AgePipe } from '../../../Shared/Pipes/age-pipe';
+import { PatientScheduleOverviewDto } from '../../../Shared/Models/Patient.model';
+import { PatientScheduleOverviewComponent } from '../patient-schedule-overview/patient-schedule-overview.component';
+
+@Component({
+  selector: 'app-patient-overview',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    BodyPainMapComponent,
+    DynamicFormRendererComponent,
+    AgePipe,
+    PatientScheduleOverviewComponent,
+  ],
+  templateUrl: './patient-overview.component.html',
+  styleUrl: './patient-overview.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class PatientOverviewComponent implements OnInit {
+  private readonly patientService = inject(PatientService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+
+  scheduleOverview = signal<PatientScheduleOverviewDto | null>(null);
+
+  patient = signal<any>(null);
+  isLoading = signal(false);
+
+  submissionData = signal<any>(null);
+  formSchema = signal<any>(null);
+
+  // Generic — whatever keys the doctorInfoJson blob contains, no fixed shape assumed
+  doctorInfo = signal<Record<string, any> | null>(null);
+  painMapPayload = signal<BodyPainMapPayload | null>(null);
+
+  isEditMode = signal(false);
+  isSaving = signal(false);
+  flatInitialAnswers = signal<Record<string, any> | null>(null);
+  pendingPainMap = signal<({ regions: any[] } & Record<string, any>) | null>(null);
+  pendingDoctorInfo = signal<Record<string, any> | null>(null);
+
+  private pendingSubmission: DynamicFormSubmissionDto | null = null;
+
+  ngOnInit(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) return;
+
+    this.loadOverview(id);
+
+    this.patientService.getScheduleOverview(id).subscribe(overview => {
+      this.scheduleOverview.set(overview);
+    });
+  }
+
+  private loadOverview(id: string): void {
+    this.isLoading.set(true);
+    this.patientService.getOverview(id).subscribe({
+      next: data => {
+        this.patient.set(data);
+
+        if (data.formSubmissionData) {
+          try {
+            this.submissionData.set(JSON.parse(data.formSubmissionData));
+          } catch {
+            this.submissionData.set(null);
+          }
+        }
+
+        let regions: any[] = [];
+        if (data.painPointsJson) {
+          try {
+            regions = JSON.parse(data.painPointsJson)?.regions ?? [];
+          } catch {
+            regions = [];
+          }
+        }
+
+        let doctorInfo: Record<string, any> | null = null;
+        if (data.doctorInfoJson) {
+          try {
+            doctorInfo = JSON.parse(data.doctorInfoJson);
+          } catch {
+            doctorInfo = null;
+          }
+        }
+        this.doctorInfo.set(doctorInfo);
+
+        if (regions.length > 0 || doctorInfo) {
+          this.painMapPayload.set({
+            regions,
+            ...(doctorInfo ?? {}),
+          } as BodyPainMapPayload);
+        } else {
+          this.painMapPayload.set(null);
+        }
+
+        const schemaId = this.submissionData()?.formSchemaId;
+
+        if (schemaId) {
+          this.patientService.getFormSchema(schemaId).subscribe({
+            next: schemaResponse => {
+              try {
+                this.formSchema.set(JSON.parse(schemaResponse.schemaJson));
+              } catch {
+                this.formSchema.set(null);
+              }
+              this.isLoading.set(false);
+            },
+            error: err => {
+              console.error('Failed to load form schema', err);
+              this.isLoading.set(false);
+            },
+          });
+        } else {
+          this.isLoading.set(false);
+        }
+      },
+      error: err => {
+        console.error(err);
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  // Look up a question's answer by questionId inside the raw submission tree (read-only display)
+  getAnswerValue(questionId: string): any {
+    const submission = this.submissionData();
+    if (!submission?.sections) return null;
+    for (const section of submission.sections) {
+      for (const group of section.groups) {
+        const answer = group.answers.find((a: any) => a.questionId === questionId);
+        if (answer) {
+          const val = answer.value;
+          if (val == null || Object.keys(val).length === 0) return null;
+          const key = Object.keys(val)[0];
+          const raw = val[key];
+          return Array.isArray(raw) ? raw.join(', ') : raw;
+        }
+      }
+    }
+    return null;
+  }
+
+  // Build a flat { questionId: value } object from the current submissionData,
+  // for seeding DynamicFormRendererComponent's initialAnswers input
+  private buildFlatAnswers(): Record<string, any> {
+    const flat: Record<string, any> = {};
+    const submission = this.submissionData();
+    if (!submission?.sections) return flat;
+
+    for (const section of submission.sections) {
+      for (const group of section.groups) {
+        for (const answer of group.answers) {
+          const val = answer.value;
+          if (val == null || Object.keys(val).length === 0) continue;
+          const key = Object.keys(val)[0];
+          flat[answer.questionId] = val[key];
+        }
+      }
+    }
+    return flat;
+  }
+
+  enterEditMode(): void {
+    this.flatInitialAnswers.set(this.buildFlatAnswers());
+    this.pendingSubmission = null;
+
+    const currentPainMap = this.painMapPayload();
+    this.pendingPainMap.set({ regions: currentPainMap?.regions ?? [] });
+
+    const currentDoctorInfo = this.doctorInfo();
+    this.pendingDoctorInfo.set(currentDoctorInfo ? { ...currentDoctorInfo } : {});
+
+    this.isEditMode.set(true);
+  }
+
+  cancelEdit(): void {
+    this.isEditMode.set(false);
+    this.pendingSubmission = null;
+    this.pendingPainMap.set(null);
+    this.pendingDoctorInfo.set(null);
+  }
+
+  onSubmissionChange(submission: DynamicFormSubmissionDto): void {
+    this.pendingSubmission = submission;
+  }
+
+  onPainMapChange(payload: BodyPainMapPayload): void {
+    // BodyPainMapComponent emits regions + its own chiefComplaint/patientCategory fields
+    // (unused here since showDoctorFields is false), but we only need its regions —
+    // doctor-info fields are tracked separately and generically in pendingDoctorInfo.
+    const current = this.pendingPainMap();
+    this.pendingPainMap.set({
+      ...(current ?? {}),
+      regions: payload.regions,
+    });
+  }
+
+  updateDoctorInfoField(key: string, value: any): void {
+    const current = this.pendingDoctorInfo() ?? {};
+    this.pendingDoctorInfo.set({ ...current, [key]: value });
+  }
+
+  doctorInfoFieldKeys(): string[] {
+    return Object.keys(this.pendingDoctorInfo() ?? {});
+  }
+
+  objectKeys(obj: any): string[] {
+    return obj ? Object.keys(obj) : [];
+  }
+
+  saveEdit(): void {
+    const patientId = this.patient()?.id;
+    if (!patientId) return;
+
+    this.isSaving.set(true);
+
+    const submissionToSave = this.pendingSubmission
+      ? JSON.stringify(this.pendingSubmission)
+      : this.patient()?.formSubmissionData;
+
+    const regions = this.pendingPainMap()?.regions ?? [];
+    const combinedPainMap = {
+      regions,
+      ...(this.pendingDoctorInfo() ?? {}),
+    };
+    const painMapToSave = JSON.stringify(combinedPainMap);
+
+    this.patientService.updateOverviewSubmission(patientId, {
+      formSubmissionData: submissionToSave,
+      painPointsData: painMapToSave,
+    }).subscribe({
+      next: () => {
+        this.isEditMode.set(false);
+        this.isSaving.set(false);
+        this.loadOverview(patientId);
+      },
+      error: err => {
+        console.error(err);
+        this.isSaving.set(false);
+      },
+    });
+  }
+
+  goToEdit(): void {
+    const patientId = this.patient()?.id;
+    if (!patientId) return;
+    this.router.navigate(['/app/patients/edit', patientId]);
+  }
+
+  goToInitialReport(): void {
+    const patientId = this.patient()?.id;
+    if (!patientId) return;
+    this.router.navigate(['/app/initial-report', patientId]);
+  }
+
+  delete(): void {
+    const patientId = this.patient()?.id;
+    if (!patientId) return;
+    if (confirm('Are you sure you want to delete this patient?')) {
+      this.patientService.delete(patientId).subscribe({
+        next: () => this.router.navigate(['/app/patients']),
+        error: err => console.error(err),
+      });
+    }
+  }
+
+  goBack(): void {
+    this.router.navigate(['/app/patients']);
+  }
+
+  // NOTE: assumed route — this is the receptionist-scheduling route you built
+  // earlier (`receptionist-scheduling/:patientId`). Adjust the path segment
+  // below if it's registered under a different parent path.
+  continueScheduling(): void {
+    const patientId = this.patient()?.id;
+    if (!patientId) return;
+    this.router.navigate(['/app/receptionist-scheduling', patientId]);
+  }
+}

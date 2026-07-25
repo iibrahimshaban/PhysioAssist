@@ -8,12 +8,11 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { from, of } from 'rxjs';
 import { catchError, concatMap, map, toArray } from 'rxjs/operators';
-import {
-  InitialReportService,
-  InitialReportResponse,
-  ReportAttachmentResponse,
-} from '../../Core/Services/initial-report.service';
+import { InitialReportResponse, ReportAttachmentResponse, TreatmentSchedulePlanResponse } from '../../Shared/Models/InitialReport.models';
+
 import { SnackbarService } from '../../Core/Services/snackbar.service';
+import { InitialReportService } from '../../Core/Services/initial-report.service';
+import { ScheduleRequirementsComponent } from './schedule-requirements/schedule-requirements.component';
 
 interface AttachmentEntry {
   id?: string;
@@ -21,9 +20,6 @@ interface AttachmentEntry {
   size: number;
   fileUrl?: string;
   fileType?: string;
-  /** Present only for attachments the doctor has picked locally but that
-   *  haven't been sent to the server yet — they upload when Submit is
-   *  pressed, not on selection. Cleared once the upload succeeds. */
   file?: File;
 }
 
@@ -32,7 +28,7 @@ const PATIENT_CATEGORY_LABELS = ['Orthopedic', 'Neurological', 'Pediatric', 'Gen
 @Component({
   selector: 'app-initial-report',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, ButtonModule, ConfirmDialogModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, ButtonModule, ConfirmDialogModule, ScheduleRequirementsComponent],
   providers: [ConfirmationService],
   templateUrl: './initial-report.component.html',
   styleUrls: ['./initial-report.component.css'],
@@ -611,5 +607,10 @@ export class InitialReportComponent implements OnInit {
 
   goToPatients(): void {
     this.router.navigate(['/app/patients']);
+  }
+  onScheduleplanChanged(plan: TreatmentSchedulePlanResponse): void {
+    // Currently just a hook — nothing downstream depends on this yet.
+    // If you later want to block submitAndSend() until a plan is booked/sent,
+    // this is where you'd track that (e.g. a signal read inside submitAndSend()).
   }
 }

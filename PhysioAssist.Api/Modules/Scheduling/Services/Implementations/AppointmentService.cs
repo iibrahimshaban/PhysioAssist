@@ -5,6 +5,7 @@ using PhysioAssist.Api.Modules.Scheduling.helpers;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Modules.Notification.DTO;
 using PhysioAssist.Api.Modules.Notification.Interfaces;
+using PhysioAssist.Api.Shared.Dtos.Schedule;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 
@@ -35,7 +36,8 @@ public class AppointmentService(
             PatientId = request.PatientId,
             SlotStart = request.SlotStart,
             SlotEnd = request.SlotEnd,
-            Status = SlotStatus.Booked
+            Status = SlotStatus.Booked,
+            PackageId = request.PackageId
         };
 
         await _unitOfWork.ScheduleSlots.AddAsync(appointment);
@@ -91,7 +93,8 @@ public class AppointmentService(
                 PatientId = existing.PatientId,
                 SlotStart = request.NewSlotStart,
                 SlotEnd = request.NewSlotEnd,
-                Status = SlotStatus.Booked
+                Status = SlotStatus.Booked,
+                PackageId = existing.PackageId
             };
 
             await _unitOfWork.ScheduleSlots.AddAsync(replacement);

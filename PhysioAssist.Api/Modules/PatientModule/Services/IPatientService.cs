@@ -19,5 +19,10 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
 
         // patient slot 
         Task<Result<IEnumerable<PatientWithNextSlotResponse>>> GetPatientsWithSlotsAsync(Guid doctorId, CancellationToken ct = default);
+
+        Task<Result<PatientOverviewResponse>> GetPatientOverviewAsync(Guid patientId, CancellationToken ct = default);
+
+
+        Task<Result> UpdatePatientOverviewSubmissionAsync(Guid patientId, string formSubmissionData, CancellationToken ct = default);
     }
 }
