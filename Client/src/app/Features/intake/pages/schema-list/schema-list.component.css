@@ -1,8 +1,9 @@
 /* ─── Page Layout ──────────────────────────────────────────── */
+/* Horizontal width + gutters are owned by <app-intake-page-container>
+   (the shared 72rem grid). This page must NOT set its own max-width /
+   padding, otherwise the content gets indented differently from the other
+   Intake pages (Reception, Submissions) and the three stop aligning. */
 .form-templates-page {
-  max-width: 1024px;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
   min-width: 0;
 }
 

@@ -11,6 +11,7 @@ import { PreVisitIntakeResponse, IntakeStatus, getIntakeStatusLabel, getIntakeSt
 import { SubmissionFiltersBarComponent } from './submission-filters-bar/submission-filters-bar.component';
 import { SubmissionSummaryStatsComponent } from './submission-summary-stats/submission-summary-stats.component';
 import { SubmissionRowComponent } from './submission-row/submission-row.component';
+import { IntakePageContainerComponent } from '../../shared/intake-page-container.component';
 
 @Component({
   selector: 'app-submission-list',
@@ -21,6 +22,7 @@ import { SubmissionRowComponent } from './submission-row/submission-row.componen
     ButtonModule,
     SubmissionFiltersBarComponent,
     SubmissionSummaryStatsComponent,
+    IntakePageContainerComponent,
     SubmissionRowComponent
   ],
   templateUrl: './submission-list.component.html',

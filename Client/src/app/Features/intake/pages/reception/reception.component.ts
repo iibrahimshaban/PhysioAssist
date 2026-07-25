@@ -10,6 +10,7 @@ import { PreVisitIntakeResponse, IntakeStatus } from '../../models';
 import { SubmissionRowComponent } from '../submission-list/submission-row/submission-row.component';
 import { SubmissionSummaryStatsComponent } from '../submission-list/submission-summary-stats/submission-summary-stats.component';
 import { SubmissionFiltersBarComponent } from '../submission-list/submission-filters-bar/submission-filters-bar.component';
+import { IntakePageContainerComponent } from '../../shared/intake-page-container.component';
 
 @Component({
   selector: 'app-reception',
@@ -18,6 +19,7 @@ import { SubmissionFiltersBarComponent } from '../submission-list/submission-fil
     CommonModule,
     FormsModule,
     ButtonModule,
+    IntakePageContainerComponent,
     SubmissionRowComponent,
     SubmissionSummaryStatsComponent,
     SubmissionFiltersBarComponent

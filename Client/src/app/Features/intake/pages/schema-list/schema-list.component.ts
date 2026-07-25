@@ -12,6 +12,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { QrAccessService } from '../../services/qr-access.service';
+import { IntakePageContainerComponent } from '../../shared/intake-page-container.component';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
 import { FormSchemaSummaryResponse, FormSchemaStatus, FormSchemaResponse, CreateFormSchemaRequest, GenerateIntakeQrLinkResponse } from '../../models';
 
@@ -29,7 +30,8 @@ type SortField = 'name' | 'updated' | 'submissions';
     InputNumberModule,
     DialogModule,
     ConfirmDialogModule,
-    TooltipModule
+    TooltipModule,
+    IntakePageContainerComponent
   ],
   providers: [ConfirmationService],
   templateUrl: './schema-list.component.html',
@@ -98,6 +100,7 @@ export class SchemaListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadSchemas();
+    this.loadDefaultForm();
   }
 
   private loadDefaultForm(): void {
@@ -253,7 +256,8 @@ export class SchemaListComponent implements OnInit {
   }
 
   getFriendlyFormId(schema: FormSchemaSummaryResponse | FormSchemaResponse): string {
-    return `Form ID: ${schema.shortCode}`;
+    const code = schema.shortCode?.trim();
+    return `Form ID: ${code || schema.id}`;
   }
 
   duplicateSchema(schema: FormSchemaSummaryResponse | FormSchemaResponse): void {

@@ -1,5 +1,28 @@
 @import '../../intake-theme.css';
 
+/* ─── Intake Module consistent rhythm ────────────────────────────────────
+ * Matches the Intake Forms (schema-list) reference page exactly:
+ *   • stats cards -> filter bar : 1.5rem (24px)  [was 0 — causing the jump]
+ *   • filter bar  -> content    : 1rem  (16px)
+ * The shared <app-intake-page-container> still owns width + gutters. */
+.intake-page-header {
+  margin-bottom: 1.5rem;   /* subtitle -> stat cards */
+}
+
+.intake-page-body > app-submission-summary-stats {
+  margin-bottom: 1.5rem;   /* stat cards -> filter bar */
+}
+
+.intake-page-body > app-submission-filters-bar {
+  margin-bottom: 1rem;     /* filter bar -> content */
+}
+
+/* Remove stray inline top-margins now handled by the rhythm above */
+.intake-page-body > .space-y-3,
+.intake-page-body > div.mt-4 {
+  margin-top: 0;
+}
+
 :host {
   display: block;
   min-height: 100vh;
@@ -112,7 +135,7 @@
 /* ─── Premium Empty State ────────────────────────────────────────────── */
 .empty-state-premium {
   text-align: center;
-  padding: 4rem 1.5rem;
+  padding: 2rem 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -395,6 +395,7 @@ public class IntakeService(
             Status = FormSchemaStatus.Published,
             IsDefault = true,
             PublishedAt = DateTime.UtcNow,
+            ShortCode = await GenerateUniqueFormShortCodeAsync(cancellationToken),
         };
 
         await _patientFormSchemaRepository.AddAsync(schema, cancellationToken);
