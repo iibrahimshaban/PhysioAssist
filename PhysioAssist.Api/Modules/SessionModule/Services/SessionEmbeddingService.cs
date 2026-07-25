@@ -18,6 +18,9 @@ public class SessionEmbeddingService(
     private readonly ITranscriptChunkingService _chunkingService = chunkingService;
     private readonly ILogger<SessionEmbeddingService> _logger = logger;
 
+
+    // Refactored to batch generate all embeddings at once instead of per-iteration API calls
+    // Build chunk texts first, then single batch call, then map results by index
     public async Task<Result> GenerateAndStoreEmbeddingAsync(
     Guid sessionTranscriptionId, string text, CancellationToken ct = default)
     {
@@ -52,6 +55,7 @@ public class SessionEmbeddingService(
             _dbContext.RemoveRange(existingChunks);
 
         var newChunks = new List<SessionTranscriptionChunk>(extracted.Count);
+        var chunkTexts = new List<string>(extracted.Count);
 
         for (var i = 0; i < extracted.Count; i++)
         {
@@ -63,17 +67,23 @@ public class SessionEmbeddingService(
                   (e.Notes is not null ? $" {e.Notes}." : "") +
                   $" {e.NextSessionFocus}.";
 
-            SqlVector<float> embedding;
-            try
-            {
-                embedding = await _embeddingService.GenerateEmbeddingAsync(chunkText, ct);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Embedding failed for chunk {Index} of {TranscriptionId}", i, sessionTranscriptionId);
-                return Result.Failure(EmbeddingErrors.GenerationFailed);
-            }
+            chunkTexts.Add(chunkText);
+        }
 
+        List<SqlVector<float>> embeddings;
+        try
+        {
+            embeddings = await _embeddingService.GenerateEmbeddingsAsync(chunkTexts, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Embedding failed for transcription {TranscriptionId}", sessionTranscriptionId);
+            return Result.Failure(EmbeddingErrors.GenerationFailed);
+        }
+
+        for (var i = 0; i < extracted.Count; i++)
+        {
+            var e = extracted[i];
             newChunks.Add(new SessionTranscriptionChunk
             {
                 SessionTranscriptionId = sessionTranscriptionId,
@@ -84,8 +94,8 @@ public class SessionEmbeddingService(
                 NextSessionFocus = e.NextSessionFocus,
                 Diagnosis = e.Diagnosis,
                 Notes = e.Notes,
-                ChunkText = chunkText,
-                Embedding = embedding,
+                ChunkText = chunkTexts[i],
+                Embedding = embeddings[i],
                 CreatedAt = DateTime.UtcNow
             });
         }

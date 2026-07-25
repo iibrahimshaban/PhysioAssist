@@ -16,5 +16,8 @@
 
         public static readonly Error NotADoctor =
             new("Patient.NotADoctor", "This account is not registered as a doctor.", StatusCodes.Status403Forbidden);
+
+        public static readonly Error DuplicateEmail =
+    new("Patient.DuplicateEmail", "A patient with this email address already exists.", StatusCodes.Status409Conflict);
     }
 }

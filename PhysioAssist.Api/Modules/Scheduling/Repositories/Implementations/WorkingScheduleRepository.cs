@@ -1,7 +1,5 @@
 ﻿using PhysioAssist.Api.Modules.Scheduling.Entities;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
-using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Repositories;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations
 {

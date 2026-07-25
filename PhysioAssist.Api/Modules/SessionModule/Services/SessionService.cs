@@ -1,66 +1,51 @@
 ﻿using PhysioAssist.Api.Modules.SessionModule.Contracts;
 using PhysioAssist.Api.Modules.SessionModule.Entities;
 using PhysioAssist.Api.Modules.SessionModule.Errors;
-using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Enums;
 using PhysioAssist.Api.Shared.Dtos.Transcription;
-using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Modules.SessionModule.Services;
 
 public class SessionService(
-    ApplicationDbContext context,
-    IAudioTranscriptionService audioTranscriptionService,
-    ISessionEmbeddingService sessionEmbeddingService ,
-    IMediaStorageService mediaStorageService
-) : ISessionService
+    ApplicationDbContext _context,
+    IAudioTranscriptionService _audioTranscriptionService,
+    ISessionEmbeddingService _sessionEmbeddingService ,
+    IMediaStorageService _mediaStorageService,
+    IScheduleSlotQueryService _scheduleSlotQueryService,
+    IInitialReportQueryService _initialReportQueryService
+    ) : ISessionService
 {
-    private readonly ApplicationDbContext _context = context;
-    private readonly IAudioTranscriptionService _audioTranscriptionService = audioTranscriptionService;
-    private readonly ISessionEmbeddingService _sessionEmbeddingService = sessionEmbeddingService;
-    private readonly IMediaStorageService _mediaStorageService = mediaStorageService;
-    public async Task<Result<SessionResponse>> CreateSessionAsync(CreateSessionRequest request)
+
+    public async Task<Result<SessionResponse>> StartOrResumeSessionAsync(
+        Guid doctorId, StartSessionRequest request, CancellationToken cancellationToken = default)
     {
+        var existing = await _context.Sessions
+            .FirstOrDefaultAsync(s => s.ScheduleSlotId == request.ScheduleSlotId, cancellationToken);
+
+        if (existing is not null)
+        {
+            if (existing.Status == SessionStatus.Scheduled)
+            {
+                existing.Status = SessionStatus.InProgress;
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            return Result.Success(ToResponse(existing));
+        }
+
+        var treatmentPlan = await ResolveTreatmentPlanAsync(request.PatientId, request.ScheduleSlotId, cancellationToken);
 
         var session = new Session
         {
             PatientId = request.PatientId,
-            DoctorId = request.DoctorId,
-            ScheduleSlotId = request.ScheduleSlotId
+            DoctorId = doctorId,
+            ScheduleSlotId = request.ScheduleSlotId,
+            Status = SessionStatus.InProgress,
+            TreatmentPlan = treatmentPlan
         };
 
-        await _context.Sessions.AddAsync(session);
+        await _context.Sessions.AddAsync(session, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
 
-
-        await _context.SaveChangesAsync();
-
-        var response = new SessionResponse
-        {
-            Id = session.Id,
-            PatientId = session.PatientId,
-            DoctorId = session.DoctorId,
-            ScheduleSlotId = session.ScheduleSlotId,
-            Summary = session.SummaryText,
-            Status = session.Status
-        };
-
-        return Result.Success(response);
-    }
-    public async Task<Result> StartSessionAsync(Guid id)
-    {
-        var session = await _context.Sessions.FindAsync(id);
-
-        if (session is null)
-            return Result.Failure(SessionErrors.SessionNotFound);
-
-        if (session.Status != SessionStatus.Scheduled)
-            return Result.Failure(SessionErrors.InvalidSessionStatus);
-
-        session.Status = SessionStatus.InProgress;
-
-        await _context.SaveChangesAsync();
-
-        return Result.Success();
+        return Result.Success(ToResponse(session));
     }
     public async Task<Result<SessionResponse>> GetSessionByIdAsync(Guid id)
     {
@@ -69,17 +54,7 @@ public class SessionService(
         if (session is null)
             return Result.Failure<SessionResponse>(SessionErrors.SessionNotFound);
 
-        var response = new SessionResponse
-        {
-            Id = session.Id,
-            PatientId = session.PatientId,
-            DoctorId = session.DoctorId,
-            ScheduleSlotId = session.ScheduleSlotId,
-            Summary = session.SummaryText,
-            Status = session.Status
-        };
-
-        return Result.Success(response);
+        return Result.Success(ToResponse(session));
     }
     public async Task<Result<SessionDetailsResponse>> GetSessionDetailsAsync(Guid id)
     {
@@ -88,7 +63,7 @@ public class SessionService(
             .Select(s => new SessionDetailsResponse
             {
                 Id = s.Id,
-
+                PatientId = s.PatientId.ToString(),
                 PatientName = _context.Patients
                     .Where(p => p.Id == s.PatientId)
                     .Select(p => p.FullName)
@@ -123,7 +98,11 @@ public class SessionService(
                         FileName = a.FileName,
                         FileType = a.FileType
                     })
-                    .ToList()
+                    .ToList(),
+                AudioFileUrl = s.Transcription == null
+                ? null
+                : s.Transcription.AudioFileUrl,
+                TreatmentPlan = s.TreatmentPlan
             })
             .FirstOrDefaultAsync();
 
@@ -133,14 +112,15 @@ public class SessionService(
         return Result.Success(session);
     }
     public async Task<Result<string>> CreateAudioTranscriptionAsync(
-        Guid sessionId,
-        CreateAudioTranscriptionRequest request,
-        CancellationToken cancellationToken = default)
+      Guid sessionId,
+      CreateAudioTranscriptionRequest request,
+      CancellationToken cancellationToken = default)
     {
         if (request.AudioFile is null || request.AudioFile.Length == 0)
             return Result.Failure<string>(SessionErrors.EmptyAudioFile);
 
-        var session = await _context.Sessions.FindAsync([sessionId], cancellationToken);
+        var session = await _context.Sessions
+            .FindAsync([sessionId], cancellationToken);
 
         if (session is null)
             return Result.Failure<string>(SessionErrors.SessionNotFound);
@@ -154,16 +134,41 @@ public class SessionService(
             Prompt: request.Prompt
         );
 
-        var transcriptionResult = await _audioTranscriptionService.TranscribeAsync(
-            transcriptionRequest,
-            cancellationToken
-        );
+        var transcriptionResult =
+            await _audioTranscriptionService.TranscribeAsync(
+                transcriptionRequest,
+                cancellationToken
+            );
 
         if (transcriptionResult.IsFailure)
             return Result.Failure<string>(transcriptionResult.Error);
 
+        string audioUrl;
+
+        try
+        {
+            audioUrl = await _mediaStorageService.UploadAudioAsync(
+                request.AudioFile,
+                "session-audio",
+                $"{sessionId}/{Guid.CreateVersion7()}"
+            );
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<string>(
+                new Error(
+                    "Session.AudioUploadFailed",
+                    $"Failed to upload the session audio. {ex.Message}",
+                    StatusCodes.Status500InternalServerError
+                )
+            );
+        }
+
         var transcription = await _context.SessionTranscriptions
-            .FirstOrDefaultAsync(t => t.SessionId == sessionId, cancellationToken);
+            .FirstOrDefaultAsync(
+                t => t.SessionId == sessionId,
+                cancellationToken
+            );
 
         if (transcription is null)
         {
@@ -172,36 +177,52 @@ public class SessionService(
                 SessionId = sessionId
             };
 
-            await _context.SessionTranscriptions.AddAsync(transcription, cancellationToken);
+            await _context.SessionTranscriptions.AddAsync(
+                transcription,
+                cancellationToken
+            );
         }
 
-        transcription.RawTranscript = transcriptionResult.Value.RawText;
-        transcription.EditedTranscript = transcriptionResult.Value.RefinedText;
-        transcription.AudioFileUrl = string.Empty;
-        transcription.Language = transcriptionResult.Value.DetectedLanguage;
-        transcription.DurationSeconds = (int)(transcriptionResult.Value.DurationSeconds ?? 0);
-        transcription.Status = TranscriptionStatus.Completed;
+        transcription.RawTranscript =
+            transcriptionResult.Value.RawText;
+
+        transcription.EditedTranscript =
+            transcriptionResult.Value.RefinedText;
+
+        transcription.AudioFileUrl = audioUrl;
+
+        transcription.Language =
+            transcriptionResult.Value.DetectedLanguage;
+
+        transcription.DurationSeconds =
+            (int)(transcriptionResult.Value.DurationSeconds ?? 0);
+
+        transcription.Status =
+            TranscriptionStatus.Completed;
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        var textForEmbedding = string.IsNullOrWhiteSpace(transcription.EditedTranscript)
-            ? transcription.RawTranscript
-            : transcription.EditedTranscript;
+        var textForEmbedding =
+            string.IsNullOrWhiteSpace(transcription.EditedTranscript)
+                ? transcription.RawTranscript
+                : transcription.EditedTranscript;
 
-        var embeddingResult = await _sessionEmbeddingService.GenerateAndStoreEmbeddingAsync(
-            transcription.Id,
-            textForEmbedding,
-            cancellationToken
-        );
+        var embeddingResult =
+            await _sessionEmbeddingService.GenerateAndStoreEmbeddingAsync(
+                transcription.Id,
+                textForEmbedding,
+                cancellationToken
+            );
 
         if (embeddingResult.IsFailure)
         {
-            Console.WriteLine(embeddingResult.Error.Description);
+            Console.WriteLine(
+                embeddingResult.Error.Description
+            );
         }
 
         return Result.Success(textForEmbedding);
     }
-
     public async Task<Result> UploadAttachmentsAsync(
       Guid sessionId,
       UploadSessionAttachmentRequest request,
@@ -238,9 +259,9 @@ public class SessionService(
     }
 
     public async Task<Result> CompleteSessionAsync(
-    Guid sessionId,
-    CompleteSessionRequest request,
-    CancellationToken cancellationToken = default)
+        Guid sessionId,
+        CompleteSessionRequest request,
+        CancellationToken cancellationToken = default)
     {
         var session = await _context.Sessions
             .Include(s => s.Transcription)
@@ -248,6 +269,9 @@ public class SessionService(
 
         if (session is null)
             return Result.Failure(SessionErrors.SessionNotFound);
+
+        if (request.TreatmentPlanUpdated is not null)
+            session.TreatmentPlan = request.TreatmentPlanUpdated;
 
         if (session.Transcription is null)
         {
@@ -272,9 +296,7 @@ public class SessionService(
                 continue;
 
             var fileUrl = await _mediaStorageService.UploadImageAsync(
-                file,
-                "session-attachments",
-                $"{sessionId}/{Guid.CreateVersion7()}");
+                file, "session-attachments", $"{sessionId}/{Guid.CreateVersion7()}");
 
             await _context.SessionAttachments.AddAsync(new SessionAttachment
             {
@@ -287,19 +309,25 @@ public class SessionService(
 
         session.Status = SessionStatus.Completed;
 
-        // TODO: Generate summary later when summary service is ready.
-        // session.Summary = generatedSummary;
-
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (session.ScheduleSlotId.HasValue)
+        {
+            var slotResult = await _scheduleSlotQueryService.MarkCompletedAsync(
+                session.ScheduleSlotId.Value, cancellationToken);
+
+            if (slotResult.IsFailure)
+                return Result.Failure(slotResult.Error);
+        }
 
         return Result.Success();
     }
 
 
     public async Task<Result> SaveSessionDraftAsync(
-    Guid sessionId,
-    SaveSessionDraftRequest request,
-    CancellationToken cancellationToken = default)
+        Guid sessionId,
+        SaveSessionDraftRequest request,
+        CancellationToken cancellationToken = default)
     {
         var session = await _context.Sessions
             .Include(s => s.Transcription)
@@ -307,6 +335,9 @@ public class SessionService(
 
         if (session is null)
             return Result.Failure(SessionErrors.SessionNotFound);
+
+        if (request.TreatmentPlanUpdated is not null)
+            session.TreatmentPlan = request.TreatmentPlanUpdated;
 
         if (session.Transcription is null)
         {
@@ -352,8 +383,6 @@ public class SessionService(
     }
 
 
-
-
     public async Task<Result> DeleteAttachmentAsync(
     Guid attachmentId,
     CancellationToken cancellationToken = default)
@@ -370,6 +399,43 @@ public class SessionService(
         await _context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
+    }
+
+    private static SessionResponse ToResponse(Session session) => new()
+    {
+        Id = session.Id,
+        PatientId = session.PatientId,
+        DoctorId = session.DoctorId,
+        ScheduleSlotId = session.ScheduleSlotId,
+        Summary = session.SummaryText,
+        Status = session.Status
+    };
+    private async Task<string?> ResolveTreatmentPlanAsync(Guid patientId, Guid scheduleSlotId, CancellationToken cancellationToken)
+    {
+        var priorSlotsResult = await _scheduleSlotQueryService.GetPriorSlotIdsInPackageAsync(scheduleSlotId, cancellationToken);
+
+        if (priorSlotsResult.IsSuccess && priorSlotsResult.Value.Count > 0)
+        {
+            var priorSlotIds = priorSlotsResult.Value; 
+
+            var candidates = await _context.Sessions
+                .Where(s => s.ScheduleSlotId.HasValue
+                            && priorSlotIds.Contains(s.ScheduleSlotId.Value)
+                            && s.TreatmentPlan != null)
+                .Select(s => new { s.ScheduleSlotId, s.TreatmentPlan })
+                .ToListAsync(cancellationToken);
+
+
+            var mostRecent = candidates
+                .OrderBy(c => priorSlotIds.ToList().IndexOf(c.ScheduleSlotId!.Value))
+                .FirstOrDefault();
+
+            if (mostRecent is not null)
+                return mostRecent.TreatmentPlan;
+        }
+
+        var initialReportResult = await _initialReportQueryService.GetTreatmentPlanTextAsync(patientId, cancellationToken);
+        return initialReportResult.IsSuccess ? initialReportResult.Value : null;
     }
 
 }

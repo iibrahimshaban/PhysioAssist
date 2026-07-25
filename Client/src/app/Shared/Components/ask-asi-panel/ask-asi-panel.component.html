@@ -1,0 +1,212 @@
+@if (panelStateService.isOpen()) {
+  <!-- Backdrop -->
+  <div
+      class="fixed inset-0 z-40 bg-black/40"
+      (click)="close()"
+      animate.enter="fade-in"
+      animate.leave="fade-out">
+  </div>
+
+  <!-- Panel -->
+  <aside
+    animate.enter="slide-in"
+    animate.leave="slide-out"
+    class="fixed inset-y-0 right-0 z-50 flex w-full sm:max-w-md flex-col bg-white shadow-[0_10px_30px_rgba(0,0,0,0.1)] border-l border-gray-200">
+    <!-- Header -->
+    <header class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+      <div class="flex items-center gap-2">
+        @if (view() === 'chat') {
+          <button
+            type="button"
+            (click)="startNewChat()"
+            class="mr-1 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            aria-label="Back to recent searches">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+        }
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles h-4 w-4 text-[oklch(58%_.16_240)]" aria-hidden="true">
+          <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path>
+          <path d="M20 2v4"></path>
+          <path d="M22 4h-4"></path>
+          <circle cx="4" cy="20" r="2"></circle>
+        </svg>
+        <h2 class="text-base font-semibold text-gray-900">Ask AI</h2>
+      </div>
+      <button
+        type="button"
+        (click)="close()"
+        class="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+          <path d="M18 6L6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </header>
+
+    @if (view() === 'search') {
+      <!-- Search / recents view -->
+      <div class="flex flex-1 flex-col overflow-y-auto px-6 py-10">
+        <div class="relative">
+          <input
+            type="text"
+            [ngModel]="queryText()"
+            (ngModelChange)="queryText.set($event)"
+            (keydown.enter)="onEnter($any($event))"
+            placeholder="Ask a question..."
+            class="flex w-full rounded-xl border border-gray-300 bg-transparent px-3 py-1 shadow-sm transition-colors
+            placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[oklch(58%_.16_240)] disabled:cursor-not-allowed disabled:opacity-50
+            h-12 pr-12 text-base"/>
+
+          <button
+            type="button"
+            (click)="send()"
+            [disabled]="loading() || !queryText().trim()"
+            class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-400 transition hover:text-blue-600 disabled:cursor-not-allowed disabled:text-gray-300"
+            aria-label="Send">
+            @if (loading()) {
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="h-4 w-4 animate-spin">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" stroke-opacity="0.25" />
+                <path d="M21 12a9 9 0 00-9-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+              </svg>
+            }
+          </button>
+        </div>
+
+        <div class="mt-4 flex gap-2">
+          <button
+            type="button"
+            (click)="setMode('smart')"
+            class="flex flex-1 items-center justify-center gap-2 rounded-lg px-3 h-8 text-sm font-medium transition-colors"
+            [class]="{ 'bg-[oklch(58%_0.16_240)]': mode() === 'smart',
+                       'hover:bg-[oklch(58%_0.16_240/0.2)]': mode() !== 'smart'}"
+            [class.text-white]="mode() === 'smart'"
+            [class.bg-white]="mode() !== 'smart'"
+            [class.text-gray-600]="mode() !== 'smart'"
+            [class.border]="mode() !== 'smart'"
+            [class.shadow-md]="mode() !== 'smart'"
+            [class.border-gray-300]="mode() !== 'smart'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles h-4.5 w-4.5" aria-hidden="true">
+              <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path>
+              <path d="M20 2v4"></path>
+              <path d="M22 4h-4"></path>
+              <circle cx="4" cy="20" r="2"></circle>
+            </svg>
+            Smart Search
+          </button>
+          <button
+            type="button"
+            (click)="setMode('exact')"
+            class="flex flex-1 items-center justify-center gap-2 rounded-lg px-3 h-8 text-sm font-medium transition-colors"
+            [class]="{ 'bg-[oklch(58%_0.16_240)]': mode() === 'exact',
+                       'hover:bg-[oklch(58%_0.16_240/0.2)]': mode() !== 'exact'}"
+            [class.text-white]="mode() === 'exact'"
+            [class.bg-white]="mode() !== 'exact'"
+            [class.text-gray-600]="mode() !== 'exact'"
+            [class.border]="mode() !== 'exact'"
+            [class.shadow-md]="mode() !== 'exact'"
+            [class.border-gray-300]="mode() !== 'exact'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database h-4.5 w-4.5" aria-hidden="true">
+              <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+              <path d="M3 5V19A9 3 0 0 0 21 19V5"></path>
+              <path d="M3 12A9 3 0 0 0 21 12"></path>
+            </svg>
+            Exact Search
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-auto border-t border-gray-200 py-6 mt-10">
+          <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Recent searches</p>
+
+          @if (recentSessions().length === 0) {
+            <p class="mt-3 text-sm text-gray-400">No searches yet. Ask something above to get started.</p>
+          }
+
+          <ul class="mt-3 space-y-1">
+            @for (session of recentSessions(); track session.id) {
+              <li>
+                <button
+                  type="button"
+                  (click)="openSession(session.id)"
+                  class="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <span class="truncate text-sm text-gray-700 group-hover:text-blue-600">
+                    {{ session.title }}
+                  </span>
+                  <button
+                    type="button"
+                    (click)="deleteSession($event, session.id)"
+                    class="ml-2 shrink-0 rounded p-1 text-gray-300 opacity-0 hover:bg-gray-100 hover:text-gray-500 group-hover:opacity-100"
+                    aria-label="Delete search"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+    } @else {
+      <!-- Chat thread view -->
+      <div class="flex flex-1 flex-col overflow-hidden">
+        <div class="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+          @for (message of activeSession()?.messages ?? []; track message.id) {
+            <app-chat-message [message]="message" />
+          }
+          <div #scrollAnchor></div>
+        </div>
+
+        <div class="border-t border-gray-100 px-4 py-3">
+          <div class="flex items-end gap-2">
+            <textarea
+              rows="1"
+              [ngModel]="queryText()"
+              (ngModelChange)="queryText.set($event)"
+              (keydown.enter)="onEnter($any($event))"
+              placeholder="Ask a follow-up..."
+              class="max-h-28 flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-blue-500"
+            ></textarea>
+            @if (loading())
+            {
+              <button
+                type="button"
+                (click)="stop()"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-800 text-white transition hover:bg-gray-900"
+                aria-label="Stop generating"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5">
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                </svg>
+              </button>
+            }
+            @else
+            {
+              <button
+                type="button"
+                (click)="send()"
+                [disabled]="!queryText().trim()"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[oklch(58%_.16_240)] text-white transition hover:bg-[oklch(58%_.16_240/.9)] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
+                aria-label="Send">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                </svg>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </aside>
+}

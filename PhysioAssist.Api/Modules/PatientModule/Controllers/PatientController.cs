@@ -10,7 +10,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
     [ApiController]
     [Authorize]
 
-    public class PatientController(IPatientService patientService) : ControllerBase
+    public class PatientController(IPatientService patientService, IScheduleSlotQueryService _scheduleSlotQueryService) : ControllerBase
     {
         private readonly IPatientService _patientService = patientService;
 
@@ -86,6 +86,28 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
             var doctorId =  Guid.Parse(User.GetUserId()!);
 
             var result = await _patientService.GetPatientsWithSlotsAsync(doctorId, ct);
+            return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+        }
+
+        [HttpGet("{id}/overview")]
+        public async Task<IActionResult> GetOverview(Guid id, CancellationToken ct)
+        {
+            var result = await _patientService.GetPatientOverviewAsync(id, ct);
+            return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+        }
+
+        [HttpPut("{id}/overview/submission-data")]
+        public async Task<IActionResult> UpdateOverviewSubmissionData(Guid id, [FromBody] UpdateSubmissionDataRequest request, CancellationToken ct)
+        {
+            var result = await _patientService.UpdatePatientOverviewSubmissionAsync(
+                id, request.FormSubmissionData, request.PainPointsData, ct);
+            return result.IsSuccess ? NoContent() : result.ToProblem();
+        }
+
+        [HttpGet("{patientId:guid}/schedule-overview")]
+        public async Task<IActionResult> GetScheduleOverview(Guid patientId, CancellationToken cancellationToken)
+        {
+            var result = await _scheduleSlotQueryService.GetScheduleOverviewAsync(patientId, cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
         }
     }

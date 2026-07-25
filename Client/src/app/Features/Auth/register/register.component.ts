@@ -30,7 +30,8 @@ export class RegisterComponent {
   photoFile = signal<File | null>(null);
 
   form = this.fb.group({
-    fullName:   ['', [Validators.required, Validators.minLength(3)]],
+    firstName:  ['', [Validators.required, Validators.minLength(2)]],
+    lastName:   ['', [Validators.required, Validators.minLength(2)]],
     clinicName: ['', Validators.required],
     email:      ['', [Validators.required, Validators.email]],
     password:   ['', [Validators.required, Validators.minLength(8)]],
@@ -61,15 +62,13 @@ export class RegisterComponent {
 
     this.loading.set(true);
 
-    const { fullName, clinicName, email, password } = this.form.getRawValue();
+    const { firstName, lastName, clinicName, email, password } = this.form.getRawValue();
 
-    const parts     = fullName!.trim().split(' ');
-    const lastName  = parts.length > 1 ? parts.pop()! : '';
-    const firstName = parts.join(' ');
-    const userName  = email!.split('@')[0];
+    const userName = email!.split('@')[0];
 
     this.auth.register({
-      firstName, lastName, userName,
+      firstName: firstName!,
+      lastName: lastName!,
       clinicName: clinicName!,
       email: email!,
       password: password!,
@@ -97,7 +96,8 @@ export class RegisterComponent {
 
   private fieldLabel(): Record<string, string> {
     return {
-      fullName:   'Full name',
+      firstName:  'First name',
+      lastName:   'Last name',
       clinicName: 'Clinic name',
       email:      'Email',
       password:   'Password',

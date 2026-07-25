@@ -10,6 +10,8 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { UserProfile } from '../../Shared/Models/account.model';
 import { AccountService } from '../../Core/Services/account.service';
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
+import { AuthService } from '../../Core/Services/auth.service';
+import { Router } from '@angular/router';
 
 function passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
   const newPassword = group.get('newPassword')?.value;
@@ -33,11 +35,12 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
 ],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountComponent implements OnInit {
   private readonly accountService = inject(AccountService);
   private readonly fb = inject(FormBuilder);
+  readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   profile = signal<UserProfile | null>(null);
   isEditMode = signal(false);
@@ -72,6 +75,10 @@ export class AccountComponent implements OnInit {
     if (event.blob) {
       this.croppedBlob = event.blob;
     }
+  }
+
+  goToStaff(): void {
+    this.router.navigateByUrl('/app/account/staff');
   }
 
   confirmCrop(): void {

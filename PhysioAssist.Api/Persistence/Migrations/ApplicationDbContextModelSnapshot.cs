@@ -309,6 +309,37 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.ToTable("OtpEntry", "auth");
                 });
 
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Auth.Entities.Receptionist", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<TimeOnly?>("From")
+                        .HasColumnType("time");
+
+                    b.Property<Guid>("ManagingDoctorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Shift")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly?>("To")
+                        .HasColumnType("time");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ManagingDoctorId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Receptionists", "auth");
+                });
+
             modelBuilder.Entity("PhysioAssist.Api.Modules.Auth.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -601,6 +632,67 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.ToTable("ReportAttachment", "initialreport");
                 });
 
+            modelBuilder.Entity("PhysioAssist.Api.Modules.InitialReportModule.Entities.TreatmentSchedulePlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("MinimumGapBetweenSessionsDays")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("PackageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("PreferredDays")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PreferredTimeOfDay")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ReportId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("SessionDurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SessionsPerWeek")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalSessions")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("ReportId")
+                        .IsUnique();
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("TreatmentSchedulePlans", "initialreport");
+                });
+
             modelBuilder.Entity("PhysioAssist.Api.Modules.Intake.Entities.PatientFormSchema", b =>
                 {
                     b.Property<Guid>("Id")
@@ -836,6 +928,24 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<string>("Occupation")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("ParsedPreferredDayToken")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly?>("ParsedPreferredTimeFrom")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly?>("ParsedPreferredTimeTo")
+                        .HasColumnType("time");
+
+                    b.Property<int>("ParsedPreferredWeekdays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PatientCaseNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PatientFreeTime")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -869,12 +979,109 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.ToTable("Patient", "patient");
                 });
 
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.DoctorSchedulingPreference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("AllowShorterSlots")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("DoctorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("MaxDaysOutForExactMatch")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("MaxShortfallTolerance")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorId")
+                        .IsUnique();
+
+                    b.ToTable("DoctorSchedulingPreferences", "scheduling");
+                });
+
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.PatientSessionPackage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("DoctorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("MinimumGapBetweenSessionsDays")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("PreferredDays")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PreferredTimeOfDay")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RemainingSessions")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ScheduledSessions")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("SessionDuration")
+                        .HasColumnType("time");
+
+                    b.Property<int>("SessionsPerWeek")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalSessions")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("DoctorId", "Status");
+
+                    b.HasIndex("PatientId", "Status");
+
+                    b.ToTable("PatientSessionPackages", "scheduling");
+                });
+
             modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.ScheduleSlot", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("DoctorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("PackageId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("PatientId")
@@ -890,6 +1097,8 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PackageId");
 
                     b.HasIndex("DoctorId", "SlotStart", "SlotEnd")
                         .HasDatabaseName("IX_ScheduleSlot_DoctorId_SlotStart_SlotEnd");
@@ -972,6 +1181,9 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SummaryText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TreatmentPlan")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -1251,6 +1463,25 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Auth.Entities.Receptionist", b =>
+                {
+                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.Doctor", "ManagingDoctor")
+                        .WithMany()
+                        .HasForeignKey("ManagingDoctorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ManagingDoctor");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("PhysioAssist.Api.Modules.Auth.Entities.RefreshToken", b =>
                 {
                     b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "User")
@@ -1357,6 +1588,31 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Navigation("Report");
                 });
 
+            modelBuilder.Entity("PhysioAssist.Api.Modules.InitialReportModule.Entities.TreatmentSchedulePlan", b =>
+                {
+                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PhysioAssist.Api.Modules.InitialReportModule.Entities.InitialReport", "Report")
+                        .WithOne("TreatmentSchedulePlan")
+                        .HasForeignKey("PhysioAssist.Api.Modules.InitialReportModule.Entities.TreatmentSchedulePlan", "ReportId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Report");
+
+                    b.Navigation("UpdatedBy");
+                });
+
             modelBuilder.Entity("PhysioAssist.Api.Modules.Intake.Entities.PatientFormSchema", b =>
                 {
                     b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "CreatedBy")
@@ -1411,6 +1667,33 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Navigation("CreatedBy");
 
                     b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.PatientSessionPackage", b =>
+                {
+                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.ScheduleSlot", b =>
+                {
+                    b.HasOne("PhysioAssist.Api.Modules.Scheduling.Entities.PatientSessionPackage", "Package")
+                        .WithMany()
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Package");
                 });
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.WorkingScheduleDay", b =>
@@ -1514,6 +1797,8 @@ namespace PhysioAssist.Api.Persistence.Migrations
             modelBuilder.Entity("PhysioAssist.Api.Modules.InitialReportModule.Entities.InitialReport", b =>
                 {
                     b.Navigation("Attachments");
+
+                    b.Navigation("TreatmentSchedulePlan");
                 });
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.PatientModule.Entities.Patient", b =>

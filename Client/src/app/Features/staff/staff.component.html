@@ -1,0 +1,149 @@
+<div class="max-w-5xl mx-auto p-4 sm:p-6">
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-6">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold">Staff</h1>
+      <p class="text-gray-500 text-sm">Create receptionist accounts and control what they can do.</p>
+    </div>
+    <p-button label="Add receptionist" icon="pi pi-user-plus" (onClick)="openCreateModal()" />
+  </div>
+
+  <div class="flex flex-col gap-4">
+    @for (r of receptionists(); track r.id) {
+      <div class="bg-white rounded-xl border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-start gap-4 min-w-0">
+          <div class="w-11 h-11 rounded-full bg-teal-500 text-white flex items-center justify-center font-bold shrink-0 overflow-hidden">
+            @if (r.profilePictureUrl) {
+                <img [src]="r.profilePictureUrl" class="w-full h-full object-cover" alt="{{ r.fullName }}" />
+            } @else {
+                {{ initials(r.fullName) }}
+            }
+            </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
+              <span class="font-semibold">{{ r.fullName }}</span>
+              <p-tag [value]="r.isActive ? 'Active' : 'Disabled'" [severity]="r.isActive ? 'success' : 'danger'" />
+              <p-tag value="Receptionist" severity="secondary" />
+            </div>
+            <div class="text-sm text-gray-500 flex gap-3 flex-wrap">
+              <span><i class="pi pi-envelope mr-1"></i>{{ r.email }}</span>
+              <span><i class="pi pi-phone mr-1"></i>{{ r.phone }}</span>
+              <span class="text-xs text-gray-400">{{ currentShiftLabel }}</span>
+            </div>
+            <div class="flex gap-2 flex-wrap mt-2">
+              @for (permValue of r.permissions; track permValue) {
+                <span class="text-xs bg-gray-100 rounded-full px-2 py-1">
+                  {{ permissionTitle(permValue) }}
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+          <p-button label="Edit" icon="pi pi-pencil" severity="secondary" [outlined]="true" (onClick)="openEditModal(r)" />
+          <p-button [label]="r.isActive ? 'Disable' : 'Enable'" severity="secondary" [outlined]="true" (onClick)="toggleDisabled(r)" />
+          <p-button icon="pi pi-trash" severity="danger" [outlined]="true" (onClick)="remove(r)" />
+        </div>
+      </div>
+    }
+
+    @if (!isLoading() && receptionists().length === 0) {
+      <div class="text-center text-gray-400 py-12 bg-white rounded-xl border">
+        No receptionists yet. Add one to get started.
+      </div>
+    }
+  </div>
+</div>
+
+<p-dialog
+  [header]="isEditing ? 'Edit receptionist' : 'New receptionist account'"
+  [(visible)]="isModalOpen"
+  [modal]="true"
+  [style]="{ width: '90vw', maxWidth: '32rem' }">
+
+  <form [formGroup]="form" class="flex flex-col gap-4">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm text-gray-500">Full name</label>
+      <div class="grid grid-cols-2 gap-2">
+        <input pInputText formControlName="firstName" placeholder="First name" class="w-full" />
+        <input pInputText formControlName="lastName" placeholder="Last name" class="w-full" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-gray-500">Email</label>
+        <input pInputText formControlName="email" placeholder="name@clinic.com" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-gray-500">Phone</label>
+        <input pInputText formControlName="phone" placeholder="+20 100 000 0000" class="w-full" />
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm text-gray-500">Shift</label>
+      <p-select
+        formControlName="shift"
+        [options]="shiftOptions"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-full"
+        (onChange)="onShiftChange($event.value)" />
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-gray-500">From</label>
+        <p-datepicker formControlName="fromTime" [timeOnly]="true" hourFormat="12" styleClass="w-full" inputStyleClass="w-full" />
+    </div>
+    <div class="flex flex-col gap-1">
+        <label class="text-sm text-gray-500">To</label>
+        <p-datepicker formControlName="toTime" [timeOnly]="true" hourFormat="12" styleClass="w-full" inputStyleClass="w-full" />
+    </div>
+    </div>
+    @if (shiftTimesInvalid) {
+      <span class="text-red-500 text-xs -mt-2">End time must be after start time.</span>
+    }
+
+    @if (!isEditing) {
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-gray-500">Password</label>
+        <p-password formControlName="password" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
+      </div>
+    } @else {
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-gray-500">New password (optional)</label>
+        <p-password formControlName="newPassword" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" />
+      </div>
+    }
+
+    <div>
+      <div class="flex justify-between mb-2">
+        <label class="text-sm font-medium">Permissions</label>
+        <span class="text-xs text-gray-400">
+          {{ (form.get('permissions')?.value ?? []).length }} of {{ availablePermissions().length }} granted
+        </span>
+      </div>
+      <div class="border rounded-lg divide-y max-h-64 overflow-y-auto">
+        @for (perm of availablePermissions(); track perm.value) {
+          <div class="p-3 flex items-start gap-3">
+            <p-checkbox
+              [binary]="true"
+              [ngModel]="isPermissionChecked(perm.value)"
+              [ngModelOptions]="{ standalone: true }"
+              (onChange)="togglePermission(perm.value)" />
+            <div>
+              <p class="font-medium text-sm">{{ perm.title }}</p>
+              <p class="text-xs text-gray-500">{{ perm.description }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="closeModal()" />
+    <p-button [label]="isEditing ? 'Save changes' : 'Create account'" [loading]="isSaving()" (onClick)="save()" />
+  </ng-template>
+</p-dialog>

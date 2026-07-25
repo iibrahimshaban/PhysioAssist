@@ -10,15 +10,30 @@ public class EmailService(IOptions<MailSettings> options) : ICustomEmailService
 {
     private readonly MailSettings _mailSettings = options.Value;
 
-    public async Task SendEmailAsync(string Email, string subject, string htmlMessage)
+    public async Task SendEmailAsync(string email, string subject, string htmlMessage) =>
+        await SendAsync(email, subject, htmlMessage, null, null, null);
+
+    public async Task SendEmailWithAttachmentAsync(
+        string email, string subject, string htmlMessage,
+        byte[] attachmentBytes, string attachmentFileName, string attachmentContentType = "application/pdf") =>
+        await SendAsync(email, subject, htmlMessage, attachmentBytes, attachmentFileName, attachmentContentType);
+
+    private async Task SendAsync(
+        string email, string subject, string htmlMessage,
+        byte[]? attachmentBytes, string? attachmentFileName, string? attachmentContentType)
     {
         var message = new MimeMessage();
-
         message.Sender = new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail);
         message.From.Add(new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail));
-        message.To.Add(MailboxAddress.Parse(Email));
+        message.To.Add(MailboxAddress.Parse(email));
         message.Subject = subject;
-        message.Body = new BodyBuilder { HtmlBody = htmlMessage }.ToMessageBody();
+
+        var bodyBuilder = new BodyBuilder { HtmlBody = htmlMessage };
+
+        if (attachmentBytes is not null && attachmentFileName is not null)
+            bodyBuilder.Attachments.Add(attachmentFileName, attachmentBytes, ContentType.Parse(attachmentContentType ?? "application/octet-stream"));
+
+        message.Body = bodyBuilder.ToMessageBody();
 
         using var smtp = new SmtpClient();
         smtp.CheckCertificateRevocation = false;

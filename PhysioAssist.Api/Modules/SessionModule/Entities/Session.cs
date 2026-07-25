@@ -7,6 +7,7 @@ public class Session : AuditableEntity
     public string? SummaryText { get; set; }
     public DateTime? SummaryGeneratedAt { get; set; }
     public SessionStatus Status { get; set; } = SessionStatus.Scheduled;
+    public string? TreatmentPlan { get; set; }
     public Guid DoctorId { get; set; }
     public Guid PatientId { get; set; }
     public Guid? ScheduleSlotId { get; set; }

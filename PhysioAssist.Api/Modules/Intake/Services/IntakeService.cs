@@ -8,7 +8,6 @@ using PhysioAssist.Api.Modules.Intake.Entities;
 using PhysioAssist.Api.Modules.Intake.Errors;
 using PhysioAssist.Api.Modules.Intake.Helpers;
 using PhysioAssist.Api.Modules.Intake.Repositories;
-using PhysioAssist.Api.Shared.Consts;
 using PhysioAssist.Api.Shared.Dtos.Patient;
 using PhysioAssist.Api.Shared.Interfaces.Common;
 using PhysioAssist.Api.Shared.Interfaces.Exposed;
@@ -643,6 +642,7 @@ public class IntakeService(
     public async Task<Result<PublicIntakeFormResponse>> GetPublicFormAsync(string token, CancellationToken cancellationToken = default)
     {
         var tokenValidationResult = _qrService.ValidateToken(token, QRTokenPurpose.Intake);
+
         if (tokenValidationResult.IsFailure)
             return Result.Failure<PublicIntakeFormResponse>(tokenValidationResult.Error);
 
@@ -807,6 +807,10 @@ public class IntakeService(
 
         var schema = await LoadFormSchemaAsync(intake.FormSchemaId, cancellationToken);
 
+        var freeTime = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_free_time", "text");
+        var PatientCaseNotes = ExtractInputValuesHelper.ExtractChiefComplaint(intake.PainPointsData);
+
+
         var fullNameQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Full Name") 
             ?? ExtractInputValuesHelper.FindQuestionIdByText(schema, "Name")
             ?? "question_default_full_name";
@@ -847,7 +851,9 @@ public class IntakeService(
                 dateOfBirth,
                 job,
                 doctorId,
-                ExtractInputValuesHelper.ExtractPatientCategory(intake.PainPointsData)),
+                ExtractInputValuesHelper.ExtractPatientCategory(intake.PainPointsData),
+                freeTime,
+                PatientCaseNotes),
             cancellationToken);
 
         if (createPatientResult.IsFailure)
@@ -1024,6 +1030,51 @@ public class IntakeService(
         }
 
         return Result.Success();
+    }
+
+    public async Task<Result<PreVisitIntakeResponse>> CreateDirectIntakeAsync(
+    CreateDirectIntakeRequest request, Guid doctorId, CancellationToken cancellationToken = default)
+    {
+        var schema = await _patientFormSchemaRepository.GetByIdAsync(request.FormSchemaId, cancellationToken);
+        if (schema is null)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.SchemaNotFound);
+
+        if (schema.DoctorId != doctorId)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.UnauthorizedDoctor);
+
+        var schemaDto = DeserializeSchemaJson(schema.SchemaJson);
+        if (schemaDto is null)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSchema);
+
+        // Just checks the submission JSON is well-formed and matches the schema's questions.
+        // No question IDs are hardcoded here — this walks whatever the schema actually defines.
+        var submissionDto = ExtractInputValuesHelper.DeserializeSubmissionJson(request.FormSubmissionData);
+        if (submissionDto is null)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSubmission);
+
+        var validationResult = _dynamicFormValidationService.ValidateSubmissionAgainstSchema(schemaDto, submissionDto);
+        if (validationResult.IsFailure)
+            return Result.Failure<PreVisitIntakeResponse>(validationResult.Error);
+
+        var intake = new PreVisitIntake
+        {
+            DoctorId = doctorId,
+            FormSchemaId = schema.Id,
+            FormSchemaVersion = schema.Version,
+            FormSubmissionData = request.FormSubmissionData,   // raw, untouched
+            PainPointsData = request.PainPointsData,             // raw, untouched
+            Status = IntakeStatus.Pending,
+            SubmittedAt = DateTime.UtcNow
+        };
+
+        await _preVisitIntakeRepository.AddAsync(intake, cancellationToken);
+        await _unitOfWork.SaveAsync(cancellationToken);
+
+        _logger.LogInformation("Doctor {DoctorId} created a direct intake {IntakeId} using schema {SchemaId}",
+            doctorId, intake.Id, schema.Id);
+
+        var response = _mapper.Map<PreVisitIntakeResponse>(intake);
+        return Result.Success(response);
     }
 
     // ─── Serialization ──────────────────────────────────────────────

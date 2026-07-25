@@ -9,11 +9,7 @@
       (viewModeChanged)="scheduleService.setView($event)"
       
     />
-    <app-doctor-selector
-      [doctors]="doctors"
-      [selectedDoctorId]="scheduleService.selectedDoctorId()"
-      (doctorSelected)="onDoctorSelected($event)"
-    />
+   
   </div>
 
   @if (scheduleService.selectedDoctorId()) {
@@ -79,9 +75,10 @@
     [doctorId]="scheduleService.selectedDoctorId()"
     [prefillStart]="scheduleService.createDrawerPrefill()?.start ?? null"
     [prefillEnd]="scheduleService.createDrawerPrefill()?.end ?? null"
+    [prefillPatientId]="patientId()"
     (closeRequested)="scheduleService.closeCreateDrawer()"
     (createRequested)="onCreateSubmit($event)"
-  />
+/>
 
   <div class="toast-stack">
     @for (toast of scheduleService.toasts(); track toast.id) {

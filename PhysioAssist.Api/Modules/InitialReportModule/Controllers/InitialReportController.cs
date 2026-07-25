@@ -10,17 +10,15 @@ namespace PhysioAssist.Api.Modules.InitialReportModule.Controllers;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class InitialReportController(IInitialReportService initialReportService, IIntakeQueryService intakeQueryService) : ControllerBase
+public class InitialReportController(
+    IInitialReportService _initialReportService, 
+    IIntakeQueryService _intakeQueryService,
+    ITreatmentSchedulePlanService _treatmentSchedulePlanService) : ControllerBase
 {
-    private readonly IInitialReportService _initialReportService = initialReportService;
-    private readonly IIntakeQueryService _intakeQueryService = intakeQueryService;
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateInitialReportRequest request)
     {
-        // ⚠️ افتراض: DoctorId بيتاخد من الـ claim بتاع ApplicationUser Id.
-        // لو عندك ربط مختلف بين ApplicationUser والـ Doctor entity (مثلاً IDoctorService)،
-        // استبدلي السطر ده بالطريقة الصح عندك لجلب DoctorId الحقيقي.
         var doctorId = Guid.Parse(User.GetUserId()!);
 
         var result = await _initialReportService.CreateAsync(doctorId, request);
@@ -113,6 +111,45 @@ public class InitialReportController(IInitialReportService initialReportService,
     public async Task<IActionResult> Submit(Guid id)
     {
         var result = await _initialReportService.SubmitAsync(id);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : result.ToProblem();
+    }
+    [HttpPost("{id:guid}/schedule-plan")]
+    public async Task<IActionResult> UpsertSchedulePlan(Guid id, [FromBody] UpsertTreatmentSchedulePlanRequest request)
+    {
+        var result = await _treatmentSchedulePlanService.UpsertAsync(id, request);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : result.ToProblem();
+    }
+
+    [HttpGet("{id:guid}/schedule-plan")]
+    public async Task<IActionResult> GetSchedulePlan(Guid id)
+    {
+        var result = await _treatmentSchedulePlanService.GetAsync(id);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : result.ToProblem();
+    }
+
+    [HttpPost("{id:guid}/schedule-plan/book")]
+    public async Task<IActionResult> BookSchedulePlan(Guid id, [FromBody] BookTreatmentSlotRequest request)
+    {
+        var result = await _treatmentSchedulePlanService.BookNowAsync(id, request);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : result.ToProblem();
+    }
+
+    [HttpPost("{id:guid}/schedule-plan/send-to-receptionist")]
+    public async Task<IActionResult> SendSchedulePlanToReceptionist(Guid id)
+    {
+        var result = await _treatmentSchedulePlanService.SendToReceptionistAsync(id);
 
         return result.IsSuccess
             ? Ok(result.Value)

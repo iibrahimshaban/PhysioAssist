@@ -3,15 +3,19 @@ using Microsoft.EntityFrameworkCore;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Errors;
 using PhysioAssist.Api.Modules.PatientModule.Repositories;
-using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Dtos.Patient;
-using PhysioAssist.Api.Shared.Interfaces.Common;
-using PhysioAssist.Api.Shared.Interfaces.Exposed;
+using PhysioAssist.Api.Shared.Interfaces.Ingestion;
+using PhysioAssist.Api.Shared.Interfaces.Scheduling;
 
 namespace PhysioAssist.Api.Modules.PatientModule.Services;
 
-public class PatientQueryService(ApplicationDbContext dbContext, IUnitOfWork _unitOfWork, IPatientRepo _patientRepo,
-IDoctorPatientRepo _doctorPatientRepo) : IPatientQueryService
+public class PatientQueryService(
+    ApplicationDbContext dbContext,
+    IUnitOfWork _unitOfWork, IPatientRepo _patientRepo,
+    IDoctorPatientRepo _doctorPatientRepo,
+    IQueryTranslationService _translationService,
+    IPatientTimePreferenceParser _preferenceParser,
+    ILogger<PatientQueryService> _logger) : IPatientQueryService
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
 
@@ -22,7 +26,7 @@ IDoctorPatientRepo _doctorPatientRepo) : IPatientQueryService
 
         return await _dbContext.Set<Patient>()
             .Where(p => EF.Functions.Like(p.FullName, $"%{namePart}%"))
-            .Select(p => new PatientLookupResult(p.Id, p.FullName))
+            .Select(p => new PatientLookupResult(p.Id, p.FullName, p.PatientCaseNotes))
             .ToListAsync(ct);
     }
 
@@ -44,6 +48,27 @@ IDoctorPatientRepo _doctorPatientRepo) : IPatientQueryService
         }
 
         var response = patient.Adapt<PatientResponse>();
+
+        return Result.Success(response);
+    }
+
+    public async Task<Result<List<PatientResponse>>> GetAllPatientsForDoctorAsync(Guid doctorId,CancellationToken ct = default)
+    {
+        var patientIds = await _dbContext.DoctorPatients
+            .Where(dp => dp.DoctorId == doctorId)
+            .Select(dp => dp.PatientId)
+            .ToListAsync(ct);
+
+        var patients = await _dbContext.Patients
+            .Where(p => patientIds.Contains(p.Id))
+            .ToListAsync(ct);
+
+        if (!patients.Any())
+        {
+            return Result.Failure<List<PatientResponse>>(PatientErrors.NotFound);
+        }
+
+        var response = patients.Adapt<List<PatientResponse>>();
 
         return Result.Success(response);
     }
@@ -104,6 +129,14 @@ IDoctorPatientRepo _doctorPatientRepo) : IPatientQueryService
         var occupation = request.Occupation?.Trim() ?? string.Empty;
         if (occupation.Length > 200) occupation = occupation[..200];
 
+        // Pre-empt a unique-email collision instead of catching DbUpdateException inside
+        // the transaction (a failed SaveAsync poisons the transaction scope, so an in-scope
+        // retry is not safe). A real provided email already took the re-link path above, so
+        // this only guards the rare provided-duplicate / race case.
+        var duplicateByResolvedEmail = await _patientRepo.GetByEmailAsync(resolvedEmail);
+        if (duplicateByResolvedEmail is not null)
+            return Result.Failure<Guid>(PatientErrors.DuplicateEmail);
+
         var patient = new Patient
         {
             FullName = fullName,
@@ -113,35 +146,138 @@ IDoctorPatientRepo _doctorPatientRepo) : IPatientQueryService
             DateOfBirth = request.DateOfBirth,
             QRCodeToken = $"patient-qr-{Guid.NewGuid():N}",
             Occupation = occupation,
-            Status = PatientStatus.Active
+            Status = PatientStatus.Active,
+            PatientFreeTime = request.FreeTime ?? string.Empty,
+            PatientCaseNotes = request.Notes ?? string.Empty
         };
 
+        if (!string.IsNullOrWhiteSpace(request.FreeTime))
+        {
+            try
+            {
+                var englishFreeTime = await _translationService.TranslateToEnglishAsync(request.FreeTime, cancellationToken);
+                var preferenceResult = await _preferenceParser.ParseAsync(englishFreeTime, cancellationToken);
+
+                if (preferenceResult.IsSuccess)
+                {
+                    patient.ParsedPreferredDayToken = preferenceResult.Value.DayToken;
+                    patient.ParsedPreferredTimeFrom = preferenceResult.Value.PreferredTimeFrom;
+                    patient.ParsedPreferredTimeTo = preferenceResult.Value.PreferredTimeTo;
+                    patient.ParsedPreferredWeekdays = preferenceResult.Value.PreferredWeekdays;
+                }
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                _logger.LogWarning(ex,
+                    "Free-time translation/parsing unavailable during intake conversion for {FreeTime}; proceeding without parsed preference.",
+                    request.FreeTime);
+            }
+        }
+
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
         try
         {
             await _patientRepo.AddAsync(patient);
             await _unitOfWork.SaveAsync(cancellationToken);
+
+            var doctorPatient = new DoctorPatient
+            {
+                DoctorId = request.DoctorId,
+                PatientId = patient.Id,
+                IsPrimary = true,
+                AssignedAt = DateTime.UtcNow,
+                AccessLevel = AccessLevel.FullAccess,
+                Category = request.PatientCategory,
+                Status = DoctorPatientStatus.Active
+            };
+
+            await _doctorPatientRepo.AddAsync(doctorPatient);
+            await _unitOfWork.SaveAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
         }
-        catch (DbUpdateException)
+        catch
         {
-            // Fallback for unexpected duplicate email constraint violation
-            patient.EmailAddress = $"converted-{Guid.NewGuid():N}@physioassist.local";
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+
+        return Result.Success(patient.Id);
+    }
+
+    public async Task<Result<PatientTimePreferenceInfo>> GetPatientTimePreferenceAsync(
+    Guid patientId, CancellationToken cancellationToken = default)
+    {
+        var patient = await _patientRepo.GetByIdAsync(patientId);
+
+        if (patient is null)
+            return Result.Failure<PatientTimePreferenceInfo>(PatientErrors.NotFound);
+
+        return Result.Success(new PatientTimePreferenceInfo(
+            patient.ParsedPreferredDayToken,
+            patient.ParsedPreferredWeekdays,
+            patient.ParsedPreferredTimeFrom,
+            patient.ParsedPreferredTimeTo)
+            );
+    }
+    public async Task<Result<PatientTimePreferenceInfo>> ResolvePatientTimePreferenceAsync(
+        Guid patientId,
+        string? freeTimeOverrideText,
+        bool persistOverride,
+        CancellationToken cancellationToken = default)
+    {
+        // No override typed this session — behave exactly as before, read whatever's
+        // already persisted on the patient.
+        if (string.IsNullOrWhiteSpace(freeTimeOverrideText))
+            return await GetPatientTimePreferenceAsync(patientId, cancellationToken);
+
+        var patient = await _patientRepo.GetByIdAsync(patientId);
+        if (patient is null)
+            return Result.Failure<PatientTimePreferenceInfo>(PatientErrors.NotFound);
+
+        var parsed = new PatientTimePreferenceDto();
+        try
+        {
+            var englishFreeTime = await _translationService.TranslateToEnglishAsync(freeTimeOverrideText, cancellationToken);
+            var preferenceResult = await _preferenceParser.ParseAsync(englishFreeTime, cancellationToken);
+
+            if (preferenceResult.IsSuccess)
+                parsed = preferenceResult.Value;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex,
+                "Free-time translation/parsing unavailable while resolving override for patient {PatientId}; proceeding without parsed preference.",
+                patientId);
+        }
+
+        if (persistOverride)
+        {
+            patient.PatientFreeTime = freeTimeOverrideText;
+            patient.ParsedPreferredDayToken = parsed.DayToken;
+            patient.ParsedPreferredTimeFrom = parsed.PreferredTimeFrom;
+            patient.ParsedPreferredTimeTo = parsed.PreferredTimeTo;
+            patient.ParsedPreferredWeekdays = parsed.PreferredWeekdays;
+
             await _unitOfWork.SaveAsync(cancellationToken);
         }
 
-        var doctorPatientLink = new DoctorPatient
-        {
-            DoctorId = request.DoctorId,
-            PatientId = patient.Id,
-            IsPrimary = true,
-            AssignedAt = DateTime.UtcNow,
-            AccessLevel = AccessLevel.FullAccess,
-            Category = request.PatientCategory,
-            Status = DoctorPatientStatus.Active
-        };
+        // Parsed value drives *this* search either way — persisted or not.
+        return Result.Success(new PatientTimePreferenceInfo(
+            parsed.DayToken,
+            parsed.PreferredWeekdays,
+            parsed.PreferredTimeFrom,
+            parsed.PreferredTimeTo));
+    }
+    public async Task<Dictionary<Guid, PatientLookupResult>> GetPatientsByIdsAsync(
+        IEnumerable<Guid> patientIds,
+        CancellationToken cancellationToken = default)
+    {
+        var ids = patientIds.Distinct().ToList();
 
-        await _doctorPatientRepo.AddAsync(doctorPatientLink);
-        await _unitOfWork.SaveAsync(cancellationToken);
-
-        return Result.Success(patient.Id);
+        return await dbContext.Patients
+            .Where(p => ids.Contains(p.Id))
+            .Select(p => new PatientLookupResult(p.Id, p.FullName, p.PatientCaseNotes))
+            .ToDictionaryAsync(p => p.Id, cancellationToken);
     }
 }

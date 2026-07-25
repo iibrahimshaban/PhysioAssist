@@ -1,4 +1,5 @@
-﻿using PhysioAssist.Api.Persistence;
+﻿using PhysioAssist.Api.Modules.SessionModule.Entities;
+using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Dtos.Session;
 using PhysioAssist.Api.Shared.Interfaces.Exposed;
 
@@ -34,5 +35,24 @@ public class SessionQueryService(ApplicationDbContext context) : ISessionQuerySe
             .Where(s => s.DoctorId == doctorId && s.PatientId == patientId && s.SummaryText != null)
             .Select(s => new SessionSummaryItem(s.Id, s.SummaryText, s.SummaryGeneratedAt))
             .ToListAsync(ct);
+    }
+    public async Task<Dictionary<Guid, SessionLookupDto>> GetSessionsByScheduleSlotIdsAsync(
+        IEnumerable<Guid> scheduleSlotIds,
+        CancellationToken cancellationToken = default)
+    {
+        var ids = scheduleSlotIds.Distinct().ToList();
+
+        return await context.Set<Session>()
+            .Where(s => s.ScheduleSlotId.HasValue && ids.Contains(s.ScheduleSlotId.Value))
+            .Select(s => new SessionLookupDto(s.Id, s.ScheduleSlotId!.Value, s.Status))
+            .ToDictionaryAsync(s => s.ScheduleSlotId, cancellationToken);
+    }
+
+    public async Task<Guid?> GetScheduleSlotIdBySessionIdAsync(Guid sessionId,CancellationToken cancellationToken = default)
+    {
+        return await context.Set<Session>()
+            .Where(s => s.Id == sessionId)
+            .Select(s => s.ScheduleSlotId)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
+using PhysioAssist.Api.Infrastructure.GeminiClient;
+using PhysioAssist.Api.Infrastructure.GroqClient.Options;
 using PhysioAssist.Api.Shared.Interfaces.Ingestion;
-using PhysioAssist.Api.Shared.SystemPrompts;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;

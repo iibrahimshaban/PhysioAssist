@@ -1,0 +1,77 @@
+<div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+  <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="text-sm font-bold uppercase tracking-wide text-slate-600">SESSION NOTES</h2>
+
+    <button
+      type="button"
+      (click)="onRecord()"
+      [disabled]="isUploadingAudio()"
+      class="w-full rounded-lg bg-[#0B8EEA] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#087ed0] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+    >
+      @if (isUploadingAudio()) {
+        <i class="fa-solid fa-spinner mr-2 animate-spin"></i>
+
+        Processing audio...
+      } @else {
+        <i class="fa-solid fa-microphone mr-2"></i>
+
+        Tap to record
+      }
+    </button>
+  </div>
+
+  <div class="relative">
+    <textarea
+      #notesTextarea
+      dir="auto"
+      [value]="notes()"
+      (input)="onTranscriptChange($event)"
+      (keydown)="onTranscriptKeyDown($event, notesTextarea)"
+      placeholder="Tap microphone to dictate, or type manually..."
+      spellcheck="true"
+      class="mixed-transcript h-[260px] w-full resize-none rounded-2xl border border-slate-200 p-4 text-base outline-none transition focus:border-[#0B8EEA] sm:h-[320px]"
+    ></textarea>
+  </div>
+
+  @if (suggestions().length > 0) {
+    <div
+      class="relative z-30 mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+    >
+      @for (suggestion of suggestions(); track suggestion.term) {
+        <button
+          type="button"
+          class="block w-full border-b border-slate-100 px-4 py-3 text-left last:border-b-0 hover:bg-slate-50"
+          (mousedown)="$event.preventDefault(); applySuggestion(suggestion, notesTextarea)"
+        >
+          <div class="font-medium text-slate-800">
+            {{ suggestion.term }}
+          </div>
+
+          @if (suggestion.category || suggestion.language) {
+            <div class="mt-1 text-xs text-slate-500">
+              {{ suggestion.category }}
+
+              @if (suggestion.category && suggestion.language) {
+                <span>•</span>
+              }
+
+              {{ suggestion.language }}
+            </div>
+          }
+        </button>
+      }
+    </div>
+  }
+
+  @if (audioFileUrl()) {
+    <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <div class="mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-volume-high text-sky-500"></i>
+
+        <p class="text-xs font-bold uppercase text-slate-500">Session audio</p>
+      </div>
+
+      <audio controls preload="metadata" class="w-full" [src]="audioFileUrl()"></audio>
+    </div>
+  }
+</div>

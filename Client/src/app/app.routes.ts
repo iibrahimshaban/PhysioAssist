@@ -36,14 +36,12 @@ export const routes: Routes = [
     path: 'app',
     component: MainLayoutComponent,
     canActivate: [authGuard],
-    loadChildren: () => import('./Layout/main-layout/main-layout.routes').then((m) => m.MainLayoutRoutes),
+    loadChildren: () =>
+      import('./Layout/main-layout/main-layout.routes').then((m) => m.MainLayoutRoutes),
   },
   {
     path: 'public',
     loadChildren: () => import('./Features/intake/intake.routes').then((m) => m.publicIntakeRoutes),
   },
-
-  { path: 'initial-report', loadComponent: () => import('./Features/initial-report/initial-report.component').then(m => m.InitialReportComponent) },
-
   { path: '**', redirectTo: 'not-found' },
 ];

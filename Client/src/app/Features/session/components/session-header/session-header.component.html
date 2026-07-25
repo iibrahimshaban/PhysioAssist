@@ -1,0 +1,17 @@
+<header class="border-b border-[#E5EDF5] bg-white">
+  <div class="mx-auto max-w-[1100px] px-4 py-5 sm:px-6">
+    <p class="mb-2 text-sm text-slate-500">← Patients</p>
+
+    <h1 class="text-3xl font-bold text-slate-900 sm:text-4xl">
+      {{ session()?.patientName ?? 'Loading...' }}
+    </h1>
+
+    <p class="mt-1 text-sm text-slate-500 sm:text-base">
+      {{ session()?.slotStart | date: 'shortTime' }}
+      —
+      {{ session()?.slotEnd | date: 'shortTime' }}
+      ·
+      {{ getStatusText(session()?.status) }}
+    </p>
+  </div>
+</header>

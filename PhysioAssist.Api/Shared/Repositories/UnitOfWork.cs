@@ -1,8 +1,8 @@
-﻿using PhysioAssist.Api.Modules.Scheduling.Entities;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using PhysioAssist.Api.Modules.InitialReportModule.Entities;
+using PhysioAssist.Api.Modules.InitialReportModule.Repositories;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
-using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Interfaces.Common;
 
 namespace PhysioAssist.Api.Shared.Repositories;
 
@@ -12,6 +12,7 @@ public class UnitOfWork: IUnitOfWork
     public IScheduleSlotRepository ScheduleSlots { get; }
     public IWorkingScheduleRepository WorkingSchedules { get; }
     public IWorkingScheduleDayRepository WorkingScheduleDays { get; }
+    public ITreatmentSchedulePlanRepository TreatmentSchedulePlans { get; }
 
     private readonly Dictionary<Type, object> _repositories = [];
 
@@ -23,6 +24,7 @@ public class UnitOfWork: IUnitOfWork
         ScheduleSlots = new ScheduleSlotRepository(context);
         WorkingSchedules = new WorkingScheduleRepository(context);
         WorkingScheduleDays = new WorkingScheduleDayRepository(context);
+        TreatmentSchedulePlans = new TreatmentSchedulePlanRepository(context);
     }
 
     public IBaseRepository<TEntity> Repository<TEntity>()
@@ -39,6 +41,9 @@ public class UnitOfWork: IUnitOfWork
         return (IBaseRepository<TEntity>)repository;
     }
     public async Task SaveAsync(CancellationToken cancellation) => await _context.SaveChangesAsync(cancellation);
+
+    public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+        => await _context.Database.BeginTransactionAsync(cancellationToken);
 
     //public void Dispose()
     //{

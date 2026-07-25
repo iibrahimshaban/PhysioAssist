@@ -117,3 +117,22 @@ interface DragState {
   colWidth: number;        // NEW — cached column width, so we don't re-measure the DOM on every pointermove
   mode: 'move' | 'resize';
 }
+
+
+export interface PatientResponse {
+  id: string;
+  fullName: string;
+  dateOfBirth: string | null;
+  gender: string;
+  phoneNumber: string | null;
+  emailAddress: string;
+  occupation: string | null;
+  qrCodeToken: string;
+  status: string;
+}
+
+export interface PatientOption {
+  id: string;
+  name: string;
+  isGuest: boolean;
+}

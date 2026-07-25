@@ -21,4 +21,7 @@ public static class QRErrors
         "QR.InvalidPurpose",
         "The QR token purpose is not valid for this operation.",
         StatusCodes.Status400BadRequest);
+
+    public static readonly Error ImageUploadFailed = new(
+    "QR.ImageUploadFailed", "Failed to upload the QR code image.", StatusCodes.Status500InternalServerError);
 }

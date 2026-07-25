@@ -1,10 +1,5 @@
 namespace PhysioAssist.Api.Shared.QR;
 
-/// <summary>
-/// Internal QR token payload used by QRService.
-/// DO NOT use directly as an API Request DTO.
-/// Create a separate Request DTO with FluentValidation when exposing QR operations via API.
-/// </summary>
 public class QRTokenPayload
 {
     public QRTokenPurpose Purpose { get; init; }

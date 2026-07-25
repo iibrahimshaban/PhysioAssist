@@ -3,9 +3,6 @@ using PhysioAssist.Api.Modules.Intake.DTOs.FormSchemas;
 using PhysioAssist.Api.Modules.Intake.DTOs.PublicAccess;
 using PhysioAssist.Api.Modules.Intake.DTOs.Submissions;
 using PhysioAssist.Api.Modules.Intake.Services;
-using PhysioAssist.Api.Shared.Authorization;
-using PhysioAssist.Api.Shared.Consts;
-using PhysioAssist.Api.Shared.Extensions;
 
 namespace PhysioAssist.Api.Modules.Intake.Controllers;
 
@@ -171,6 +168,16 @@ public class IntakeController(IIntakeService intakeService) : ControllerBase
     {
         var doctorId = Guid.Parse(User.GetUserId()!);
         var result = await _intakeService.ConvertToPatientAsync(id, request, doctorId, cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+
+    [HttpPost("direct")]
+    [HasPermission(Permissions.IntakeManageForms)]
+    public async Task<IActionResult> CreateDirectIntake([FromBody] CreateDirectIntakeRequest request, CancellationToken cancellationToken)
+    {
+        var doctorId = Guid.Parse(User.GetUserId()!);
+        var result = await _intakeService.CreateDirectIntakeAsync(request, doctorId, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }

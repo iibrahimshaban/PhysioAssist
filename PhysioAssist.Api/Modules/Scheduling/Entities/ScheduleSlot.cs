@@ -8,5 +8,7 @@ public class ScheduleSlot
     public DateTimeOffset SlotStart { get; set; }
     public DateTimeOffset SlotEnd { get; set; }
     public SlotStatus Status { get; set; }
+    public Guid? PackageId { get; set; }
+    public PatientSessionPackage? Package { get; set; }
 }
 

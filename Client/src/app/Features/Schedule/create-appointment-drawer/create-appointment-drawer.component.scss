@@ -1,30 +1,107 @@
 :host { display: contents; }
+
 .drawer-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.35); z-index: 40; }
+
 .drawer {
   position: fixed; top: 0; right: 0; bottom: 0; width: 380px; background: var(--color-surface);
   box-shadow: -8px 0 24px rgba(15, 23, 42, 0.12); z-index: 50; padding: 24px; overflow-y: auto;
   display: flex; flex-direction: column; gap: 18px; animation: slideIn 0.2s ease-out;
 }
+
 @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
 .drawer__header { display: flex; justify-content: space-between; align-items: center; }
 .drawer__title { margin: 0; font-size: 18px; font-weight: 700; color: var(--color-text-primary); }
 .drawer__close { border: none; background: transparent; font-size: 16px; cursor: pointer; color: var(--color-text-secondary); }
 .drawer__form { display: flex; flex-direction: column; gap: 16px; flex: 1; }
+
 .form-field { display: flex; flex-direction: column; gap: 6px; }
 .form-field__label { font-size: 12.5px; font-weight: 600; color: var(--color-text-secondary); }
 .form-field__input {
   height: 38px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 13.5px;
   &:focus { outline: 2px solid var(--color-primary); outline-offset: -1px; }
 }
+
 .duration-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
 .duration-btn {
   height: 34px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);
   background: var(--color-surface); font-size: 13px; font-weight: 600; cursor: pointer; color: var(--color-text-secondary);
   &--active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
 }
+
 .drawer__actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
 .drawer-btn {
   height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--color-surface);
   font-size: 13.5px; font-weight: 600; cursor: pointer; color: var(--color-text-primary);
   &--primary { background: var(--color-primary); color: #fff; border-color: var(--color-primary); &:disabled { opacity: 0.5; cursor: not-allowed; } }
+}
+
+// ── Patient selection ──────────────────────────────────────────────
+
+.patient-mode-toggle {
+  display: flex; gap: 6px; padding: 3px; border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-border) 35%, transparent);
+}
+.mode-btn {
+  flex: 1; height: 32px; padding: 0 10px; border: none; border-radius: calc(var(--radius-sm) - 2px);
+  background: transparent; font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--color-text-secondary);
+  transition: background 0.15s ease, color 0.15s ease;
+  &--active { background: var(--color-surface); color: var(--color-primary); box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1); }
+}
+
+.patient-search { position: relative; }
+
+.patient-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; max-height: 220px; overflow-y: auto;
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12); z-index: 20;
+}
+.patient-option {
+  display: block; width: 100%; text-align: left; padding: 9px 12px; border: none; background: transparent;
+  font-size: 13.5px; color: var(--color-text-primary); cursor: pointer;
+  &:hover, &:focus-visible { background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
+}
+.patient-dropdown__status {
+  padding: 10px 12px; font-size: 12.5px; color: var(--color-text-secondary);
+  &--error { color: #dc2626; }
+}
+.patient-selected {
+  margin-top: 2px; font-size: 12px; font-weight: 600; color: var(--color-primary);
+  display: flex; align-items: center; gap: 4px;
+}
+
+.guest-info {
+  padding: 12px; border-radius: var(--radius-sm); border: 1px dashed var(--color-border);
+  background: color-mix(in srgb, var(--color-border) 20%, transparent);
+  &__text { margin: 0 0 6px; font-size: 12.5px; color: var(--color-text-secondary); }
+  &__id { font-size: 12px; color: var(--color-text-secondary); word-break: break-all; }
+}
+
+// ── Responsive ──────────────────────────────────────────────────────
+
+@media (max-width: 640px) {
+  .drawer {
+    width: 100%;
+    max-width: 100%;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    border-radius: 0;
+  }
+  .drawer__title { font-size: 16.5px; }
+  .duration-buttons { gap: 8px; }
+  .duration-btn { flex: 1 1 calc(33.333% - 6px); }
+  .drawer__actions { gap: 10px; }
+  .drawer-btn { height: 44px; } // larger tap target on touch
+  .mode-btn { height: 36px; }
+  .patient-dropdown { max-height: 45vh; }
+}
+
+@media (max-width: 380px) {
+  .drawer { padding: 16px 12px calc(16px + env(safe-area-inset-bottom, 0px)); }
+  .duration-btn { flex: 1 1 calc(50% - 6px); }
+}
+
+// Slide up from bottom instead of in from the side on small screens — sheet-style feels more native on mobile
+@media (max-width: 640px) {
+  .drawer { top: auto; animation: slideUp 0.2s ease-out; max-height: 90vh; border-top-left-radius: 16px; border-top-right-radius: 16px; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 }

@@ -2,6 +2,8 @@
 @import 'tailwindcss';
 @import 'primeicons/primeicons.css';
 @import './app/Features/intake/intake-theme.css';
+@plugin "@tailwindcss/typography";
+
 html {
   color-scheme: light !important;
 }
@@ -325,4 +327,8 @@ html {
 :host-context(.intake-module) .smooth-scroll-x::-webkit-scrollbar-thumb {
   background: var(--neutral-300);
   border-radius: 2px;
+}
+
+.prose[dir="auto"] {
+  unicode-bidi: plaintext;
 }

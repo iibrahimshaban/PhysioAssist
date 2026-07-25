@@ -69,4 +69,8 @@ export class PatientDetailComponent implements OnInit {
       }
     });
   }
+
+  goToOverview() {
+  this.router.navigate(['/app/patients', this.patient.id, 'overview']);
+}
 }
