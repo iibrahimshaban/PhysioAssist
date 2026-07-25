@@ -22,6 +22,7 @@ export interface PreVisitIntakeResponse {
   painRegionCount: number;  
 }
 
+
 export interface PreVisitIntakeDetailsResponse {
   id: string;
   doctorId: string;

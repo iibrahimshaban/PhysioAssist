@@ -2,5 +2,9 @@
 
 public interface IPatientOverviewIntakeCommandService
 {
-    Task<Result> UpdateFormSubmissionDataAsync(Guid patientId, string formSubmissionData, CancellationToken ct = default);
+    Task<Result> UpdateOverviewDataAsync(
+        Guid patientId,
+        string formSubmissionData,
+        string? painPointsData,
+        CancellationToken ct = default);
 }

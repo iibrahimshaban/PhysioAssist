@@ -99,7 +99,8 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
         [HttpPut("{id}/overview/submission-data")]
         public async Task<IActionResult> UpdateOverviewSubmissionData(Guid id, [FromBody] UpdateSubmissionDataRequest request, CancellationToken ct)
         {
-            var result = await _patientService.UpdatePatientOverviewSubmissionAsync(id, request.FormSubmissionData, ct);
+            var result = await _patientService.UpdatePatientOverviewSubmissionAsync(
+                id, request.FormSubmissionData, request.PainPointsData, ct);
             return result.IsSuccess ? NoContent() : result.ToProblem();
         }
 

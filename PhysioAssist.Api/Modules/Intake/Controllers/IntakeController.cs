@@ -3,9 +3,6 @@ using PhysioAssist.Api.Modules.Intake.DTOs.FormSchemas;
 using PhysioAssist.Api.Modules.Intake.DTOs.PublicAccess;
 using PhysioAssist.Api.Modules.Intake.DTOs.Submissions;
 using PhysioAssist.Api.Modules.Intake.Services;
-using PhysioAssist.Api.Shared.Authorization;
-using PhysioAssist.Api.Shared.Consts;
-using PhysioAssist.Api.Shared.Extensions;
 
 namespace PhysioAssist.Api.Modules.Intake.Controllers;
 
