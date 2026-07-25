@@ -216,9 +216,14 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         }
 
 
-        public async Task<Result> UpdatePatientOverviewSubmissionAsync(Guid patientId, string formSubmissionData, CancellationToken ct = default)
+        public async Task<Result> UpdatePatientOverviewSubmissionAsync(
+            Guid patientId,
+            string formSubmissionData,
+            string? painPointsData,
+            CancellationToken ct = default)
         {
-            return await _overviewIntakeCommandService.UpdateFormSubmissionDataAsync(patientId, formSubmissionData, ct);
+            return await _overviewIntakeCommandService.UpdateOverviewDataAsync(
+                patientId, formSubmissionData, painPointsData, ct);
         }
     }
 }
