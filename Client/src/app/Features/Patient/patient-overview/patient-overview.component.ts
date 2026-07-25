@@ -21,8 +21,6 @@ export class PatientOverviewComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  // Left as `any` to match what PatientService.getOverview()/getFormSchema()
-  // already returned before this conversion — no shape change, just signals.
   patient = signal<any>(null);
   isLoading = signal(false);
 
@@ -34,12 +32,17 @@ export class PatientOverviewComponent implements OnInit {
   isEditMode = signal(false);
   isSaving = signal(false);
   flatInitialAnswers = signal<Record<string, any> | null>(null);
+  pendingPainMap = signal<BodyPainMapPayload | null>(null);
+
   private pendingSubmission: DynamicFormSubmissionDto | null = null;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) return;
+    this.loadOverview(id);
+  }
 
+  private loadOverview(id: string): void {
     this.isLoading.set(true);
     this.patientService.getOverview(id).subscribe({
       next: data => {
@@ -78,6 +81,8 @@ export class PatientOverviewComponent implements OnInit {
             chiefComplaint: doctorInfo?.chiefComplaint ?? '',
             patientCategory: (doctorInfo?.patientCategory ?? '') as any,
           });
+        } else {
+          this.painMapPayload.set(null);
         }
 
         const schemaId = this.submissionData()?.formSchemaId;
@@ -150,30 +155,50 @@ export class PatientOverviewComponent implements OnInit {
   enterEditMode(): void {
     this.flatInitialAnswers.set(this.buildFlatAnswers());
     this.pendingSubmission = null;
+
+    const currentPainMap = this.painMapPayload();
+    this.pendingPainMap.set(
+      currentPainMap ? { ...currentPainMap } : { regions: [], chiefComplaint: '', patientCategory: '' as any }
+    );
+
     this.isEditMode.set(true);
   }
 
   cancelEdit(): void {
     this.isEditMode.set(false);
     this.pendingSubmission = null;
+    this.pendingPainMap.set(null);
   }
 
   onSubmissionChange(submission: DynamicFormSubmissionDto): void {
     this.pendingSubmission = submission;
   }
 
+  onPainMapChange(payload: BodyPainMapPayload): void {
+    this.pendingPainMap.set(payload);
+  }
+
   saveEdit(): void {
     const patientId = this.patient()?.id;
-    if (!this.pendingSubmission || !patientId) return;
+    if (!patientId) return;
 
     this.isSaving.set(true);
-    const body = { formSubmissionData: JSON.stringify(this.pendingSubmission) };
 
-    this.patientService.updateOverviewSubmission(patientId, body).subscribe({
+    const submissionToSave = this.pendingSubmission
+      ? JSON.stringify(this.pendingSubmission)
+      : this.patient()?.formSubmissionData;
+
+    const pendingMap = this.pendingPainMap();
+    const painMapToSave = pendingMap ? JSON.stringify(pendingMap) : null;
+
+    this.patientService.updateOverviewSubmission(patientId, {
+      formSubmissionData: submissionToSave,
+      painPointsData: painMapToSave,
+    }).subscribe({
       next: () => {
-        this.submissionData.set(this.pendingSubmission);
         this.isEditMode.set(false);
         this.isSaving.set(false);
+        this.loadOverview(patientId);
       },
       error: err => {
         console.error(err);
@@ -182,8 +207,31 @@ export class PatientOverviewComponent implements OnInit {
     });
   }
 
+  goToEdit(): void {
+    const patientId = this.patient()?.id;
+    if (!patientId) return;
+    this.router.navigate(['/app/patients/edit', patientId]);
+  }
+
+  goToInitialReport(): void {
+    const patientId = this.patient()?.id;
+    if (!patientId) return;
+    this.router.navigate(['/app/initial-report', patientId]);
+  }
+
+  delete(): void {
+    const patientId = this.patient()?.id;
+    if (!patientId) return;
+    if (confirm('Are you sure you want to delete this patient?')) {
+      this.patientService.delete(patientId).subscribe({
+        next: () => this.router.navigate(['/app/patients']),
+        error: err => console.error(err),
+      });
+    }
+  }
+
   goBack(): void {
-    this.router.navigate(['/app/patients', this.patient()?.id]);
+    this.router.navigate(['/app/patients']);
   }
 
   // NOTE: assumed route — this is the receptionist-scheduling route you built

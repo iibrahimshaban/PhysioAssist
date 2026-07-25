@@ -449,6 +449,51 @@ public class IntakeService(
         return Result.Success(response);
     }
 
+    public async Task<Result<PreVisitIntakeResponse>> CreateDirectIntakeAsync(
+    CreateDirectIntakeRequest request, Guid doctorId, CancellationToken cancellationToken = default)
+    {
+        var schema = await _patientFormSchemaRepository.GetByIdAsync(request.FormSchemaId, cancellationToken);
+        if (schema is null)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.SchemaNotFound);
+
+        if (schema.DoctorId != doctorId)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.UnauthorizedDoctor);
+
+        var schemaDto = DeserializeSchemaJson(schema.SchemaJson);
+        if (schemaDto is null)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSchema);
+
+        // Just checks the submission JSON is well-formed and matches the schema's questions.
+        // No question IDs are hardcoded here — this walks whatever the schema actually defines.
+        var submissionDto = ExtractInputValuesHelper.DeserializeSubmissionJson(request.FormSubmissionData);
+        if (submissionDto is null)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSubmission);
+
+        var validationResult = _dynamicFormValidationService.ValidateSubmissionAgainstSchema(schemaDto, submissionDto);
+        if (validationResult.IsFailure)
+            return Result.Failure<PreVisitIntakeResponse>(validationResult.Error);
+
+        var intake = new PreVisitIntake
+        {
+            DoctorId = doctorId,
+            FormSchemaId = schema.Id,
+            FormSchemaVersion = schema.Version,
+            FormSubmissionData = request.FormSubmissionData,   // raw, untouched
+            PainPointsData = request.PainPointsData,             // raw, untouched
+            Status = IntakeStatus.Pending,
+            SubmittedAt = DateTime.UtcNow
+        };
+
+        await _preVisitIntakeRepository.AddAsync(intake, cancellationToken);
+        await _unitOfWork.SaveAsync(cancellationToken);
+
+        _logger.LogInformation("Doctor {DoctorId} created a direct intake {IntakeId} using schema {SchemaId}",
+            doctorId, intake.Id, schema.Id);
+
+        var response = _mapper.Map<PreVisitIntakeResponse>(intake);
+        return Result.Success(response);
+    }
+
     private DynamicFormSchemaDto? DeserializeSchemaJson(string schemaJson)
     {
         try

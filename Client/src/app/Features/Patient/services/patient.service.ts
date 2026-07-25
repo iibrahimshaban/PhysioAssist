@@ -6,6 +6,8 @@ import { HttpClient } from '@angular/common/http';
 })
 export class PatientService {
   private apiUrl = 'https://localhost:7097/api/patient';
+    private intakeUrl = 'https://localhost:7097/api/intake';
+
 
   constructor(private http: HttpClient) {}
 
@@ -56,8 +58,31 @@ getFormSchema(schemaId: string) {
   return this.http.get<any>(`https://localhost:7097/api/intake/form-schemas/${schemaId}`);
 }
 
-updateOverviewSubmission(patientId: string, body: { formSubmissionData: string }) {
+updateOverviewSubmission(patientId: string, body: { formSubmissionData: string; painPointsData: string | null }) {
   return this.http.put(`${this.apiUrl}/${patientId}/overview/submission-data`, body);
 }
 
+
+createDirectIntake(body: { formSchemaId: string; formSubmissionData: string; painPointsData: string | null }) {
+    return this.http.post<any>(`${this.intakeUrl}/direct`, body);
+  }
+
+  convertIntakeToPatient(intakeId: string) {
+    return this.http.post<any>(`${this.intakeUrl}/submissions/${intakeId}/convert-to-patient`, {
+      formSubmissionData: '',
+      painPointsData: ''
+    });
+  }
+
+  getDefaultFormSchema() {
+  return this.http.get<any>(`${this.intakeUrl}/form-schemas/default`);
+}
+
+getAllFormSchemas() {
+    return this.http.get<any[]>(`${this.intakeUrl}/form-schemas`);
+  }
+
+  createPatientFromIntake(body: { formSchemaId: string; formSubmissionData: string; painPointsData: string | null }) {
+    return this.http.post<any>(`${this.apiUrl}/create-from-intake`, body);
+  }
 }

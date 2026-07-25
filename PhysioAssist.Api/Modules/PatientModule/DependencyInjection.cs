@@ -14,6 +14,7 @@ namespace PhysioAssist.Api.Modules.PatientModule
             services.AddScoped<IDoctorPatientRepo, DoctorPatientRepo>();
             services.AddScoped<IPatientOverviewIntakeQueryService, PatientOverviewIntakeQueryService>();
             services.AddScoped<IPatientOverviewIntakeCommandService, PatientOverviewIntakeCommandService>();
+
             services.AddScoped<IPatientQueryService, PatientQueryService>();
             services.AddHttpContextAccessor();
           
