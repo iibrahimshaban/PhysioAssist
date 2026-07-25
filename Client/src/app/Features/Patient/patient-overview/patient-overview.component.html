@@ -35,8 +35,16 @@
             class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
             <i class="pi pi-file"></i> Initial Report
           </button>
+          <p-button
+          label="Continue scheduling"
+          icon="pi pi-calendar"
+          size="small"
+          (onClick)="continueScheduling()"
+        />
         </div>
       </div>
+
+      
 
       <!-- Patient details -->
       <div *ngIf="formSchema() && submissionData()" class="mb-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
