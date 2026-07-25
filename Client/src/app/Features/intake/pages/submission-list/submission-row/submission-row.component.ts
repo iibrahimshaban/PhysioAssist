@@ -24,12 +24,12 @@ export class SubmissionRowComponent {
 
   getAvatarGradient(name: string | undefined, id: string): string {
     const gradients = [
-      'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', // Indigo to Violet
-      'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', // Blue
-      'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', // Cyan
-      'linear-gradient(135deg, #10b981 0%, #047857 100%)', // Emerald
-      'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', // Amber
-      'linear-gradient(135deg, #ec4899 0%, #be185d 100%)', // Pink
+      'linear-gradient(135deg, #0EB8A0 0%, #0B9A86 100%)', // Teal primary
+      'linear-gradient(135deg, #4FD4BC 0%, #0EB8A0 100%)', // Teal light to primary
+      'linear-gradient(135deg, #0B9A86 0%, #087B6B 100%)', // Teal dark
+      'linear-gradient(135deg, #86E4D0 0%, #4FD4BC 100%)', // Teal lighter
+      'linear-gradient(135deg, #0EB8A0 0%, #065E52 100%)', // Teal to very dark
+      'linear-gradient(135deg, #B2EFE2 0%, #0EB8A0 100%)', // Teal lightest to primary
     ];
     const key = name || id || 'default';
     let hash = 0;

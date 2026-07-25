@@ -1,35 +1,50 @@
 /*
  * Intake Module Design System
- * Scoped utilities for the Intake feature. Color/spacing tokens live in :root (styles.css).
+ * Scoped utilities for the Intake feature.
+ * Gradient: linear-gradient(135deg, #1888CC, #0FB3A5)
  */
 
 /* ─── Scoped token aliases (inherit global palette) ───────────────────────────────────────── */
 .intake-module,
 :host-context(.intake-module) {
+  --brand-blue: #1888CC;
+  --brand-teal: #0FB3A5;
+  --brand-gradient-start: #1888CC;
+  --brand-gradient-end: #0FB3A5;
+  --brand-gradient: linear-gradient(135deg, var(--brand-gradient-start), var(--brand-gradient-end));
+  --brand-blue-rgb: 24, 136, 204;
+  --brand-teal-rgb: 15, 179, 165;
+  
   --intake-color-text-primary: var(--color-text-primary);
   --intake-color-text-secondary: var(--color-text-secondary);
   --intake-color-page-bg: var(--color-page-bg);
   --intake-color-surface: var(--color-surface);
   --intake-color-border: var(--color-border);
-  --intake-color-primary: var(--color-primary);
-  --intake-color-primary-soft: var(--color-primary-soft);
-  --intake-color-success-bg: var(--color-success-bg);
-  --intake-color-success-text: var(--color-success-text);
-  --intake-color-success-light: var(--color-success-light);
-  --intake-color-warning-bg: var(--color-warning-bg);
-  --intake-color-warning-text: var(--color-warning-text);
-  --intake-color-warning-light: var(--color-warning-light);
-  --intake-color-warning: var(--color-warning);
-  --intake-color-danger: var(--color-danger);
-  --intake-color-danger-light: var(--color-danger-light);
-  --intake-color-danger-border: var(--color-danger-border);
-  --intake-color-info: var(--color-info);
-  --intake-color-info-light: var(--color-info-light);
-  --intake-color-info-border: var(--color-info-border);
-  --intake-color-info-text: var(--color-info-text);
+  --intake-color-primary: var(--brand-gradient-start);
+  --intake-color-primary-soft: rgba(24, 136, 204, 0.15);
+  --intake-color-success-bg: rgba(15, 179, 165, 0.1);
+  --intake-color-success-text: var(--brand-gradient-end);
+  --intake-color-success-light: rgba(15, 179, 165, 0.15);
+  --intake-color-warning-bg: rgba(253, 230, 138, 0.15);
+  --intake-color-warning-text: #F59E0B;
+  --intake-color-warning-light: rgba(253, 230, 138, 0.3);
+  --intake-color-warning: #F59E0B;
+  --intake-color-danger: #EF4444;
+  --intake-color-danger-light: rgba(239, 68, 68, 0.1);
+  --intake-color-danger-border: rgba(239, 68, 68, 0.2);
+  --intake-color-info: var(--brand-gradient-start);
+  --intake-color-info-light: rgba(24, 136, 204, 0.1);
+  --intake-color-info-border: rgba(24, 136, 204, 0.2);
+  --intake-color-info-text: var(--brand-gradient-start);
   --intake-color-page-bg-alt: var(--color-page-bg-alt);
   --intake-color-surface-50: var(--color-surface-50);
   --intake-color-surface-100: var(--color-surface-100);
+
+  --brand-region-unselected-fill: #F1F5F9;
+  --brand-region-unselected-stroke: #CBD5E1;
+  --brand-region-selected-fill: rgba(var(--brand-teal-rgb), 0.12);
+  --brand-region-selected-stroke: var(--brand-teal);
+
 }
 
 /* ─── Scoped Page Title ───────────────────────────────────────────────────────────────────── */
@@ -63,7 +78,7 @@
   }
 }
 
-/* ─── Shared surface card (forms list pattern) ───────────────────────────────────────────── */
+/* ─── Shared surface card ──────────────────────────────────────────────────────────────────── */
 .intake-module .intake-surface-card,
 :host-context(.intake-module) .intake-surface-card {
   background: var(--color-surface);
@@ -162,8 +177,8 @@
 .intake-module .intake-field-input:focus,
 :host-context(.intake-module) .intake-field-input:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(26, 127, 212, 0.15);
+  border-color: var(--brand-gradient-start);
+  box-shadow: 0 0 0 3px rgba(24, 136, 204, 0.15);
 }
 
 .intake-module .intake-field-input:disabled,
@@ -211,37 +226,18 @@
 :host-context(.intake-module) .intake-choice-input {
   width: 1rem;
   height: 1rem;
-  accent-color: var(--color-primary);
+  accent-color: #0FB3A5;
 }
 
-.intake-module .intake-upload-placeholder,
-:host-context(.intake-module) .intake-upload-placeholder {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-6) var(--space-4);
-  border: 2px dashed var(--color-border);
-  border-radius: var(--radius-xl);
-  background: var(--color-page-bg);
-  cursor: not-allowed;
-}
-
-.intake-module .intake-empty-hint,
-:host-context(.intake-module) .intake-empty-hint {
-  text-align: center;
-  padding: var(--space-12) var(--space-4);
-  color: var(--color-text-secondary);
-}
-
-/* ─── a. Avatar-initials chip ──────────────────────────────────────────────────────────────── */
+/* ─── Avatar chip ──────────────────────────────────────────────────────────────────────────── */
 .intake-module .avatar-chip,
 :host-context(.intake-module) .avatar-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-full);
-  background-color: var(--color-primary-soft);
-  color: var(--color-primary);
+  background: var(--brand-blue);
+  color: var(--intake-color-surface);
   font-weight: var(--font-weight-bold);
   flex-shrink: 0;
   width: 2.25rem;
@@ -249,7 +245,7 @@
   font-size: var(--text-xs);
 }
 
-/* ─── b. Segmented filter control ──────────────────────────────────────────────────────────── */
+/* ─── Segmented control ───────────────────────────────────────────────────────────────────── */
 .intake-module .filter-pill-scroller,
 :host-context(.intake-module) .filter-pill-scroller {
   display: flex;
@@ -303,12 +299,12 @@
 
 .intake-module .segmented-tab.active,
 :host-context(.intake-module) .segmented-tab.active {
-  background: linear-gradient(145deg, var(--color-primary-gradient-start) 0%, var(--color-primary-gradient-end) 100%);
-  color: var(--color-surface);
+  background: var(--brand-gradient);
+  color: #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* ─── c. Status badge ──────────────────────────────────────────────────────────────────────── */
+/* ─── Status badges ───────────────────────────────────────────────────────────────────────── */
 .intake-module .status-badge,
 :host-context(.intake-module) .status-badge {
   display: inline-flex;
@@ -324,26 +320,26 @@
 
 .intake-module .status-badge-success,
 :host-context(.intake-module) .status-badge-success {
-  background-color: var(--color-success-bg);
-  color: var(--color-success-text);
+  background-color: rgba(15, 179, 165, 0.15);
+  color: var(--brand-teal);
 }
 
 .intake-module .status-badge-warning,
 :host-context(.intake-module) .status-badge-warning {
-  background-color: var(--color-warning-bg);
-  color: var(--color-warning-text);
+  background-color: var(--intake-color-warning-bg);
+  color: var(--intake-color-warning-text);
 }
 
 .intake-module .status-badge-danger,
 :host-context(.intake-module) .status-badge-danger {
-  background-color: var(--color-danger-light);
-  color: var(--color-danger);
+  background-color: var(--intake-color-danger-light);
+  color: var(--intake-color-danger);
 }
 
 .intake-module .status-badge-neutral,
 :host-context(.intake-module) .status-badge-neutral {
-  background-color: var(--color-page-bg-alt);
-  color: var(--color-text-secondary);
+  background-color: var(--intake-color-page-bg-alt);
+  color: var(--intake-color-text-secondary);
 }
 
 @media (max-width: 380px) {
@@ -354,7 +350,7 @@
   }
 }
 
-/* ─── d. Stat box row ──────────────────────────────────────────────────────────────────────── */
+/* ─── Stat box row ─────────────────────────────────────────────────────────────────────────── */
 .intake-module .stat-box-row,
 :host-context(.intake-module) .stat-box-row {
   display: flex;
@@ -390,7 +386,7 @@
   color: var(--color-text-primary);
 }
 
-/* ─── e. Card action row ───────────────────────────────────────────────────────────────────── */
+/* ─── Action buttons ───────────────────────────────────────────────────────────────────────── */
 .intake-module .card-actions,
 :host-context(.intake-module) .card-actions {
   display: flex;
@@ -408,17 +404,20 @@
   border-radius: var(--radius-full);
   font-size: 0.8125rem;
   font-weight: var(--font-weight-semibold);
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  background: transparent;
+  color: #ffffff;
+  border: none;
+  background: var(--brand-gradient);
   transition: all 0.2s ease;
   cursor: pointer;
   min-height: var(--touch-target-min);
+  box-shadow: 0 2px 6px rgba(24, 136, 204, 0.2);
 }
 
 .intake-module .btn-action-primary:hover,
 :host-context(.intake-module) .btn-action-primary:hover {
-  background-color: var(--color-primary-soft);
+  background: linear-gradient(135deg, #1a7fd4, #0b9a86);
+  box-shadow: 0 4px 10px rgba(var(--brand-gradient-start-rgb), 0.3);
+  transform: translateY(-1px);
 }
 
 .intake-module .btn-action-secondary,
@@ -466,11 +465,11 @@
   background-color: var(--color-danger-light);
 }
 
-/* ─── f. Active Nav Item ───────────────────────────────────────────────────────────────────── */
+/* ─── Active Nav Item ─────────────────────────────────────────────────────────────────────── */
 .intake-module .nav-item.active,
 :host-context(.intake-module) .nav-item.active {
-  background-color: var(--color-primary-soft);
-  color: var(--color-primary);
+  background-color: rgba(24, 136, 204, 0.1);
+  color: var(--brand-gradient-start);
   border-radius: var(--radius-md);
 }
 
@@ -522,7 +521,7 @@
   width: 2.5rem;
   height: 2.5rem;
   border: 3px solid var(--color-border);
-  border-top-color: var(--color-primary);
+  border-top-color: var(--brand-gradient-end);
   border-radius: var(--radius-full);
   animation: intakeSpin 0.8s linear infinite;
 }
@@ -627,7 +626,7 @@
   to { stroke-dashoffset: 0; }
 }
 
-/* ─── Mobile layout helpers (< 640px) ─────────────────────────────────────────────────────── */
+/* ─── Mobile layout helpers ────────────────────────────────────────────────────────────────── */
 @media (max-width: 639px) {
   .intake-module .card-actions button,
   .intake-module .card-actions .p-button,
@@ -645,7 +644,7 @@
   }
 }
 
-/* ─── Safe area padding utilities ─────────────────────────────────────────────────────────── */
+/* ─── Safe area padding ───────────────────────────────────────────────────────────────────── */
 .intake-module .safe-bottom,
 :host-context(.intake-module) .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0);
@@ -681,7 +680,7 @@
   }
 }
 
-/* ─── Filters bar layout (Submission list) ────────────────────────────────── */
+/* ─── Filters bar layout ──────────────────────────────────────────────────── */
 .intake-module .intake-filters-bar,
 :host-context(.intake-module) .intake-filters-bar {
   display: flex;
@@ -731,8 +730,8 @@
 
 .intake-module .intake-search-input:focus,
 :host-context(.intake-module) .intake-search-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-soft);
+  border-color: var(--brand-gradient-start);
+  box-shadow: 0 0 0 3px rgba(24, 136, 204, 0.12);
 }
 
 .intake-module .intake-search-input::placeholder,
@@ -757,7 +756,6 @@
   }
 }
 
-/* ─── Mobile-friendly action buttons (full width on small screens) ────────────────────────── */
 @media (max-width: 639px) {
   .intake-module .btn-action-mobile,
   :host-context(.intake-module) .btn-action-mobile {
@@ -767,7 +765,6 @@
   }
 }
 
-/* ─── Enhanced card hover for touch devices ───────────────────────────────────────────────── */
 @media (hover: none) {
   .intake-module .hover-lift:active,
   :host-context(.intake-module) .hover-lift:active {
@@ -775,32 +772,29 @@
   }
 }
 
-/* ─── PrimeNG Dialog Overrides (theme-colored buttons) ──────────────────────────────────── */
+/* ─── PrimeNG Dialog Overrides ─────────────────────────────────────────── */
 .intake-module .p-dialog .p-button.p-button-success,
 :host-context(.intake-module) .p-dialog .p-button.p-button-success {
-  background: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
+  background: var(--brand-gradient) !important;
+  border: none !important;
   color: white !important;
 }
 .intake-module .p-dialog .p-button.p-button-success:hover,
 :host-context(.intake-module) .p-dialog .p-button.p-button-success:hover {
-  background: var(--color-primary-dark) !important;
-  border-color: var(--color-primary-dark) !important;
+  background: linear-gradient(135deg, #1a7fd4, #0b9a86) !important;
 }
 
 .intake-module .p-dialog .p-confirm-dialog-accept,
 :host-context(.intake-module) .p-dialog .p-confirm-dialog-accept {
-  background: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
+  background: var(--brand-gradient) !important;
+  border: none !important;
   color: white !important;
 }
 .intake-module .p-dialog .p-confirm-dialog-accept:hover,
 :host-context(.intake-module) .p-dialog .p-confirm-dialog-accept:hover {
-  background: var(--color-primary-dark) !important;
-  border-color: var(--color-primary-dark) !important;
+  background: linear-gradient(135deg, #1a7fd4, #0b9a86) !important;
 }
 
-/* Improve dialog header styling */
 .intake-module .p-dialog .p-dialog-header,
 :host-context(.intake-module) .p-dialog .p-dialog-header {
   border-bottom: 1px solid var(--color-border);
@@ -825,9 +819,8 @@
   color: var(--color-text-primary);
 }
 
-/* Improve confirm dialog icon - use primary color */
 .intake-module .p-confirm-dialog .p-dialog-content .p-confirm-dialog-icon,
-:host-context(.intake-module) .p-confirm-dialog .p-dialog-content .p-confirm-dialog-icon {
-  color: var(--color-primary) !important;
+:host-context(.intake-module) .p-dialog .p-dialog-content .p-confirm-dialog-icon {
+  color: #1888CC !important;
   font-size: 1.25rem;
 }

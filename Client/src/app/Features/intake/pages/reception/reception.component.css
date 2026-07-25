@@ -1,7 +1,7 @@
 :host {
   display: block;
   min-height: 100vh;
-  background: #f1f5f9;
+  background: var(--intake-color-page-bg, #f8fafc);
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
@@ -14,7 +14,7 @@
   gap: 0.75rem;
   padding: 1.25rem 0 0.25rem;
   margin-top: 1.25rem;
-  border-top: 1px solid var(--color-border, #e2e8f0);
+  border-top: 1px solid var(--intake-color-border);
 }
 
 @media (max-width: 639px) {
@@ -27,7 +27,7 @@
 
 .submission-pagination-info {
   font-size: 0.8125rem;
-  color: var(--color-text-secondary, #64748b);
+  color: var(--intake-color-text-secondary);
   white-space: nowrap;
 }
 
@@ -44,10 +44,10 @@
   min-width: 2.25rem;
   height: 2.25rem;
   padding: 0 0.5rem;
-  border: 1px solid var(--color-border, #e2e8f0);
+  border: 1px solid var(--intake-color-border);
   border-radius: 0.625rem;
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text-secondary, #64748b);
+  background: var(--intake-color-surface);
+  color: var(--intake-color-text-secondary);
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
@@ -58,9 +58,9 @@
 }
 
 .submission-page-btn:hover:not(:disabled) {
-  border-color: var(--color-primary, #0b8eea);
-  color: var(--color-primary, #0b8eea);
-  background: rgba(11, 142, 234, 0.08);
+  border-color: var(--brand-gradient-start);
+  color: var(--brand-gradient-start);
+  background: var(--intake-color-primary-soft);
 }
 
 .submission-page-btn:active:not(:disabled) {
@@ -73,10 +73,10 @@
 }
 
 .submission-page-btn--active {
-  background: var(--color-primary, #0b8eea);
-  border-color: var(--color-primary, #0b8eea);
-  color: #ffffff;
-  box-shadow: 0 2px 6px rgba(11, 142, 234, 0.25);
+  background: var(--brand-gradient);
+  border-color: var(--brand-gradient-start);
+  color: var(--intake-color-surface);
+  box-shadow: 0 2px 6px rgba(var(--brand-gradient-start-rgb), 0.25);
 }
 
 /* ─── Premium Empty State ────────────────────────────────────────────── */
@@ -93,7 +93,7 @@
   width: 7rem;
   height: 7rem;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(11, 142, 234, 0.15), transparent 70%);
+  background: radial-gradient(circle at 30% 30%, var(--intake-color-primary-soft), transparent 70%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -110,26 +110,26 @@
   width: 4rem;
   height: 4rem;
   border-radius: 1rem;
-  background: linear-gradient(135deg, var(--color-primary-soft, #dbeafe), rgba(11, 142, 234, 0.05));
-  color: var(--color-primary, #0b8eea);
+  background: linear-gradient(135deg, var(--intake-color-primary-soft), rgba(var(--brand-gradient-start-rgb), 0.05));
+  color: var(--brand-gradient-start);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.75rem;
-  box-shadow: 0 4px 12px rgba(11, 142, 234, 0.1);
+  box-shadow: 0 4px 12px rgba(var(--brand-gradient-start-rgb), 0.1);
 }
 
 .reception-empty-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-text-primary, #0f172a);
+  color: var(--intake-color-text-primary);
   margin: 0 0 0.75rem;
   letter-spacing: -0.01em;
 }
 
 .reception-empty-desc {
   font-size: 1rem;
-  color: var(--color-text-secondary, #64748b);
+  color: var(--intake-color-text-secondary);
   line-height: 1.7;
   max-width: 28rem;
   margin: 0 auto 1.5rem;

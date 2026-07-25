@@ -46,7 +46,7 @@
         <button
           type="button"
           (click)="loadReception()"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary,#0b8eea)] text-white font-semibold rounded-xl hover:opacity-90 transition-all text-sm">
+          class="btn-action-primary inline-flex items-center gap-2 px-4 py-2 font-semibold rounded-xl hover:opacity-90 transition-all text-sm">
           <i class="pi pi-refresh text-xs"></i>
           Try Again
         </button>
@@ -94,13 +94,13 @@
               }
             </p>
             @if (searchTerm()) {
-              <button
-                type="button"
-                (click)="clearFilters()"
-                class="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary,#0b8eea)] text-white font-semibold rounded-xl hover:opacity-90 transition-all text-sm shadow-md shadow-[var(--color-primary,#0b8eea)]/20">
-                <i class="pi pi-filter-slash text-xs"></i>
-                Clear Search
-              </button>
+                <button
+                  type="button"
+                  (click)="clearFilters()"
+                  class="btn-action-primary inline-flex items-center gap-2 px-5 py-2.5 font-semibold rounded-xl hover:opacity-90 transition-all text-sm shadow-md">
+                  <i class="pi pi-filter-slash text-xs"></i>
+                  Clear Search
+                </button>
             }
           </div>
         } @else {

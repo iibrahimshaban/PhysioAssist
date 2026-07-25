@@ -47,7 +47,7 @@
   font-size: 0.875rem;
   border-radius: 0.75rem;
   border: 1px solid var(--color-border, #e2e8f0);
-  border-left: 3px solid var(--color-primary, #0b8eea);
+  border-left: 3px solid var(--brand-gradient-start, #1888CC);
   background: var(--color-page-bg, #f8fafc);
   color: var(--color-text-primary, #0f172a);
   transition: all 0.2s ease;
@@ -57,8 +57,8 @@
 
 .filters-search-input:focus {
   outline: none;
-  border-color: var(--color-primary, #0b8eea);
-  box-shadow: 0 0 0 3px rgba(11, 142, 234, 0.12), inset 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-color: var(--brand-gradient-start, #1888CC);
+  box-shadow: 0 0 0 3px rgba(24, 136, 204, 0.12), inset 0 1px 3px rgba(0, 0, 0, 0.04);
   background: var(--color-surface, #ffffff);
 }
 
@@ -129,8 +129,8 @@
 
 .filters-sort-select:focus {
   outline: none;
-  border-color: var(--color-primary, #0b8eea);
-  box-shadow: 0 0 0 3px rgba(11, 142, 234, 0.12);
+  border-color: var(--brand-gradient-start, #1888CC);
+  box-shadow: 0 0 0 3px rgba(24, 136, 204, 0.12);
   background: var(--color-surface, #ffffff);
 }
 
@@ -167,7 +167,7 @@
 
 .filters-view-btn.active {
   background: var(--color-surface, #ffffff);
-  color: var(--color-primary, #0b8eea);
+  color: var(--brand-gradient-start, #1888CC);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
@@ -210,15 +210,15 @@
 }
 
 .filters-chip:hover {
-  background: #e2e8f0;
-  color: var(--color-text-primary, #0f172a);
+  background: var(--intake-color-surface-100, #e2e8f0);
+  color: var(--intake-color-text-primary, #0f172a);
 }
 
 .filters-chip.active {
-  background: var(--color-primary, #0b8eea);
-  border-color: var(--color-primary, #0b8eea);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(11, 142, 234, 0.3);
+  background: var(--brand-gradient);
+  border-color: var(--brand-gradient-start);
+  color: var(--intake-color-surface);
+  box-shadow: 0 2px 8px rgba(var(--brand-gradient-start-rgb), 0.3);
 }
 
 .filters-chip-count {
@@ -243,9 +243,9 @@
   border-radius: 0.75rem;
   font-size: 0.75rem;
   font-weight: 600;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  color: #dc2626;
+  background: var(--intake-color-danger-light, rgba(239, 68, 68, 0.08));
+  border: 1px solid var(--intake-color-danger-border, rgba(239, 68, 68, 0.2));
+  color: var(--intake-color-danger, #dc2626);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -253,5 +253,5 @@
 }
 
 .filters-clear-chip:hover {
-  background: rgba(239, 68, 68, 0.15);
+  background: var(--intake-color-danger-light, rgba(239, 68, 68, 0.15));
 }

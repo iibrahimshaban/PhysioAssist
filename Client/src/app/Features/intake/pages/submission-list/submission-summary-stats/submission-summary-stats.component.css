@@ -53,46 +53,52 @@
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6), 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
-/* ─── Theme Gradients ────────────────────────────────────────────────────── */
+/* ─── Theme Gradients: #1888CC → #0FB3A5 at 135deg ─────────────────────── */
+/* All cards use variations of the same sky-blue-to-teal gradient */
+
+/* Total Submissions — lightest opacity of the gradient */
 .stat-block--total {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  background: linear-gradient(135deg, rgba(24, 136, 204, 0.1) 0%, rgba(15, 179, 165, 0.1) 100%);
+  box-shadow: 0 4px 12px rgba(24, 136, 204, 0.08);
 }
 
-.stat-block--total .stat-value { color: #1e40af; }
-.stat-block--total .stat-label { color: #3b82f6; }
-.stat-block--total .stat-icon--deco { color: #3b82f6; }
-.stat-block--total .stat-bg-icon { color: rgba(59, 130, 246, 0.12); }
+.stat-block--total .stat-value { color: var(--brand-gradient-start); }
+.stat-block--total .stat-label { color: var(--brand-gradient-start); }
+.stat-block--total .stat-icon--deco { color: var(--brand-gradient-start); }
+.stat-block--total .stat-bg-icon { color: rgba(24, 136, 204, 0.06); }
 
+/* Pending / Waiting — soft opacity */
 .stat-block--pending {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+  background: linear-gradient(135deg, rgba(24, 136, 204, 0.2) 0%, rgba(15, 179, 165, 0.2) 100%);
+  box-shadow: 0 4px 12px rgba(24, 136, 204, 0.10);
 }
 
-.stat-block--pending .stat-value { color: #92400e; }
-.stat-block--pending .stat-label { color: #d97706; }
-.stat-block--pending .stat-icon--deco { color: #d97706; }
-.stat-block--pending .stat-bg-icon { color: rgba(217, 119, 6, 0.12); }
+.stat-block--pending .stat-value { color: var(--brand-gradient-start); }
+.stat-block--pending .stat-label { color: var(--brand-gradient-start); }
+.stat-block--pending .stat-icon--deco { color: var(--brand-gradient-start); }
+.stat-block--pending .stat-bg-icon { color: rgba(24, 136, 204, 0.08); }
 
+/* In Review — medium opacity */
 .stat-block--review {
-  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  background: linear-gradient(135deg, rgba(24, 136, 204, 0.4) 0%, rgba(15, 179, 165, 0.4) 100%);
+  box-shadow: 0 4px 12px rgba(24, 136, 204, 0.12);
 }
 
-.stat-block--review .stat-value { color: #4338ca; }
-.stat-block--review .stat-label { color: #6366f1; }
-.stat-block--review .stat-icon--deco { color: #6366f1; }
-.stat-block--review .stat-bg-icon { color: rgba(99, 102, 241, 0.12); }
+.stat-block--review .stat-value { color: var(--brand-gradient-start); }
+.stat-block--review .stat-label { color: var(--brand-gradient-start); }
+.stat-block--review .stat-icon--deco { color: var(--brand-gradient-start); }
+.stat-block--review .stat-bg-icon { color: rgba(15, 179, 165, 0.08); }
 
+/* Approved / Completed — strongest opacity, rich sky-blue to teal */
 .stat-block--approved {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  background: var(--brand-gradient);
+  box-shadow: 0 4px 12px rgba(24, 136, 204, 0.14);
 }
 
-.stat-block--approved .stat-value { color: #065f46; }
-.stat-block--approved .stat-label { color: #059669; }
-.stat-block--approved .stat-icon--deco { color: #059669; }
-.stat-block--approved .stat-bg-icon { color: rgba(5, 150, 105, 0.12); }
+.stat-block--approved .stat-value { color: #0B2D4A; }
+.stat-block--approved .stat-label { color: white; }
+.stat-block--approved .stat-icon--deco { color: white; }
+.stat-block--approved .stat-bg-icon { color: rgba(15, 179, 165, 0.10); }
 
 /* ─── Stat Content ──────────────────────────────────────────────────────── */
 .stat-content {
@@ -146,7 +152,7 @@
   width: 0.625rem;
   height: 0.625rem;
   border-radius: 9999px;
-  background: #f59e0b;
+  background: #0EB8A0;
   animation: stat-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   z-index: 2;
 }

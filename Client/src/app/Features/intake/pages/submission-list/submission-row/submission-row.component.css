@@ -26,11 +26,11 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   background: var(--color-page-bg, #f8fafc);
-  border-color: rgba(11, 142, 234, 0.2);
+  border-color: rgba(14, 184, 160, 0.2);
 }
 
 .submission-row:focus-visible {
-  outline: 2px solid var(--color-primary, #0b8eea);
+  outline: 2px solid var(--color-primary, #0EB8A0);
   outline-offset: 2px;
 }
 
@@ -45,12 +45,12 @@
   flex-shrink: 0;
 }
 
-.row-accent.accent-amber { background: #f59e0b; }
-.row-accent.accent-indigo { background: #6366f1; }
-.row-accent.accent-emerald { background: #10b981; }
-.row-accent.accent-red { background: #ef4444; }
-.row-accent.accent-cyan { background: #06b6d4; }
-.row-accent.accent-gray { background: #94a3b8; }
+.row-accent.accent-amber { background: var(--primary-300); }
+.row-accent.accent-indigo { background: var(--primary-400); }
+.row-accent.accent-emerald { background: var(--primary-500); }
+.row-accent.accent-red { background: var(--primary-600); }
+.row-accent.accent-cyan { background: var(--primary-700); }
+.row-accent.accent-gray { background: var(--primary-200); }
 
 /* ─── Inner Content ─────────────────────────────────────────────────────── */
 .row-inner {
@@ -68,7 +68,7 @@
   height: 2.75rem;
   border-radius: 0.75rem;
   padding: 2px;
-  background: linear-gradient(135deg, var(--color-primary, #0b8eea), #6366f1);
+  background: var(--brand-gradient);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -176,12 +176,12 @@
   flex-shrink: 0;
 }
 
-.dot-amber { background: #d97706; }
-.dot-indigo { background: #6366f1; }
-.dot-emerald { background: #059669; }
-.dot-red { background: #dc2626; }
-.dot-cyan { background: #0891b2; }
-.dot-gray { background: #64748b; }
+.dot-amber { background: var(--primary-300); }
+.dot-indigo { background: var(--primary-400); }
+.dot-emerald { background: var(--primary-500); }
+.dot-red { background: var(--primary-600); }
+.dot-cyan { background: var(--primary-700); }
+.dot-gray { background: var(--primary-200); }
 
 /* ─── Action Arrow ──────────────────────────────────────────────────────── */
 .row-action {
@@ -204,8 +204,8 @@
 }
 
 .submission-row:hover .row-action-circle {
-  background: var(--color-primary, #0b8eea);
-  color: #ffffff;
+  background: var(--brand-gradient);
+  color: var(--intake-color-surface);
   transform: translateX(3px);
 }
 

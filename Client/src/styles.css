@@ -21,36 +21,41 @@ html {
   --color-surface-100: #F1F5F9;
   --color-border: #E2E8F0;
 
-  /* Primary - matching main app colors (Auth gradient colors) */
-  --color-primary: #1a7fd4;
-  --color-primary-soft: #EFF6FF;
-  --color-primary-dark: #0e5fa3;
-  --color-primary-gradient-start: #1a7fd4;
-  --color-primary-gradient-end: #0eb8a0;
-  --color-accent-violet: #6366F1;
-  --color-accent-violet-soft: #EEF2FF;
+  /* ── Brand Gradient (single source of truth) ───────────── */
+  --brand-gradient-start: #1888CC;
+  --brand-gradient-end: #0FB3A5;
+  --brand-gradient: linear-gradient(135deg, var(--brand-gradient-start), var(--brand-gradient-end));
 
-  /* Semantic - NO GREEN */
-  --color-success-bg: #EFF6FF;
-  --color-success-text: #1a7fd4;
-  --color-success-light: #F1F5F9;
-  --color-success: #1a7fd4;
-  --color-success-border: #BFDBFE;
+  /* Semantic aliases */
+  --color-primary: var(--brand-gradient-end);
+  --color-primary-soft: #E8F2F9;
+  --color-primary-dark: #0e6b8a;
+  --color-primary-gradient-start: var(--brand-gradient-start);
+  --color-primary-gradient-end: var(--brand-gradient-end);
+  --color-accent-violet: var(--brand-gradient-start);
+  --color-accent-violet-soft: #E8F2F9;
 
-  --color-warning-bg: #FEF3C7;
-  --color-warning-text: #B45309;
-  --color-warning-light: #FFFBEB;
-  --color-warning: #FDE68A;
-  --color-warning-border: #FED7AA;
+  /* Semantic - Brand tints */
+  --color-success-bg: #E8F2F9;
+  --color-success-text: #0e6b8a;
+  --color-success-light: #D0E5F3;
+  --color-success: var(--brand-gradient-start);
+  --color-success-border: #B2D9EF;
+
+  --color-warning-bg: #D4F5EF;
+  --color-warning-text: #087B6B;
+  --color-warning-light: #EEFCFA;
+  --color-warning: var(--brand-gradient-end);
+  --color-warning-border: #B2EFE2;
 
   --color-danger: #DC2626;
   --color-danger-light: #FEF2F2;
   --color-danger-border: #FECACA;
 
-  --color-info: #1a7fd4;
-  --color-info-light: #EFF6FF;
-  --color-info-border: #BFDBFE;
-  --color-info-text: #1a7fd4;
+  --color-info: var(--brand-gradient-start);
+  --color-info-light: #E8F2F9;
+  --color-info-border: #B2D9EF;
+  --color-info-text: #0e6b8a;
 
   /* Spacing scale */
   --space-1: 0.25rem;
@@ -119,7 +124,7 @@ html {
 /* Active Nav Item */
 .nav-item.active {
   background-color: var(--color-primary-soft);
-  color: var(--color-primary);
+  color: var(--brand-gradient-start);
   border-radius: var(--radius-md);
 }
 
@@ -134,9 +139,8 @@ html {
   to { stroke-dashoffset: 0; }
 }
 
-/* ── PrimeNG Dialog & ConfirmDialog Overrides (Intake Theme Buttons) ───── */
+/* ── PrimeNG Dialog & ConfirmDialog Overrides ────────────── */
 
-/* Dialog Overlay Backdrop Blur */
 .p-dialog-mask,
 .p-component-overlay {
   background-color: rgba(15, 23, 42, 0.45) !important;
@@ -144,7 +148,6 @@ html {
   -webkit-backdrop-filter: blur(4px) !important;
 }
 
-/* Dialog Container Box */
 .p-dialog {
   border-radius: 1.25rem !important;
   border: 1px solid var(--color-border, #e2e8f0) !important;
@@ -190,19 +193,19 @@ html {
   background: var(--color-page-bg, #f8fafc) !important;
 }
 
-/* Dialog Action Buttons (Apply Intake Primary Theme Blue, NO GREEN) */
+/* Dialog Primary Buttons — brand gradient */
 .p-dialog .p-button,
 .p-confirm-dialog-accept,
 .p-dialog .p-button-primary,
 .p-dialog .p-button-success {
-  background: var(--color-primary, #1a7fd4) !important;
-  border-color: var(--color-primary, #1a7fd4) !important;
+  background: var(--brand-gradient) !important;
+  border: none !important;
   color: #ffffff !important;
   border-radius: 0.75rem !important;
   font-weight: 600 !important;
   padding: 0.625rem 1.25rem !important;
   font-size: 0.875rem !important;
-  box-shadow: 0 2px 6px rgba(26, 127, 212, 0.25) !important;
+  box-shadow: 0 2px 6px rgba(24, 136, 204, 0.25) !important;
   transition: all 0.2s ease !important;
 }
 
@@ -210,9 +213,8 @@ html {
 .p-confirm-dialog-accept:hover:not(:disabled),
 .p-dialog .p-button-primary:hover:not(:disabled),
 .p-dialog .p-button-success:hover:not(:disabled) {
-  background: var(--color-primary-dark, #0e5fa3) !important;
-  border-color: var(--color-primary-dark, #0e5fa3) !important;
-  box-shadow: 0 4px 10px rgba(14, 95, 163, 0.3) !important;
+  background: linear-gradient(135deg, #1a7fd4, #0b9a86) !important;
+  box-shadow: 0 4px 10px rgba(24, 136, 204, 0.3) !important;
   transform: translateY(-1px);
 }
 
@@ -239,7 +241,7 @@ html {
   border-color: #cbd5e1 !important;
 }
 
-/* Dialog Danger Action Buttons (e.g. Delete) */
+/* Dialog Danger Action Buttons */
 .p-confirm-dialog-accept.p-button-danger,
 .p-dialog .p-button-danger {
   background: var(--color-danger, #dc2626) !important;

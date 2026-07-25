@@ -1,7 +1,7 @@
 :host { display: block; }
 
 ::ng-deep .builder-tooltip {
-  background: linear-gradient(135deg, var(--color-primary-gradient-start), var(--color-primary-gradient-end));
+  background: var(--brand-gradient);
   color: white;
   font-size: 0.8125rem;
   padding: 0.75rem 1rem;
@@ -12,7 +12,7 @@
 }
 
 ::ng-deep .builder-tooltip .p-tooltip-arrow {
-  background: linear-gradient(135deg, var(--color-primary-gradient-start), var(--color-primary-gradient-end));
+  background: var(--brand-gradient);
 }
 
 /* Walkthrough Styles */
@@ -108,7 +108,7 @@
 }
 
 .walkthrough-dot.active {
-  background: linear-gradient(135deg, var(--color-primary-gradient-start), var(--color-primary-gradient-end));
+  background: var(--brand-gradient);
   transform: scale(1.2);
 }
 
@@ -168,7 +168,7 @@
 }
 
 .wizard-step-indicator.active .wizard-step-number {
-  background: linear-gradient(135deg, var(--color-primary-gradient-start), var(--color-primary-gradient-end));
+  background: var(--brand-gradient);
   color: white;
 }
 
@@ -191,7 +191,7 @@
 }
 
 .wizard-step-line.active {
-  background: linear-gradient(90deg, var(--color-primary-gradient-start), var(--color-primary-gradient-end));
+  background: var(--brand-gradient);
   opacity: 1;
 }
 
@@ -377,18 +377,18 @@
 }
 
 .tree-node-icon--section {
-  background: var(--color-warning-light);
-  color: var(--color-warning-text);
+  background: var(--intake-color-warning-light);
+  color: var(--intake-color-warning-text);
 }
 
 .tree-node-icon--group {
-  background: var(--color-info-light);
-  color: var(--color-info-text);
+  background: var(--intake-color-info-light);
+  color: var(--intake-color-info-text);
 }
 
 .tree-node-icon--question {
-  background: var(--color-success-light);
-  color: var(--color-success-text);
+  background: var(--intake-color-success-light);
+  color: var(--intake-color-success-text);
 }
 
 .required-mark {
@@ -564,7 +564,7 @@
 .preview-section-accent {
   width: 3px;
   height: 1.25rem;
-  background: linear-gradient(135deg, var(--color-primary-gradient-start), var(--color-primary-gradient-end));
+  background: var(--brand-gradient);
   border-radius: 2px;
   flex-shrink: 0;
   margin-top: 0.125rem;
@@ -875,15 +875,15 @@
 }
 
 .prop-section-type-badge--group {
-  background: var(--color-info-light);
-  color: var(--color-info-text);
-  border-color: var(--color-info-border);
+  background: var(--intake-color-info-light);
+  color: var(--intake-color-info-text);
+  border-color: var(--intake-color-info-border);
 }
 
 .prop-section-type-badge--question {
-  background: var(--color-success-light);
-  color: var(--color-success-text);
-  border-color: var(--color-success-border);
+  background: var(--intake-color-success-light);
+  color: var(--intake-color-success-text);
+  border-color: var(--intake-color-success-text);
 }
 
 .prop-divider {
@@ -918,9 +918,9 @@
 }
 
 .prop-count-badge--warning {
-  background: var(--color-warning-light);
-  color: var(--color-warning-text);
-  border-color: var(--color-warning-border);
+  background: var(--intake-color-warning-light);
+  color: var(--intake-color-warning-text);
+  border-color: var(--intake-color-warning);
 }
 
 .pain-scale-cell {
@@ -935,18 +935,18 @@
 }
 
 .pain-scale-cell--low {
-  background: var(--color-success-light);
-  border-color: var(--color-success-border);
+  background: var(--intake-color-success-light);
+  border-color: var(--intake-color-success-text);
 }
 
 .pain-scale-cell--mid {
-  background: var(--color-warning-light);
-  border-color: var(--color-warning-border);
+  background: var(--intake-color-warning-light);
+  border-color: var(--intake-color-warning);
 }
 
 .pain-scale-cell--high {
-  background: var(--color-danger-light);
-  border-color: var(--color-danger-border);
+  background: var(--intake-color-danger-light);
+  border-color: var(--intake-color-danger-border);
 }
 
 .rule-card {
@@ -1134,7 +1134,7 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  background: linear-gradient(90deg, var(--color-primary-gradient-start), var(--color-primary-gradient-end));
+  background: var(--brand-gradient);
   color: white;
   font-size: 0.875rem;
   font-weight: 500;

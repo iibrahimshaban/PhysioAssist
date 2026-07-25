@@ -12,7 +12,7 @@ header {
   z-index: 50;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--intake-color-border);
 }
 
 header div {
@@ -22,14 +22,14 @@ header div {
 .clinic-name {
   font-size: clamp(1.25rem, 1rem + 0.8vw, 1.75rem);
   font-weight: 800;
-  color: var(--color-text-primary);
+  color: var(--intake-color-text-primary);
   line-height: 1.2;
 }
 
 .powered-by {
   font-size: 0.75rem;
   font-weight: 400;
-  color: var(--color-text-secondary);
+  color: var(--intake-color-text-secondary);
   line-height: 1.2;
 }
 
@@ -41,7 +41,7 @@ header div {
 
 .page-subtitle {
   font-size: 0.925rem;
-  color: var(--color-text-secondary);
+  color: var(--intake-color-text-secondary);
   margin-top: 0.35rem;
 }
 
@@ -62,8 +62,8 @@ header div {
 }
 
 .public-intake-panel {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--intake-color-surface);
+  border: 1px solid var(--intake-color-border);
   border-radius: 1.5rem;
   box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
   padding: 1.5rem;
@@ -96,13 +96,13 @@ header div {
 }
 
 .public-intake-error {
-  border: 1px solid var(--color-danger-border);
-  background: var(--color-surface);
+  border: 1px solid var(--intake-color-danger-border);
+  background: var(--intake-color-surface);
 }
 
 .public-intake-success {
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  border: 1px solid var(--intake-color-border);
+  background: var(--intake-color-surface);
 }
 
 .public-intake-error h2,
@@ -119,8 +119,8 @@ header div {
   margin-top: 1rem;
   padding: 1rem;
   border-radius: 1rem;
-  background: var(--color-page-bg);
-  border: 1px solid var(--color-border);
+  background: var(--intake-color-page-bg);
+  border: 1px solid var(--intake-color-border);
 }
 
 .public-intake-summary p {
@@ -144,7 +144,7 @@ header div {
 .public-intake-submit {
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--intake-color-border);
 }
 
 .public-intake-submit-note {
@@ -152,7 +152,7 @@ header div {
   flex-direction: column;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: var(--color-text-secondary);
+  color: var(--intake-color-text-secondary);
 }
 
 .public-intake-submit-note i {
