@@ -105,14 +105,25 @@ export class SubmissionRowComponent {
 
   timeAgo(isoDate: string): string {
     if (!isoDate) return '';
-    const diffMs = Date.now() - new Date(isoDate).getTime();
-    const minutes = Math.floor(diffMs / 60000);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
+    const parsed = new Date(isoDate);
+    if (isNaN(parsed.getTime())) return '';
 
+    const diffMs = Date.now() - parsed.getTime();
+    // Guard against future-dated submissions (clock skew / bad data)
+    if (diffMs < 0) return 'just now';
+
+    const minutes = Math.floor(diffMs / 60000);
     if (minutes < 1) return 'just now';
     if (minutes < 60) return `${minutes}m ago`;
+
+    const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
+
+    const days = Math.floor(hours / 24);
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return `${days}d ago`;
+
+    // Older than a week: fall back to an absolute, unambiguous date
+    return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 }

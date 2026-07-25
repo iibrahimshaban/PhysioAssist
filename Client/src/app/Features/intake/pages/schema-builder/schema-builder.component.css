@@ -1231,6 +1231,47 @@
 
 /* ── Tablet Layout (640px – 1023px) ───────────────────────────────────── */
 @media (min-width: 640px) and (max-width: 1023px) {
+  /* Collapse the 3-column layout to a single column on tablet so the
+     canvas preview gets the full width instead of being squeezed
+     between two fixed 12rem/14rem sidebars. */
+  .builder-toolbar .flex.items-center.gap-2:last-child {
+    width: 100%;
+    justify-content: stretch;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .builder-toolbar .flex.items-center.gap-2:last-child ::ng-deep .p-button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .builder-sidebar-left,
+  .builder-sidebar-right,
+  .builder-canvas {
+    width: 100% !important;
+    flex-shrink: 1;
+    border-right: none;
+    border-left: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .builder-sidebar-left {
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .builder-sidebar-right {
+    max-height: 480px;
+    overflow-y: auto;
+    border-bottom: none;
+  }
+
+  .builder-canvas {
+    min-height: 320px;
+    flex: 1 1 auto;
+  }
+
   .builder-toolbar {
     padding: 0 0.75rem;
     height: 3rem;
@@ -1496,11 +1537,6 @@
     font-size: 0.6875rem;
   }
 
-  .tree-add-btn {
-    min-height: 32px;
-    font-size: 0.6875rem;
-  }
-
   .tree-add-section-btn {
     min-height: 38px;
     font-size: 0.6875rem;
@@ -1611,6 +1647,35 @@
   font-size: 1rem;
 }
 
+.preview-banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 1rem;
+}
+
+.preview-banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.preview-banner-title {
+  display: flex;
+  align-items: center;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.preview-banner-subtitle {
+  font-size: 0.75rem;
+  margin: 0.125rem 0 0;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
 .builder-mode-badge--preview {
   background: var(--color-info-light);
   color: var(--color-info-text);
@@ -1620,12 +1685,12 @@
 .builder-mode-badge {
   font-size: 0.5625rem;
   padding: 0.0625rem 0.375rem;
-  }
+}
 
-  .version-badge {
-    font-size: 0.5625rem;
-    padding: 0.0625rem 0.375rem;
-  }
+.version-badge {
+  font-size: 0.5625rem;
+  padding: 0.0625rem 0.375rem;
+}
 
   /* Main layout: column instead of row */
   .builder-sidebar-left,
@@ -1703,10 +1768,28 @@
 
   /* Add section button: full width, easier to tap */
   .tree-add-section-btn {
-    min-height: 44px;
-    font-size: 0.75rem;
+    min-height: 38px;
+    font-size: 0.6875rem;
   }
 
+  /* ── Preview mode: canvas is the only column ── */
+  .builder-preview-mode .builder-canvas {
+    flex: 1 1 100%;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+  }
+
+  .builder-preview-mode .canvas-inner {
+    padding: 1rem 0.75rem;
+  }
+
+  .preview-banner {
+    margin-bottom: 0.5rem;
+    border-radius: 0.75rem;
+    border-bottom: none;
+  }
+}
   .tree-add-btn {
     min-height: 36px;
     padding: 0.375rem 0.5rem;
@@ -2018,4 +2101,3 @@
     font-size: 0.875rem;
     color: var(--color-text-primary);
   }
-}

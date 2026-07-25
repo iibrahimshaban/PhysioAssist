@@ -96,6 +96,11 @@ export class SchemaBuilderComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
+  // Preview mode (read-only) — activated when navigated to from the
+  // schema list "Preview" action (?preview=true). Shows the live form
+  // preview without any editing chrome (tree, properties, save/publish).
+  readonly previewMode = signal(false);
+
   // Signals
   selectedSchema = signal<FormSchemaResponse | null>(null);
   loading = signal(false);
@@ -205,6 +210,22 @@ export class SchemaBuilderComponent implements OnInit {
         this.resetBuilder();
       }
     });
+
+    // Determine whether we are in read-only Preview mode.
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(qp => {
+      this.previewMode.set(qp.get('preview') === 'true');
+    });
+  }
+
+  exitPreview(): void {
+    // Return to the editable builder for the same schema (if known),
+    // otherwise back to the schema list.
+    const id = this.selectedSchema()?.id;
+    if (id) {
+      this.router.navigate(['/app/intake/schemas/edit', id]);
+    } else {
+      this.router.navigate(['/app/intake/schemas']);
+    }
   }
 
   private resetBuilder(): void {

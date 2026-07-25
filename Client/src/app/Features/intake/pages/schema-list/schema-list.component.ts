@@ -521,7 +521,13 @@ export class SchemaListComponent implements OnInit {
 
   relativeTime(dateStr: string | undefined | null): string {
     if (!dateStr) return '';
-    const diffMs = new Date().getTime() - new Date(dateStr).getTime();
+    const parsed = new Date(dateStr);
+    if (isNaN(parsed.getTime())) return '';
+
+    const diffMs = Date.now() - parsed.getTime();
+    // Guard against future-dated entries (clock skew / bad data)
+    if (diffMs < 0) return 'Just now';
+
     const diffSec = Math.floor(diffMs / 1000);
     if (diffSec < 60) return 'Just now';
     const diffMin = Math.floor(diffSec / 60);
@@ -530,10 +536,10 @@ export class SchemaListComponent implements OnInit {
     if (diffHrs < 24) return `${diffHrs}h ago`;
     const diffDays = Math.floor(diffHrs / 24);
     if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 30) return `${diffDays} days ago`;
-    const diffMonths = Math.floor(diffDays / 30);
-    if (diffMonths < 12) return `${diffMonths}mo ago`;
-    return `${Math.floor(diffMonths / 12)}y ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    // Older than a week: fall back to an absolute, unambiguous date
+    return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 
   getStatusLabel(status: FormSchemaStatus): string {
