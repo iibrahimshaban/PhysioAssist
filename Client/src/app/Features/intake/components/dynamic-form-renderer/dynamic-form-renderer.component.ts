@@ -1,15 +1,15 @@
-import { Component, input, output, signal, computed, effect } from '@angular/core';
+import { Component, input, output, signal, effect, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, FormControl, ValidatorFn, Validators } from '@angular/forms';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { MultiSelect } from 'primeng/multiselect';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { Subscription } from 'rxjs';
 import {
   DynamicFormSchemaDto,
   DynamicFormSubmissionDto,
   FormQuestionDto,
   QuestionConditionDto,
-  ValidationRuleDto,
   SubmissionSectionDto,
   SubmissionGroupDto,
   SubmissionAnswerDto
@@ -20,7 +20,7 @@ import {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    ReactiveFormsModule,
     InputNumberModule,
     MultiSelect,
     SelectButtonModule
@@ -28,52 +28,29 @@ import {
   templateUrl: './dynamic-form-renderer.component.html',
   styleUrl: './dynamic-form-renderer.component.css'
 })
-export class DynamicFormRendererComponent {
+export class DynamicFormRendererComponent implements OnDestroy {
+  private readonly fb = inject(FormBuilder);
+
   readonly schema = input<DynamicFormSchemaDto | null>(null);
   readonly formSchemaId = input<string>('');
   readonly formSchemaVersion = input<number>(1);
   readonly conditionLogic = input<'AND' | 'OR'>('AND');
-  /** Pre-fills the answers signal — e.g. for the submission detail page's edit mode,
-   *  seeded from the previously stored submission (already unwrapped by the caller). */
   readonly initialAnswers = input<Record<string, any> | null>(null);
 
   readonly submissionChange = output<DynamicFormSubmissionDto>();
   readonly validityChange = output<boolean>();
+  readonly requiredStatsChange = output<{ completed: number; total: number }>();
 
   protected readonly painScaleOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(v => ({ label: v.toString(), value: v }));
 
-  protected readonly answers = signal<Record<string, any>>({});
-  protected readonly touchedFields = signal<Set<string>>(new Set());
-
-  constructor() {
-    effect(() => {
-      const initial = this.initialAnswers();
-      if (initial) {
-        this.answers.set({ ...initial });
-      }
-    });
-  }
+  readonly form = new FormGroup({});
+  private valueChangesSub?: Subscription;
+  private previousVisibility = new Map<string, boolean>();
 
   private readonly wideTypes = new Set([
     'textarea', 'checkbox', 'multiselect', 'radio', 'painpoint', 'painscale',
     'bodyselector', 'file', 'fileupload'
   ]);
-
-  protected isTouched(questionId: string): boolean {
-    return this.touchedFields().has(questionId);
-  }
-
-  protected isWideQuestion(type: string): boolean {
-    return this.wideTypes.has(type);
-  }
-
-  protected toggleCheckboxOption(questionId: string, option: string, checked: boolean): void {
-    const current: string[] = this.answers()[questionId] || [];
-    const next = checked
-      ? [...current, option]
-      : current.filter(o => o !== option);
-    this.updateAnswer(questionId, next);
-  }
 
   private readonly wrapTypes = new Set([
     'text', 'email', 'phone', 'number', 'textarea', 'date', 'datetime',
@@ -81,63 +58,52 @@ export class DynamicFormRendererComponent {
     'file', 'fileupload'
   ]);
 
-  readonly submission = computed<DynamicFormSubmissionDto | null>(() => {
-    const s = this.schema();
-    if (!s) return null;
-
-    const currentAnswers = this.answers();
-
-    const sections: SubmissionSectionDto[] = s.sections.map(section => {
-      const groups: SubmissionGroupDto[] = section.groups.map(group => {
-        const answers: SubmissionAnswerDto[] = group.questions
-          .filter(q => this.isQuestionVisible(q, currentAnswers))
-          .map(q => ({
-            questionId: q.questionId,
-            value: this.wrapTypes.has(q.type)
-              ? { [q.type]: currentAnswers[q.questionId] }
-              : currentAnswers[q.questionId],
-            attachments: q.type === 'file' ? [] : undefined
-          }));
-        return { groupId: group.groupId, answers };
-      });
-      return { sectionId: section.sectionId, groups };
+  constructor() {
+    effect(() => {
+      const s = this.schema();
+      if (s) {
+        this.buildForm(s);
+      }
     });
 
-    return {
-      schemaVersion: s.schemaVersion,
-      formSchemaId: this.formSchemaId(),
-      formSchemaVersion: this.formSchemaVersion(),
-      sections
-    };
-  });
-
-  readonly isValid = computed(() => {
-    const s = this.schema();
-    if (!s) return false;
-
-    const currentAnswers = this.answers();
-
-    for (const section of s.sections) {
-      for (const group of section.groups) {
-        for (const question of group.questions) {
-          if (!this.isQuestionVisible(question, currentAnswers)) continue;
-
-          const answer = currentAnswers[question.questionId];
-
-          if (this.getQuestionErrors(question, answer, currentAnswers).length > 0) {
-            return false;
-          }
-        }
+    effect(() => {
+      const initial = this.initialAnswers();
+      if (initial && Object.keys(this.form.controls).length > 0) {
+        this.form.patchValue(initial, { emitEvent: false });
+        this.emitOutputs();
       }
-    }
+    });
 
-    return true;
-  });
+    effect(() => {
+      const s = this.schema();
+      const logic = this.conditionLogic();
+      if (s) {
+        this.updateControlVisibility(s, logic);
+      }
+    });
+  }
 
-  protected isQuestionVisible(question: FormQuestionDto, overrideAnswers?: Record<string, any>): boolean {
+  ngOnDestroy(): void {
+    this.valueChangesSub?.unsubscribe();
+  }
+
+  protected isWideQuestion(type: string): boolean {
+    return this.wideTypes.has(type);
+  }
+
+  protected getControl(questionId: string): FormControl {
+    return this.form.get(questionId) as FormControl;
+  }
+
+  protected getNestedControl(questionId: string, field: string): FormControl {
+    const group = this.form.get(questionId) as unknown as FormGroup;
+    return group?.get(field) as FormControl;
+  }
+
+  protected isQuestionVisible(question: FormQuestionDto): boolean {
     if (!question.conditions || question.conditions.length === 0) return true;
 
-    const currentAnswers = overrideAnswers ?? this.answers();
+    const currentAnswers = this.form.value as Record<string, any>;
     const logic = this.conditionLogic();
 
     if (logic === 'OR') {
@@ -147,110 +113,194 @@ export class DynamicFormRendererComponent {
     return question.conditions.every(condition => this.evaluateCondition(condition, currentAnswers));
   }
 
-  protected getQuestionErrors(
-    question: FormQuestionDto,
-    overrideAnswer?: any,
-    overrideAnswers?: Record<string, any>
-  ): string[] {
-    const answer = overrideAnswer !== undefined ? overrideAnswer : this.answers()[question.questionId];
-    const allAnswers = overrideAnswers ?? this.answers();
+  protected getQuestionErrorMessages(question: FormQuestionDto): string[] {
+    const control = this.getControl(question.questionId);
+    if (!control || !control.errors || !control.touched) return [];
+
     const errors: string[] = [];
+    const errs = control.errors;
 
-    if (question.required && (answer == null || answer === '' || (Array.isArray(answer) && answer.length === 0))) {
-      const hasRequiredRule = question.validationRules?.some(r => r.ruleType === 'required');
-      if (!hasRequiredRule) {
-        errors.push('This field is required.');
-      }
+    if (errs['required']) {
+      const rule = question.validationRules?.find(r => r.ruleType === 'required');
+      errors.push(rule?.message || 'This field is required.');
     }
-
-    if (question.validationRules) {
-      for (const rule of question.validationRules) {
-        const error = this.evaluateValidationRule(rule, question, answer, allAnswers);
-        if (error) {
-          errors.push(error);
-        }
-      }
+    if (errs['email']) {
+      const rule = question.validationRules?.find(r => r.ruleType === 'email');
+      errors.push(rule?.message || 'Please enter a valid email address.');
+    }
+    if (errs['pattern']) {
+      const rule = question.validationRules?.find(r => r.ruleType === 'pattern');
+      errors.push(rule?.message || 'Value does not match the required format.');
+    }
+    if (errs['min']) {
+      const rule = question.validationRules?.find(r => r.ruleType === 'min');
+      errors.push(rule?.message || `Minimum value is ${rule?.value}.`);
+    }
+    if (errs['max']) {
+      const rule = question.validationRules?.find(r => r.ruleType === 'max');
+      errors.push(rule?.message || `Maximum value is ${rule?.value}.`);
+    }
+    if (errs['minlength']) {
+      const rule = question.validationRules?.find(r => r.ruleType === 'minLength');
+      errors.push(rule?.message || `Minimum length is ${rule?.value} characters.`);
+    }
+    if (errs['maxlength']) {
+      const rule = question.validationRules?.find(r => r.ruleType === 'maxLength');
+      errors.push(rule?.message || `Maximum length is ${rule?.value} characters.`);
+    }
+    if (errs['url']) {
+      const rule = question.validationRules?.find(r => r.ruleType === 'url');
+      errors.push(rule?.message || 'Please enter a valid URL.');
+    }
+    if (errs['custom']) {
+      errors.push(errs['custom']);
     }
 
     return errors;
   }
 
-  private evaluateValidationRule(
-    rule: ValidationRuleDto,
-    _question: FormQuestionDto,
-    answer: any,
-    _allAnswers: Record<string, any>
-  ): string | null {
-    const msg = rule.message || '';
+  protected toggleCheckboxOption(questionId: string, option: string, checked: boolean): void {
+    const control = this.getControl(questionId);
+    if (!control) return;
 
-    switch (rule.ruleType) {
-      case 'required': {
-        if (answer == null || answer === '' || (Array.isArray(answer) && answer.length === 0)) {
-          return msg || 'This field is required.';
+    const current: string[] = control.value || [];
+    const next = checked
+      ? [...current, option]
+      : current.filter(o => o !== option);
+    control.setValue(next);
+    control.markAsTouched();
+  }
+
+  protected updateNestedField(questionId: string, field: string, value: any): void {
+    const group = this.getControl(questionId) as unknown as FormGroup;
+    if (!group) return;
+
+    const control = group.get(field);
+    if (control) {
+      control.setValue(value);
+      control.markAsTouched();
+      this.emitOutputs();
+    }
+  }
+
+  readonly submission = signal<DynamicFormSubmissionDto | null>(null);
+
+  readonly isValid = signal(false);
+
+  private buildForm(schema: DynamicFormSchemaDto): void {
+    this.valueChangesSub?.unsubscribe();
+    Object.keys(this.form.controls).forEach(key => this.form.removeControl(key, { emitEvent: false }));
+
+    for (const section of schema.sections) {
+      for (const group of section.groups) {
+        for (const question of group.questions) {
+          const validators = this.buildValidators(question);
+
+          if (question.type === 'painpoint') {
+            const nestedGroup = this.fb.group({
+              intensity: [5],
+              anatomicalRegion: [''],
+              bodyPart: [''],
+              side: [''],
+              description: ['']
+            });
+            this.form.addControl(question.questionId, nestedGroup, { emitEvent: false });
+          } else if (question.type === 'checkbox' || question.type === 'multiselect') {
+            this.form.addControl(question.questionId, new FormControl([], validators), { emitEvent: false });
+          } else {
+            const defaultValue = question.type === 'boolean' ? false : '';
+            this.form.addControl(question.questionId, new FormControl(defaultValue, validators), { emitEvent: false });
+          }
         }
-        return null;
       }
-      case 'pattern': {
-        if (answer != null && answer !== '' && rule.value) {
-          try {
-            if (!new RegExp(rule.value).test(String(answer))) {
-              return msg || 'Value does not match the required format.';
+    }
+
+    this.valueChangesSub = this.form.valueChanges.subscribe(() => {
+      this.emitOutputs();
+    });
+
+    this.emitOutputs();
+  }
+
+  private buildValidators(question: FormQuestionDto): ValidatorFn[] {
+    const validators: ValidatorFn[] = [];
+
+    if (question.required) {
+      validators.push(Validators.required);
+    }
+
+    if (question.validationRules) {
+      for (const rule of question.validationRules) {
+        switch (rule.ruleType) {
+          case 'required':
+            if (!validators.some(v => v === Validators.required)) {
+              validators.push(Validators.required);
             }
-          } catch {
-            return msg || 'Invalid validation pattern.';
+            break;
+          case 'email':
+            validators.push(Validators.email);
+            break;
+          case 'pattern':
+            if (rule.value) {
+              try {
+                validators.push(Validators.pattern(rule.value));
+              } catch { /* invalid regex, skip */ }
+            }
+            break;
+          case 'min':
+            validators.push(Validators.min(Number(rule.value)));
+            break;
+          case 'max':
+            validators.push(Validators.max(Number(rule.value)));
+            break;
+          case 'minLength':
+            validators.push(Validators.minLength(Number(rule.value)));
+            break;
+          case 'maxLength':
+            validators.push(Validators.maxLength(Number(rule.value)));
+            break;
+          case 'url':
+            validators.push(this.urlValidator());
+            break;
+        }
+      }
+    }
+
+    return validators;
+  }
+
+  private urlValidator(): ValidatorFn {
+    return (control) => {
+      if (!control.value) return null;
+      try {
+        new URL(String(control.value));
+        return null;
+      } catch {
+        return { url: true };
+      }
+    };
+  }
+
+  private updateControlVisibility(schema: DynamicFormSchemaDto, logic: 'AND' | 'OR'): void {
+    for (const section of schema.sections) {
+      for (const group of section.groups) {
+        for (const question of group.questions) {
+          const visible = this.isQuestionVisible(question);
+          const wasVisible = this.previousVisibility.get(question.questionId);
+
+          if (visible !== wasVisible) {
+            const control = this.getControl(question.questionId);
+            if (control) {
+              if (visible) {
+                control.enable({ emitEvent: false });
+              } else {
+                control.disable({ emitEvent: false });
+              }
+            }
+            this.previousVisibility.set(question.questionId, visible);
           }
         }
-        return null;
       }
-      case 'min': {
-        const num = Number(answer);
-        if (!isNaN(num) && num < Number(rule.value)) {
-          return msg || `Minimum value is ${rule.value}.`;
-        }
-        return null;
-      }
-      case 'max': {
-        const num = Number(answer);
-        if (!isNaN(num) && num > Number(rule.value)) {
-          return msg || `Maximum value is ${rule.value}.`;
-        }
-        return null;
-      }
-      case 'minLength': {
-        const str = String(answer ?? '');
-        if (str.length < Number(rule.value)) {
-          return msg || `Minimum length is ${rule.value} characters.`;
-        }
-        return null;
-      }
-      case 'maxLength': {
-        const str = String(answer ?? '');
-        if (str.length > Number(rule.value)) {
-          return msg || `Maximum length is ${rule.value} characters.`;
-        }
-        return null;
-      }
-      case 'email': {
-        if (answer != null && answer !== '') {
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(String(answer))) {
-            return msg || 'Please enter a valid email address.';
-          }
-        }
-        return null;
-      }
-      case 'url': {
-        if (answer != null && answer !== '') {
-          try {
-            new URL(String(answer));
-          } catch {
-            return msg || 'Please enter a valid URL.';
-          }
-        }
-        return null;
-      }
-      default:
-        return null;
     }
   }
 
@@ -275,17 +325,72 @@ export class DynamicFormRendererComponent {
     }
   }
 
-  protected updateAnswer(questionId: string, value: any): void {
-    this.touchedFields.update(set => { const next = new Set(set); next.add(questionId); return next; });
-    this.answers.update(current => ({ ...current, [questionId]: value }));
-    this.emitOutputs();
-  }
-
   private emitOutputs(): void {
-    const sub = this.submission();
-    if (sub) {
+    const s = this.schema();
+
+    // Build submission imperatively from live form values
+    if (s) {
+      const currentAnswers = this.form.value as Record<string, any>;
+
+      const sections: SubmissionSectionDto[] = s.sections.map(section => {
+        const groups: SubmissionGroupDto[] = section.groups.map(group => {
+          const answers: SubmissionAnswerDto[] = group.questions
+            .filter(q => this.isQuestionVisible(q))
+            .map(q => ({
+              questionId: q.questionId,
+              value: this.wrapTypes.has(q.type)
+                ? { [q.type]: currentAnswers[q.questionId] }
+                : currentAnswers[q.questionId],
+              attachments: q.type === 'file' ? [] : undefined
+            }));
+          return { groupId: group.groupId, answers };
+        });
+        return { sectionId: section.sectionId, groups };
+      });
+
+      const sub: DynamicFormSubmissionDto = {
+        schemaVersion: s.schemaVersion,
+        formSchemaId: this.formSchemaId(),
+        formSchemaVersion: this.formSchemaVersion(),
+        sections
+      };
+
+      this.submission.set(sub);
       this.submissionChange.emit(sub);
     }
-    this.validityChange.emit(this.isValid());
+
+    // Calculate validity and required stats
+    let valid = true;
+    let requiredTotal = 0;
+    let requiredCompleted = 0;
+
+    if (s) {
+      for (const section of s.sections) {
+        for (const group of section.groups) {
+          for (const question of group.questions) {
+            if (!this.isQuestionVisible(question)) continue;
+
+            if (question.required) {
+              requiredTotal++;
+              const control = this.getControl(question.questionId);
+              const value = control?.value;
+              const filled = value != null && value !== '' && !(Array.isArray(value) && value.length === 0);
+              if (filled) {
+                requiredCompleted++;
+              }
+            }
+
+            const control = this.getControl(question.questionId);
+            if (control && control.invalid) {
+              valid = false;
+            }
+          }
+        }
+      }
+    }
+
+    this.isValid.set(valid);
+    this.validityChange.emit(valid);
+    this.requiredStatsChange.emit({ completed: requiredCompleted, total: requiredTotal });
   }
 }

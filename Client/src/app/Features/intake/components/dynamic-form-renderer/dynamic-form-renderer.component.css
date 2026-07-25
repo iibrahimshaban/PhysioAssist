@@ -169,3 +169,14 @@
   transform: scale(1.2);
   z-index: 2;
 }
+
+/* ── Validation States ─────────────────────────────────────── */
+.is-invalid {
+  border-color: var(--color-danger-border) !important;
+  box-shadow: 0 0 0 3px rgba(var(--color-danger-rgb, 220, 38, 38), 0.1);
+}
+
+.is-invalid:focus {
+  border-color: var(--color-danger) !important;
+  box-shadow: 0 0 0 3px rgba(var(--color-danger-rgb, 220, 38, 38), 0.2);
+}

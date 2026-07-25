@@ -237,12 +237,12 @@ export class SubmissionListComponent implements OnInit {
 
   getAvatarGradient(name: string | undefined, id: string): string {
     const gradients = [
-      'linear-gradient(135deg, #0EB8A0 0%, #0B9A86 100%)',
-      'linear-gradient(135deg, #4FD4BC 0%, #0EB8A0 100%)',
-      'linear-gradient(135deg, #0B9A86 0%, #087B6B 100%)',
-      'linear-gradient(135deg, #86E4D0 0%, #4FD4BC 100%)',
-      'linear-gradient(135deg, #0EB8A0 0%, #065E52 100%)',
-      'linear-gradient(135deg, #B2EFE2 0%, #0EB8A0 100%)',
+      'linear-gradient(135deg, #1888CC 0%, #0FB3A5 100%)',
+      'linear-gradient(135deg, #1a9dd4 0%, #12c4b4 100%)',
+      'linear-gradient(135deg, #1078b0 0%, #0a8a7a 100%)',
+      'linear-gradient(135deg, #5cb8e0 0%, #4FD4BC 100%)',
+      'linear-gradient(135deg, #1888CC 0%, #087B6B 100%)',
+      'linear-gradient(135deg, #90cbe8 0%, #1888CC 100%)',
     ];
     const key = name || id || 'default';
     let hash = 0;

@@ -9,6 +9,7 @@ export interface FormSectionDto {
   description?: string;
   order: number;
   groups: FormGroupDto[];
+  isLocked?: boolean;
 }
 
 export interface FormGroupDto {
@@ -17,6 +18,7 @@ export interface FormGroupDto {
   description?: string;
   order: number;
   questions: FormQuestionDto[];
+  isLocked?: boolean;
 }
 
 export interface FormQuestionDto {

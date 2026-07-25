@@ -250,11 +250,15 @@
 
           <div class="build-sections">
             @for (section of formSchema().sections; track section.sectionId; let si = $index) {
-              <div class="build-section-card" [class.build-section-editing]="editingSectionIndex() === si">
+              <div class="build-section-card" [class.build-section-editing]="editingSectionIndex() === si" [class.build-section--locked]="isSectionLocked(section)">
                 <!-- Section Header -->
-                <div class="build-section-header">
+                <div class="build-section-header" [class.build-section-header--locked]="isSectionLocked(section)">
                   <div class="build-section-title-row">
-                    @if (editingSectionIndex() === si) {
+                    @if (isSectionLocked(section)) {
+                      <span class="build-locked-badge"><i class="pi pi-shield text-xs"></i></span>
+                      <span class="build-section-title">{{ section.title }}</span>
+                      <span class="build-locked-text">Required</span>
+                    } @else if (editingSectionIndex() === si) {
                       <input
                         type="text"
                         pInputText
@@ -267,14 +271,16 @@
                       <span class="build-section-count">{{ section.groups.length }} group{{ section.groups.length !== 1 ? 's' : '' }}</span>
                     }
                   </div>
-                  <div class="build-section-actions">
-                    <button type="button" class="build-icon-btn" (click)="toggleEditSection(si)" pTooltip="Edit name">
-                      <i class="pi" [ngClass]="editingSectionIndex() === si ? 'pi-check' : 'pi-pencil'"></i>
-                    </button>
-                    <button type="button" class="build-icon-btn build-icon-btn-danger" (click)="removeSection(si)" pTooltip="Delete section">
-                      <i class="pi pi-trash"></i>
-                    </button>
-                  </div>
+                  @if (!isSectionLocked(section)) {
+                    <div class="build-section-actions">
+                      <button type="button" class="build-icon-btn" (click)="toggleEditSection(si)" pTooltip="Edit name">
+                        <i class="pi" [ngClass]="editingSectionIndex() === si ? 'pi-check' : 'pi-pencil'"></i>
+                      </button>
+                      <button type="button" class="build-icon-btn build-icon-btn-danger" (click)="removeSection(si)" pTooltip="Delete section">
+                        <i class="pi pi-trash"></i>
+                      </button>
+                    </div>
+                  }
                 </div>
 
                 @if (section.description) {
@@ -284,10 +290,13 @@
                 <!-- Groups inside section -->
                 <div class="build-groups">
                   @for (group of section.groups; track group.groupId; let gi = $index) {
-                    <div class="build-group-card" [class.build-group-editing]="editingSectionIndex() === si && editingGroupIndex() === gi">
+                    <div class="build-group-card" [class.build-group-editing]="editingSectionIndex() === si && editingGroupIndex() === gi" [class.build-group--locked]="group.isLocked">
                       <div class="build-group-header">
                         <div class="build-group-title-row">
-                          @if (editingSectionIndex() === si && editingGroupIndex() === gi) {
+                          @if (group.isLocked) {
+                            <span class="build-locked-badge build-locked-badge--sm"><i class="pi pi-shield text-[10px]"></i></span>
+                            <span class="build-group-title">{{ group.title }}</span>
+                          } @else if (editingSectionIndex() === si && editingGroupIndex() === gi) {
                             <input
                               type="text"
                               pInputText
@@ -300,43 +309,55 @@
                             <span class="build-section-count">{{ group.questions.length }} question{{ group.questions.length !== 1 ? 's' : '' }}</span>
                           }
                         </div>
-                        <div class="build-section-actions">
-                          <button type="button" class="build-icon-btn" (click)="toggleEditGroup(si, gi)" pTooltip="Edit name">
-                            <i class="pi" [ngClass]="editingSectionIndex() === si && editingGroupIndex() === gi ? 'pi-check' : 'pi-pencil'"></i>
-                          </button>
-                          <button type="button" class="build-icon-btn build-icon-btn-danger" (click)="removeGroup(si, gi)" pTooltip="Delete group">
-                            <i class="pi pi-trash"></i>
-                          </button>
-                        </div>
+                        @if (!group.isLocked) {
+                          <div class="build-section-actions">
+                            <button type="button" class="build-icon-btn" (click)="toggleEditGroup(si, gi)" pTooltip="Edit name">
+                              <i class="pi" [ngClass]="editingSectionIndex() === si && editingGroupIndex() === gi ? 'pi-check' : 'pi-pencil'"></i>
+                            </button>
+                            <button type="button" class="build-icon-btn build-icon-btn-danger" (click)="removeGroup(si, gi)" pTooltip="Delete group">
+                              <i class="pi pi-trash"></i>
+                            </button>
+                          </div>
+                        }
                       </div>
 
                       <!-- Questions in group -->
                       <div class="build-questions">
                         @for (question of group.questions; track question.questionId; let qi = $index) {
-                          <div class="build-question-chip">
-                            <i [class]="getQuestionTypeIcon(question.type)" class="build-question-icon"></i>
+                          <div class="build-question-chip" [class.build-question-chip--locked]="isQuestionLocked(question)">
+                            @if (isQuestionLocked(question)) {
+                              <i class="pi pi-lock text-blue-500 build-question-icon"></i>
+                            } @else {
+                              <i [class]="getQuestionTypeIcon(question.type)" class="build-question-icon"></i>
+                            }
                             <span class="build-question-text">{{ question.text }}</span>
                             @if (question.required) {
                               <span class="build-required-dot" pTooltip="Required">*</span>
                             }
-                            <button type="button" class="build-chip-remove" (click)="removeQuestion(si, gi, qi)" pTooltip="Remove question">
-                              <i class="pi pi-times"></i>
-                            </button>
+                            @if (!isQuestionLocked(question)) {
+                              <button type="button" class="build-chip-remove" (click)="removeQuestion(si, gi, qi)" pTooltip="Remove question">
+                                <i class="pi pi-times"></i>
+                              </button>
+                            }
                           </div>
                         }
 
-                        <button type="button" class="build-add-question-btn" (click)="showQuickAddForGroup(si, gi)">
-                          <i class="pi pi-plus"></i>
-                          Add Question
-                        </button>
+                        @if (!group.isLocked) {
+                          <button type="button" class="build-add-question-btn" (click)="showQuickAddForGroup(si, gi)">
+                            <i class="pi pi-plus"></i>
+                            Add Question
+                          </button>
+                        }
                       </div>
                     </div>
                   }
 
-                  <button type="button" class="build-add-group-btn" (click)="addGroup(si)">
-                    <i class="pi pi-plus"></i>
-                    Add Group
-                  </button>
+                  @if (!isSectionLocked(section)) {
+                    <button type="button" class="build-add-group-btn" (click)="addGroup(si)">
+                      <i class="pi pi-plus"></i>
+                      Add Group
+                    </button>
+                  }
                 </div>
               </div>
             }
@@ -410,10 +431,17 @@
         <div class="review-preview">
           <h5 class="review-preview-title">Form Structure Preview</h5>
           @for (section of formSchema().sections; track section.sectionId) {
-            <div class="review-preview-section">
+            <div class="review-preview-section" [class.review-preview-section--locked]="isSectionLocked(section)">
               <div class="review-preview-section-title">
-                <i class="pi pi-folder text-amber-500"></i>
+                @if (isSectionLocked(section)) {
+                  <i class="pi pi-shield text-blue-500"></i>
+                } @else {
+                  <i class="pi pi-folder text-amber-500"></i>
+                }
                 {{ section.title }}
+                @if (isSectionLocked(section)) {
+                  <span class="build-locked-text">Required</span>
+                }
               </div>
               @for (group of section.groups; track group.groupId) {
                 <div class="review-preview-group">
@@ -457,4 +485,60 @@
       </div>
     </div>
   }
+
+  <!-- Publish Validation Dialog -->
+  <p-dialog
+    [visible]="showPublishValidationDialog()"
+    (visibleChange)="showPublishValidationDialog.set($event)"
+    [modal]="true"
+    [closable]="true"
+    [dismissableMask]="true"
+    header="Cannot Publish Form"
+    [style]="{ width: 'min(480px, calc(100vw - 2rem))' }">
+    <div class="space-y-4">
+      <div class="flex items-start gap-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
+        <i class="pi pi-exclamation-triangle text-amber-500 mt-0.5"></i>
+        <div>
+          <p class="text-sm font-semibold text-amber-800 m-0">Required core fields are missing or misconfigured</p>
+          <p class="text-xs text-amber-700 mt-1 m-0">Your form must include all required patient information fields before it can be published.</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2 m-0">Issues to fix</p>
+        <div class="space-y-2">
+          @for (issue of publishValidationIssues(); track issue.fieldName) {
+            <div class="flex items-center gap-3 p-2.5 rounded-lg bg-red-50 border border-red-100">
+              <i class="pi pi-times-circle text-red-500 text-sm"></i>
+              <div class="flex-1 min-w-0">
+                <span class="text-sm font-medium text-red-800">{{ issue.fieldName }}</span>
+                <span class="text-xs text-red-600 ml-1.5">{{ issue.issue }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="p-3 rounded-lg bg-blue-50 border border-blue-100">
+        <div class="flex items-start gap-2">
+          <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
+          <div>
+            <p class="text-xs text-blue-700 m-0 font-medium">How to fix</p>
+            <p class="text-xs text-blue-600 mt-0.5 m-0">Go back to the Build step and add the missing fields. Use the "Quick Add" presets panel on the left to add required fields like Full Name, Email, Phone, Date of Birth, Gender, and Occupation with the Required flag enabled.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          class="px-4 py-2 text-sm font-medium rounded-lg bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
+          (click)="showPublishValidationDialog.set(false)">
+          Got it
+        </button>
+      </div>
+    </ng-template>
+  </p-dialog>
 </div>

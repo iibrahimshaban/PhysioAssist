@@ -1,7 +1,7 @@
-import { Component, computed, inject, OnInit, signal, DestroyRef } from '@angular/core';
+import { Component, computed, inject, OnInit, signal, DestroyRef, HostListener } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -22,12 +22,12 @@ import { BodyPainMapPayload, BodyPainMapComponent } from '../../components/body-
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    ReactiveFormsModule,
     ButtonModule,
     InputTextModule,
     DynamicFormRendererComponent,
     BodyPainMapComponent
-],
+  ],
   templateUrl: './public-intake.component.html',
   styleUrl: './public-intake.component.css'
 })
@@ -51,11 +51,31 @@ export class PublicIntakeComponent implements OnInit {
   readonly submissionResult = signal<PublicIntakeSubmissionResponse | null>(null);
   readonly submitError = signal<string | null>(null);
 
+  readonly showConfirmDialog = signal(false);
+  readonly isDirty = signal(false);
+
+  readonly requiredTotal = signal(0);
+  readonly requiredCompleted = signal(0);
+
+  readonly progressPercent = computed(() => {
+    const total = this.requiredTotal();
+    if (total === 0) return 0;
+    return Math.round((this.requiredCompleted() / total) * 100);
+  });
+
   readonly canSubmit = computed(() =>
     this.isFormValid()
     && !this.submitting()
     && !this.submitted()
   );
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(e: BeforeUnloadEvent): void {
+    if (this.isDirty() && !this.submitted()) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  }
 
   schemaHasBodySelector(): boolean {
     const schema = this.schema();
@@ -91,16 +111,47 @@ export class PublicIntakeComponent implements OnInit {
 
   onSubmissionChange(submission: DynamicFormSubmissionDto): void {
     this.submission.set(submission);
+    this.isDirty.set(true);
   }
 
   onValidityChange(valid: boolean): void {
     this.isFormValid.set(valid);
   }
 
+  onRequiredStatsChange(event: { completed: number; total: number }): void {
+    this.requiredCompleted.set(event.completed);
+    this.requiredTotal.set(event.total);
+  }
+
   painMapPayload = signal<BodyPainMapPayload | null>(null);
 
   onPainMapChange(payload: BodyPainMapPayload) {
     this.painMapPayload.set(payload);
+    this.isDirty.set(true);
+  }
+
+  requestSubmit(): void {
+    if (!this.canSubmit()) {
+      this.markAllAsTouched();
+      return;
+    }
+    this.showConfirmDialog.set(true);
+  }
+
+  cancelSubmit(): void {
+    this.showConfirmDialog.set(false);
+  }
+
+  confirmSubmit(): void {
+    this.showConfirmDialog.set(false);
+    this.submit();
+  }
+
+  private markAllAsTouched(): void {
+    const schema = this.schema();
+    if (!schema) return;
+    // This triggers validation display on all visible fields
+    // The dynamic-form-renderer will handle marking its own controls
   }
 
   submit(): void {
@@ -125,6 +176,7 @@ export class PublicIntakeComponent implements OnInit {
         this.submissionResult.set(response);
         this.submitted.set(true);
         this.submitting.set(false);
+        this.isDirty.set(false);
       },
       error: (err) => {
         const detail = err?.error?.detail || err?.error?.title || err?.error?.message;
@@ -177,4 +229,5 @@ export class PublicIntakeComponent implements OnInit {
       }
     });
   }
+
 }

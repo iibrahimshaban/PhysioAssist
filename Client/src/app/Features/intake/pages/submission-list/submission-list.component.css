@@ -81,7 +81,7 @@
 }
 
 .submission-page-btn--active:hover {
-  background: linear-gradient(145deg, #1a7fd4, #0b9a86);
+  box-shadow: 0 4px 10px rgba(24, 136, 204, 0.3);
   color: #ffffff;
 }
 
@@ -140,13 +140,13 @@
   width: 4rem;
   height: 4rem;
   border-radius: 1rem;
-  background: linear-gradient(135deg, var(--intake-color-primary-soft, rgba(24, 136, 204, 0.1)), rgba(24, 136, 204, 0.05));
-  color: var(--brand-gradient-start, #1888CC);
+  background: var(--brand-gradient);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.75rem;
-  box-shadow: 0 4px 12px rgba(24, 136, 204, 0.1);
+  box-shadow: 0 4px 12px rgba(24, 136, 204, 0.15);
 }
 
 .empty-title {

@@ -330,6 +330,33 @@
   z-index: 10;
 }
 
+.tree-section--locked {
+  margin-bottom: 0.25rem;
+}
+
+.tree-node--locked {
+  background: rgba(59, 130, 246, 0.04);
+  border-left: 2px solid #3b82f6;
+  padding-left: calc(0.5rem - 2px);
+}
+
+.tree-node-icon--locked {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.tree-locked-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
 /* ── Tree ─────────────────────────────────────────────── */
 .sidebar-tree {
   padding: 0.5rem;
@@ -512,6 +539,7 @@
   padding: 1.5rem;
 }
 
+/* ── Core Fields Status Bar ─────────────────────────────── */
 .canvas-empty-state {
   text-align: center;
   padding: 4rem 2rem;
@@ -540,6 +568,25 @@
   overflow: hidden;
   cursor: pointer;
   transition: all 0.15s ease;
+}
+
+.preview-section--locked {
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.05);
+}
+
+.preview-section--locked:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+}
+
+.preview-section-header--locked {
+  background: rgba(59, 130, 246, 0.03);
+  border-bottom-color: rgba(59, 130, 246, 0.15);
+}
+
+.preview-section-accent--locked {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
 }
 
 .preview-section-card:hover {

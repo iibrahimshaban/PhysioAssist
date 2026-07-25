@@ -32,7 +32,7 @@
   gap: 0.875rem;
   padding: 1.25rem 1.25rem;
   border: none;
-  border-radius: 1rem;
+  border-radius: var(--radius-xl);
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
@@ -47,6 +47,7 @@
 
 .stat-block:active {
   transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
 .stat-block.active {
@@ -152,7 +153,7 @@
   width: 0.625rem;
   height: 0.625rem;
   border-radius: 9999px;
-  background: #0EB8A0;
+  background: var(--brand-teal);
   animation: stat-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   z-index: 2;
 }

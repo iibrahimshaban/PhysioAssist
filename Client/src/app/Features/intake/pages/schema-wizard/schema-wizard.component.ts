@@ -8,6 +8,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TooltipModule } from 'primeng/tooltip';
+import { DialogModule } from 'primeng/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { DynamicFormEngineService } from '../../services/dynamic-form-engine.service';
@@ -18,6 +19,32 @@ import {
   FormGroupDto,
   FormQuestionDto,
 } from '../../models';
+
+const CORE_FIELD_IDS = new Set([
+  'core_full_name',
+  'core_email',
+  'core_phone',
+  'core_gender',
+  'core_dob',
+  'core_occupation'
+]);
+
+const CORE_FIELD_TEXTS = new Set([
+  'Full Name',
+  'Email Address',
+  'Phone Number',
+  'Gender',
+  'Date of Birth',
+  'Occupation'
+]);
+
+interface PublishValidationIssue {
+  fieldName: string;
+  issue: string;
+}
+
+const CORE_SECTION_ID = 'section_core_fields';
+const CORE_GROUP_ID = 'group_core_fields';
 
 /* ─── Wizard Step Enum ─────────────────────────────────── */
 type WizardStep = 'template' | 'details' | 'build' | 'review';
@@ -265,6 +292,7 @@ const QUESTION_PRESETS: QuestionPreset[] = [
     SelectModule,
     CheckboxModule,
     TooltipModule,
+    DialogModule,
   ],
   templateUrl: './schema-wizard.component.html',
   styleUrl: './schema-wizard.component.css'
@@ -288,11 +316,15 @@ export class SchemaWizardComponent {
 
   readonly formSchema = signal<DynamicFormSchemaDto>({
     schemaVersion: 1,
-    sections: []
+    sections: [this.buildCoreFieldsSection()]
   });
 
   readonly saving = signal(false);
   readonly publishing = signal(false);
+
+  // Pre-publish validation
+  readonly showPublishValidationDialog = signal(false);
+  readonly publishValidationIssues = signal<PublishValidationIssue[]>([]);
 
   // ─── Build Mode State ────────────────────────────────────
   readonly showQuickAdd = signal(false);
@@ -329,6 +361,34 @@ export class SchemaWizardComponent {
   readonly canProceedFromBuild = computed(() =>
     this.formSchema().sections.length > 0 && this.totalQuestions() > 0
   );
+
+  readonly prePublishValidation = computed((): PublishValidationIssue[] => {
+    const issues: PublishValidationIssue[] = [];
+    const schema = this.formSchema();
+    const allQuestions = this.engine.getAllQuestions(schema);
+
+    for (const coreId of CORE_FIELD_IDS) {
+      const found = allQuestions.find(q => q.questionId === coreId);
+      if (!found) {
+        const byText = allQuestions.find(q => CORE_FIELD_TEXTS.has(q.text));
+        if (!byText) {
+          issues.push({ fieldName: coreId.replace('core_', '').replace('_', ' '), issue: 'Missing from schema' });
+          continue;
+        }
+        if (!byText.required) {
+          issues.push({ fieldName: byText.text, issue: 'Required flag is disabled' });
+        }
+      } else {
+        if (!found.required) {
+          issues.push({ fieldName: found.text, issue: 'Required flag is disabled' });
+        }
+      }
+    }
+
+    return issues;
+  });
+
+  readonly canPublish = computed(() => this.prePublishValidation().length === 0);
 
   readonly stepProgress = computed(() => {
     const steps: { key: WizardStep; label: string; icon: string; completed: boolean }[] = [
@@ -380,7 +440,7 @@ export class SchemaWizardComponent {
     if (!template) return;
 
     // Deep clone the template sections
-    const sections: FormSectionDto[] = template.sections.map(s => ({
+    const userSections: FormSectionDto[] = template.sections.map(s => ({
       ...s,
       groups: s.groups.map(g => ({
         ...g,
@@ -391,12 +451,45 @@ export class SchemaWizardComponent {
       }))
     }));
 
-    this.formSchema.set({ schemaVersion: 1, sections });
+    const coreSection = this.buildCoreFieldsSection();
+    this.formSchema.set({ schemaVersion: 1, sections: [coreSection, ...userSections] });
 
     // Auto-fill name from template
     if (!this.schemaName() && template.id !== 'blank') {
       this.schemaName.set(template.name);
     }
+  }
+
+  // ─── Core Fields (Locked Section) ────────────────────────
+  private buildCoreFieldsSection(): FormSectionDto {
+    return {
+      sectionId: CORE_SECTION_ID,
+      title: 'Required Information',
+      isLocked: true,
+      order: 0,
+      groups: [{
+        groupId: CORE_GROUP_ID,
+        title: 'Personal Information',
+        isLocked: true,
+        order: 0,
+        questions: [
+          { questionId: 'core_full_name', text: 'Full Name', type: 'text', required: true, isLocked: true, order: 0 },
+          { questionId: 'core_email', text: 'Email Address', type: 'email', required: true, isLocked: true, order: 1 },
+          { questionId: 'core_phone', text: 'Phone Number', type: 'tel', required: true, isLocked: true, order: 2 },
+          { questionId: 'core_gender', text: 'Gender', type: 'select', required: true, isLocked: true, order: 3, options: ['Male', 'Female', 'Other'] },
+          { questionId: 'core_dob', text: 'Date of Birth', type: 'date', required: true, isLocked: true, order: 4 },
+          { questionId: 'core_occupation', text: 'Occupation', type: 'text', required: true, isLocked: true, order: 5 },
+        ]
+      }]
+    };
+  }
+
+  isSectionLocked(section: FormSectionDto): boolean {
+    return section.sectionId === CORE_SECTION_ID || section.isLocked === true;
+  }
+
+  isQuestionLocked(question: any): boolean {
+    return question.isLocked === true || question.questionId?.startsWith('core_') === true;
   }
 
   // ─── Build: Section Management ───────────────────────────
@@ -419,6 +512,8 @@ export class SchemaWizardComponent {
 
   removeSection(index: number): void {
     const schema = this.formSchema();
+    const section = schema.sections[index];
+    if (section && this.isSectionLocked(section)) return;
     const sections = schema.sections.filter((_, i) => i !== index);
     this.formSchema.set({ ...schema, sections });
     if (this.editingSectionIndex() === index) {
@@ -653,6 +748,13 @@ export class SchemaWizardComponent {
   }
 
   saveAndPublish(): void {
+    const issues = this.prePublishValidation();
+    if (issues.length > 0) {
+      this.publishValidationIssues.set(issues);
+      this.showPublishValidationDialog.set(true);
+      return;
+    }
+
     this.publishing.set(true);
     const schemaJson = this.engine.serializeSchema(this.formSchema());
 

@@ -1,4 +1,4 @@
-<div class="dynamic-form-renderer" role="form" aria-label="Dynamic intake form">
+<div class="dynamic-form-renderer" role="form" aria-label="Dynamic intake form" [formGroup]="form">
   @if (!schema()) {
     <div class="text-center py-12" style="color: var(--color-text-muted)" role="status">
       <i class="pi pi-inbox text-4xl block mb-3"></i>
@@ -68,46 +68,45 @@
                         @case ('text') {
                           <input
                             type="text"
-                            [ngModel]="answers()[question.questionId]"
-                            (ngModelChange)="updateAnswer(question.questionId, $event)"
+                            [formControlName]="question.questionId"
                             [attr.id]="'q-' + question.questionId"
                             [attr.aria-labelledby]="'label-' + question.questionId"
                             [attr.aria-describedby]="(question.description ? 'desc-' + question.questionId + ' ' : '') + 'errors-' + question.questionId"
                             [attr.aria-required]="question.required"
                             class="w-full text-sm px-3 py-2 rounded-xl"
+                            [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);"
                             [attr.placeholder]="question.placeholder || 'Enter your answer'" />
                         }
                         @case ('email') {
                           <input
                             type="email"
-                            [ngModel]="answers()[question.questionId]"
-                            (ngModelChange)="updateAnswer(question.questionId, $event)"
+                            [formControlName]="question.questionId"
                             [attr.id]="'q-' + question.questionId"
                             [attr.aria-labelledby]="'label-' + question.questionId"
                             [attr.aria-describedby]="'errors-' + question.questionId"
                             [attr.aria-required]="question.required"
                             class="w-full text-sm px-3 py-2 rounded-xl"
+                            [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);"
                             [attr.placeholder]="question.placeholder || 'email@example.com'" />
                         }
                         @case ('phone') {
                           <input
                             type="tel"
-                            [ngModel]="answers()[question.questionId]"
-                            (ngModelChange)="updateAnswer(question.questionId, $event)"
+                            [formControlName]="question.questionId"
                             [attr.id]="'q-' + question.questionId"
                             [attr.aria-labelledby]="'label-' + question.questionId"
                             [attr.aria-describedby]="'errors-' + question.questionId"
                             [attr.aria-required]="question.required"
                             class="w-full text-sm px-3 py-2 rounded-xl"
+                            [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);"
                             [attr.placeholder]="question.placeholder || '(555) 123-4567'" />
                         }
                         @case ('number') {
                           <p-inputNumber
-                            [ngModel]="answers()[question.questionId]"
-                            (ngModelChange)="updateAnswer(question.questionId, $event)"
+                            [formControlName]="question.questionId"
                             [inputId]="'q-' + question.questionId"
                             styleClass="w-full"
                             inputStyleClass="!w-full !text-sm !px-3 !py-2 !rounded-xl"
@@ -117,47 +116,47 @@
                         }
                         @case ('textarea') {
                           <textarea
-                            [ngModel]="answers()[question.questionId]"
-                            (ngModelChange)="updateAnswer(question.questionId, $event)"
+                            [formControlName]="question.questionId"
                             [attr.id]="'q-' + question.questionId"
                             [attr.aria-labelledby]="'label-' + question.questionId"
                             [attr.aria-describedby]="'errors-' + question.questionId"
                             [attr.aria-required]="question.required"
                             rows="3"
                             class="w-full text-sm px-3 py-2 rounded-xl"
+                            [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);"
                             [attr.placeholder]="question.placeholder || 'Enter your answer'"></textarea>
                         }
                         @case ('date') {
                           <input
                             type="date"
-                            [ngModel]="answers()[question.questionId]"
-                            (ngModelChange)="updateAnswer(question.questionId, $event)"
+                            [formControlName]="question.questionId"
                             [attr.id]="'q-' + question.questionId"
                             [attr.aria-labelledby]="'label-' + question.questionId"
                             [attr.aria-required]="question.required"
                             class="w-full text-sm px-3 py-2 rounded-xl"
+                            [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);" />
                         }
                         @case ('datetime') {
                           <input
                             type="datetime-local"
-                            [ngModel]="answers()[question.questionId]"
-                            (ngModelChange)="updateAnswer(question.questionId, $event)"
+                            [formControlName]="question.questionId"
                             [attr.id]="'q-' + question.questionId"
                             [attr.aria-labelledby]="'label-' + question.questionId"
                             [attr.aria-required]="question.required"
                             class="w-full text-sm px-3 py-2 rounded-xl"
+                            [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);" />
                         }
                         @case ('select') {
                           <select
-                            [ngModel]="answers()[question.questionId]"
-                            (ngModelChange)="updateAnswer(question.questionId, $event)"
+                            [formControlName]="question.questionId"
                             [attr.id]="'q-' + question.questionId"
                             [attr.aria-labelledby]="'label-' + question.questionId"
                             [attr.aria-required]="question.required"
                             class="w-full text-sm px-3 py-2 rounded-xl"
+                            [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);">
                             <option [ngValue]="null">{{ question.placeholder || 'Select an option' }}</option>
                             @for (opt of (question.options || []); track opt) {
@@ -168,8 +167,7 @@
                         @case ('multiselect') {
                           <p-multiSelect
                             [options]="question.options || []"
-                            [ngModel]="answers()[question.questionId]"
-                            (ngModelChange)="updateAnswer(question.questionId, $event)"
+                            [formControlName]="question.questionId"
                             [inputId]="'q-' + question.questionId"
                             [placeholder]="question.placeholder || 'Select options'"
                             styleClass="w-full !rounded-xl" />
@@ -181,7 +179,7 @@
                                 <input
                                   type="checkbox"
                                   [id]="question.questionId + '_' + opt"
-                                  [checked]="(answers()[question.questionId] || []).includes(opt)"
+                                  [checked]="(getControl(question.questionId).value || []).includes(opt)"
                                   (change)="toggleCheckboxOption(question.questionId, opt, $any($event.target).checked)"
                                   class="w-4 h-4 rounded"
                                   style="accent-color: var(--color-primary); border-color: var(--color-border);" />
@@ -198,8 +196,7 @@
                                   type="radio"
                                   [name]="question.questionId"
                                   [value]="opt"
-                                  [checked]="answers()[question.questionId] === opt"
-                                  (change)="updateAnswer(question.questionId, opt)"
+                                  [formControlName]="question.questionId"
                                   [id]="question.questionId + '_' + opt"
                                   class="w-4 h-4"
                                   style="accent-color: var(--color-primary); border-color: var(--color-border);"
@@ -213,8 +210,7 @@
                           <label class="inline-flex items-center gap-2 text-sm cursor-pointer select-none" style="color: var(--color-text-primary);">
                             <input
                               type="checkbox"
-                              [ngModel]="answers()[question.questionId]"
-                              (ngModelChange)="updateAnswer(question.questionId, $event)"
+                              [formControlName]="question.questionId"
                               [attr.id]="'q-' + question.questionId"
                               [attr.aria-labelledby]="'label-' + question.questionId"
                               class="w-4 h-4 rounded"
@@ -245,14 +241,13 @@
                           </div>
                         }
                         @case ('painpoint') {
-                          <div class="flex flex-col gap-3 rounded-xl p-3" style="border: 1px solid var(--color-border); background: var(--color-page-bg);">
+                          <div class="flex flex-col gap-3 rounded-xl p-3" style="border: 1px solid var(--color-border); background: var(--color-page-bg);" [formGroupName]="question.questionId">
                             <div class="flex flex-wrap items-center gap-2">
                               <label class="text-xs font-semibold w-20 shrink-0" style="color: var(--color-text-secondary);">Intensity</label>
                               <div class="flex-1 min-w-0 overflow-x-auto">
                                 <p-selectButton
                                   [options]="painScaleOptions"
-                                  [ngModel]="answers()[question.questionId]?.intensity"
-                                  (ngModelChange)="updateAnswer(question.questionId, { x: 0, y: 0, bodyPart: '', ...(answers()[question.questionId] || {}), intensity: $event })"
+                                  formControlName="intensity"
                                   styleClass="p-selectbutton-sm" />
                               </div>
                             </div>
@@ -260,8 +255,7 @@
                               <label class="text-xs font-semibold w-20 shrink-0" style="color: var(--color-text-secondary);">Region</label>
                               <input
                                 type="text"
-                                [ngModel]="answers()[question.questionId]?.anatomicalRegion || answers()[question.questionId]?.bodyPart"
-                                (ngModelChange)="updateAnswer(question.questionId, { x: 0, y: 0, anatomicalRegion: $event, bodyPart: $event, intensity: answers()[question.questionId]?.intensity ?? 5 })"
+                                formControlName="anatomicalRegion"
                                 placeholder="e.g. lumbar spine, shoulder, knee"
                                 class="flex-1 min-w-0 text-sm px-3 py-1.5 rounded-lg"
                                 style="border: 1px solid var(--color-border);" />
@@ -270,8 +264,7 @@
                               <label class="text-xs font-semibold w-20 shrink-0" style="color: var(--color-text-secondary);">Side</label>
                               <input
                                 type="text"
-                                [ngModel]="answers()[question.questionId]?.side"
-                                (ngModelChange)="updateAnswer(question.questionId, { x: 0, y: 0, anatomicalRegion: answers()[question.questionId]?.anatomicalRegion ?? answers()[question.questionId]?.bodyPart ?? '', bodyPart: answers()[question.questionId]?.bodyPart ?? answers()[question.questionId]?.anatomicalRegion ?? '', side: $event, intensity: answers()[question.questionId]?.intensity ?? 5, description: answers()[question.questionId]?.description ?? '' })"
+                                formControlName="side"
                                 [attr.placeholder]="question.placeholder || 'left, right, bilateral'"
                                 class="flex-1 min-w-0 text-sm px-3 py-1.5 rounded-lg"
                                 style="border: 1px solid var(--color-border);" />
@@ -280,8 +273,7 @@
                               <label class="text-xs font-semibold w-20 shrink-0" style="color: var(--color-text-secondary);">Description</label>
                               <input
                                 type="text"
-                                [ngModel]="answers()[question.questionId]?.description"
-                                (ngModelChange)="updateAnswer(question.questionId, { x: 0, y: 0, anatomicalRegion: answers()[question.questionId]?.anatomicalRegion ?? answers()[question.questionId]?.bodyPart ?? '', bodyPart: answers()[question.questionId]?.bodyPart ?? answers()[question.questionId]?.anatomicalRegion ?? '', side: answers()[question.questionId]?.side ?? '', intensity: answers()[question.questionId]?.intensity ?? 5, description: $event })"
+                                formControlName="description"
                                 [attr.placeholder]="question.placeholder || 'Describe the pain'"
                                 class="flex-1 min-w-0 text-sm px-3 py-1.5 rounded-lg"
                                 style="border: 1px solid var(--color-border);" />
@@ -291,11 +283,11 @@
                         @default {
                           <input
                             type="text"
-                            [ngModel]="answers()[question.questionId]"
-                            (ngModelChange)="updateAnswer(question.questionId, $event)"
+                            [formControlName]="question.questionId"
                             [attr.id]="'q-' + question.questionId"
                             [attr.aria-labelledby]="'label-' + question.questionId"
                             class="w-full text-sm px-3 py-2 rounded-xl"
+                            [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);"
                             [attr.placeholder]="question.placeholder || 'Enter your answer'" />
                         }
@@ -306,9 +298,9 @@
                       <p class="text-xs mt-1.5" style="color: var(--color-text-muted);" [id]="'help-' + question.questionId">{{ question.helpText }}</p>
                     }
 
-                    @if (getQuestionErrors(question).length > 0 && isTouched(question.questionId)) {
+                    @if (getQuestionErrorMessages(question).length > 0) {
                       <div class="mt-1.5" [id]="'errors-' + question.questionId" role="alert">
-                        @for (err of getQuestionErrors(question); track err) {
+                        @for (err of getQuestionErrorMessages(question); track err) {
                           <p class="text-xs font-medium flex items-center gap-1 m-0" style="color: var(--color-danger);">
                             <i class="pi pi-exclamation-circle text-xs"></i>
                             {{ err }}

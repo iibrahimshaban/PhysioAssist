@@ -57,6 +57,9 @@ const CORE_FIELD_TEXTS = new Set([
   'Occupation'
 ]);
 
+const CORE_SECTION_ID = 'section_core_fields';
+const CORE_GROUP_ID = 'group_core_fields';
+
 interface PublishValidationIssue {
   fieldName: string;
   issue: string;
@@ -210,7 +213,10 @@ export class SchemaBuilderComponent implements OnInit {
     this.schemaDescription = '';
     this.isDefault = false;
     this.schemaVersion.set(1);
-    this.formSchema.set({ schemaVersion: 1, sections: [] });
+    this.formSchema.set({
+      schemaVersion: 1,
+      sections: [this.buildCoreFieldsSection()]
+    });
   }
 
   isEditMode(): boolean {
@@ -229,9 +235,14 @@ export class SchemaBuilderComponent implements OnInit {
 
         try {
           const parsed = JSON.parse(schema.schemaJson) as DynamicFormSchemaDto;
+          const sections = parsed.sections ?? [];
+          // Ensure core fields section exists
+          if (!sections.some(s => s.sectionId === CORE_SECTION_ID)) {
+            sections.unshift(this.buildCoreFieldsSection());
+          }
           this.formSchema.set({
             schemaVersion: parsed.schemaVersion ?? 1,
-            sections: parsed.sections ?? []
+            sections
           });
         } catch (error) {
           console.error('Failed to parse schema JSON:', error);
@@ -318,6 +329,38 @@ export class SchemaBuilderComponent implements OnInit {
     return question.isLocked === true || CORE_FIELD_IDS.has(question.questionId);
   }
 
+  // Check if a section is the locked core fields section
+  isSectionLocked(section: FormSectionDto): boolean {
+    return section.isLocked === true || section.sectionId === CORE_SECTION_ID;
+  }
+
+  private buildCoreFieldsSection(): FormSectionDto {
+    return {
+      sectionId: CORE_SECTION_ID,
+      title: 'Required Patient Information',
+      description: 'Core fields required for every intake form — cannot be removed',
+      order: 0,
+      isLocked: true,
+      groups: [
+        {
+          groupId: CORE_GROUP_ID,
+          title: 'Patient Details',
+          description: 'Demographics and contact information',
+          order: 1,
+          isLocked: true,
+          questions: [
+            { questionId: 'core_full_name', text: 'Full Name', type: 'text', order: 1, required: true, isLocked: true, placeholder: 'e.g. John Doe' },
+            { questionId: 'core_email', text: 'Email Address', type: 'email', order: 2, required: true, isLocked: true, placeholder: 'john@example.com' },
+            { questionId: 'core_phone', text: 'Phone Number', type: 'phone', order: 3, required: true, isLocked: true, placeholder: '(555) 000-0000' },
+            { questionId: 'core_gender', text: 'Gender', type: 'radio', order: 4, required: true, isLocked: true, options: ['Male', 'Female'] },
+            { questionId: 'core_dob', text: 'Date of Birth', type: 'date', order: 5, required: true, isLocked: true },
+            { questionId: 'core_occupation', text: 'Occupation', type: 'text', order: 6, required: true, isLocked: true, placeholder: 'e.g. Software Engineer' },
+          ]
+        }
+      ]
+    };
+  }
+
   // CRUD operations
   addSection(): void {
     const schema = this.formSchema();
@@ -342,6 +385,11 @@ export class SchemaBuilderComponent implements OnInit {
     const schema = this.formSchema();
     const section = schema.sections.find(s => s.sectionId === sectionId);
     if (section) {
+      // Check if section is locked
+      if (this.isSectionLocked(section)) {
+        this.snackbar.warning('Cannot delete', ['This is a required section and cannot be removed.']);
+        return;
+      }
       // Check if section contains locked questions
       const hasLocked = section.groups.some(g => g.questions.some(q => this.isQuestionLocked(q)));
       if (hasLocked) {

@@ -11,10 +11,22 @@ html {
   /* Text */
   --color-text-primary: #1E293B;
   --color-text-secondary: #64748B;
-  --color-text-muted: #94A3B8;
+  --color-text-muted: #64748B;
+
+  /* Neutral Gray Scale */
+  --neutral-50: #F8FAFC;
+  --neutral-100: #F1F5F9;
+  --neutral-200: #E2E8F0;
+  --neutral-300: #CBD5E1;
+  --neutral-400: #94A3B8;
+  --neutral-500: #64748B;
+  --neutral-600: #475569;
+  --neutral-700: #334155;
+  --neutral-800: #1E293B;
+  --neutral-900: #0F172A;
 
   /* Surfaces */
-  --color-page-bg: #F8FAFC;
+  --color-page-bg: #F4F6F8;
   --color-page-bg-alt: #F1F5F9;
   --color-surface: #FFFFFF;
   --color-surface-50: #F8FAFC;
@@ -28,33 +40,33 @@ html {
 
   /* Semantic aliases */
   --color-primary: var(--brand-gradient-end);
-  --color-primary-soft: #E8F2F9;
+  --color-primary-soft: rgba(24, 136, 204, 0.1);
   --color-primary-dark: #0e6b8a;
   --color-primary-gradient-start: var(--brand-gradient-start);
   --color-primary-gradient-end: var(--brand-gradient-end);
   --color-accent-violet: var(--brand-gradient-start);
-  --color-accent-violet-soft: #E8F2F9;
+  --color-accent-violet-soft: rgba(24, 136, 204, 0.1);
 
   /* Semantic - Brand tints */
-  --color-success-bg: #E8F2F9;
-  --color-success-text: #0e6b8a;
-  --color-success-light: #D0E5F3;
-  --color-success: var(--brand-gradient-start);
-  --color-success-border: #B2D9EF;
+  --color-success-bg: rgba(15, 179, 165, 0.1);
+  --color-success-text: #087B6B;
+  --color-success-light: rgba(15, 179, 165, 0.15);
+  --color-success: var(--brand-gradient-end);
+  --color-success-border: rgba(15, 179, 165, 0.2);
 
-  --color-warning-bg: #D4F5EF;
-  --color-warning-text: #087B6B;
-  --color-warning-light: #EEFCFA;
-  --color-warning: var(--brand-gradient-end);
-  --color-warning-border: #B2EFE2;
+  --color-warning-bg: rgba(245, 158, 11, 0.1);
+  --color-warning-text: #B45309;
+  --color-warning-light: rgba(245, 158, 11, 0.15);
+  --color-warning: #F59E0B;
+  --color-warning-border: rgba(245, 158, 11, 0.2);
 
   --color-danger: #DC2626;
-  --color-danger-light: #FEF2F2;
-  --color-danger-border: #FECACA;
+  --color-danger-light: rgba(220, 38, 38, 0.08);
+  --color-danger-border: rgba(220, 38, 38, 0.2);
 
   --color-info: var(--brand-gradient-start);
-  --color-info-light: #E8F2F9;
-  --color-info-border: #B2D9EF;
+  --color-info-light: rgba(24, 136, 204, 0.1);
+  --color-info-border: rgba(24, 136, 204, 0.2);
   --color-info-text: #0e6b8a;
 
   /* Spacing scale */
@@ -87,6 +99,17 @@ html {
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
   --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --shadow-xl: 0 16px 40px rgba(15, 23, 42, 0.16);
+
+  /* Breakpoints */
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
 
   --touch-target-min: 2.75rem;
   --intake-mobile-max: 639px;
@@ -254,4 +277,52 @@ html {
 .p-dialog .p-button-danger:hover {
   background: #b91c1c !important;
   border-color: #b91c1c !important;
+}
+
+/* ── Global Accessibility ────────────────────────────────── */
+
+/* Focus-visible ring for all interactive elements */
+:focus-visible {
+  outline: 2px solid var(--brand-gradient-start);
+  outline-offset: 2px;
+}
+
+/* Remove default outline on mouse click, keep for keyboard */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Reduced motion: disable all animations and transitions */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Smooth scroll for overflow containers ───────────────── */
+.intake-module .smooth-scroll-x,
+:host-context(.intake-module) .smooth-scroll-x {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--neutral-300) transparent;
+  scroll-behavior: smooth;
+}
+
+.intake-module .smooth-scroll-x::-webkit-scrollbar,
+:host-context(.intake-module) .smooth-scroll-x::-webkit-scrollbar {
+  height: 4px;
+}
+
+.intake-module .smooth-scroll-x::-webkit-scrollbar-track,
+:host-context(.intake-module) .smooth-scroll-x::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.intake-module .smooth-scroll-x::-webkit-scrollbar-thumb,
+:host-context(.intake-module) .smooth-scroll-x::-webkit-scrollbar-thumb {
+  background: var(--neutral-300);
+  border-radius: 2px;
 }

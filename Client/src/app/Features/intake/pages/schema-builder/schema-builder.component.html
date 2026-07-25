@@ -77,11 +77,12 @@
 
         <!-- Sections -->
         @for (section of formSchema().sections; track section.sectionId) {
-          <div class="tree-section">
+          <div class="tree-section" [class.tree-section--locked]="isSectionLocked(section)">
             <!-- Section Node -->
             <div
               class="tree-node"
               [class.tree-node-selected]="selectedItem() === section.sectionId"
+              [class.tree-node--locked]="isSectionLocked(section)"
               (click)="selectItem('section', section)">
               <button
                 class="tree-chevron"
@@ -89,17 +90,29 @@
                 [class.tree-chevron-open]="isSectionExpanded(section.sectionId)">
                 <i class="pi pi-chevron-right text-xs"></i>
               </button>
-              <div class="tree-node-icon" style="background: var(--color-warning-light, #fffbeb); color: var(--color-warning-text, #b45309);">
-                <i class="pi pi-folder text-xs"></i>
-              </div>
+              @if (isSectionLocked(section)) {
+                <div class="tree-node-icon tree-node-icon--locked">
+                  <i class="pi pi-shield text-xs"></i>
+                </div>
+              } @else {
+                <div class="tree-node-icon" style="background: var(--color-warning-light, #fffbeb); color: var(--color-warning-text, #b45309);">
+                  <i class="pi pi-folder text-xs"></i>
+                </div>
+              }
               <span class="tree-node-label flex-1 truncate">{{ section.title }}</span>
-              <button
-                class="tree-action-btn"
-                (click)="deleteSection(section.sectionId); $event.stopPropagation()"
-                pTooltip="Delete section"
-                tooltipPosition="right">
-                <i class="pi pi-trash text-xs"></i>
-              </button>
+              @if (isSectionLocked(section)) {
+                <span class="tree-locked-badge">
+                  <i class="pi pi-lock text-[9px]"></i>
+                </span>
+              } @else {
+                <button
+                  class="tree-action-btn"
+                  (click)="deleteSection(section.sectionId); $event.stopPropagation()"
+                  pTooltip="Delete section"
+                  tooltipPosition="right">
+                  <i class="pi pi-trash text-xs"></i>
+                </button>
+              }
             </div>
 
             <!-- Groups -->
@@ -111,6 +124,7 @@
                     <div
                       class="tree-node"
                       [class.tree-node-selected]="selectedItem() === group.groupId"
+                      [class.tree-node--locked]="group.isLocked"
                       (click)="selectItem('group', group)">
                       <button
                         class="tree-chevron"
@@ -118,17 +132,25 @@
                         [class.tree-chevron-open]="isGroupExpanded(group.groupId)">
                         <i class="pi pi-chevron-right text-xs"></i>
                       </button>
-                      <div class="tree-node-icon" style="background: var(--color-info-light, #eff6ff); color: var(--color-info-text, #1d4ed8);">
-                        <i class="pi pi-th-large text-xs"></i>
-                      </div>
+                      @if (group.isLocked) {
+                        <div class="tree-node-icon tree-node-icon--locked">
+                          <i class="pi pi-shield text-xs"></i>
+                        </div>
+                      } @else {
+                        <div class="tree-node-icon" style="background: var(--color-info-light, #eff6ff); color: var(--color-info-text, #1d4ed8);">
+                          <i class="pi pi-th-large text-xs"></i>
+                        </div>
+                      }
                       <span class="tree-node-label flex-1 truncate">{{ group.title }}</span>
-                      <button
-                        class="tree-action-btn"
-                        (click)="deleteGroup(section.sectionId, group.groupId); $event.stopPropagation()"
-                        pTooltip="Delete group"
-                        tooltipPosition="right">
-                        <i class="pi pi-trash text-xs"></i>
-                      </button>
+                      @if (!group.isLocked) {
+                        <button
+                          class="tree-action-btn"
+                          (click)="deleteGroup(section.sectionId, group.groupId); $event.stopPropagation()"
+                          pTooltip="Delete group"
+                          tooltipPosition="right">
+                          <i class="pi pi-trash text-xs"></i>
+                        </button>
+                      }
                     </div>
 
                     <!-- Questions -->
@@ -138,38 +160,51 @@
                           <div
                             class="tree-node"
                             [class.tree-node-selected]="selectedItem() === question.questionId"
+                            [class.tree-node--locked]="isQuestionLocked(question)"
                             (click)="selectItem('question', question)">
-                            <div class="tree-node-icon" style="background: var(--color-success-light, #f0fdf4); color: var(--color-success-text, #15803d);">
-                              <i class="pi pi-question text-xs"></i>
-                            </div>
+                            @if (isQuestionLocked(question)) {
+                              <div class="tree-node-icon tree-node-icon--locked">
+                                <i class="pi pi-lock text-xs"></i>
+                              </div>
+                            } @else {
+                              <div class="tree-node-icon" style="background: var(--color-success-light, #f0fdf4); color: var(--color-success-text, #15803d);">
+                                <i class="pi pi-question text-xs"></i>
+                              </div>
+                            }
                             <span class="tree-node-label flex-1 truncate text-xs">{{ question.text }}</span>
-                            <button
-                              class="tree-action-btn"
-                              (click)="deleteQuestion(section.sectionId, group.groupId, question.questionId); $event.stopPropagation()"
-                              pTooltip="Delete question"
-                              tooltipPosition="right">
-                              <i class="pi pi-trash text-xs"></i>
-                            </button>
+                            @if (!isQuestionLocked(question)) {
+                              <button
+                                class="tree-action-btn"
+                                (click)="deleteQuestion(section.sectionId, group.groupId, question.questionId); $event.stopPropagation()"
+                                pTooltip="Delete question"
+                                tooltipPosition="right">
+                                <i class="pi pi-trash text-xs"></i>
+                              </button>
+                            }
                           </div>
                         }
-                        <!-- Add Question -->
-                        <button
-                          class="tree-add-btn"
-                          (click)="addQuestion(section.sectionId, group.groupId)">
-                          <i class="pi pi-plus text-xs"></i>
-                          <span>Add Question</span>
-                        </button>
+                        <!-- Add Question (only for non-locked groups) -->
+                        @if (!group.isLocked) {
+                          <button
+                            class="tree-add-btn"
+                            (click)="addQuestion(section.sectionId, group.groupId)">
+                            <i class="pi pi-plus text-xs"></i>
+                            <span>Add Question</span>
+                          </button>
+                        }
                       </div>
                     }
                   </div>
                 }
-                <!-- Add Group -->
-                <button
-                  class="tree-add-btn ml-2"
-                  (click)="addGroup(section.sectionId)">
-                  <i class="pi pi-plus text-xs"></i>
-                  <span>Add Group</span>
-                </button>
+                <!-- Add Group (only for non-locked sections) -->
+                @if (!isSectionLocked(section)) {
+                  <button
+                    class="tree-add-btn ml-2"
+                    (click)="addGroup(section.sectionId)">
+                    <i class="pi pi-plus text-xs"></i>
+                    <span>Add Group</span>
+                  </button>
+                }
               </div>
             }
           </div>
@@ -210,20 +245,37 @@
               <div
                 class="preview-section-card"
                 [class.preview-section-selected]="selectedItem() === section.sectionId"
+                [class.preview-section--locked]="isSectionLocked(section)"
                 (click)="selectItem('section', section)">
 
                 <!-- Section Header -->
-                <div class="preview-section-header">
-                  <div class="preview-section-accent"></div>
-                  <div class="flex-1">
-                    <h3 class="preview-section-title">{{ section.title }}</h3>
-                    @if (section.description) {
-                      <p class="preview-section-desc">{{ section.description }}</p>
-                    }
-                  </div>
-                  <span class="preview-count-badge">
-                    {{ section.groups.length }} group{{ section.groups.length !== 1 ? 's' : '' }}
-                  </span>
+                <div class="preview-section-header" [class.preview-section-header--locked]="isSectionLocked(section)">
+                  @if (isSectionLocked(section)) {
+                    <div class="preview-section-accent preview-section-accent--locked"></div>
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2">
+                        <i class="pi pi-shield text-sm text-blue-600"></i>
+                        <h3 class="preview-section-title">{{ section.title }}</h3>
+                        <span class="preview-locked-badge">
+                          <i class="pi pi-lock text-[9px]"></i> Required
+                        </span>
+                      </div>
+                      @if (section.description) {
+                        <p class="preview-section-desc">{{ section.description }}</p>
+                      }
+                    </div>
+                  } @else {
+                    <div class="preview-section-accent"></div>
+                    <div class="flex-1">
+                      <h3 class="preview-section-title">{{ section.title }}</h3>
+                      @if (section.description) {
+                        <p class="preview-section-desc">{{ section.description }}</p>
+                      }
+                    </div>
+                    <span class="preview-count-badge">
+                      {{ section.groups.length }} group{{ section.groups.length !== 1 ? 's' : '' }}
+                    </span>
+                  }
                 </div>
 
                 <!-- Groups -->
@@ -856,4 +908,60 @@
       </div>
     </div>
   </div>
+
+  <!-- Publish Validation Dialog -->
+  <p-dialog
+    [visible]="showPublishValidationDialog()"
+    (visibleChange)="showPublishValidationDialog.set($event)"
+    [modal]="true"
+    [closable]="true"
+    [dismissableMask]="true"
+    header="Cannot Publish Form"
+    [style]="{ width: 'min(480px, calc(100vw - 2rem))' }">
+    <div class="space-y-4">
+      <div class="flex items-start gap-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
+        <i class="pi pi-exclamation-triangle text-amber-500 mt-0.5"></i>
+        <div>
+          <p class="text-sm font-semibold text-amber-800 m-0">Required core fields are missing or misconfigured</p>
+          <p class="text-xs text-amber-700 mt-1 m-0">Your form must include all required patient information fields before it can be published.</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2 m-0">Issues to fix</p>
+        <div class="space-y-2">
+          @for (issue of publishValidationIssues(); track issue.fieldName) {
+            <div class="flex items-center gap-3 p-2.5 rounded-lg bg-red-50 border border-red-100">
+              <i class="pi pi-times-circle text-red-500 text-sm"></i>
+              <div class="flex-1 min-w-0">
+                <span class="text-sm font-medium text-red-800">{{ issue.fieldName }}</span>
+                <span class="text-xs text-red-600 ml-1.5">{{ issue.issue }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="p-3 rounded-lg bg-blue-50 border border-blue-100">
+        <div class="flex items-start gap-2">
+          <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
+          <div>
+            <p class="text-xs text-blue-700 m-0 font-medium">How to fix</p>
+            <p class="text-xs text-blue-600 mt-0.5 m-0">Add the missing fields using the "Quick Add" presets in the right panel, or ensure existing fields have the correct question IDs (core_full_name, core_email, core_phone, core_gender, core_dob, core_occupation) and the "Required" checkbox enabled.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          class="px-4 py-2 text-sm font-medium rounded-lg bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
+          (click)="showPublishValidationDialog.set(false)">
+          Got it
+        </button>
+      </div>
+    </ng-template>
+  </p-dialog>
 </div>

@@ -46,7 +46,7 @@
         <button
           type="button"
           (click)="loadReception()"
-          class="btn-action-primary inline-flex items-center gap-2 px-4 py-2 font-semibold rounded-xl hover:opacity-90 transition-all text-sm">
+          class="btn-action-primary">
           <i class="pi pi-refresh text-xs"></i>
           Try Again
         </button>
@@ -68,7 +68,7 @@
       @if (loading()) {
         <div class="space-y-3 mt-4">
           @for (i of [1,2,3]; track i) {
-            <div class="h-[68px] animate-pulse bg-[var(--color-surface,#ffffff)] rounded-xl border border-[var(--color-border,#e2e8f0)]"></div>
+            <div class="skeleton h-[68px] rounded-xl border border-[var(--color-border)]"></div>
           }
         </div>
       }
@@ -97,7 +97,7 @@
                 <button
                   type="button"
                   (click)="clearFilters()"
-                  class="btn-action-primary inline-flex items-center gap-2 px-5 py-2.5 font-semibold rounded-xl hover:opacity-90 transition-all text-sm shadow-md">
+                  class="empty-state-cta">
                   <i class="pi pi-filter-slash text-xs"></i>
                   Clear Search
                 </button>
