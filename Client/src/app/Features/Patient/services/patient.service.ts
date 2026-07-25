@@ -1,13 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { PatientScheduleOverviewDto } from '../../../Shared/Models/Patient.model';
+import { Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PatientService {
-  private apiUrl = 'https://localhost:7097/api/patient';
-    private intakeUrl = 'https://localhost:7097/api/intake';
 
+  private intakeUrl = '${environment.apiUrl}intake';
+
+  private apiUrl = `${environment.apiUrl}patient`;
 
   constructor(private http: HttpClient) {}
 
@@ -55,13 +59,12 @@ export class PatientService {
 }
 
 getFormSchema(schemaId: string) {
-  return this.http.get<any>(`https://localhost:7097/api/intake/form-schemas/${schemaId}`);
+  return this.http.get<any>(`${this.intakeUrl}/form-schemas/${schemaId}`);
 }
 
 updateOverviewSubmission(patientId: string, body: { formSubmissionData: string; painPointsData: string | null }) {
   return this.http.put(`${this.apiUrl}/${patientId}/overview/submission-data`, body);
 }
-
 
 createDirectIntake(body: { formSchemaId: string; formSubmissionData: string; painPointsData: string | null }) {
     return this.http.post<any>(`${this.intakeUrl}/direct`, body);
@@ -85,4 +88,7 @@ getAllFormSchemas() {
   createPatientFromIntake(body: { formSchemaId: string; formSubmissionData: string; painPointsData: string | null }) {
     return this.http.post<any>(`${this.apiUrl}/create-from-intake`, body);
   }
+getScheduleOverview(patientId: string): Observable<PatientScheduleOverviewDto> {
+  return this.http.get<PatientScheduleOverviewDto>(`${this.apiUrl}/${patientId}/schedule-overview`);
+}
 }

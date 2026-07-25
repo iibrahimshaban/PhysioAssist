@@ -10,7 +10,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
     [ApiController]
     [Authorize]
 
-    public class PatientController(IPatientService patientService) : ControllerBase
+    public class PatientController(IPatientService patientService, IScheduleSlotQueryService _scheduleSlotQueryService) : ControllerBase
     {
         private readonly IPatientService _patientService = patientService;
 
@@ -103,6 +103,11 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
             return result.IsSuccess ? NoContent() : result.ToProblem();
         }
 
-
+        [HttpGet("{patientId:guid}/schedule-overview")]
+        public async Task<IActionResult> GetScheduleOverview(Guid patientId, CancellationToken cancellationToken)
+        {
+            var result = await _scheduleSlotQueryService.GetScheduleOverviewAsync(patientId, cancellationToken);
+            return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+        }
     }
 }

@@ -1,17 +1,28 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { PatientService } from '../services/patient.service';
 import { BodyPainMapComponent, BodyPainMapPayload } from '../../intake/components/body-pain-map/body-pain-map.component';
 import { DynamicFormRendererComponent } from '../../intake/components/dynamic-form-renderer/dynamic-form-renderer.component';
 import { DynamicFormSubmissionDto } from '../../intake/models';
 import { AgePipe } from '../../../Shared/Pipes/age-pipe';
+import { PatientScheduleOverviewDto } from '../../../Shared/Models/Patient.model';
+import { PatientScheduleOverviewComponent } from '../patient-schedule-overview/patient-schedule-overview.component';
 
 @Component({
   selector: 'app-patient-overview',
   standalone: true,
-  imports: [CommonModule, ButtonModule, BodyPainMapComponent, DynamicFormRendererComponent, AgePipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    BodyPainMapComponent,
+    DynamicFormRendererComponent,
+    AgePipe,
+    PatientScheduleOverviewComponent,
+  ],
   templateUrl: './patient-overview.component.html',
   styleUrl: './patient-overview.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,25 +32,35 @@ export class PatientOverviewComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
+  scheduleOverview = signal<PatientScheduleOverviewDto | null>(null);
+
   patient = signal<any>(null);
   isLoading = signal(false);
 
   submissionData = signal<any>(null);
   formSchema = signal<any>(null);
-  doctorInfo = signal<{ chiefComplaint?: string; patientCategory?: string } | null>(null);
+
+  // Generic — whatever keys the doctorInfoJson blob contains, no fixed shape assumed
+  doctorInfo = signal<Record<string, any> | null>(null);
   painMapPayload = signal<BodyPainMapPayload | null>(null);
 
   isEditMode = signal(false);
   isSaving = signal(false);
   flatInitialAnswers = signal<Record<string, any> | null>(null);
-  pendingPainMap = signal<BodyPainMapPayload | null>(null);
+  pendingPainMap = signal<({ regions: any[] } & Record<string, any>) | null>(null);
+  pendingDoctorInfo = signal<Record<string, any> | null>(null);
 
   private pendingSubmission: DynamicFormSubmissionDto | null = null;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) return;
+
     this.loadOverview(id);
+
+    this.patientService.getScheduleOverview(id).subscribe(overview => {
+      this.scheduleOverview.set(overview);
+    });
   }
 
   private loadOverview(id: string): void {
@@ -65,7 +86,7 @@ export class PatientOverviewComponent implements OnInit {
           }
         }
 
-        let doctorInfo: { chiefComplaint?: string; patientCategory?: string } | null = null;
+        let doctorInfo: Record<string, any> | null = null;
         if (data.doctorInfoJson) {
           try {
             doctorInfo = JSON.parse(data.doctorInfoJson);
@@ -78,9 +99,8 @@ export class PatientOverviewComponent implements OnInit {
         if (regions.length > 0 || doctorInfo) {
           this.painMapPayload.set({
             regions,
-            chiefComplaint: doctorInfo?.chiefComplaint ?? '',
-            patientCategory: (doctorInfo?.patientCategory ?? '') as any,
-          });
+            ...(doctorInfo ?? {}),
+          } as BodyPainMapPayload);
         } else {
           this.painMapPayload.set(null);
         }
@@ -157,9 +177,10 @@ export class PatientOverviewComponent implements OnInit {
     this.pendingSubmission = null;
 
     const currentPainMap = this.painMapPayload();
-    this.pendingPainMap.set(
-      currentPainMap ? { ...currentPainMap } : { regions: [], chiefComplaint: '', patientCategory: '' as any }
-    );
+    this.pendingPainMap.set({ regions: currentPainMap?.regions ?? [] });
+
+    const currentDoctorInfo = this.doctorInfo();
+    this.pendingDoctorInfo.set(currentDoctorInfo ? { ...currentDoctorInfo } : {});
 
     this.isEditMode.set(true);
   }
@@ -168,6 +189,7 @@ export class PatientOverviewComponent implements OnInit {
     this.isEditMode.set(false);
     this.pendingSubmission = null;
     this.pendingPainMap.set(null);
+    this.pendingDoctorInfo.set(null);
   }
 
   onSubmissionChange(submission: DynamicFormSubmissionDto): void {
@@ -175,7 +197,27 @@ export class PatientOverviewComponent implements OnInit {
   }
 
   onPainMapChange(payload: BodyPainMapPayload): void {
-    this.pendingPainMap.set(payload);
+    // BodyPainMapComponent emits regions + its own chiefComplaint/patientCategory fields
+    // (unused here since showDoctorFields is false), but we only need its regions —
+    // doctor-info fields are tracked separately and generically in pendingDoctorInfo.
+    const current = this.pendingPainMap();
+    this.pendingPainMap.set({
+      ...(current ?? {}),
+      regions: payload.regions,
+    });
+  }
+
+  updateDoctorInfoField(key: string, value: any): void {
+    const current = this.pendingDoctorInfo() ?? {};
+    this.pendingDoctorInfo.set({ ...current, [key]: value });
+  }
+
+  doctorInfoFieldKeys(): string[] {
+    return Object.keys(this.pendingDoctorInfo() ?? {});
+  }
+
+  objectKeys(obj: any): string[] {
+    return obj ? Object.keys(obj) : [];
   }
 
   saveEdit(): void {
@@ -188,8 +230,12 @@ export class PatientOverviewComponent implements OnInit {
       ? JSON.stringify(this.pendingSubmission)
       : this.patient()?.formSubmissionData;
 
-    const pendingMap = this.pendingPainMap();
-    const painMapToSave = pendingMap ? JSON.stringify(pendingMap) : null;
+    const regions = this.pendingPainMap()?.regions ?? [];
+    const combinedPainMap = {
+      regions,
+      ...(this.pendingDoctorInfo() ?? {}),
+    };
+    const painMapToSave = JSON.stringify(combinedPainMap);
 
     this.patientService.updateOverviewSubmission(patientId, {
       formSubmissionData: submissionToSave,

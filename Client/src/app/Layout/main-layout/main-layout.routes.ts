@@ -16,4 +16,5 @@ export const MainLayoutRoutes : Routes = [
   { path: 'working-schedule', loadComponent: () => import('../../Features/WorkingSchedule/working-schedule.component').then((m) => m.WorkingScheduleComponent) },
   { path: 'session/:id',loadComponent: () => import('../../Features/session/session.component').then((component) => component.SessionComponent ) },
   { path: 'receptionist-scheduling/:patientId', loadComponent: () => import('../../Features/receptionist-scheduling/receptionist-scheduling.component').then((c) => c.ReceptionistSchedulingComponent) },
+  { path: 'today-sessions', loadComponent: () => import('../../Features/today-sessions-dashboard/today-sessions-dashboard.component').then((c) => c.TodaySessionsDashboardComponent) },
 ];

@@ -24,7 +24,7 @@ public class PatientQueryService(
 
         return await _dbContext.Set<Patient>() // adjust to your actual Patient entity name/namespace
             .Where(p => EF.Functions.Like(p.FullName, $"%{namePart}%")) // adjust FullName to your actual property
-            .Select(p => new PatientLookupResult(p.Id, p.FullName))
+            .Select(p => new PatientLookupResult(p.Id, p.FullName, p.PatientCaseNotes))
             .ToListAsync(ct);
     }
     public async Task<PatientCategory?> GetPatientCategoryAsync(Guid doctorId, Guid patientId, CancellationToken ct = default)
@@ -92,7 +92,8 @@ public class PatientQueryService(
             QRCodeToken = $"patient-qr-{Guid.NewGuid():N}",
             Occupation = request.Occupation ?? string.Empty,
             Status = PatientStatus.Active,
-            PatientFreeTime = request.FreeTime ?? string.Empty
+            PatientFreeTime = request.FreeTime ?? string.Empty,
+            PatientCaseNotes = request.Notes ?? string.Empty
         };
 
         if (!string.IsNullOrWhiteSpace(request.FreeTime))
@@ -212,5 +213,16 @@ public class PatientQueryService(
             parsed.PreferredWeekdays,
             parsed.PreferredTimeFrom,
             parsed.PreferredTimeTo));
+    }
+    public async Task<Dictionary<Guid, PatientLookupResult>> GetPatientsByIdsAsync(
+        IEnumerable<Guid> patientIds,
+        CancellationToken cancellationToken = default)
+    {
+        var ids = patientIds.Distinct().ToList();
+
+        return await dbContext.Patients
+            .Where(p => ids.Contains(p.Id))
+            .Select(p => new PatientLookupResult(p.Id, p.FullName, p.PatientCaseNotes))
+            .ToDictionaryAsync(p => p.Id, cancellationToken);
     }
 }

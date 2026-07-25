@@ -18,6 +18,10 @@ public class DoctorScheduleRecommendationService(
     private const int DefaultMaxDaysOutForExactMatch = 7;
     private const bool DefaultAllowShorterSlots = true;
 
+    // Local record — not persisted, just carries the doctor's real booked/completed
+    // slot boundaries through this file for the overlap check below.
+    private readonly record struct BookedRange(DateTimeOffset Start, DateTimeOffset End);
+
     public async Task<Result<IReadOnlyList<SlotCandidateDto>>> GetRecommendedSlotsAsync(
         Guid doctorId,
         TimeSpan requestedDuration,
@@ -40,14 +44,31 @@ public class DoctorScheduleRecommendationService(
 
         var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(EgyptOffset).Date);
 
+        // AvailabilityCalculator.CalculateFreeIntervals (owned outside this service)
+        // mislabels the working-hours window as UTC and converts appointment
+        // boundaries back through .UtcDateTime — so any interval edge that touches a
+        // real appointment comes back shifted by -EgyptOffset, while edges bounded
+        // only by the working window come back correct. There's no way to tell
+        // which is which from AvailableIntervalDto alone, so rather than try to
+        // "undo" a non-uniform shift, we independently pull this doctor's actual
+        // booked/completed slots — real DateTimeOffset values, no TimeOnly
+        // round-trip — and use them as a second, authoritative overlap filter on
+        // top of whatever the (possibly mis-boundaried) interval walk proposes.
+        var rangeStart = from ?? DateTimeOffset.UtcNow;
+        var rangeEnd = to ?? rangeStart.AddDays(DefaultMaxDaysOutForExactMatch);
+
+        var realBookedSlots = await _context.Set<ScheduleSlot>()
+            .Where(s => s.DoctorId == doctorId
+                        && (s.Status == SlotStatus.Booked || s.Status == SlotStatus.Completed)
+                        && s.SlotStart < rangeEnd
+                        && s.SlotEnd > rangeStart)
+            .Select(s => new BookedRange(s.SlotStart, s.SlotEnd))
+            .ToListAsync(cancellationToken);
+
         var candidates = new List<SlotCandidateDto>();
 
         foreach (var day in availabilityResult.Value)
         {
-            // Never offer same-day appointments — the earliest a slot can be recommended
-            // is the doctor's next working day, even if the doctor still has free time
-            // left later today. This is an absolute clinic policy, not a preference, so
-            // it's enforced here regardless of what date range the caller passed in.
             if (day.Date <= today)
                 continue;
 
@@ -56,9 +77,6 @@ public class DoctorScheduleRecommendationService(
 
             foreach (var interval in day.Intervals)
             {
-                // Narrow the free interval down to whatever overlaps the patient's
-                // preferred time-of-day window, if one was given. If the window doesn't
-                // touch this interval at all, there's nothing to offer here.
                 var effectiveStart = preferredTimeFrom.HasValue && preferredTimeFrom.Value > interval.Start
                     ? preferredTimeFrom.Value
                     : interval.Start;
@@ -74,11 +92,6 @@ public class DoctorScheduleRecommendationService(
                 if (availableDuration <= TimeSpan.Zero)
                     continue;
 
-                // Walk the (possibly narrowed) interval in requestedDuration-sized steps so a
-                // single long free block yields multiple same-day candidates instead of just one
-                // slot pinned to the start of the interval. Each full-duration step is an exact
-                // fit; whatever is left over at the end (shorter than requestedDuration) is
-                // offered only as a near-miss, same as before.
                 var slotStart = effectiveStart;
 
                 while (slotStart < effectiveEnd)
@@ -89,21 +102,22 @@ public class DoctorScheduleRecommendationService(
                     {
                         var slotEnd = slotStart.Add(requestedDuration);
 
-                        candidates.Add(BuildCandidate(
-                            day.Date, slotStart, slotEnd,
-                            requestedDuration, requestedDuration,
-                            SlotFitType.Exact, TimeSpan.Zero, isBeyondHorizon));
+                        if (!OverlapsRealBooking(day.Date, slotStart, slotEnd, realBookedSlots))
+                        {
+                            candidates.Add(BuildCandidate(
+                                day.Date, slotStart, slotEnd,
+                                requestedDuration, requestedDuration,
+                                SlotFitType.Exact, TimeSpan.Zero, isBeyondHorizon));
+                        }
 
                         slotStart = slotEnd;
                     }
                     else
                     {
-                        // Trailing remainder shorter than the requested duration — only offer
-                        // it as a near-miss if the doctor's preference allows shorter slots and
-                        // the shortfall is within their tolerance.
                         var shortfall = requestedDuration - remaining;
 
-                        if (allowShorterSlots && shortfall <= maxShortfallTolerance)
+                        if (allowShorterSlots && shortfall <= maxShortfallTolerance
+                            && !OverlapsRealBooking(day.Date, slotStart, effectiveEnd, realBookedSlots))
                         {
                             candidates.Add(BuildCandidate(
                                 day.Date, slotStart, effectiveEnd,
@@ -123,6 +137,24 @@ public class DoctorScheduleRecommendationService(
             .ToList();
 
         return Result.Success<IReadOnlyList<SlotCandidateDto>>(ranked);
+    }
+
+    private static bool OverlapsRealBooking(
+        DateOnly date, TimeOnly start, TimeOnly end, IReadOnlyList<BookedRange> bookedSlots)
+    {
+        var candidateStart = new DateTimeOffset(date.ToDateTime(start), EgyptOffset);
+        var candidateEnd = new DateTimeOffset(date.ToDateTime(end), EgyptOffset);
+
+        // Standard half-open interval overlap — same shape as HasOverlapAsync — but
+        // computed entirely from real, correctly-offset DateTimeOffset values on
+        // both sides, so it's immune to the upstream TimeOnly-conversion bug.
+        foreach (var booked in bookedSlots)
+        {
+            if (candidateStart < booked.End && candidateEnd > booked.Start)
+                return true;
+        }
+
+        return false;
     }
 
     private static SlotCandidateDto BuildCandidate(
@@ -146,18 +178,12 @@ public class DoctorScheduleRecommendationService(
         };
     }
 
-    // Simple, tunable v1 scoring: exact fits score highest; near-misses lose a bit
-    // per minute of shortfall; anything beyond the doctor's preferred horizon takes
-    // a flat penalty either way. Revisit once real usage data suggests better weights,
-    // and once ISlotSignalPlugin implementations (e.g. PatientHistoryPlugin) start
-    // adjusting this score further upstream in the agent.
     private static double ComputeScore(SlotFitType fitType, TimeSpan gap, bool isBeyondHorizon)
     {
         var score = fitType switch
         {
             SlotFitType.Exact => 1.0,
             SlotFitType.LongerThanRequested => 0.95,
-            // Near-miss — the only branch penalized per minute of shortfall.
             _ => Math.Clamp(0.9 - (gap.TotalMinutes / 60.0) * 0.3, 0.1, 0.9)
         };
 

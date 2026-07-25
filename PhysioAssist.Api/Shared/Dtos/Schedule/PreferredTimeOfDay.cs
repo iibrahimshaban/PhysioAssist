@@ -1,4 +1,4 @@
-﻿namespace PhysioAssist.Api.Modules.Scheduling.DTO.AgentDtos;
+﻿namespace PhysioAssist.Api.Shared.Dtos.Schedule;
 
 public enum PreferredTimeOfDay
 {

@@ -912,6 +912,9 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<int>("ParsedPreferredWeekdays")
                         .HasColumnType("int");
 
+                    b.Property<string>("PatientCaseNotes")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PatientFreeTime")
                         .HasColumnType("nvarchar(max)");
 
@@ -1150,6 +1153,9 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SummaryText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TreatmentPlan")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")

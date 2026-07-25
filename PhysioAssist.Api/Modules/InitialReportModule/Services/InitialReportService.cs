@@ -222,15 +222,15 @@ public class InitialReportService(
             .ToList();
 
         var sections = new List<PdfSection>
-    {
-        new(null,
-        [
-            $"Patient: {patient.Value.FullName}",
-            $"Doctor: {doctorFullName}",
-            $"Date: {DateTime.UtcNow:yyyy-MM-dd}"
-        ]),
-        new("Your Summary", summaryParagraphs)
-    };
+            {
+                new(null,
+                [
+                    $"Patient: {patient.Value.FullName}",
+                    $"Doctor: {doctorFullName}",
+                    $"Date: {DateTime.UtcNow:yyyy-MM-dd}"
+                ]),
+                new("Your Summary", summaryParagraphs)
+            };
 
         if (firstSession is not null)
         {

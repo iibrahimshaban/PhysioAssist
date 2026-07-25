@@ -59,6 +59,7 @@ export interface PatientSessionPackageSummaryDto {
   sessionsPerWeek: number;
   sessionDuration: string;
   patientFreeTimeText: string;
+  minimumGapBetweenSessionsDays:number;
 }
 
 export enum PackageStatus {
@@ -105,3 +106,4 @@ export interface ConvertPlanToPackageRequest {
   preferredDays?: DaysOfWeekFlags | null;
   priority?: SchedulingPriority | null;
 }
+

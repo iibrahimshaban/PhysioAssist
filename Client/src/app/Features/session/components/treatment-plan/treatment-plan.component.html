@@ -1,0 +1,36 @@
+<div
+  class="w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:sticky lg:top-5"
+>
+  <button
+    type="button"
+    (click)="onToggle()"
+    class="flex w-full items-center justify-between px-5 py-5"
+  >
+    <span class="flex items-center text-sm font-bold uppercase text-slate-700">
+      <i class="fa-solid fa-clipboard-list mr-2 text-sky-500"></i>
+      TREATMENT PLAN
+    </span>
+
+    <i
+      class="fa-solid transition-transform duration-200"
+      [class.fa-chevron-up]="isOpen()"
+      [class.fa-chevron-down]="!isOpen()"
+    ></i>
+  </button>
+
+  @if (isOpen()) {
+    <div class="border-t border-slate-100 px-5 pb-5 pt-4">
+      <p class="mb-2 text-xs leading-5 text-slate-400">
+        Carried over from the previous session. Edit below to update it going forward.
+      </p>
+
+      <textarea
+        rows="16"
+        class="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-700 focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-400"
+        [value]="plan()"
+        (input)="onInput($any($event.target).value)"
+        placeholder="No treatment plan yet — this will start from the patient's initial report."
+      ></textarea>
+    </div>
+  }
+</div>

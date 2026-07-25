@@ -36,15 +36,13 @@
             <i class="pi pi-file"></i> Initial Report
           </button>
           <p-button
-          label="Continue scheduling"
-          icon="pi pi-calendar"
-          size="small"
-          (onClick)="continueScheduling()"
-        />
+            label="Continue scheduling"
+            icon="pi pi-calendar"
+            size="small"
+            (onClick)="continueScheduling()"
+          />
         </div>
       </div>
-
-      
 
       <!-- Patient details -->
       <div *ngIf="formSchema() && submissionData()" class="mb-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -74,19 +72,19 @@
         </div>
       </div>
 
-      <!-- Overview + Pain Map -->
+      <!-- Notes for the Doctor + Pain Map -->
       <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
 
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 class="mb-4 text-sm font-bold uppercase tracking-wide text-slate-600">Overview</h2>
+          <h2 class="mb-4 text-sm font-bold uppercase tracking-wide text-slate-600">Notes for the Doctor</h2>
 
+          <!-- Read-only view -->
           <div *ngIf="!isEditMode()">
             <div *ngIf="doctorInfo()">
-              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Chief Complaint</p>
-              <p class="text-sm text-slate-700 leading-relaxed">{{ doctorInfo()?.chiefComplaint || '—' }}</p>
-
-              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 mt-4">Category</p>
-              <p class="text-sm text-slate-700">{{ doctorInfo()?.patientCategory || '—' }}</p>
+              <div *ngFor="let key of objectKeys(doctorInfo())" class="mb-4 last:mb-0">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">{{ key }}</p>
+                <p class="text-sm text-slate-700 leading-relaxed">{{ doctorInfo()?.[key] || '—' }}</p>
+              </div>
             </div>
 
             <div *ngIf="!doctorInfo()" class="text-center py-6 text-slate-400">
@@ -95,17 +93,25 @@
             </div>
           </div>
 
-          <p *ngIf="isEditMode()" class="text-xs text-slate-400">
-            Edit the chief complaint and category in the Pain Map panel →
-          </p>
+          <!-- Edit mode -->
+          <div *ngIf="isEditMode()" class="flex flex-col gap-4">
+            <div *ngFor="let key of doctorInfoFieldKeys()" class="flex flex-col gap-1.5">
+              <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">{{ key }}</label>
+              <input
+                type="text"
+                [ngModel]="pendingDoctorInfo()?.[key]"
+                (ngModelChange)="updateDoctorInfoField(key, $event)"
+                class="w-full text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-100 focus:border-[#0B8EEA]" />
+            </div>
+          </div>
         </div>
 
         <div>
           <app-body-pain-map
             *ngIf="isEditMode() || painMapPayload()"
             [readOnly]="!isEditMode()"
-            [showDoctorFields]="isEditMode()"
-            [initialValue]="isEditMode() ? pendingPainMap() : painMapPayload()"
+            [showDoctorFields]="false"
+            [initialValue]="isEditMode() ? { regions: pendingPainMap()?.regions ?? [], chiefComplaint: '', patientCategory: '' } : painMapPayload()"
             (mapChange)="onPainMapChange($event)">
           </app-body-pain-map>
 
@@ -118,6 +124,10 @@
           </div>
         </div>
 
+      </div>
+
+      <div *ngIf="scheduleOverview() as overview" class="mt-5">
+        <app-patient-schedule-overview [overview]="overview" class="block mb-6" />
       </div>
 
     </div>

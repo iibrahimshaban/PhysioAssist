@@ -1,6 +1,5 @@
 using PhysioAssist.Api.Modules.InitialReportModule.Entities;
-using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Repositories;
+using PhysioAssist.Api.Shared.Helpers;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Repositories;
 
@@ -31,6 +30,22 @@ public class InitialReportRepository(ApplicationDbContext context) : BaseReposit
     {
         return await _context.InitialReports
             .Include(r => r.Attachments)
-            .FirstOrDefaultAsync(r => r.PatientId == patientId);
+            .Where(r => r.PatientId == patientId)
+            .OrderByDescending(r => r.CreatedAt) 
+            .FirstOrDefaultAsync();
+    }
+    public async Task<string?> GetTreatmentPlanTextAsync(Guid patientId, CancellationToken cancellationToken = default)
+    {
+        var reportText = await _context.InitialReports
+            .Where(r => r.PatientId == patientId)
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => r.ReportText) 
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (string.IsNullOrEmpty(reportText))
+            return null;
+
+        var (_, treatmentPlan) = ReportTextFormatter.Split(reportText);
+        return string.IsNullOrEmpty(treatmentPlan) ? null : treatmentPlan;
     }
 }
