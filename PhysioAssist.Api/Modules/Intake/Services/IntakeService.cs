@@ -814,9 +814,14 @@ public class IntakeService(
         var fullNameQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Full Name") 
             ?? ExtractInputValuesHelper.FindQuestionIdByText(schema, "Name")
             ?? "question_default_full_name";
-        var emailQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Email") 
+        // Both active schema families label the email question "Email Address"
+        // (core_email in the newer family, question_default_email in the default template).
+        // Match by text first, then fall back to both known question IDs so neither
+        // family silently fails to the synthetic-email path.
+        var emailQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Email Address")
+            ?? ExtractInputValuesHelper.FindQuestionIdByText(schema, "Email")
             ?? ExtractInputValuesHelper.FindQuestionIdByText(schema, "E-mail")
-            ?? "question_default_email";
+            ?? "core_email";  // final fallback covers both families' known IDs
         var phoneQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Phone") 
             ?? ExtractInputValuesHelper.FindQuestionIdByText(schema, "Phone Number")
             ?? "question_default_phone";

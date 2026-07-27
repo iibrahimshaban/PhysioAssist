@@ -212,15 +212,12 @@ public static class ExtractInputValuesHelper
                 {
                     if (question.QuestionId == questionId)
                     {
-                        return question.Type switch
-                        {
-                            "text" => "text",
-                            "email" => "text",
-                            "phone" => "text",
-                            "select" => "value",
-                            "date" => "date",
-                            _ => "text"
-                        };
+                        // The stored answer wrapper key is exactly the question's Type
+                        // (e.g. {"radio":"Female"}, {"phone":"010..."}, {"email":"a@b.c"}).
+                        // Returning Type directly extracts the inner value for every type,
+                        // instead of the previous remap that returned "text"/"value" and
+                        // fell through to element.ToString() (raw JSON) for radio/phone/email/etc.
+                        return question.Type;
                     }
                 }
             }
