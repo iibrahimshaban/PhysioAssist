@@ -8,5 +8,8 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
         Task<DoctorPatient?> GetByDoctorAndPatientAsync(Guid doctorId, Guid patientId);
         Task AddAsync(DoctorPatient entity);
         void Update(DoctorPatient entity);
+
+        void Delete(DoctorPatient doctorPatient);
+
     }
 }

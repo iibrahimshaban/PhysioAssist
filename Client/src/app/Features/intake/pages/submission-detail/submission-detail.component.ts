@@ -22,6 +22,10 @@ import {
   ConvertIntakeToPatientRequest,
 } from '../../models';
 
+import { ConvertToPatientDialogComponent } from './convert-to-patient-dialog/convert-to-patient-dialog.component';
+import { SubmissionSummaryCardComponent } from './submission-summary-card/submission-summary-card.component';
+import { SubmittedAnswersViewerComponent } from './submitted-answers-viewer/submitted-answers-viewer.component';
+
 @Component({
   selector: 'app-submission-detail',
   standalone: true,
@@ -29,384 +33,14 @@ import {
     CommonModule,
     ConfirmDialogModule,
     DialogModule,
-    DynamicFormRendererComponent,
     BodyPainMapComponent,
+    ConvertToPatientDialogComponent,
+    SubmissionSummaryCardComponent,
+    SubmittedAnswersViewerComponent,
   ],
   providers: [ConfirmationService],
-  template: `
-    <p-confirmDialog
-      [style]="{ width: '420px' }"
-      ariaLabel="Confirmation dialog" />
-
-    <!-- Convert Dialog -->
-    <p-dialog
-      header="Convert to Patient"
-      [(visible)]="showConvertDialog"
-      [modal]="true"
-      [style]="{ width: '480px' }"
-      [draggable]="false"
-      [closable]="true"
-      aria-labelledby="convert-dialog-header">
-
-      <ng-template pTemplate="header">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center">
-            <i class="pi pi-user-plus text-white text-sm"></i>
-          </div>
-          <div>
-            <h3 class="font-bold text-base m-0 text-slate-900">Convert to Patient</h3>
-            <p class="text-xs text-slate-500 m-0">Create a patient record from this intake</p>
-          </div>
-        </div>
-      </ng-template>
-
-      <div class="space-y-4">
-        <p class="text-sm text-slate-600">
-          This will create a new patient record from this intake submission. Review the details below and confirm.
-        </p>
-        <div class="rounded-xl border border-slate-200 overflow-hidden">
-          <div class="bg-slate-50 px-4 py-2 border-b border-slate-100">
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider m-0">Patient Details</p>
-          </div>
-          <div class="p-4 space-y-3">
-            <div>
-              <p class="text-xs text-slate-400 uppercase tracking-wide m-0">Name</p>
-              <p class="text-sm font-semibold text-slate-800 m-0 capitalize">{{ patientNameDisplay() || '—' }}</p>
-            </div>
-            @if (patientEmailDisplay()) {
-              <div>
-                <p class="text-xs text-slate-400 uppercase tracking-wide m-0">Email</p>
-                <p class="text-sm text-slate-700 m-0">{{ patientEmailDisplay() }}</p>
-              </div>
-            }
-            @if (patientPhoneDisplay()) {
-              <div>
-                <p class="text-xs text-slate-400 uppercase tracking-wide m-0">Phone</p>
-                <p class="text-sm text-slate-700 m-0">{{ patientPhoneDisplay() }}</p>
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-      <ng-template pTemplate="footer">
-        <div class="flex gap-2 justify-end">
-          <button
-            type="button"
-            (click)="showConvertDialog.set(false)"
-            class="text-sm font-semibold px-5 py-2.5 rounded-full border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition"
-            aria-label="Cancel conversion">
-            Cancel
-          </button>
-          <button
-            type="button"
-            (click)="convertToPatient()"
-            [disabled]="updating()"
-            class="text-sm font-semibold px-5 py-2.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 shadow-sm transition flex items-center gap-1.5"
-            aria-label="Confirm convert to patient">
-            <i class="pi" [ngClass]="updating() ? 'pi-spin pi-spinner' : 'pi-user-plus'"></i>
-            Confirm & create patient
-          </button>
-        </div>
-      </ng-template>
-    </p-dialog>
-
-    <div class="max-w-4xl mx-auto py-8 px-4" aria-live="polite">
-
-      <!-- Loading State -->
-      @if (loading()) {
-        <div class="flex flex-col items-center justify-center py-24 animate-fade-in" role="status">
-          <div class="premium-spinner mb-4"></div>
-          <p class="text-slate-500 text-sm">Loading submission details...</p>
-        </div>
-      }
-
-      <!-- Error State -->
-      @else if (error()) {
-        <div class="max-w-lg mx-auto mt-8 animate-fade-in-up">
-          <div class="bg-white rounded-2xl shadow-sm border border-rose-100 p-8 text-center" role="alert">
-            <div class="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mx-auto mb-4">
-              <i class="pi pi-exclamation-triangle text-2xl text-rose-400"></i>
-            </div>
-            <h2 class="text-lg font-bold text-slate-800 mb-2">Failed to Load</h2>
-            <p class="text-slate-600 text-sm mb-6">{{ error() }}</p>
-            <div class="flex gap-3 justify-center">
-              <button type="button" (click)="goBack()" class="text-sm font-semibold px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center gap-1.5">
-                <i class="pi pi-arrow-left"></i> Go Back
-              </button>
-              <button type="button" (click)="loadDetails()" class="text-sm font-semibold px-4 py-2 rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition flex items-center gap-1.5">
-                <i class="pi pi-refresh"></i> Retry
-              </button>
-            </div>
-          </div>
-        </div>
-      }
-
-      <!-- Content -->
-      @else if (details(); as d) {
-        <div class="animate-fade-in">
-
-          <!-- Back + Breadcrumb -->
-          <div class="flex items-center gap-2 mb-6 min-w-0">
-            <button
-              type="button"
-              (click)="goBack()"
-              class="text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center gap-1.5 shrink-0">
-              <i class="pi pi-arrow-left text-xs"></i>
-              Submissions
-            </button>
-            <i class="pi pi-chevron-right text-slate-300 text-xs shrink-0"></i>
-            <span class="text-sm text-slate-500 truncate capitalize">{{ patientNameDisplay() || 'Unnamed patient' }}</span>
-          </div>
-
-          <!-- Header grid -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
-
-            <!-- Patient Card -->
-            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div class="p-5 sm:p-6">
-                <div class="flex items-start gap-4">
-                  <!-- Patient avatar -->
-                  <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 text-lg font-bold">
-                    {{ getInitials(patientNameDisplay()) }}
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between gap-3 flex-wrap">
-                      <h2 class="text-xl font-bold text-slate-900 m-0 break-words capitalize">{{ patientNameDisplay() || 'Unnamed patient' }}</h2>
-                      <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0" [ngClass]="getStatusPillClass(d.status)">
-                        {{ getStatusLabel(d.status) }}
-                      </span>
-                    </div>
-                    @if (patientEmailDisplay()) {
-                      <p class="text-sm text-slate-500 mt-1 m-0 flex items-center gap-1.5">
-                        <i class="pi pi-envelope text-xs"></i>{{ patientEmailDisplay() }}
-                      </p>
-                    }
-                    @if (patientPhoneDisplay()) {
-                      <p class="text-sm text-slate-500 mt-0.5 m-0 flex items-center gap-1.5">
-                        <i class="pi pi-phone text-xs"></i>{{ patientPhoneDisplay() }}
-                      </p>
-                    }
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mt-5 pt-5 border-t border-slate-100">
-                  <div class="detail-field">
-                    <p class="detail-label">Submitted</p>
-                    <p class="detail-value">{{ d.submittedAt | date:'MMM d, y, h:mm a' }}</p>
-                  </div>
-                  <div class="detail-field col-span-2">
-                    <p class="detail-label">Submission ID</p>
-                    <p class="detail-value font-mono text-xs break-all select-all">{{ d.id }}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Form Details Card -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
-              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <i class="pi pi-file-edit text-indigo-500 text-xs"></i>
-                Form Details
-              </h3>
-              <div class="space-y-3">
-                <div class="detail-field">
-                  <p class="detail-label">Form Name</p>
-                  <p class="detail-value">{{ d.formSchemaName }}</p>
-                </div>
-                <div class="detail-field">
-                  <p class="detail-label">Version</p>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-xs font-medium">
-                    v{{ d.formSchemaVersion }}
-                  </span>
-                </div>
-                @if (d.reviewedAt) {
-                  <div class="detail-field">
-                    <p class="detail-label">Reviewed At</p>
-                    <p class="detail-value">{{ d.reviewedAt | date:'MMM d, y' }}</p>
-                  </div>
-                }
-                @if (d.convertedToPatientId) {
-                  <div class="detail-field">
-                    <p class="detail-label">Patient ID</p>
-                    <p class="detail-value font-mono text-xs break-all">{{ d.convertedToPatientId }}</p>
-                  </div>
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- Submitted Answers -->
-          <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-4">
-            <div class="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-              <i class="pi pi-list text-indigo-500 text-sm"></i>
-              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider m-0">Submitted Answers</h3>
-              @if (isEditing()) {
-                <span class="ml-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600">Editing</span>
-              }
-            </div>
-
-            @if (isEditing()) {
-              @if (schema()) {
-                <div class="p-5 sm:p-6">
-                  <app-dynamic-form-renderer
-                    [schema]="schema()"
-                    [formSchemaId]="d.formSchemaId"
-                    [formSchemaVersion]="d.formSchemaVersion"
-                    [initialAnswers]="initialAnswersForEdit()"
-                    (submissionChange)="editedSubmission.set($event)"
-                    (validityChange)="editIsValid.set($event)" />
-                </div>
-              } @else {
-                <div class="p-5 sm:p-6 text-sm text-slate-500">Form schema unavailable — can't edit answers without it.</div>
-              }
-            } @else if (submissionData(); as data) {
-              <div class="p-5 sm:p-6 space-y-5">
-                @for (section of data.sections; track section.sectionId) {
-                  <div>
-                    <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                      <div class="w-1.5 h-4 rounded-full bg-indigo-500"></div>
-                      {{ getSectionTitle(section.sectionId) || 'Section' }}
-                    </h4>
-                    @for (group of section.groups; track group.groupId) {
-                      <div class="ml-4 mb-3 rounded-xl border border-slate-100 overflow-hidden">
-                        <div class="bg-slate-50 px-3 py-2 border-b border-slate-100">
-                          <p class="text-xs font-semibold text-slate-500 m-0">{{ getGroupTitle(group.groupId) || 'Group' }}</p>
-                        </div>
-                        <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          @for (answer of group.answers; track answer.questionId) {
-                            <div class="answer-field">
-                              <p class="answer-label">{{ getQuestionText(answer.questionId) || 'Question' }}</p>
-                              <p class="answer-value">{{ formatAnswerValue(answer) }}</p>
-                            </div>
-                          }
-                        </div>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-            } @else {
-              <div class="text-center py-10">
-                <i class="pi pi-file text-slate-300 text-3xl mb-2"></i>
-                <p class="text-sm text-slate-400">No submitted answers available.</p>
-              </div>
-            }
-          </div>
-
-          <!-- Pain Map -->
-          @if (isEditing() || hasPainData()) {
-            <app-body-pain-map
-              [readOnly]="!isEditing()"
-              [showDoctorFields]="isEditing()"
-              [initialValue]="painMapPayload()"
-              (mapChange)="editedPainMap.set($event)" />
-          }
-
-          <!-- Actions -->
-          <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-5 mt-4">
-            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Actions</h3>
-
-            @if (!isEditing()) {
-              <div class="flex flex-wrap justify-center gap-2">
-                @for (action of availableActions(); track action.type + action.status) {
-                  <button
-                    type="button"
-                    (click)="confirmUpdate(action)"
-                    [disabled]="updating()"
-                    class="!rounded-full py-2 px-4 text-sm font-semibold disabled:opacity-60 transition-colors duration-150 inline-flex items-center gap-1.5 whitespace-nowrap"
-                    [ngClass]="getActionButtonClass(action.severity)"
-                    [attr.aria-label]="action.label">
-                    <i class="pi text-xs" [ngClass]="updating() ? 'pi-spin pi-spinner' : action.icon"></i>
-                    {{ action.label }}
-                  </button>
-                }
-                @if (canEdit()) {
-                  <button
-                    type="button"
-                    (click)="startEditing()"
-                    class="!rounded-full py-2 px-4 text-sm font-semibold border border-slate-200 text-slate-600 bg-white hover:bg-slate-100 hover:border-slate-300 transition-colors duration-150 inline-flex items-center gap-1.5 whitespace-nowrap"
-                    aria-label="Edit submission">
-                    <i class="pi pi-pencil text-xs"></i>
-                    Edit
-                  </button>
-                }
-              </div>
-            } @else {
-              <!-- Editing now leads straight into conversion — there's no separate
-                   approve step. The doctor fixes the data, then converts the intake
-                   into a patient record directly from here. -->
-              <div class="flex flex-wrap justify-center gap-2">
-                <button
-                  type="button"
-                  (click)="cancelEditing()"
-                  class="!rounded-full py-2 px-4 text-sm font-semibold border border-slate-200 text-slate-600 bg-white hover:bg-slate-100 hover:border-slate-300 transition-colors duration-150 whitespace-nowrap"
-                  aria-label="Cancel editing">
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  (click)="showConvertDialog.set(true)"
-                  [disabled]="!editIsValid() || updating()"
-                  class="!rounded-full py-2 px-4 text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm disabled:opacity-60 transition-colors duration-150 inline-flex items-center gap-1.5 whitespace-nowrap"
-                  aria-label="Convert to patient">
-                  <i class="pi text-xs" [ngClass]="updating() ? 'pi-spin pi-spinner' : 'pi-user-plus'"></i>
-                  Convert to Patient
-                </button>
-              </div>
-            }
-          </div>
-        </div>
-      }
-    </div>
-  `,
-  styles: [`
-    :host { display: block; }
-
-    .detail-field {
-      display: flex;
-      flex-direction: column;
-      gap: 0.125rem;
-    }
-
-    .detail-label {
-      font-size: 0.6875rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #94a3b8;
-      margin: 0;
-    }
-
-    .detail-value {
-      font-size: 0.875rem;
-      color: #334155;
-      margin: 0;
-    }
-
-    .answer-field {
-      display: flex;
-      flex-direction: column;
-      gap: 0.125rem;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #f1f5f9;
-    }
-
-    .answer-label {
-      font-size: 0.6875rem;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-weight: 600;
-      margin: 0;
-    }
-
-    .answer-value {
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: #1e293b;
-      margin: 0;
-    }
-  `]
+  templateUrl: './submission-detail.component.html',
+  styleUrl: './submission-detail.component.css'
 })
 export class SubmissionDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -438,13 +72,37 @@ export class SubmissionDetailComponent implements OnInit {
   /** These three are extracted from submissionData() (or editedSubmission() while
    *  editing) rather than the backend response — PreVisitIntakeDetailsResponse no
    *  longer carries patientName/Email/Phone directly, but formSubmissionData is
-   *  already included in this response, so no extra request is needed. Matches the
-   *  same default question IDs the backend uses elsewhere (ConvertToPatientAsync,
-   *  GetSubmissionsAsync) — same fragility caveat applies: breaks only if a doctor
-   *  deletes and recreates these exact seeded questions. */
-  readonly patientNameDisplay = computed(() => this.extractAnswer('question_default_full_name'));
-  readonly patientEmailDisplay = computed(() => this.extractAnswer('question_default_email'));
-  readonly patientPhoneDisplay = computed(() => this.extractAnswer('question_default_phone'));
+   *  already included in this response, so no extra request is needed.
+   *  
+   *  Uses the loaded schema to dynamically find question IDs by text, so this
+   *  works even when doctors customize the form (which regenerates question IDs). */
+  readonly patientNameDisplay = computed(() => {
+    const questionId = this.findQuestionIdByText('Full Name') ?? this.findQuestionIdByText('Name') ?? 'question_default_full_name';
+    return this.extractAnswer(questionId);
+  });
+  readonly patientEmailDisplay = computed(() => {
+    const questionId = this.findQuestionIdByText('Email') ?? this.findQuestionIdByText('E-mail') ?? 'question_default_email';
+    return this.extractAnswer(questionId);
+  });
+  readonly patientPhoneDisplay = computed(() => {
+    const questionId = this.findQuestionIdByText('Phone') ?? this.findQuestionIdByText('Phone Number') ?? 'question_default_phone';
+    return this.extractAnswer(questionId);
+  });
+
+  private findQuestionIdByText(text: string): string | undefined {
+    const s = this.schema();
+    if (!s) return undefined;
+    for (const section of s.sections) {
+      for (const group of section.groups) {
+        for (const question of group.questions) {
+          if (question.text.toLowerCase() === text.toLowerCase()) {
+            return question.questionId;
+          }
+        }
+      }
+    }
+    return undefined;
+  }
 
   private extractAnswer(questionId: string): string | undefined {
     const data = this.isEditing() ? this.editedSubmission() : this.submissionData();
@@ -675,6 +333,8 @@ export class SubmissionDetailComponent implements OnInit {
       icon: 'pi pi-info-circle',
       acceptLabel: 'Yes, Proceed',
       rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-primary',
+      rejectButtonStyleClass: 'p-button-secondary',
       accept: () => this.updateStatus(action.status),
     });
   }
@@ -710,15 +370,21 @@ export class SubmissionDetailComponent implements OnInit {
 
     this.updating.set(true);
 
-    // Always send the current data — edited version if the doctor was editing,
-    // otherwise whatever's already loaded. No conditional branching needed since
-    // both fields are sent in every case now.
-    const submission = this.isEditing() ? this.editedSubmission() : this.submissionData();
     const painMap = this.isEditing() ? this.editedPainMap() : this.painMapPayload();
 
+    // Doctor-only body fields (Chief Complaint + Patient Category) are required when the
+    // doctor submits/edits an intake. They are pinned (always present) via the body-pain-map.
+    if (this.isEditing() && (!painMap?.chiefComplaint?.trim() || !painMap?.patientCategory)) {
+      this.updating.set(false);
+      this.snackbar.error('Missing required fields', ['Please complete Chief Complaint and Patient Category before submitting.']);
+      return;
+    }
+
+    const submission = this.isEditing() ? this.editedSubmission() : this.submissionData();
+
     const request: ConvertIntakeToPatientRequest = {
-      formSubmissionData: submission ? JSON.stringify(submission) : undefined,
-      painPointsData: painMap && painMap.regions.length > 0 ? JSON.stringify(painMap) : undefined,
+      formSubmissionData: submission ? JSON.stringify(submission) : (this.details()?.formSubmissionData ?? '{}'),
+      painPointsData: painMap && painMap.regions && painMap.regions.length > 0 ? JSON.stringify(painMap) : (this.details()?.painPointsData ?? undefined),
     };
 
     this.intakeApi.convertToPatient(id, request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -730,7 +396,6 @@ export class SubmissionDetailComponent implements OnInit {
         this.editedSubmission.set(null);
         this.editedPainMap.set(null);
 
-        // works from a refresh / shared link.
         if (res?.convertedToPatientId) {
           this.router.navigate(['/app/initial-report', res.convertedToPatientId], {
             state: {
@@ -741,13 +406,13 @@ export class SubmissionDetailComponent implements OnInit {
               }
             }
           });
-        }else {
+        } else {
           this.router.navigate(['/app/intake/submissions']);
         }
       },
       error: (err: any) => {
         this.updating.set(false);
-        const msg = err?.error?.detail || err?.error?.title || 'Could not convert submission to patient.';
+        const msg = err?.error?.detail || err?.error?.title || err?.error?.message || 'Could not convert submission to patient.';
         this.snackbar.error('Conversion Failed', [msg]);
       }
     });
@@ -775,27 +440,58 @@ export class SubmissionDetailComponent implements OnInit {
   }
 
   formatAnswerValue(answer: SubmissionAnswerDto): string {
-    if (answer.value == null) return '—';
+    return this.formatValueRecursive(answer?.value);
+  }
 
-    if (typeof answer.value === 'object' && !Array.isArray(answer.value)) {
-      const dict = answer.value as Record<string, any>;
+  formatValueRecursive(val: any): string {
+    if (val == null || val === '') return '—';
+
+    // Booleans
+    if (typeof val === 'boolean') return val ? 'Yes' : 'No';
+
+    // Primitives (strings, numbers)
+    if (typeof val === 'string' || typeof val === 'number') {
+      const str = String(val).trim();
+      return str || '—';
+    }
+
+    // Arrays
+    if (Array.isArray(val)) {
+      if (val.length === 0) return '—';
+      const items = val.map(item => this.formatValueRecursive(item)).filter(item => item !== '—');
+      return items.length > 0 ? items.join(', ') : '—';
+    }
+
+    // Objects
+    if (typeof val === 'object') {
+      const dict = val as Record<string, any>;
       const keys = Object.keys(dict);
+      if (keys.length === 0) return '—';
+
+      // Single key object e.g. { "value": "xyz" } or { "text": "xyz" }
       if (keys.length === 1) {
-        const inner = dict[keys[0]];
-        if (inner == null) return '—';
-        if (Array.isArray(inner)) return inner.length === 0 ? '—' : inner.join(', ');
-        if (typeof inner === 'boolean') return inner ? 'Yes' : 'No';
-        return String(inner);
+        return this.formatValueRecursive(dict[keys[0]]);
       }
-      return String(answer.value);
+
+      // Multiple keys e.g. { value: "Option 1", notes: "Detail" }
+      const pairs: string[] = [];
+      for (const key of keys) {
+        const itemVal = dict[key];
+        if (itemVal != null && itemVal !== '') {
+          const formatted = this.formatValueRecursive(itemVal);
+          if (formatted !== '—') {
+            const cleanKey = key
+              .replace(/([A-Z])/g, ' $1')
+              .replace(/^./, str => str.toUpperCase())
+              .trim();
+            pairs.push(`${cleanKey}: ${formatted}`);
+          }
+        }
+      }
+      return pairs.length > 0 ? pairs.join(' · ') : '—';
     }
 
-    if (Array.isArray(answer.value)) {
-      if (answer.value.length === 0) return '—';
-      return answer.value.join(', ');
-    }
-    if (typeof answer.value === 'boolean') return answer.value ? 'Yes' : 'No';
-    return String(answer.value);
+    return String(val);
   }
 
   getStatusLabel(status: IntakeStatus): string {
@@ -811,38 +507,33 @@ export class SubmissionDetailComponent implements OnInit {
     }
   }
 
-  /** Soft pill colors matching the rest of the app (submission-list uses the same palette). */
   getStatusPillClass(status: IntakeStatus): string {
     switch (status) {
       case IntakeStatus.Pending:
       case IntakeStatus.Submitted:
       case IntakeStatus.InReview:
-        return 'bg-amber-50 text-amber-700';
+        return 'status-badge-warning';
       case IntakeStatus.Approved:
       case IntakeStatus.Converted:
-        return 'bg-emerald-50 text-emerald-700';
+        return 'status-badge-success';
       case IntakeStatus.Rejected:
       case IntakeStatus.Expired:
-        return 'bg-rose-50 text-rose-700';
+        return 'status-badge-danger';
       default:
-        return 'bg-slate-100 text-slate-600';
+        return 'status-badge-neutral';
     }
   }
 
-  /** Matches the reference design: solid fill for positive/primary actions,
-   *  white background with a colored border for destructive or informational ones —
-   *  not soft-pastel fills, this is the dedicated bottom action bar. */
   getActionButtonClass(severity: string): string {
     switch (severity) {
       case 'success':
-      case 'warn':
-        return 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm';
-      case 'danger':
-        return 'bg-white text-rose-600 border border-rose-200 hover:bg-rose-50';
       case 'info':
-        return 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50';
+      case 'warn':
+        return 'btn-action-primary';
+      case 'danger':
+        return 'btn-action-danger';
       default:
-        return 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50';
+        return 'btn-action-secondary';
     }
   }
 }

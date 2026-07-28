@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SelectModule } from 'primeng/select';
-import { switchMap } from 'rxjs/operators';
 import { PatientService } from '../services/patient.service';
 import { DynamicFormRendererComponent } from '../../intake/components/dynamic-form-renderer/dynamic-form-renderer.component';
 import {
@@ -127,34 +126,26 @@ export class PatientCreateComponent implements OnInit {
         ? JSON.stringify(this.pendingPainMap)
         : undefined;
 
-    // Step 1: create the intake submission directly (no review step)
+    // One-shot: backend creates the patient first (duplicate-email checked there),
+    // and only creates + wires the PreVisitIntake row if that succeeds.
     this.patientService
-  .createDirectIntake({
-    formSchemaId: this.selectedSchemaId,
-    formSubmissionData: JSON.stringify(this.pendingSubmission),
-    painPointsData,
-  })
-  .pipe(
-    switchMap((intake) => this.patientService.convertIntakeToPatient(intake.id))
-  )
-  .subscribe({
-    next: (converted) => {
-      this.isSubmitting = false;
-      if (!converted.convertedToPatientId) {
-        // Shouldn't happen if conversion succeeded, but guards against navigating to a bad URL
-        this.errorMessage = 'Patient was created but the response did not include a patient ID.';
-        this.cdr.detectChanges();
-        return;
-      }
-      this.router.navigate(['/app/patients', converted.convertedToPatientId, 'overview']);
-    },
-    error: (err) => {
-      console.error(err);
-      this.errorMessage = err?.error?.detail || 'Failed to create the patient.';
-      this.isSubmitting = false;
-      this.cdr.detectChanges();
-    },
-  });
+      .createPatientFromIntake({
+        formSchemaId: this.selectedSchemaId,
+        formSubmissionData: JSON.stringify(this.pendingSubmission),
+        painPointsData,
+      })
+      .subscribe({
+        next: (result) => {
+          this.isSubmitting = false;
+          this.router.navigate(['/app/patients', result.patientId, 'overview']);
+        },
+        error: (err) => {
+          console.error(err);
+          this.errorMessage = err?.error?.detail || 'Failed to create the patient.';
+          this.isSubmitting = false;
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   goBack() {

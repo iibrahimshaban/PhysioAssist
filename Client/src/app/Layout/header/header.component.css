@@ -1,7 +1,7 @@
 /* ── Header Accent Line ─────────────────────────────────────── */
 .header-accent {
   height: 3px;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #ec4899 100%);
+  background: linear-gradient(135deg, #0EB8A0 0%, #0B9A86 40%, #087B6B 100%);
   position: fixed;
   top: 0;
   left: 0;
@@ -46,7 +46,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 0.5rem;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #0EB8A0 0%, #0B9A86 100%);
   color: white;
   font-size: 0.875rem;
 }
@@ -59,7 +59,7 @@
 }
 
 .brand-highlight {
-  color: #6366f1;
+  color: #0EB8A0;
 }
 
 /* ── Desktop Nav ───────────────────────────────────────────── */
@@ -88,13 +88,13 @@
 }
 
 .nav-link:hover {
-  color: #4f46e5;
-  background: #eef2ff;
+  color: #0B9A86;
+  background: #F1FCFA;
 }
 
 .nav-link.nav-active {
-  color: #4f46e5;
-  background: #eef2ff;
+  color: #0B9A86;
+  background: #F1FCFA;
   font-weight: 600;
 }
 
@@ -105,7 +105,7 @@
   left: 0.875rem;
   right: 0.875rem;
   height: 2px;
-  background: #6366f1;
+  background: #0EB8A0;
   border-radius: 1px 1px 0 0;
 }
 
@@ -157,13 +157,13 @@
 }
 
 .nav-link-mobile:hover {
-  background: #f1f5f9;
-  color: #4f46e5;
+  background: #F1FCFA;
+  color: #0B9A86;
 }
 
 .nav-link-mobile.nav-active {
-  background: #eef2ff;
-  color: #4f46e5;
+  background: #F1FCFA;
+  color: #0B9A86;
   font-weight: 600;
 }
 

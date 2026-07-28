@@ -50,6 +50,12 @@ public class PreVisitIntakeRepository(ApplicationDbContext context) : IPreVisitI
             .AnyAsync(intake => intake.Id == intakeId && intake.ConvertedToPatientId != null, cancellationToken);
     }
 
+    public async Task<int> CountByFormSchemaAsync(Guid formSchemaId, CancellationToken cancellationToken = default)
+    {
+        return await _context.PreVisitIntakes
+            .CountAsync(intake => intake.FormSchemaId == formSchemaId, cancellationToken);
+    }
+
     public void Update(PreVisitIntake intake)
     {
         _context.PreVisitIntakes.Update(intake);

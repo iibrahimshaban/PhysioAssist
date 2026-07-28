@@ -12,6 +12,21 @@
 .drawer__section { display: flex; flex-direction: column; gap: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--color-border); }
 .drawer__label { font-size: 12px; color: var(--color-text-secondary); font-weight: 500; }
 .drawer__value { font-size: 14px; color: var(--color-text-primary); font-weight: 600; }
+.drawer__value--large { font-size: 16px; }
+
+// New — owner (patient/guest) info block
+.owner-section { gap: 6px; }
+.owner-section--patient { border-left: 3px solid var(--owner-patient-accent, #2563eb); padding-left: 10px; }
+.owner-section--guest { border-left: 3px solid var(--owner-guest-accent, #9333ea); padding-left: 10px; }
+.owner-badge {
+  align-self: flex-start; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.02em; background: color-mix(in srgb, var(--color-border) 40%, transparent);
+  color: var(--color-text-secondary);
+  &--patient { background: color-mix(in srgb, var(--owner-patient-accent, #2563eb) 15%, transparent); color: var(--owner-patient-accent, #2563eb); }
+  &--guest { background: color-mix(in srgb, var(--owner-guest-accent, #9333ea) 15%, transparent); color: var(--owner-guest-accent, #9333ea); }
+}
+.owner-detail { font-size: 13px; color: var(--color-text-secondary); }
+
 .status-pill {
   align-self: flex-start; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
   &--booked { background: var(--status-booked-bg); color: var(--status-booked-text); }
@@ -28,4 +43,21 @@
   &--warning { background: var(--color-warning); color: #fff; border-color: var(--color-warning); &:hover { opacity: 0.9; } }
   &--danger { background: var(--color-danger); color: #fff; border-color: var(--color-danger); &:hover { opacity: 0.9; } }
   &--outline-danger { color: var(--color-danger); border-color: var(--color-danger); background: transparent; }
+}
+
+// Mobile — bottom-sheet, matching create-appointment-drawer's pattern
+@media (max-width: 640px) {
+  .drawer {
+    width: 100%; max-width: 100%; top: auto; border-radius: 0;
+    border-top-left-radius: 16px; border-top-right-radius: 16px;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    max-height: 90vh; animation: slideUp 0.2s ease-out;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .drawer__title { font-size: 16.5px; }
+  .drawer-btn { height: 44px; }
+}
+
+@media (max-width: 380px) {
+  .drawer { padding: 16px 12px calc(16px + env(safe-area-inset-bottom, 0px)); }
 }

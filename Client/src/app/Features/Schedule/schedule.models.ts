@@ -4,17 +4,18 @@ export type CalendarViewMode = 'day' | 'week';
 export interface ScheduleSlotDto {
   id: string;
   doctorId: string;
-  patientId: string;
+  patientId: string | null;
+  guestId: string | null;
   slotStart: string;
   slotEnd: string;
   status: ScheduleSlotStatus;
 }
-
 export interface AvailableIntervalDto { start: string; end: string; }
 
 export interface CreateAppointmentRequest {
   doctorId: string;
-  patientId: string;
+  patientId?: string | null;
+  guestId?: string | null;
   slotStart: string;
   slotEnd: string;
 }
@@ -63,10 +64,22 @@ export interface ScheduleStatistics {
 export interface Appointment {
   id: string;
   doctorId: string;
-  patientId: string;
+  patientId: string | null;
+  guestId: string | null;
   slotStart: Date;
   slotEnd: Date;
   status: ScheduleSlotStatus;
+}
+
+export interface CreateGuestRequest {
+  fullName: string;
+  phoneNumber: string;
+}
+
+export interface GuestResponse {
+  id: string;
+  fullName: string;
+  phoneNumber: string;
 }
 
 export interface AvailableInterval { start: Date; end: Date; }
@@ -78,6 +91,12 @@ export interface ToastMessage { id: number; text: string; kind: 'success' | 'err
 // TEMPORARY: no real patient/doctor name source yet.
 export function shortId(id: string): string {
   return id.slice(0, 8).toUpperCase();
+}
+
+export function ownerLabel(a: { patientId: string | null; guestId: string | null }): string {
+  if (a.guestId) return `Guest ${shortId(a.guestId)}`;
+  if (a.patientId) return `Patient ${shortId(a.patientId)}`;
+  return 'Unknown';
 }
 
 // schedule.models.ts — additions
@@ -97,14 +116,7 @@ export interface DailyAvailability {
 }
 
 
-// BEFORE
-interface DragState {
-  appointment: Appointment;
-  originalStart: Date;
-  originalEnd: Date;
-  startClientY: number;
-  mode: 'move' | 'resize';
-}
+
 
 // AFTER — add startClientX, originalDayIndex, colWidth
 interface DragState {

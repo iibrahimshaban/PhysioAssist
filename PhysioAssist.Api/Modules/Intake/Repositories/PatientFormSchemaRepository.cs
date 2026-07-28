@@ -61,4 +61,22 @@ public class PatientFormSchemaRepository(ApplicationDbContext context) : IPatien
     {
         _context.PatientFormSchemas.Update(schema);
     }
+
+    public void Remove(PatientFormSchema schema)
+    {
+        _context.PatientFormSchemas.Remove(schema);
+    }
+
+    public async Task<IReadOnlyList<PatientFormSchema>> GetCopiesByOriginalFormIdAsync(Guid originalFormId, Guid doctorId, CancellationToken cancellationToken = default)
+    {
+        return await _context.PatientFormSchemas
+            .Where(schema => schema.DoctorId == doctorId && schema.OriginalFormId == originalFormId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<PatientFormSchema>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.PatientFormSchemas
+            .ToListAsync(cancellationToken);
+    }
 }

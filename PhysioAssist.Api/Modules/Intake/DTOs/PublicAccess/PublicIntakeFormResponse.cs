@@ -8,4 +8,5 @@ public record PublicIntakeFormResponse
     public string SchemaJson { get; init; } = string.Empty;
     public bool ShowPainMap { get; init; }
     public int Version { get; init; }
+    public string? ClinicName { get; set; }
 }

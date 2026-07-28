@@ -1,0 +1,144 @@
+<p-confirmDialog
+  [style]="{ width: 'min(420px, calc(100vw - 2rem))' }"
+  ariaLabel="Confirmation dialog" />
+
+<!-- Convert Dialog -->
+<app-convert-to-patient-dialog
+  [visible]="showConvertDialog()"
+  [patientName]="patientNameDisplay()"
+  [patientEmail]="patientEmailDisplay()"
+  [patientPhone]="patientPhoneDisplay()"
+  [updating]="updating()"
+  (cancelDialog)="showConvertDialog.set(false)"
+  (confirmDialog)="convertToPatient()" />
+
+<div class="intake-module max-w-6xl mx-auto py-4 sm:py-6 px-3 sm:px-4 lg:px-8" aria-live="polite">
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center py-24 animate-fade-in" role="status">
+      <div class="premium-spinner mb-4"></div>
+      <p class="text-sm text-[var(--color-text-secondary)]">Loading submission details...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @else if (error()) {
+    <div class="max-w-lg mx-auto mt-8 animate-fade-in-up">
+      <div class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-danger-border,#fecaca)] p-6 sm:p-8 text-center" role="alert">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--color-danger-light,#fef2f2)] flex items-center justify-center mx-auto mb-4">
+          <i class="pi pi-exclamation-triangle text-xl sm:text-2xl text-[var(--color-danger)]"></i>
+        </div>
+        <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-2">Failed to Load</h2>
+        <p class="text-[var(--color-text-secondary)] text-sm mb-6">{{ error() }}</p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <button type="button" (click)="goBack()" class="btn-action-secondary btn-action-mobile">
+            <i class="pi pi-arrow-left text-xs"></i> Go Back
+          </button>
+          <button type="button" (click)="loadDetails()" class="btn-action-primary btn-action-mobile">
+            <i class="pi pi-refresh text-xs"></i> Retry
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Content -->
+  @else if (details(); as d) {
+    <div class="animate-fade-in">
+
+      <!-- Back + Breadcrumb -->
+      <div class="flex items-center gap-2 mb-4 sm:mb-6 min-w-0 overflow-hidden">
+        <button
+          type="button"
+          (click)="goBack()"
+          class="text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] flex items-center gap-1.5 shrink-0 transition-colors">
+          <i class="pi pi-arrow-left text-xs"></i>
+          Submissions
+        </button>
+        <i class="pi pi-chevron-right text-[var(--color-border)] text-xs shrink-0"></i>
+        <span class="text-sm text-[var(--color-text-secondary)] truncate capitalize min-w-0">{{ patientNameDisplay() || 'Unnamed patient' }}</span>
+      </div>
+
+      <!-- Header Summary Card -->
+      <app-submission-summary-card
+        [details]="d"
+        [patientName]="patientNameDisplay()"
+        [patientEmail]="patientEmailDisplay()"
+        [patientPhone]="patientPhoneDisplay()" />
+
+      <!-- Submitted Answers -->
+      <app-submitted-answers-viewer
+        [isEditing]="isEditing()"
+        [schema]="schema()"
+        [submissionData]="submissionData()"
+        [details]="d"
+        [initialAnswers]="initialAnswersForEdit()"
+        (submissionChange)="editedSubmission.set($event)"
+        (validityChange)="editIsValid.set($event)" />
+
+      <!-- Pain Map -->
+      @if (isEditing() || hasPainData()) {
+        <app-body-pain-map
+          [readOnly]="!isEditing()"
+          [showDoctorFields]="isEditing()"
+          [initialValue]="painMapPayload()"
+          (mapChange)="editedPainMap.set($event)" />
+      }
+
+      <!-- Actions -->
+      @if (!d.convertedToPatientId) {
+        <div class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-4 sm:p-5 mt-4">
+          <h3 class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">Actions</h3>
+
+          @if (!isEditing()) {
+            <div class="flex flex-wrap gap-2">
+              @for (action of availableActions(); track action.type + action.status) {
+                <button
+                  type="button"
+                  (click)="confirmUpdate(action)"
+                  [disabled]="updating()"
+                  class="btn-action-mobile"
+                  [ngClass]="getActionButtonClass(action.severity)"
+                  [attr.aria-label]="action.label"
+                  [title]="action.label">
+                  <i class="pi text-xs" [ngClass]="updating() ? 'pi-spin pi-spinner' : action.icon"></i>
+                  {{ action.label }}
+                </button>
+              }
+              @if (canEdit()) {
+                <button
+                  type="button"
+                  (click)="startEditing()"
+                  class="btn-action-secondary btn-action-mobile"
+                  aria-label="Edit submission">
+                  <i class="pi pi-pencil text-xs"></i>
+                  Edit
+                </button>
+              }
+            </div>
+          } @else {
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="button"
+                (click)="cancelEditing()"
+                class="btn-action-secondary btn-action-mobile"
+                aria-label="Cancel editing">
+                Cancel
+              </button>
+              <button
+                type="button"
+                (click)="showConvertDialog.set(true)"
+                [disabled]="!editIsValid() || updating()"
+                class="btn-action-primary btn-action-mobile"
+                aria-label="Convert to patient">
+                <i class="pi text-xs" [ngClass]="updating() ? 'pi-spin pi-spinner' : 'pi-user-plus'"></i>
+                Convert to Patient
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

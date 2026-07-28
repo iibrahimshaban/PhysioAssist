@@ -8,7 +8,12 @@ public class ScheduleSlotConfiguration : IEntityTypeConfiguration<ScheduleSlot>
 {
     public void Configure(EntityTypeBuilder<ScheduleSlot> builder)
     {
-        builder.ToTable("ScheduleSlot", schema: "scheduling");
+        builder.ToTable("ScheduleSlot", schema: "scheduling", t =>
+        {
+            t.HasCheckConstraint(
+                "CK_ScheduleSlot_ExactlyOneOwner",
+                "([PatientId] IS NOT NULL AND [GuestId] IS NULL) OR ([PatientId] IS NULL AND [GuestId] IS NOT NULL)");
+        });
 
         builder.HasKey(s => s.Id);
 
@@ -18,9 +23,12 @@ public class ScheduleSlotConfiguration : IEntityTypeConfiguration<ScheduleSlot>
         builder.Property(s => s.DoctorId)
             .IsRequired();
 
-        // No longer nullable — a ScheduleSlot only exists once it's an actual booked appointment
-        builder.Property(s => s.PatientId)
-            .IsRequired();
+        // PatientId / GuestId: intentionally left with no explicit .IsRequired() —
+        // both nullable by convention now (Guid? maps to a nullable column).
+        // The XOR rule itself is enforced twice: at the DB level via the check
+        // constraint above, and at the application level in AppointmentValidator
+        // (so callers get a clean 400 with a Result error instead of a raw SQL
+        // exception).
 
         builder.Property(s => s.SlotStart)
             .IsRequired();
@@ -32,12 +40,6 @@ public class ScheduleSlotConfiguration : IEntityTypeConfiguration<ScheduleSlot>
             .HasConversion<int>()
             .IsRequired();
 
-        // WorkingScheduleId FK removed entirely — no generation source to trace anymore
-
-        // Non-unique: overlap can't be expressed as column equality (different SlotStart values
-        // can still overlap), so this index exists purely to make the per-doctor/per-day
-        // availability-calculation query fast, not to enforce a constraint.
-        // Actual double-booking protection happens in the application layer via sp_getapplock.
         builder.HasIndex(s => new { s.DoctorId, s.SlotStart, s.SlotEnd })
             .HasDatabaseName("IX_ScheduleSlot_DoctorId_SlotStart_SlotEnd");
 
@@ -45,5 +47,10 @@ public class ScheduleSlotConfiguration : IEntityTypeConfiguration<ScheduleSlot>
             .WithMany()
             .HasForeignKey(s => s.PackageId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(s => s.Guest)
+            .WithMany()
+            .HasForeignKey(s => s.GuestId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

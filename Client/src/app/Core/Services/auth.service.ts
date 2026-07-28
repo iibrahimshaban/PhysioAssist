@@ -194,14 +194,14 @@ export class AuthService {
       const decoded = jwtDecode<JwtPayload>(token);
       const isExpired = (decoded.exp ?? 0) * 1000 < Date.now();
 
-      if (!isExpired) {
+    if (!isExpired) {
         this.currentUser.set(this.buildUser(decoded));
         return of(true);
       }
-    } catch {
-      this.clearStorage();
-      return of(false);
-    }
+      } catch {
+        this.clearStorage();
+        return of(false);
+      }
 
     // Access token expired, refresh token present — try to use it now,
     // synchronously as part of app startup, before any guard runs.

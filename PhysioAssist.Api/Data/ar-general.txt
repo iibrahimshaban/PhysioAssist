@@ -1,0 +1,56 @@
+# Arabic general vocabulary for PhysioAssist autocomplete
+# Format: term|weight|category
+# These are general Arabic words used in clinical notes and documentation.
+
+# Common clinical / documentation words
+مريض|100|general
+طبيب|95|general
+عيادة|90|general
+موعد|85|general
+جلسة|90|general
+علاج|90|general
+تشخيص|90|general
+تقييم|85|general
+فحص|85|general
+تاريخ مرضي|80|general
+متابعة|80|general
+إحالة|75|general
+خروج|75|general
+تقرير|80|general
+ملاحظة|75|general
+تقدم|80|general
+نتيجة|75|general
+هدف|80|general
+خطة|75|general
+مراجعة|70|general
+شكوى|75|general
+عرض|80|general
+ألم|90|general
+تورم|80|general
+التهاب|80|general
+إصابة|85|general
+حالة|80|general
+وظيفة|80|general
+حركة|85|general
+قوة|85|general
+مرونة|80|general
+تنسيق|75|general
+وضعية|80|general
+تحمل|75|general
+إجهاد|80|general
+تعافي|80|general
+تأهيل|85|general
+تمارين|85|general
+علاج طبيعي|90|general
+دواء|75|general
+جراحة|75|general
+إجراء|70|general
+تصوير|70|general
+أشعة سينية|70|general
+رنين مغناطيسي|75|general
+موجات فوق صوتية|70|general
+ضغط الدم|75|general
+معدل ضربات القلب|75|general
+درجة الحرارة|65|general
+وزن|70|general
+طول|65|general

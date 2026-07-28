@@ -1,0 +1,10 @@
+:host {
+  /* Pain-map region colors. Defined here (component-scoped) because the
+     SVG shapes and legend swatches in this component reference them via
+     var(--brand-region-*). They were previously undefined, so every region
+     fell back to the SVG default fill (black) and selections were invisible. */
+  --brand-region-selected-fill: #0B8EEA;
+  --brand-region-selected-stroke: #0a7ed1;
+  --brand-region-unselected-fill: #e2e8f0;
+  --brand-region-unselected-stroke: #cbd5e1;
+}

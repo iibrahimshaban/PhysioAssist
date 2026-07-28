@@ -1,5 +1,6 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { OwnerDirectoryService } from './owner-directory.service';
 import { catchError, throwError, firstValueFrom, Observable, MonoTypeOperatorFunction } from 'rxjs';
 import {
   ScheduleSlotDto, AvailableIntervalDto, CreateAppointmentRequest, RescheduleAppointmentRequest,
@@ -17,6 +18,7 @@ const WORKING_SCHEDULES_BASE = `${environment.apiUrl}workingschedules`;
 export class SchedulePageService {
   private readonly http = inject(HttpClient);
   private toastCounter = 0;
+   private readonly ownerDirectory = inject(OwnerDirectoryService);
 
   readonly selectedDoctorId = signal<string | null>(null);
   readonly selectedDate = signal<Date>(new Date());
@@ -50,8 +52,8 @@ export class SchedulePageService {
       if (f.statuses.size > 0 && !f.statuses.has(a.status)) return false;
       if (f.showOnlyToday && a.slotStart.toDateString() !== today.toDateString()) return false;
       if (f.patientSearch.trim().length > 0) {
-        return a.patientId.toLowerCase().includes(f.patientSearch.trim().toLowerCase());
-      }
+        return (a.patientId ?? '').toLowerCase().includes(f.patientSearch.trim().toLowerCase());
+        }
       return true;
     });
   });
@@ -110,6 +112,13 @@ export class SchedulePageService {
       const doctorId = this.selectedDoctorId();
       if (!doctorId) return;
       this.loadWorkingSchedule(doctorId);
+    });
+
+     effect(() => {
+      const doctorId = this.selectedDoctorId();
+      const list = this.appointments();
+      if (!doctorId) return;
+      this.ownerDirectory.ensureLoaded(doctorId, list);
     });
   }
 
@@ -268,8 +277,7 @@ private combineDateAndTime(date: Date, time: string): Date {
     }
   }
 
-  // Optimistic: caller updates the card position immediately, then calls this.
-  // On failure, caller must revert using the returned original values it kept.
+  
   async rescheduleAppointment(id: string, request: RescheduleAppointmentRequest): Promise<Appointment> {
     const dto = await firstValueFrom(
       this.http.post<ScheduleSlotDto>(`${APPOINTMENTS_BASE}/${id}/reschedule`, request).pipe(this.catchAsProblem())
@@ -286,44 +294,7 @@ private combineDateAndTime(date: Date, time: string): Date {
     );
   }
 
-  // private async loadForCurrentSelection(doctorId: string, date: Date, view: CalendarViewMode): Promise<void> {
-  //   this.loading.set(true);
-  //   this.errorMessage.set(null);
-  //   try {
-  //     const dates = view === 'day' ? [date] : this.weekDates(date);
-  //     const results = await Promise.all(
-  //       dates.map(d => firstValueFrom(
-  //         this.http.get<ScheduleSlotDto[]>(`${APPOINTMENTS_BASE}/doctor/${doctorId}`, {
-  //           params: { date: d.toISOString() }
-  //         }).pipe(this.catchAsProblem())
-  //       ))
-  //     );
-  //     this.appointments.set(results.flat().map(dto => this.toAppointment(dto)));
-  //     await this.refreshAvailability();
-  //   } catch (err) {
-  //     this.errorMessage.set(this.extractErrorMessage(err));
-  //   } finally {
-  //     this.loading.set(false);
-  //   }
-  // }
-
-  // private async refreshAvailability(): Promise<void> {
-  //   const doctorId = this.selectedDoctorId();
-  //   const date = this.selectedDate();
-  //   if (!doctorId) return;
-  //   const dtos = await firstValueFrom(
-  //     this.http.get<AvailableIntervalDto[]>(`${APPOINTMENTS_BASE}/doctor/${doctorId}/availability`, {
-  //       params: { date: date.toISOString() }
-  //     }).pipe(this.catchAsProblem())
-  //   );
-  //   this.availability.set(dtos.map(d => ({ start: new Date(d.start), end: new Date(d.end) })));
-  // }
-
-
-// schedule-page.service.ts — loadForCurrentSelection, updated to use the range endpoint
-// for week view instead of looping single-day availability calls
-
-// schedule-page.service.ts — guard against the 404-when-no-schedule behavior
+ 
 private async loadForCurrentSelection(doctorId: string, date: Date, view: CalendarViewMode): Promise<void> {
   this.loading.set(true);
   this.errorMessage.set(null);
@@ -408,26 +379,18 @@ private async refreshAvailability(): Promise<void> {
     return (eh * 60 + em) - (sh * 60 + sm);
   }
 
-  private toAppointment(dto: ScheduleSlotDto): Appointment {
-    return {
-      id: dto.id,
-      doctorId: dto.doctorId,
-      patientId: dto.patientId,
-      slotStart: new Date(dto.slotStart),
-      slotEnd: new Date(dto.slotEnd),
-      status: dto.status
-    };
-  }
+ private toAppointment(dto: ScheduleSlotDto): Appointment {
+  return {
+    id: dto.id,
+    doctorId: dto.doctorId,
+    patientId: dto.patientId,
+    guestId: dto.guestId,
+    slotStart: new Date(dto.slotStart),
+    slotEnd: new Date(dto.slotEnd),
+    status: dto.status
+  };
+}
 
-// private catchAsProblem<T>() {
-//   return catchError((err: HttpErrorResponse) => throwError(() => err));
-// }
-
-// private catchAsProblem<T>() {
-//   return catchError((err: HttpErrorResponse): Observable<never> =>
-//     throwError(() => err)
-//   );
-// }
 
 private catchAsProblem<T>(): MonoTypeOperatorFunction<T> {
   return catchError((err: HttpErrorResponse) => {
@@ -444,13 +407,7 @@ private catchAsProblem<T>(): MonoTypeOperatorFunction<T> {
   }
 }
 
-// schedule.models.ts — add this helper, remove all .toISOString() calls to the backend
 
-// Formats a Date as an ISO 8601 string WITH the local timezone offset
-// (e.g. "2026-07-07T21:00:00+03:00"), not UTC "Z". Required because the
-// backend now models SlotStart/SlotEnd as DateTimeOffset and must receive
-// the real offset the receptionist entered the time in — never manually
-// shift hours, and never use toISOString(), which silently converts to UTC.
 export function toIsoWithOffset(date: Date): string {
   const pad = (n: number) => n.toString().padStart(2, '0');
 

@@ -14,7 +14,7 @@ export class HeaderComponent {
   nav = inject(NavigationService);
 
   menuOpen = signal(false);
- 
+  
   toggleMenu(): void { this.menuOpen.update(v => !v); }
 
   accountMenuOpen = signal(false);

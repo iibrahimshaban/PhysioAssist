@@ -1,5 +1,7 @@
+using PhysioAssist.Api.Modules.Intake.Constants;
 using PhysioAssist.Api.Modules.Intake.DTOs.DynamicForms;
 using PhysioAssist.Api.Modules.Intake.Errors;
+using System.Text.Json;
 
 namespace PhysioAssist.Api.Modules.Intake.Services;
 
@@ -17,7 +19,7 @@ public class DynamicFormValidationService : IDynamicFormValidationService
         return Result.Success();
     }
 
-    public Result ValidateSubmissionAgainstSchema(DynamicFormSchemaDto schema, DynamicFormSubmissionDto submission)
+    public Result ValidateSubmissionAgainstSchema(DynamicFormSchemaDto schema, DynamicFormSubmissionDto submission, string? painPointsData = null)
     {
         if (schema is null)
             return Result.Failure(IntakeErrors.InvalidSchema);
@@ -37,7 +39,291 @@ public class DynamicFormValidationService : IDynamicFormValidationService
         if (crossReferenceResult.IsFailure)
             return crossReferenceResult;
 
+        // NEW: Validate that all required fields have non-empty values
+        var requiredFieldsResult = ValidateRequiredFields(schema, submission);
+        if (requiredFieldsResult.IsFailure)
+            return requiredFieldsResult;
+
+        // NEW: if the form has a body-map question, at least one region must be selected.
+        // The selection can arrive either as a bodyselector/painpoint answer inside the
+        // submission, OR as the standalone painPointsData payload (public patient flow).
+        var bodyMapResult = ValidateBodyMapRequired(schema, submission, painPointsData);
+        if (bodyMapResult.IsFailure)
+            return bodyMapResult;
+
         return Result.Success();
+    }
+
+    /// <summary>
+    /// If the schema contains a body-map question (bodyselector / painpoint), the submission
+    /// must include at least one selected region. Prevents a patient from submitting a form
+    /// without marking where they feel pain. Works for the body-selector answer stored in the
+    /// submission (regions array length >= 1).
+    /// </summary>
+    private static Result ValidateBodyMapRequired(DynamicFormSchemaDto schema, DynamicFormSubmissionDto submission, string? painPointsData)
+    {
+        bool hasBodyQuestion = false;
+        foreach (var section in schema.Sections)
+            foreach (var group in section.Groups)
+                foreach (var question in group.Questions)
+                    if (question.Type is "bodyselector" or "painpoint")
+                        hasBodyQuestion = true;
+
+        if (!hasBodyQuestion)
+            return Result.Success();
+
+        foreach (var section in submission.Sections)
+        {
+            foreach (var group in section.Groups)
+            {
+                foreach (var answer in group.Answers)
+                {
+                    var q = FindQuestionInSchema(schema, answer.QuestionId);
+                    if (q is null || q.Type is not ("bodyselector" or "painpoint")) continue;
+
+                    if (HasBodySelection(answer.Value))
+                        return Result.Success();
+                }
+            }
+        }
+
+        // The public patient flow sends the body selection as a separate painPointsData payload
+        // (the standalone body-pain-map component). If it contains at least one region, that
+        // satisfies the requirement.
+        if (HasBodySelectionInPainPoints(painPointsData))
+            return Result.Success();
+
+        return Result.Failure(IntakeErrors.BodyMapRequired);
+    }
+
+    private static bool HasBodySelectionInPainPoints(string? painPointsData)
+    {
+        if (string.IsNullOrWhiteSpace(painPointsData))
+            return false;
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(painPointsData);
+            return HasBodySelection(doc.RootElement);
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return false;
+        }
+    }
+
+    private static bool HasBodySelection(object? value)
+    {
+        if (value is null) return false;
+        JsonElement? element = value is JsonElement je ? je : null;
+        if (element is null && value is System.Text.Json.Nodes.JsonNode node)
+        {
+            // Accept JsonNode from in-process callers; treat as present if it has a regions array > 0.
+            if (node is System.Text.Json.Nodes.JsonObject obj && obj.TryGetPropertyValue("regions", out var reg))
+                return reg is System.Text.Json.Nodes.JsonArray arr && arr.Count > 0;
+            return false;
+        }
+        if (element is null) return false;
+
+        // Accept either { regions: [...] } or the legacy { regions: [...] } wrapper.
+        if (element.Value.ValueKind == JsonValueKind.Object)
+        {
+            if (element.Value.TryGetProperty("regions", out var regions) && regions.ValueKind == JsonValueKind.Array)
+                return regions.GetArrayLength() > 0;
+            // Also accept a direct { "bodyselector": {...} } / { "painpoint": {...} } wrapper.
+            foreach (var prop in element.Value.EnumerateObject())
+            {
+                if (prop.Value.ValueKind == JsonValueKind.Object &&
+                    prop.Value.TryGetProperty("regions", out var r) && r.ValueKind == JsonValueKind.Array)
+                    return r.GetArrayLength() > 0;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Validates that a schema is ready for publishing:
+    /// - All core fields are present
+    /// - Core fields have Required = true
+    /// - Core fields have compatible types
+    /// </summary>
+    public Result ValidateSchemaForPublish(DynamicFormSchemaDto schema)
+    {
+        if (schema is null)
+            return Result.Failure(IntakeErrors.InvalidSchema);
+
+        var structureResult = ValidateSchemaStructure(schema);
+        if (structureResult.IsFailure)
+            return structureResult;
+
+        // Check all core fields exist in the schema
+        var missingCoreFields = new List<string>();
+        var misconfiguredFields = new List<string>();
+
+        foreach (var coreField in CoreFieldConstants.HardRequiredFields)
+        {
+            var found = FindQuestionInSchema(schema, coreField.QuestionId);
+
+            if (found is null)
+            {
+                // Try to find by text match (for backward compatibility with existing schemas)
+                found = FindQuestionByTextInSchema(schema, coreField.Text);
+            }
+
+            if (found is null)
+            {
+                missingCoreFields.Add(coreField.Text);
+                continue;
+            }
+
+            // Check Required flag
+            if (!found.Required)
+            {
+                misconfiguredFields.Add($"'{coreField.Text}' — Required flag is disabled");
+            }
+
+            // Check type compatibility
+            if (CoreFieldConstants.AllowedTypesForCoreField.TryGetValue(coreField.QuestionId, out var allowedTypes))
+            {
+                if (!allowedTypes.Contains(found.Type))
+                {
+                    misconfiguredFields.Add($"'{coreField.Text}' — Type changed to '{found.Type}' (must be one of: {string.Join(", ", allowedTypes)})");
+                }
+            }
+        }
+
+        if (missingCoreFields.Count > 0)
+        {
+            return Result.Failure(IntakeErrors.CoreFieldsMissing(missingCoreFields));
+        }
+
+        if (misconfiguredFields.Count > 0)
+        {
+            var details = string.Join("; ", misconfiguredFields);
+            return Result.Failure(new Error(
+                "Intake.PublishValidationFailed",
+                $"The schema cannot be published due to misconfigured core fields: {details}.",
+                StatusCodes.Status400BadRequest));
+        }
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Validates that all required fields in the schema have non-empty values in the submission.
+    /// </summary>
+    private static Result ValidateRequiredFields(DynamicFormSchemaDto schema, DynamicFormSubmissionDto submission)
+    {
+        var emptyRequiredFields = new List<string>();
+
+        foreach (var section in schema.Sections)
+        {
+            foreach (var group in section.Groups)
+            {
+                foreach (var question in group.Questions)
+                {
+                    if (!question.Required) continue;
+
+                    // Body-map questions (bodyselector / painpoint) are satisfied by the separate
+                    // painPointsData payload (public patient flow) or an in-form bodyselector answer,
+                    // not by a regular form answer. Their requirement is enforced by
+                    // ValidateBodyMapRequired, so skip them here to avoid a false "required empty".
+                    if (question.Type is "bodyselector" or "painpoint") continue;
+
+                    var answer = FindAnswerInSubmission(submission, section.SectionId, group.GroupId, question.QuestionId);
+
+                    if (answer is null || IsAnswerEmpty(answer.Value))
+                    {
+                        emptyRequiredFields.Add(question.Text);
+                    }
+                }
+            }
+        }
+
+        if (emptyRequiredFields.Count > 0)
+        {
+            return Result.Failure(IntakeErrors.RequiredFieldsEmpty(emptyRequiredFields));
+        }
+
+        return Result.Success();
+    }
+
+    private static SubmissionAnswerDto? FindAnswerInSubmission(
+        DynamicFormSubmissionDto submission,
+        string sectionId,
+        string groupId,
+        string questionId)
+    {
+        foreach (var section in submission.Sections)
+        {
+            if (section.SectionId != sectionId) continue;
+
+            foreach (var group in section.Groups)
+            {
+                if (group.GroupId != groupId) continue;
+
+                foreach (var answer in group.Answers)
+                {
+                    if (answer.QuestionId == questionId)
+                        return answer;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static bool IsAnswerEmpty(object? value)
+    {
+        if (value is null) return true;
+
+        if (value is JsonElement element)
+        {
+            return element.ValueKind switch
+            {
+                JsonValueKind.Null => true,
+                JsonValueKind.String => string.IsNullOrWhiteSpace(element.GetString()),
+                JsonValueKind.Array => element.GetArrayLength() == 0,
+                JsonValueKind.Object => !element.EnumerateObject().Any(),
+                _ => false
+            };
+        }
+
+        if (value is string str) return string.IsNullOrWhiteSpace(str);
+
+        return false;
+    }
+
+    private static FormQuestionDto? FindQuestionInSchema(DynamicFormSchemaDto schema, string questionId)
+    {
+        foreach (var section in schema.Sections)
+        {
+            foreach (var group in section.Groups)
+            {
+                foreach (var question in group.Questions)
+                {
+                    if (question.QuestionId == questionId)
+                        return question;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static FormQuestionDto? FindQuestionByTextInSchema(DynamicFormSchemaDto schema, string text)
+    {
+        foreach (var section in schema.Sections)
+        {
+            foreach (var group in section.Groups)
+            {
+                foreach (var question in group.Questions)
+                {
+                    if (string.Equals(question.Text, text, StringComparison.OrdinalIgnoreCase))
+                        return question;
+                }
+            }
+        }
+        return null;
     }
 
     private static Result ValidateSchemaStructure(DynamicFormSchemaDto schema)
@@ -356,7 +642,8 @@ public class DynamicFormValidationService : IDynamicFormValidationService
             "fileupload",
             "painpoint",
             "painscale",
-            "bodyselector"
+            "bodyselector",
+            "summary"
         };
 
         public static bool IsSupported(string type) => SupportedTypes.Contains(type);

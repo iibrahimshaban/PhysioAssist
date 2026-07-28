@@ -12,4 +12,5 @@ public record FormQuestionDto
     public List<string>? Options { get; init; }
     public List<ValidationRuleDto>? ValidationRules { get; init; }
     public List<QuestionConditionDto>? Conditions { get; init; }
+    public bool IsLocked { get; init; }
 }

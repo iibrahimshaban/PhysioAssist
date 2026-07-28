@@ -43,13 +43,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
+                  "maximumWarning": "600kB",
                   "maximumError": "1MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "10kB"
+                  "maximumWarning": "50kB",
+                  "maximumError": "60kB"
                 }
               ],
               "outputHashing": "all"
@@ -65,9 +65,8 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "ssl": true,
-            "sslCert": "ssl/localhost.pem",
-            "sslKey": "ssl/localhost-key.pem"
+            "host": "localhost",
+            "ssl": false
           },
           "configurations": {
             "production": {

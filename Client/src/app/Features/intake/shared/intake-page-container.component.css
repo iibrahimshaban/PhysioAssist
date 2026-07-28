@@ -1,0 +1,43 @@
+/* ─── Intake-Module shared page container ───────────────────────────────────
+ *   • max-width : 72rem  (identical to the navbar's .header-inner / Tailwind
+ *                         max-w-6xl so the page content left/right edges line up
+ *                         exactly with the navbar logo and right-edge boundaries)
+ *   • gutter    : 1.5rem (24px) on >=640px, 1rem (16px) on small screens
+ *                 — matches the navbar's px-6 padding so content aligns with navbar
+ *   • centered with equal left/right auto margins
+ *   • 8px-scale vertical rhythm
+ */
+.intake-page-container {
+  --intake-shell-max-width: 72rem;
+  --intake-shell-gutter: 1.5rem;
+  --intake-shell-gutter-mobile: 1rem;
+  --intake-shell-page-top: 1.5rem;     /* 24px */
+  --intake-shell-page-bottom: 2rem;    /* 32px */
+  --intake-shell-section-gap: 1.5rem;  /* 24px */
+
+  width: 100%;
+  max-width: var(--intake-shell-max-width);
+  margin-inline: auto;
+  padding-inline: var(--intake-shell-gutter);
+  padding-top: var(--intake-shell-page-top);
+  padding-bottom: var(--intake-shell-page-bottom);
+  box-sizing: border-box;
+}
+
+.intake-page-container--flush-top {
+  padding-top: 0;
+}
+
+@media (max-width: 639px) {
+  .intake-page-container {
+    padding-inline: var(--intake-shell-gutter-mobile);
+  }
+}
+
+/* Optional helper: stack direct children with a consistent 8px-scale gap.
+   Pages may also manage their own spacing; this just standardises it. */
+.intake-page-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--intake-shell-section-gap);
+}

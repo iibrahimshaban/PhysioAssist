@@ -1,10 +1,332 @@
 /* You can add global styles to this file, and also import other style files */
 @import 'tailwindcss';
 @import 'primeicons/primeicons.css';
+@import './app/Features/intake/intake-theme.css';
 @plugin "@tailwindcss/typography";
 
 html {
   color-scheme: light !important;
+}
+
+/* ── Design Tokens (Intake + shared app palette) ─────────── */
+:root {
+  /* Text */
+  --color-text-primary: #1E293B;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #64748B;
+
+  /* Neutral Gray Scale */
+  --neutral-50: #F8FAFC;
+  --neutral-100: #F1F5F9;
+  --neutral-200: #E2E8F0;
+  --neutral-300: #CBD5E1;
+  --neutral-400: #94A3B8;
+  --neutral-500: #64748B;
+  --neutral-600: #475569;
+  --neutral-700: #334155;
+  --neutral-800: #1E293B;
+  --neutral-900: #0F172A;
+
+  /* Surfaces */
+  --color-page-bg: #F4F6F8;
+  --color-page-bg-alt: #F1F5F9;
+  --color-surface: #FFFFFF;
+  --color-surface-50: #F8FAFC;
+  --color-surface-100: #F1F5F9;
+  --color-border: #E2E8F0;
+
+  /* ── Brand Gradient (single source of truth) ───────────── */
+  --brand-gradient-start: #1888CC;
+  --brand-gradient-end: #0FB3A5;
+  --brand-gradient: linear-gradient(135deg, var(--brand-gradient-start), var(--brand-gradient-end));
+
+  /* Semantic aliases */
+  --color-primary: var(--brand-gradient-end);
+  --color-primary-soft: rgba(24, 136, 204, 0.1);
+  --color-primary-dark: #0e6b8a;
+  --color-primary-gradient-start: var(--brand-gradient-start);
+  --color-primary-gradient-end: var(--brand-gradient-end);
+  --color-accent-violet: var(--brand-gradient-start);
+  --color-accent-violet-soft: rgba(24, 136, 204, 0.1);
+
+  /* Semantic - Brand tints */
+  --color-success-bg: rgba(15, 179, 165, 0.1);
+  --color-success-text: #087B6B;
+  --color-success-light: rgba(15, 179, 165, 0.15);
+  --color-success: var(--brand-gradient-end);
+  --color-success-border: rgba(15, 179, 165, 0.2);
+
+  --color-warning-bg: rgba(245, 158, 11, 0.1);
+  --color-warning-text: #B45309;
+  --color-warning-light: rgba(245, 158, 11, 0.15);
+  --color-warning: #F59E0B;
+  --color-warning-border: rgba(245, 158, 11, 0.2);
+
+  --color-danger: #DC2626;
+  --color-danger-light: rgba(220, 38, 38, 0.08);
+  --color-danger-border: rgba(220, 38, 38, 0.2);
+
+  --color-info: var(--brand-gradient-start);
+  --color-info-light: rgba(24, 136, 204, 0.1);
+  --color-info-border: rgba(24, 136, 204, 0.2);
+  --color-info-text: #0e6b8a;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Typography scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-display: 1.75rem;
+
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Layout */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --shadow-xl: 0 16px 40px rgba(15, 23, 42, 0.16);
+
+  /* Breakpoints */
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+
+  --touch-target-min: 2.75rem;
+  --intake-mobile-max: 639px;
+}
+
+/* ── Page Layout ──────────────────────────────────────────── */
+.page-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
+.page-title {
+  font-size: var(--text-display);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-text-primary);
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  margin: var(--space-1) 0 0;
+}
+
+@media (max-width: 639px) {
+  .page-container {
+    padding: var(--space-4) var(--space-3);
+  }
+}
+
+/* ── Reusable Module Components ───────────────────────────────────────── */
+
+/* Active Nav Item */
+.nav-item.active {
+  background-color: var(--color-primary-soft);
+  color: var(--brand-gradient-start);
+  border-radius: var(--radius-md);
+}
+
+/* Success Checkmark */
+.success-checkmark-check {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: drawCheck 0.4s ease-out 0.2s forwards;
+}
+
+@keyframes drawCheck {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ── PrimeNG Dialog & ConfirmDialog Overrides ────────────── */
+
+.p-dialog-mask,
+.p-component-overlay {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+.p-dialog {
+  border-radius: 1.25rem !important;
+  border: 1px solid var(--color-border, #e2e8f0) !important;
+  background: #ffffff !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  overflow: hidden !important;
+}
+
+.p-dialog .p-dialog-header {
+  padding: 1.25rem 1.5rem !important;
+  border-bottom: 1px solid var(--color-border, #e2e8f0) !important;
+  background: #ffffff !important;
+  color: var(--color-text-primary, #0f172a) !important;
+}
+
+.p-dialog .p-dialog-header .p-dialog-title {
+  font-weight: 700 !important;
+  font-size: 1.125rem !important;
+}
+
+.p-dialog .p-dialog-header-close {
+  width: 2rem !important;
+  height: 2rem !important;
+  border-radius: 50% !important;
+  color: var(--color-text-secondary, #64748b) !important;
+  transition: all 0.2s ease !important;
+}
+
+.p-dialog .p-dialog-header-close:hover {
+  background: var(--color-page-bg, #f1f5f9) !important;
+  color: var(--color-text-primary, #0f172a) !important;
+}
+
+.p-dialog .p-dialog-content {
+  padding: 1.25rem 1.5rem !important;
+  background: #ffffff !important;
+  color: var(--color-text-primary, #0f172a) !important;
+}
+
+.p-dialog .p-dialog-footer {
+  padding: 1rem 1.5rem !important;
+  border-top: 1px solid var(--color-border, #e2e8f0) !important;
+  background: var(--color-page-bg, #f8fafc) !important;
+}
+
+/* Dialog Primary Buttons — brand gradient */
+.p-dialog .p-button,
+.p-confirm-dialog-accept,
+.p-dialog .p-button-primary,
+.p-dialog .p-button-success {
+  background: var(--brand-gradient) !important;
+  border: none !important;
+  color: #ffffff !important;
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  padding: 0.625rem 1.25rem !important;
+  font-size: 0.875rem !important;
+  box-shadow: 0 2px 6px rgba(24, 136, 204, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+
+.p-dialog .p-button:hover:not(:disabled),
+.p-confirm-dialog-accept:hover:not(:disabled),
+.p-dialog .p-button-primary:hover:not(:disabled),
+.p-dialog .p-button-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1a7fd4, #0b9a86) !important;
+  box-shadow: 0 4px 10px rgba(24, 136, 204, 0.3) !important;
+  transform: translateY(-1px);
+}
+
+/* Dialog Secondary / Cancel Buttons */
+.p-confirm-dialog-reject,
+.p-dialog .p-button-secondary,
+.p-dialog .p-button-outlined {
+  background: #ffffff !important;
+  border: 1px solid var(--color-border, #e2e8f0) !important;
+  color: var(--color-text-secondary, #64748b) !important;
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  padding: 0.625rem 1.25rem !important;
+  font-size: 0.875rem !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  transition: all 0.2s ease !important;
+}
+
+.p-confirm-dialog-reject:hover,
+.p-dialog .p-button-secondary:hover,
+.p-dialog .p-button-outlined:hover {
+  background: var(--color-page-bg, #f8fafc) !important;
+  color: var(--color-text-primary, #0f172a) !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Dialog Danger Action Buttons */
+.p-confirm-dialog-accept.p-button-danger,
+.p-dialog .p-button-danger {
+  background: var(--color-danger, #dc2626) !important;
+  border-color: var(--color-danger, #dc2626) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25) !important;
+}
+
+.p-confirm-dialog-accept.p-button-danger:hover,
+.p-dialog .p-button-danger:hover {
+  background: #b91c1c !important;
+  border-color: #b91c1c !important;
+}
+
+/* ── Global Accessibility ────────────────────────────────── */
+
+/* Focus-visible ring for all interactive elements */
+:focus-visible {
+  outline: 2px solid var(--brand-gradient-start);
+  outline-offset: 2px;
+}
+
+/* Remove default outline on mouse click, keep for keyboard */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Reduced motion: disable all animations and transitions */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Smooth scroll for overflow containers ───────────────── */
+.intake-module .smooth-scroll-x,
+:host-context(.intake-module) .smooth-scroll-x {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--neutral-300) transparent;
+  scroll-behavior: smooth;
+}
+
+.intake-module .smooth-scroll-x::-webkit-scrollbar,
+:host-context(.intake-module) .smooth-scroll-x::-webkit-scrollbar {
+  height: 4px;
+}
+
+.intake-module .smooth-scroll-x::-webkit-scrollbar-track,
+:host-context(.intake-module) .smooth-scroll-x::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.intake-module .smooth-scroll-x::-webkit-scrollbar-thumb,
+:host-context(.intake-module) .smooth-scroll-x::-webkit-scrollbar-thumb {
+  background: var(--neutral-300);
+  border-radius: 2px;
 }
 
 .prose[dir="auto"] {

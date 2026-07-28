@@ -8,7 +8,7 @@
         height="22"
         viewBox="0 0 24 24"
         fill="none"
-        stroke="#1a7fd4"
+        stroke="var(--brand-gradient-start, #1888CC)"
         stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
@@ -21,109 +21,110 @@
       </svg>
       <span class="font-bold text-gray-900 text-base tracking-tight">PhysioAssist</span>
     </a>
-
+ 
     <!-- Desktop nav -->
     <nav class="hidden md:flex items-center gap-1.5 text-sm font-medium">
-  @if (auth.isAuthenticated()) {
-    @for (item of nav.primaryItems(); track item.route) {
-      <a
-        class="px-3.5 py-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
-        [routerLink]="item.route"
-        routerLinkActive="!text-blue-600 !bg-blue-50 font-semibold"
-      >
-        {{ item.label }}
-      </a>
-    }
-
-    <!-- spacer so account menu feels separate from nav links -->
-    <div class="w-px h-6 bg-gray-200 mx-2"></div>
-
-    <!-- Account dropdown -->
-    <div class="relative">
-      <button
-        (click)="toggleAccountMenu()"
-        class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer bg-transparent"
-      >
-        @if (auth.currentUser()?.profilePictureUrl) {
-          <img
-            [src]="auth.currentUser()!.profilePictureUrl"
-            class="w-9 h-9 rounded-full object-cover ring-1 ring-gray-200 shrink-0"
-            alt=""
-          />
-        } @else {
-          <span class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-            <i class="pi pi-user text-gray-500"></i>
-          </span>
-        }
-        <span class="text-gray-700 font-medium">{{ auth.currentUser()?.firstName }}</span>
-        <i
-          class="pi pi-angle-down text-xs text-gray-400 transition-transform"
-          [class.rotate-180]="accountMenuOpen()"
-        ></i>
-      </button>
-
-      @if (accountMenuOpen()) {
-        <!-- backdrop to close on outside click -->
-        <div class="fixed inset-0 z-40" (click)="closeAccountMenu()"></div>
-
-        <div
-          class="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl border border-gray-100 shadow-lg py-1.5 z-50"
-        >
+      @if (auth.isAuthenticated()) {
+        @for (item of nav.primaryItems(); track item.route) {
           <a
-            routerLink="/app/account"
-            (click)="closeAccountMenu()"
-            class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors no-underline"
-          >
-            <i class="pi pi-user text-gray-400"></i>
-            Account settings
-          </a>
-
-          @if (nav.settingsItems().length) {
-      <div class="h-px bg-gray-100 my-1"></div>
-
-      @for (item of nav.settingsItems(); track item.route) {
-          <a
+            class="px-3.5 py-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
             [routerLink]="item.route"
-            (click)="closeAccountMenu()"
-            class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors no-underline"
+            routerLinkActive="!text-blue-600 !bg-blue-50 font-semibold"
           >
-            <i class="{{ item.icon }} text-gray-400"></i>
             {{ item.label }}
           </a>
         }
-      }
-
-          <div class="h-px bg-gray-100 my-1"></div>
-
+ 
+        <!-- spacer so account menu feels separate from nav links -->
+        <div class="w-px h-6 bg-gray-200 mx-2"></div>
+ 
+        <!-- Account dropdown -->
+        <div class="relative">
           <button
-            (click)="auth.logout(); closeAccountMenu()"
-            class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-left"
+            (click)="toggleAccountMenu()"
+            class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer bg-transparent"
           >
-            <i class="pi pi-sign-out"></i>
-            Logout
+            @if (auth.currentUser()?.profilePictureUrl) {
+              <img
+                [src]="auth.currentUser()!.profilePictureUrl"
+                class="w-9 h-9 rounded-full object-cover ring-1 ring-gray-200 shrink-0"
+                alt=""
+              />
+            } @else {
+              <span class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                <i class="pi pi-user text-gray-500"></i>
+              </span>
+            }
+            <span class="text-gray-700 font-medium">{{ auth.currentUser()?.firstName }}</span>
+            <i
+              class="pi pi-angle-down text-xs text-gray-400 transition-transform"
+              [class.rotate-180]="accountMenuOpen()"
+            ></i>
           </button>
+ 
+          @if (accountMenuOpen()) {
+            <!-- backdrop to close on outside click -->
+            <div class="fixed inset-0 z-40" (click)="closeAccountMenu()"></div>
+ 
+            <div
+              class="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl border border-gray-100 shadow-lg py-1.5 z-50"
+            >
+              <a
+                routerLink="/app/account"
+                (click)="closeAccountMenu()"
+                class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors no-underline"
+              >
+                <i class="pi pi-user text-gray-400"></i>
+                Account settings
+              </a>
+ 
+              @if (nav.settingsItems().length) {
+                <div class="h-px bg-gray-100 my-1"></div>
+ 
+                @for (item of nav.settingsItems(); track item.route) {
+                  <a
+                    [routerLink]="item.route"
+                    (click)="closeAccountMenu()"
+                    class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors no-underline"
+                  >
+                    <i class="{{ item.icon }} text-gray-400"></i>
+                    {{ item.label }}
+                  </a>
+                }
+              }
+ 
+              <div class="h-px bg-gray-100 my-1"></div>
+ 
+              <button
+                (click)="auth.logout(); closeAccountMenu()"
+                class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-left"
+              >
+                <i class="pi pi-sign-out"></i>
+                Logout
+              </button>
+            </div>
+          }
         </div>
       }
-    </div>
-  }
-
-  @if (!auth.isAuthenticated()) {
-    <a
-      class="px-3.5 py-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
-      routerLink="/auth/login"
-      routerLinkActive="!text-blue-600 !bg-blue-50"
-      >Login</a
-    >
-
-    <a
-      class="ml-2 px-4 py-2 rounded-xl text-sm font-medium text-white no-underline hover:opacity-90 transition-opacity"
-      style="background: linear-gradient(135deg, #1a7fd4, #0eb8a0)"
-      routerLink="/auth/register"
-      >Get started</a
-    >
-  }
-</nav>
-  <!-- Mobile: just the avatar trigger now, no hamburger -->
+ 
+      @if (!auth.isAuthenticated()) {
+        <a
+          class="px-3.5 py-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+          routerLink="/auth/login"
+          routerLinkActive="!text-blue-600 !bg-blue-50"
+          >Login</a
+        >
+ 
+        <a
+          class="ml-2 px-4 py-2 rounded-xl text-sm font-medium text-white no-underline hover:opacity-90 transition-opacity"
+          style="background: var(--brand-gradient, linear-gradient(135deg, #1888CC, #0FB3A5))"
+          routerLink="/auth/register"
+          >Get started</a
+        >
+      }
+    </nav>
+ 
+    <!-- Mobile: just the avatar trigger now, no hamburger -->
     @if (auth.isAuthenticated()) {
       <div class="md:hidden relative">
         <button
@@ -139,25 +140,25 @@
           }
           <i class="pi pi-angle-down text-xs text-gray-400 transition-transform" [class.rotate-180]="accountMenuOpen()"></i>
         </button>
-
+ 
         @if (accountMenuOpen()) {
           <div class="fixed inset-0 z-40" (click)="closeAccountMenu()"></div>
-
+ 
           <div class="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50">
             <a routerLink="/app/account" (click)="closeAccountMenu()" class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline">
               <i class="pi pi-user text-gray-400 text-xs"></i>
               Account settings
             </a>
-
+ 
             @for (item of nav.settingsItems(); track item.route) {
               <a [routerLink]="item.route" (click)="closeAccountMenu()" class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline">
                 <i class="{{ item.icon }} text-gray-400 text-xs"></i>
                 {{ item.label }}
               </a>
             }
-
+ 
             <div class="h-px bg-gray-100 my-1"></div>
-
+ 
             <button (click)="auth.logout(); closeAccountMenu()" class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-left">
               <i class="pi pi-sign-out text-xs"></i>
               Logout
@@ -166,12 +167,12 @@
         }
       </div>
     }
-
+ 
     @if (!auth.isAuthenticated()) {
       <a class="md:hidden px-3 py-1.5 rounded-lg text-sm text-gray-600 no-underline" routerLink="/auth/login">Login</a>
     }
   </div>
-
+ 
   <!-- Mobile icon strip -- replaces the old hamburger drawer -->
   @if (auth.isAuthenticated()) {
     <nav class="md:hidden flex gap-1 px-2 py-1.5 border-t border-gray-100 overflow-x-auto">
@@ -191,5 +192,4 @@
       }
     </nav>
   }
-   
 </header>

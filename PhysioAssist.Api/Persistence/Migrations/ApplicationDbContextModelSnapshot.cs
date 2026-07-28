@@ -695,6 +695,9 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("CopyNumber")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -719,6 +722,13 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<Guid?>("OriginalFormId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("OriginalName")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
                     b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("datetime2");
 
@@ -730,6 +740,11 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<string>("SchemaJson")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShortCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<bool>("ShowPainMap")
                         .ValueGeneratedOnAdd()
@@ -755,6 +770,10 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
+
+                    b.HasIndex("ShortCode")
+                        .IsUnique()
+                        .HasDatabaseName("IX_PatientFormSchema_ShortCode");
 
                     b.HasIndex("UpdatedById");
 
@@ -807,6 +826,11 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<Guid?>("ReviewedByDoctorId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ShortCode")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
                     b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -827,6 +851,10 @@ namespace PhysioAssist.Api.Persistence.Migrations
 
                     b.HasIndex("FormSchemaId")
                         .HasDatabaseName("IX_PreVisitIntake_FormSchemaId");
+
+                    b.HasIndex("ShortCode")
+                        .IsUnique()
+                        .HasDatabaseName("IX_PreVisitIntake_ShortCode");
 
                     b.HasIndex("DoctorId", "Status", "SubmittedAt")
                         .HasDatabaseName("IX_PreVisitIntake_DoctorId_Status_SubmittedAt");
@@ -974,6 +1002,26 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.ToTable("DoctorSchedulingPreferences", "scheduling");
                 });
 
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.Guest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Guest", "scheduling");
+                });
+
             modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.PatientSessionPackage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1044,10 +1092,13 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<Guid>("DoctorId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("GuestId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("PackageId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("PatientId")
+                    b.Property<Guid?>("PatientId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("SlotEnd")
@@ -1061,12 +1112,17 @@ namespace PhysioAssist.Api.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GuestId");
+
                     b.HasIndex("PackageId");
 
                     b.HasIndex("DoctorId", "SlotStart", "SlotEnd")
                         .HasDatabaseName("IX_ScheduleSlot_DoctorId_SlotStart_SlotEnd");
 
-                    b.ToTable("ScheduleSlot", "scheduling");
+                    b.ToTable("ScheduleSlot", "scheduling", t =>
+                        {
+                            t.HasCheckConstraint("CK_ScheduleSlot_ExactlyOneOwner", "([PatientId] IS NOT NULL AND [GuestId] IS NULL) OR ([PatientId] IS NULL AND [GuestId] IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.WorkingSchedule", b =>
@@ -1651,10 +1707,17 @@ namespace PhysioAssist.Api.Persistence.Migrations
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.Scheduling.Entities.ScheduleSlot", b =>
                 {
+                    b.HasOne("PhysioAssist.Api.Modules.Scheduling.Entities.Guest", "Guest")
+                        .WithMany()
+                        .HasForeignKey("GuestId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PhysioAssist.Api.Modules.Scheduling.Entities.PatientSessionPackage", "Package")
                         .WithMany()
                         .HasForeignKey("PackageId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Guest");
 
                     b.Navigation("Package");
                 });

@@ -19,11 +19,15 @@ public class IntakeMappingConfig : IRegister
             .Map(dest => dest.Version, src => src.Version)
             .Map(dest => dest.Status, src => src.Status)
             .Map(dest => dest.IsDefault, src => src.IsDefault)
-            .Map(dest => dest.ShowPainMap, src => src.ShowPainMap) // ADDED
+            .Map(dest => dest.ShowPainMap, src => src.ShowPainMap)
             .Map(dest => dest.SchemaHash, src => src.SchemaHash)
             .Map(dest => dest.PublishedAt, src => src.PublishedAt)
             .Map(dest => dest.CreatedAt, src => src.CreatedAt)
-            .Map(dest => dest.UpdatedAt, src => src.UpdatedAt);
+            .Map(dest => dest.UpdatedAt, src => src.UpdatedAt)
+            .Map(dest => dest.ShortCode, src => src.ShortCode)
+            .Map(dest => dest.OriginalFormId, src => src.OriginalFormId)
+            .Map(dest => dest.OriginalName, src => src.OriginalName)
+            .Map(dest => dest.CopyNumber, src => src.CopyNumber);
 
         config.NewConfig<PatientFormSchema, FormSchemaSummaryResponse>()
             .Map(dest => dest.Id, src => src.Id)
@@ -33,10 +37,15 @@ public class IntakeMappingConfig : IRegister
             .Map(dest => dest.Status, src => src.Status)
             .Map(dest => dest.IsDefault, src => src.IsDefault)
             .Map(dest => dest.PublishedAt, src => src.PublishedAt)
-            .Map(dest => dest.CreatedAt, src => src.CreatedAt);
+            .Map(dest => dest.CreatedAt, src => src.CreatedAt)
+            .Map(dest => dest.ShortCode, src => src.ShortCode)
+            .Map(dest => dest.OriginalFormId, src => src.OriginalFormId)
+            .Map(dest => dest.OriginalName, src => src.OriginalName)
+            .Map(dest => dest.CopyNumber, src => src.CopyNumber);
 
         config.NewConfig<PreVisitIntake, PreVisitIntakeResponse>()
             .Map(dest => dest.Id, src => src.Id)
+            .Map(dest => dest.ShortCode, src => src.ShortCode)
             .Map(dest => dest.DoctorId, src => src.DoctorId)
             .Map(dest => dest.FormSchemaId, src => src.FormSchemaId)
             .Map(dest => dest.FormSchemaVersion, src => src.FormSchemaVersion)
@@ -48,6 +57,7 @@ public class IntakeMappingConfig : IRegister
 
         config.NewConfig<PreVisitIntake, PreVisitIntakeDetailsResponse>()
             .Map(dest => dest.Id, src => src.Id)
+            .Map(dest => dest.ShortCode, src => src.ShortCode)
             .Map(dest => dest.DoctorId, src => src.DoctorId)
             .Map(dest => dest.FormSchemaId, src => src.FormSchemaId)
             .Map(dest => dest.FormSchemaVersion, src => src.FormSchemaVersion)
@@ -65,14 +75,14 @@ public class IntakeMappingConfig : IRegister
             .Map(dest => dest.Description, src => src.Description)
             .Map(dest => dest.SchemaJson, src => src.SchemaJson)
             .Map(dest => dest.IsDefault, src => src.IsDefault)
-            .Map(dest => dest.ShowPainMap, src => src.ShowPainMap); // ADDED
+            .Map(dest => dest.ShowPainMap, src => src.ShowPainMap);
 
         config.NewConfig<UpdateFormSchemaRequest, PatientFormSchema>()
             .Map(dest => dest.Name, src => src.Name)
             .Map(dest => dest.Description, src => src.Description)
             .Map(dest => dest.SchemaJson, src => src.SchemaJson)
             .Map(dest => dest.IsDefault, src => src.IsDefault)
-            .Map(dest => dest.ShowPainMap, src => src.ShowPainMap); // ADDED
+            .Map(dest => dest.ShowPainMap, src => src.ShowPainMap);
 
         config.NewConfig<SubmitPreVisitIntakeRequest, PreVisitIntake>()
             .Map(dest => dest.FormSubmissionData, src => src.FormSubmissionData)
@@ -89,6 +99,7 @@ public class IntakeMappingConfig : IRegister
 
         config.NewConfig<PreVisitIntake, PublicIntakeSubmissionResponse>()
             .Map(dest => dest.SubmissionId, src => src.Id)
+            .Map(dest => dest.ShortCode, src => src.ShortCode)
             .Map(dest => dest.SubmittedAt, src => src.SubmittedAt)
             .Ignore(dest => dest.Message);
     }

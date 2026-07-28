@@ -101,6 +101,7 @@ const BACK_REGIONS: BodyRegionDef[] = [
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './body-pain-map.component.html',
+  styleUrl: './body-pain-map.component.css',
 })
 export class BodyPainMapComponent {
   /** Fires on every change so the parent form can keep a live copy of the payload. */
@@ -138,7 +139,6 @@ export class BodyPainMapComponent {
   private readonly selectionsMap = signal<Map<string, PainRegionSelection>>(new Map());
   readonly chiefComplaint = signal('');
   readonly patientCategory = signal<PatientCategory | ''>('');
-  readonly showDebug = signal(false);
 
   readonly selectedList = computed(() => Array.from(this.selectionsMap().values()));
   readonly hasSelections = computed(() => this.selectionsMap().size > 0);
@@ -204,14 +204,12 @@ export class BodyPainMapComponent {
     this.emitChange();
   }
 
-  toggleDebug(): void {
-    this.showDebug.update((v) => !v);
-  }
+
 
   severityClass(v: number): string {
-    if (v <= 3) return 'text-emerald-600';
-    if (v <= 6) return 'text-amber-600';
-    return 'text-rose-600';
+    if (v <= 3) return 'text-[var(--color-success-text)]';
+    if (v <= 6) return 'text-[var(--color-warning-text)]';
+    return 'text-[var(--color-danger)]';
   }
 
   private emitChange(): void {

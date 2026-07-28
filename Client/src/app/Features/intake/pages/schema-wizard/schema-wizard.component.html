@@ -1,0 +1,544 @@
+<div class="intake-module wizard-container">
+  <!-- ── Top Bar ────────────────────────────────────────── -->
+  <div class="wizard-topbar">
+    <button type="button" class="wizard-back-btn" (click)="goBack()" pTooltip="Back to Schemas" tooltipPosition="right">
+      <i class="pi pi-arrow-left"></i>
+    </button>
+    <div class="wizard-title-area">
+      <span class="wizard-mode-badge">
+        <i class="pi pi-magic"></i>
+        Guided Wizard
+      </span>
+      <h2 class="wizard-title">{{ schemaName() || 'New Form Wizard' }}</h2>
+    </div>
+  </div>
+
+  <!-- ── Progress Steps ────────────────────────────────── -->
+  <div class="wizard-progress">
+    @for (step of stepProgress(); track step.key; let i = $index) {
+      <button
+        type="button"
+        class="wizard-step-btn"
+        [class.wizard-step-active]="currentStep() === step.key"
+        [class.wizard-step-completed]="step.completed && currentStep() !== step.key"
+        (click)="goToStep(step.key)"
+        [disabled]="!step.completed && currentStepIndex() < i">
+        <div class="wizard-step-indicator">
+          @if (step.completed && currentStep() !== step.key) {
+            <i class="pi pi-check"></i>
+          } @else {
+            <i [class]="step.icon"></i>
+          }
+        </div>
+        <span class="wizard-step-label">{{ step.label }}</span>
+      </button>
+      @if (i < stepProgress().length - 1) {
+        <div class="wizard-step-connector" [class.wizard-step-connector-done]="step.completed"></div>
+      }
+    }
+  </div>
+
+  <!-- ── Step 1: Template Selection ────────────────────── -->
+  @if (currentStep() === 'template') {
+    <div class="wizard-step-content animate-fade-in">
+      <div class="wizard-step-header">
+        <h3>Choose a Starting Point</h3>
+        <p>Pick a template that matches your needs, or start from scratch. You can customize everything later.</p>
+      </div>
+
+      <div class="template-grid">
+        @for (template of templates; track template.id) {
+          <button
+            type="button"
+            class="template-card"
+            [class.template-card-selected]="selectedTemplateId() === template.id"
+            (click)="selectTemplate(template.id)"
+            [style.--template-color]="template.color">
+            <div class="template-card-icon" [style.background]="template.color + '15'" [style.color]="template.color">
+              <i [class]="template.icon"></i>
+            </div>
+            <div class="template-card-body">
+              <h4 class="template-card-title">{{ template.name }}</h4>
+              <p class="template-card-desc">{{ template.description }}</p>
+              @if (template.sections.length > 0) {
+                <div class="template-card-meta">
+                  <span>{{ template.sections.length }} section{{ template.sections.length !== 1 ? 's' : '' }}</span>
+                  <span class="template-card-meta-dot">&middot;</span>
+                  <span>{{ countTemplateQuestions(template) }} question{{ countTemplateQuestions(template) !== 1 ? 's' : '' }}</span>
+                </div>
+              }
+            </div>
+            @if (selectedTemplateId() === template.id) {
+              <div class="template-card-check">
+                <i class="pi pi-check-circle"></i>
+              </div>
+            }
+          </button>
+        }
+      </div>
+
+      <div class="wizard-actions">
+        <button type="button" class="wizard-btn-secondary" (click)="goBack()">Cancel</button>
+        <button type="button" class="wizard-btn-primary" [disabled]="!canProceedFromTemplate()" (click)="nextStep()">
+          Continue
+          <i class="pi pi-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ── Step 2: Form Details ──────────────────────────── -->
+  @if (currentStep() === 'details') {
+    <div class="wizard-step-content animate-fade-in">
+      <div class="wizard-step-header">
+        <h3>Tell Us About Your Form</h3>
+        <p>Give your form a name and description so your team knows what it's for.</p>
+      </div>
+
+      <div class="details-form">
+        <div class="details-field">
+          <label class="details-label">
+            Form Name <span class="text-red-400">*</span>
+            <span class="details-tooltip" pTooltip="This name will appear in your list of forms. Choose something clear like 'New Patient Intake' or 'Follow-up Assessment'." tooltipPosition="top">
+              <i class="pi pi-question-circle"></i>
+            </span>
+          </label>
+          <input
+            type="text"
+            pInputText
+            [ngModel]="schemaName()"
+            (ngModelChange)="schemaName.set($event)"
+            placeholder="e.g. Pre-Visit Intake Form"
+            class="w-full" />
+          <p class="details-hint">Example: "New Patient Intake", "Follow-up Assessment", "Pain Evaluation"</p>
+        </div>
+
+        <div class="details-field">
+          <label class="details-label">
+            Description
+            <span class="details-tooltip" pTooltip="Describe what this form is used for. This helps other staff members understand when to use this form." tooltipPosition="top">
+              <i class="pi pi-question-circle"></i>
+            </span>
+          </label>
+          <textarea
+            pTextarea
+            [ngModel]="schemaDescription()"
+            (ngModelChange)="schemaDescription.set($event)"
+            placeholder="Describe the purpose of this form..."
+            rows="3"
+            class="w-full">
+          </textarea>
+        </div>
+
+        <div class="details-field-check">
+          <p-checkbox
+            [ngModel]="isDefault()"
+            (ngModelChange)="isDefault.set($event)"
+            [binary]="true"
+            inputId="wizardIsDefault">
+          </p-checkbox>
+          <label for="wizardIsDefault" class="details-check-label">
+            Set as default schema
+            <span class="details-tooltip" pTooltip="The default form is automatically assigned to new patient intakes. You can change this later." tooltipPosition="top">
+              <i class="pi pi-question-circle"></i>
+            </span>
+          </label>
+        </div>
+
+        @if (selectedTemplate() && selectedTemplate()!.id !== 'blank') {
+          <div class="details-summary">
+            <i class="pi pi-info-circle"></i>
+            <span>Using template: <strong>{{ selectedTemplate()?.name }}</strong> with <strong>{{ totalSections() }}</strong> section{{ totalSections() !== 1 ? 's' : '' }} and <strong>{{ totalQuestions() }}</strong> question{{ totalQuestions() !== 1 ? 's' : '' }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="wizard-actions">
+        <button type="button" class="wizard-btn-secondary" (click)="prevStep()">
+          <i class="pi pi-arrow-left"></i>
+          Back
+        </button>
+        <button type="button" class="wizard-btn-primary" [disabled]="!canProceedFromDetails()" (click)="nextStep()">
+          Continue to Build
+          <i class="pi pi-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ── Step 3: Build Form ────────────────────────────── -->
+  @if (currentStep() === 'build') {
+    <div class="wizard-step-content animate-fade-in">
+      <div class="wizard-step-header">
+        <h3>Build Your Form</h3>
+        <p>Add questions to your form. Click on any section or group name to edit it.</p>
+      </div>
+
+      <div class="build-layout">
+        <!-- Left: Quick Add Panel -->
+        <div class="build-quick-add">
+          <div class="quick-add-header">
+            <i class="pi pi-plus-circle"></i>
+            <span>Quick Add Questions</span>
+          </div>
+          <p class="quick-add-hint">Click a preset to add it to the selected group below, or type a custom question.</p>
+
+          <div class="quick-add-custom">
+            <input
+              type="text"
+              pInputText
+              [ngModel]="customQuestionText()"
+              (ngModelChange)="customQuestionText.set($event)"
+              placeholder="Type a custom question..."
+              class="w-full"
+              (keyup.enter)="addQuestionToFirstAvailableGroup()" />
+            <button
+              type="button"
+              class="quick-add-custom-btn"
+              [disabled]="!customQuestionText().trim()"
+              (click)="addQuestionToFirstAvailableGroup()"
+              pTooltip="Add custom question">
+              <i class="pi pi-plus"></i>
+            </button>
+          </div>
+
+          <div class="quick-add-presets">
+            @for (preset of questionPresets; track preset.label) {
+              <button
+                type="button"
+                class="preset-chip"
+                [class.preset-chip-active]="selectedPreset() === preset"
+                (click)="togglePreset(preset)"
+                pTooltip="{{ preset.label }} ({{ preset.type }})" tooltipPosition="left">
+                <i [class]="preset.icon"></i>
+                <span>{{ preset.label }}</span>
+              </button>
+            }
+          </div>
+
+          @if (selectedPreset()) {
+            <div class="preset-actions">
+              <span class="preset-actions-label">Selected: <strong>{{ selectedPreset()?.label }}</strong></span>
+              <button type="button" class="wizard-btn-sm" (click)="addPresetToFirstAvailableGroup()">
+                <i class="pi pi-plus"></i> Add to Form
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- Right: Form Structure -->
+        <div class="build-structure">
+          <div class="build-structure-header">
+            <span class="build-structure-title">Form Structure</span>
+            <button type="button" class="wizard-btn-sm" (click)="addSection()">
+              <i class="pi pi-plus"></i> Section
+            </button>
+          </div>
+
+          @if (formSchema().sections.length === 0) {
+            <div class="build-empty">
+              <div class="build-empty-icon">
+                <i class="pi pi-file"></i>
+              </div>
+              <h4>Your form is empty</h4>
+              <p>Add your first section to get started. A section is like a chapter in your form.</p>
+              <button type="button" class="wizard-btn-primary" (click)="addSection()">
+                <i class="pi pi-plus"></i> Add First Section
+              </button>
+            </div>
+          }
+
+          <div class="build-sections">
+            @for (section of formSchema().sections; track section.sectionId; let si = $index) {
+              <div class="build-section-card" [class.build-section-editing]="editingSectionIndex() === si" [class.build-section--locked]="isSectionLocked(section)">
+                <!-- Section Header -->
+                <div class="build-section-header" [class.build-section-header--locked]="isSectionLocked(section)">
+                  <div class="build-section-title-row">
+                    @if (isSectionLocked(section)) {
+                      <span class="build-locked-badge"><i class="pi pi-shield text-xs"></i></span>
+                      <span class="build-section-title">{{ section.title }}</span>
+                      <span class="build-locked-text">Required</span>
+                    } @else if (editingSectionIndex() === si) {
+                      <input
+                        type="text"
+                        pInputText
+                        [(ngModel)]="section.title"
+                        placeholder="Section name"
+                        class="build-inline-input" />
+                    } @else {
+                      <i class="pi pi-folder text-amber-500"></i>
+                      <span class="build-section-title">{{ section.title }}</span>
+                      <span class="build-section-count">{{ section.groups.length }} group{{ section.groups.length !== 1 ? 's' : '' }}</span>
+                    }
+                  </div>
+                  @if (!isSectionLocked(section)) {
+                    <div class="build-section-actions">
+                      <button type="button" class="build-icon-btn" (click)="toggleEditSection(si)" pTooltip="Edit name">
+                        <i class="pi" [ngClass]="editingSectionIndex() === si ? 'pi-check' : 'pi-pencil'"></i>
+                      </button>
+                      <button type="button" class="build-icon-btn build-icon-btn-danger" (click)="removeSection(si)" pTooltip="Delete section">
+                        <i class="pi pi-trash"></i>
+                      </button>
+                    </div>
+                  }
+                </div>
+
+                @if (section.description) {
+                  <p class="build-section-desc">{{ section.description }}</p>
+                }
+
+                <!-- Groups inside section -->
+                <div class="build-groups">
+                  @for (group of section.groups; track group.groupId; let gi = $index) {
+                    <div class="build-group-card" [class.build-group-editing]="editingSectionIndex() === si && editingGroupIndex() === gi" [class.build-group--locked]="group.isLocked">
+                      <div class="build-group-header">
+                        <div class="build-group-title-row">
+                          @if (group.isLocked) {
+                            <span class="build-locked-badge build-locked-badge--sm"><i class="pi pi-shield text-[10px]"></i></span>
+                            <span class="build-group-title">{{ group.title }}</span>
+                          } @else if (editingSectionIndex() === si && editingGroupIndex() === gi) {
+                            <input
+                              type="text"
+                              pInputText
+                              [(ngModel)]="group.title"
+                              placeholder="Group name"
+                              class="build-inline-input" />
+                          } @else {
+                            <i class="pi pi-th-large text-blue-500"></i>
+                            <span class="build-group-title">{{ group.title }}</span>
+                            <span class="build-section-count">{{ group.questions.length }} question{{ group.questions.length !== 1 ? 's' : '' }}</span>
+                          }
+                        </div>
+                        @if (!group.isLocked) {
+                          <div class="build-section-actions">
+                            <button type="button" class="build-icon-btn" (click)="toggleEditGroup(si, gi)" pTooltip="Edit name">
+                              <i class="pi" [ngClass]="editingSectionIndex() === si && editingGroupIndex() === gi ? 'pi-check' : 'pi-pencil'"></i>
+                            </button>
+                            <button type="button" class="build-icon-btn build-icon-btn-danger" (click)="removeGroup(si, gi)" pTooltip="Delete group">
+                              <i class="pi pi-trash"></i>
+                            </button>
+                          </div>
+                        }
+                      </div>
+
+                      <!-- Questions in group -->
+                      <div class="build-questions">
+                        @for (question of group.questions; track question.questionId; let qi = $index) {
+                          <div class="build-question-chip" [class.build-question-chip--locked]="isQuestionLocked(question)">
+                            @if (isQuestionLocked(question)) {
+                              <i class="pi pi-lock text-blue-500 build-question-icon"></i>
+                            } @else {
+                              <i [class]="getQuestionTypeIcon(question.type)" class="build-question-icon"></i>
+                            }
+                            <span class="build-question-text">{{ question.text }}</span>
+                            @if (question.required) {
+                              <span class="build-required-dot" pTooltip="Required">*</span>
+                            }
+                            @if (!isQuestionLocked(question)) {
+                              <button type="button" class="build-chip-remove" (click)="removeQuestion(si, gi, qi)" pTooltip="Remove question">
+                                <i class="pi pi-times"></i>
+                              </button>
+                            }
+                          </div>
+                        }
+
+                        @if (!group.isLocked) {
+                          <button type="button" class="build-add-question-btn" (click)="showQuickAddForGroup(si, gi)">
+                            <i class="pi pi-plus"></i>
+                            Add Question
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @if (!isSectionLocked(section)) {
+                    <button type="button" class="build-add-group-btn" (click)="addGroup(si)">
+                      <i class="pi pi-plus"></i>
+                      Add Group
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <button type="button" class="wizard-btn-secondary" (click)="prevStep()">
+          <i class="pi pi-arrow-left"></i>
+          Back
+        </button>
+        <button type="button" class="wizard-btn-primary" [disabled]="!canProceedFromBuild()" (click)="nextStep()">
+          Review & Finish
+          <i class="pi pi-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ── Step 4: Review & Publish ──────────────────────── -->
+  @if (currentStep() === 'review') {
+    <div class="wizard-step-content animate-fade-in">
+      <div class="wizard-step-header">
+        <h3>Review Your Form</h3>
+        <p>Here's a summary of your form. You can save as draft or publish it right away.</p>
+      </div>
+
+      <div class="review-layout">
+        <div class="review-summary">
+          <div class="review-summary-header">
+            <div class="review-summary-icon" [style.background]="'#6a92cb15'" [style.color]="'#6a92cb'">
+              <i class="pi pi-file-edit"></i>
+            </div>
+            <div>
+              <h4 class="review-form-name">{{ schemaName() }}</h4>
+              @if (schemaDescription()) {
+                <p class="review-form-desc">{{ schemaDescription() }}</p>
+              }
+            </div>
+          </div>
+
+          <div class="review-stats">
+            <div class="review-stat">
+              <span class="review-stat-value">{{ totalSections() }}</span>
+              <span class="review-stat-label">Sections</span>
+            </div>
+            <div class="review-stat-divider"></div>
+            <div class="review-stat">
+              <span class="review-stat-value">{{ countAllGroups() }}</span>
+              <span class="review-stat-label">Groups</span>
+            </div>
+            <div class="review-stat-divider"></div>
+            <div class="review-stat">
+              <span class="review-stat-value">{{ totalQuestions() }}</span>
+              <span class="review-stat-label">Questions</span>
+            </div>
+            @if (isDefault()) {
+              <div class="review-stat-divider"></div>
+              <div class="review-stat">
+                <span class="review-stat-value">
+                  <i class="pi pi-check-circle text-green-500"></i>
+                </span>
+                <span class="review-stat-label">Default</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Preview of structure -->
+        <div class="review-preview">
+          <h5 class="review-preview-title">Form Structure Preview</h5>
+          @for (section of formSchema().sections; track section.sectionId) {
+            <div class="review-preview-section" [class.review-preview-section--locked]="isSectionLocked(section)">
+              <div class="review-preview-section-title">
+                @if (isSectionLocked(section)) {
+                  <i class="pi pi-shield text-blue-500"></i>
+                } @else {
+                  <i class="pi pi-folder text-amber-500"></i>
+                }
+                {{ section.title }}
+                @if (isSectionLocked(section)) {
+                  <span class="build-locked-text">Required</span>
+                }
+              </div>
+              @for (group of section.groups; track group.groupId) {
+                <div class="review-preview-group">
+                  <div class="review-preview-group-title">
+                    <i class="pi pi-th-large text-blue-500"></i>
+                    {{ group.title }}
+                  </div>
+                  <div class="review-preview-questions">
+                    @for (question of group.questions; track question.questionId) {
+                      <div class="review-preview-question">
+                        <i [class]="getQuestionTypeIcon(question.type)"></i>
+                        <span>{{ question.text }}</span>
+                        @if (question.required) {
+                          <span class="review-required">*</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <button type="button" class="wizard-btn-secondary" (click)="prevStep()">
+          <i class="pi pi-arrow-left"></i>
+          Back
+        </button>
+        <div class="wizard-actions-right">
+          <button type="button" class="wizard-btn-outline" (click)="saveDraft()" [disabled]="saving()">
+            <i class="pi" [ngClass]="saving() ? 'pi-spin pi-spinner' : 'pi-save'"></i>
+            {{ saving() ? 'Saving...' : 'Save Draft' }}
+          </button>
+          <button type="button" class="wizard-btn-primary" (click)="saveAndPublish()" [disabled]="publishing()">
+            <i class="pi" [ngClass]="publishing() ? 'pi-spin pi-spinner' : 'pi-send'"></i>
+            {{ publishing() ? 'Publishing...' : 'Publish Form' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Publish Validation Dialog -->
+  <p-dialog
+    [visible]="showPublishValidationDialog()"
+    (visibleChange)="showPublishValidationDialog.set($event)"
+    [modal]="true"
+    [closable]="true"
+    [dismissableMask]="true"
+    header="Cannot Publish Form"
+    [style]="{ width: 'min(480px, calc(100vw - 2rem))' }">
+    <div class="space-y-4">
+      <div class="flex items-start gap-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
+        <i class="pi pi-exclamation-triangle text-amber-500 mt-0.5"></i>
+        <div>
+          <p class="text-sm font-semibold text-amber-800 m-0">Required core fields are missing or misconfigured</p>
+          <p class="text-xs text-amber-700 mt-1 m-0">Your form must include all required patient information fields before it can be published.</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2 m-0">Issues to fix</p>
+        <div class="space-y-2">
+          @for (issue of publishValidationIssues(); track issue.fieldName) {
+            <div class="flex items-center gap-3 p-2.5 rounded-lg bg-red-50 border border-red-100">
+              <i class="pi pi-times-circle text-red-500 text-sm"></i>
+              <div class="flex-1 min-w-0">
+                <span class="text-sm font-medium text-red-800">{{ issue.fieldName }}</span>
+                <span class="text-xs text-red-600 ml-1.5">{{ issue.issue }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="p-3 rounded-lg bg-blue-50 border border-blue-100">
+        <div class="flex items-start gap-2">
+          <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
+          <div>
+            <p class="text-xs text-blue-700 m-0 font-medium">How to fix</p>
+            <p class="text-xs text-blue-600 mt-0.5 m-0">Go back to the Build step and add the missing fields. Use the "Quick Add" presets panel on the left to add required fields like Full Name, Email, Phone, Date of Birth, Gender, and Occupation with the Required flag enabled.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          class="px-4 py-2 text-sm font-medium rounded-lg bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
+          (click)="showPublishValidationDialog.set(false)">
+          Got it
+        </button>
+      </div>
+    </ng-template>
+  </p-dialog>
+</div>
