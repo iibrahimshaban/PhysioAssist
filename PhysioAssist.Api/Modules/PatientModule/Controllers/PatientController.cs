@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.Auth.Errors;
 using PhysioAssist.Api.Modules.PatientModule.DTOs;
 using PhysioAssist.Api.Modules.PatientModule.Services;
@@ -123,6 +123,14 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
         {
             var result = await _scheduleSlotQueryService.GetScheduleOverviewAsync(patientId, cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+        }
+
+        [HttpPost("create-from-intake")]
+        public async Task<IActionResult> CreateFromIntake([FromBody] CreateFromIntakeRequest request, CancellationToken ct)
+        {
+            var doctorId = Guid.Parse(User.GetUserId()!);
+            var result = await _patientService.CreatePatientFromDynamicFormAsync(request.FormSchemaId, request.FormSubmissionData, request.PainPointsData, doctorId, ct);
+            return result.IsSuccess ? Ok(new { patientId = result.Value }) : result.ToProblem();
         }
     }
 }

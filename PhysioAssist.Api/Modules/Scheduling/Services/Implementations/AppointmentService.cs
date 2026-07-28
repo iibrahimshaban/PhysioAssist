@@ -34,6 +34,7 @@ public class AppointmentService(
             Id = Guid.CreateVersion7(),
             DoctorId = request.DoctorId,
             PatientId = request.PatientId,
+            GuestId = request.GuestId,
             SlotStart = request.SlotStart,
             SlotEnd = request.SlotEnd,
             Status = SlotStatus.Booked,
@@ -91,6 +92,7 @@ public class AppointmentService(
                 Id = Guid.CreateVersion7(),
                 DoctorId = existing.DoctorId,
                 PatientId = existing.PatientId,
+                GuestId = existing.GuestId,
                 SlotStart = request.NewSlotStart,
                 SlotEnd = request.NewSlotEnd,
                 Status = SlotStatus.Booked,
@@ -316,13 +318,19 @@ public class AppointmentService(
     /// problem must never retroactively affect that already-completed operation.
     /// </summary>
     private async Task NotifyAsync(
-        ScheduleSlot appointment,
-        Func<AppointmentNotificationDto, CancellationToken, Task> notify,
-        CancellationToken cancellationToken)
+    ScheduleSlot appointment,
+    Func<AppointmentNotificationDto, CancellationToken, Task> notify,
+    CancellationToken cancellationToken)
     {
+        // Guests have no email on file. No notification channel exists for them
+        // yet (per product decision), so skip entirely — this is not an error
+        // path, just a deliberate no-op for this owner type.
+        if (appointment.GuestId is not null)
+            return;
+
         try
         {
-            var (patientName, patientEmail) = await _contactResolver.GetPatientContactAsync(appointment.PatientId, cancellationToken);
+            var (patientName, patientEmail) = await _contactResolver.GetPatientContactAsync(appointment.PatientId!.Value, cancellationToken);
             var doctorName = await _contactResolver.GetDoctorNameAsync(appointment.DoctorId, cancellationToken);
 
             var dto = new AppointmentNotificationDto
@@ -338,11 +346,7 @@ public class AppointmentService(
         }
         catch
         {
-            // Swallowed by design — see method summary. NotificationService
-            // already logs its own internal delivery failures; this catch only
-            // guards the CONTACT LOOKUP step itself failing (e.g. Patient/Doctor
-            // module unreachable), which NotificationService never sees since
-            // it's never invoked in that case.
+            // unchanged
         }
     }
 
@@ -351,6 +355,7 @@ public class AppointmentService(
         Id = slot.Id,
         DoctorId = slot.DoctorId,
         PatientId = slot.PatientId,
+        GuestId = slot.GuestId,
         SlotStart = slot.SlotStart,
         SlotEnd = slot.SlotEnd,
         Status = slot.Status.ToString()

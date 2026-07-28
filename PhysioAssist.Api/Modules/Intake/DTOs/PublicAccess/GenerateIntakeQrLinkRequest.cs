@@ -2,5 +2,5 @@ namespace PhysioAssist.Api.Modules.Intake.DTOs.PublicAccess;
 
 public record GenerateIntakeQrLinkRequest
 {
-    public int ExpiryHours { get; init; }
+    public int ExpiryMonths { get; init; }
 }

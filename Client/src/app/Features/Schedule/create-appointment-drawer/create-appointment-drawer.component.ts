@@ -3,6 +3,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CreateAppointmentRequest, PatientOption } from '../schedule.models';
 import { toIsoWithOffset } from '../../../Core/Services/schedule-page.service';
 import { DoctorPatientService } from '../../../Core/Services/doctor-patient.service';
+import { GuestService } from '../../../Core/Services/guest.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 type PatientMode = 'existing' | 'guest';
 
@@ -19,10 +21,6 @@ export class CreateAppointmentDrawerComponent {
   doctorId = input<string | null>(null);
   prefillStart = input<Date | null>(null);
   prefillEnd = input<Date | null>(null);
-
-  // Set when arriving here from the receptionist booking flow via
-  // /app/schedule?patientId=... — pre-selects this patient once the roster
-  // for the doctor has loaded, so the receptionist doesn't have to search again.
   prefillPatientId = input<string | null>(null);
 
   closeRequested = output<void>();
@@ -30,11 +28,26 @@ export class CreateAppointmentDrawerComponent {
 
   private readonly fb = inject(FormBuilder);
   private readonly patientService = inject(DoctorPatientService);
+  private readonly guestService = inject(GuestService);
 
-  protected readonly form = this.fb.nonNullable.group({
+ protected readonly form = this.fb.nonNullable.group({
     startTime: ['', Validators.required],
     durationMinutes: [30, Validators.required]
   });
+
+  protected readonly guestForm = this.fb.nonNullable.group({
+    fullName: ['', Validators.required],
+    phoneNumber: ['', Validators.required]
+  });
+
+   private readonly formValid = toSignal(
+    this.form.statusChanges,
+    { initialValue: this.form.status }
+  );
+  private readonly guestFormValid = toSignal(
+    this.guestForm.statusChanges,
+    { initialValue: this.guestForm.status }
+  );
 
   protected readonly durationOptions = [30, 45, 60, 90, 120];
 
@@ -45,12 +58,14 @@ export class CreateAppointmentDrawerComponent {
   protected readonly patientSearchTerm = signal('');
   protected readonly selectedPatient = signal<PatientOption | null>(null);
   protected readonly isPatientListOpen = signal(false);
-  protected readonly guestId = signal<string | null>(null);
+
+  // New — tracks the guest-creation network call itself, separate from
+  // any other loading state, so the submit button can show "Creating..."
+  // and be disabled specifically during that step.
+  protected readonly isCreatingGuest = signal(false);
+  protected readonly guestError = signal<string | null>(null);
 
   private patientsLoadedForDoctor: string | null = null;
-  // Guards against re-applying the prefill after the receptionist has
-  // deliberately picked a different patient, and against re-triggering on
-  // every unrelated signal change.
   private prefillAppliedForPatientId: string | null = null;
 
   protected readonly filteredPatients = computed(() => {
@@ -60,11 +75,13 @@ export class CreateAppointmentDrawerComponent {
     return list.filter(p => p.name.toLowerCase().includes(term));
   });
 
-  protected readonly canSubmit = computed(() => {
-    if (this.form.invalid) return false;
-    if (this.patientMode() === 'guest') return true;
+   protected readonly canSubmit = computed(() => {
+    if (this.formValid() !== 'VALID') return false;
+    if (this.isCreatingGuest()) return false;
+    if (this.patientMode() === 'guest') return this.guestFormValid() === 'VALID';
     return this.selectedPatient() !== null;
   });
+
 
   constructor() {
     effect(() => {
@@ -74,7 +91,6 @@ export class CreateAppointmentDrawerComponent {
       }
     });
 
-    // Loads patients once per doctor per drawer session, not on every open
     effect(() => {
       const open = this.isOpen();
       const doctorId = this.doctorId();
@@ -83,9 +99,6 @@ export class CreateAppointmentDrawerComponent {
       }
     });
 
-    // Once the roster is loaded and a prefillPatientId was supplied, pre-select
-    // that patient automatically — but only once per id, so it doesn't fight
-    // the receptionist if she deliberately picks someone else afterward.
     effect(() => {
       const prefillId = this.prefillPatientId();
       const list = this.patients();
@@ -117,12 +130,12 @@ export class CreateAppointmentDrawerComponent {
 
   protected setMode(mode: PatientMode): void {
     this.patientMode.set(mode);
+    this.guestError.set(null);
     if (mode === 'guest') {
-      this.guestId.set(crypto.randomUUID());
       this.selectedPatient.set(null);
       this.isPatientListOpen.set(false);
     } else {
-      this.guestId.set(null);
+      this.guestForm.reset({ fullName: '', phoneNumber: '' });
     }
   }
 
@@ -143,7 +156,6 @@ export class CreateAppointmentDrawerComponent {
   }
 
   protected closePatientList(): void {
-    // small delay so mousedown on an option fires before the list unmounts
     setTimeout(() => this.isPatientListOpen.set(false), 150);
   }
 
@@ -151,12 +163,8 @@ export class CreateAppointmentDrawerComponent {
     this.form.patchValue({ durationMinutes: minutes });
   }
 
-  protected onSubmit(): void {
+  protected async onSubmit(): Promise<void> {
     if (!this.canSubmit() || !this.doctorId() || !this.prefillStart()) return;
-
-    const patientId = this.patientMode() === 'guest'
-      ? this.guestId()!
-      : this.selectedPatient()!.id;
 
     const { startTime, durationMinutes } = this.form.getRawValue();
     const baseDate = this.prefillStart()!;
@@ -165,9 +173,33 @@ export class CreateAppointmentDrawerComponent {
     start.setHours(h, m, 0, 0);
     const end = new Date(start.getTime() + durationMinutes * 60000);
 
+    if (this.patientMode() === 'guest') {
+      this.isCreatingGuest.set(true);
+      this.guestError.set(null);
+      try {
+        const { fullName, phoneNumber } = this.guestForm.getRawValue();
+        const guest = await this.guestService.createGuest({ fullName, phoneNumber });
+
+        this.createRequested.emit({
+          doctorId: this.doctorId()!,
+          guestId: guest.id,
+          slotStart: toIsoWithOffset(start),
+          slotEnd: toIsoWithOffset(end)
+        });
+      } catch {
+        // Guest creation failed — do NOT emit createRequested. The drawer
+        // stays open so reception can retry, rather than silently trying
+        // to book an appointment against a guest that doesn't exist.
+        this.guestError.set('Could not save guest details. Try again.');
+      } finally {
+        this.isCreatingGuest.set(false);
+      }
+      return;
+    }
+
     this.createRequested.emit({
       doctorId: this.doctorId()!,
-      patientId,
+      patientId: this.selectedPatient()!.id,
       slotStart: toIsoWithOffset(start),
       slotEnd: toIsoWithOffset(end)
     });
@@ -175,11 +207,12 @@ export class CreateAppointmentDrawerComponent {
 
   protected onCancel(): void {
     this.form.reset({ startTime: '', durationMinutes: 30 });
+    this.guestForm.reset({ fullName: '', phoneNumber: '' });
     this.patientMode.set('existing');
     this.selectedPatient.set(null);
     this.patientSearchTerm.set('');
-    this.guestId.set(null);
     this.isPatientListOpen.set(false);
+    this.guestError.set(null);
     this.closeRequested.emit();
   }
 

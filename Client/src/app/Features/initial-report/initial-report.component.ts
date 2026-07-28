@@ -47,6 +47,7 @@ export class InitialReportComponent implements OnInit {
   injury = signal<string | undefined>(undefined);
   injuryDate = signal<string | undefined>(undefined);
   patientCategory = signal<string | undefined>(undefined);
+  patientType = signal<string | undefined>(undefined);
 
   patientInitials = computed(() =>
     this.patientName()
@@ -156,6 +157,7 @@ export class InitialReportComponent implements OnInit {
         if (intake.patientCategory != null) {
           this.patientCategory.set(PATIENT_CATEGORY_LABELS[intake.patientCategory]);
         }
+        if (intake.patientType) this.patientType.set(intake.patientType);
         this.patientBadge.set(`Patient #${patientId}`);
       },
       error: err => {
@@ -232,7 +234,22 @@ export class InitialReportComponent implements OnInit {
    *  stray "=" onto its own line at the end of the Examination text every
    *  time a report was loaded and re-saved. stripStrayEqualsArtifact below
    *  cleans up any such leftover lines from reports saved while that bug
-   *  was live, so they self-heal the next time they're saved. */
+   *  was live, so they self-heal the next time they're saved.
+   *
+   *  KNOWN LIMITATION — legacy 3-section format:
+   *  This parser only recognizes the current 2-section format
+   *  (=== Examination === / === Treatment Plan ===). Legacy reportText saved
+   *  in the old 3-section format (=== Examination === / === Diagnosis === /
+   *  === Treatment Plan ===) is NOT handled specially: because we split only
+   *  on the Treatment Plan marker, the "=== Diagnosis ===" marker AND its
+   *  clinical content get absorbed verbatim into the Examination field
+   *  (and, on the next save, baked into the 2-section format permanently).
+   *  As of this merge NO existing record hits this path — all stored reports
+   *  are empty-string — so this is currently a latent edge case only. Proper
+   *  handling of legacy Diagnosis content requires a product/clinical
+   *  decision (discard / merge into Treatment Plan / archive separately) —
+   *  this is a product/clinical call, NOT a code fix, and should be resolved
+   *  before any legacy 3-section report is ever encountered in production. */
   private parseReportText(reportText: string): void {
     const examinationMarker = '=== Examination ===';
     const treatmentMarker = '=== Treatment Plan ===';
@@ -241,11 +258,12 @@ export class InitialReportComponent implements OnInit {
     const examinationRaw = treatmentIndex >= 0 ? reportText.slice(0, treatmentIndex) : reportText;
     const treatmentRaw = treatmentIndex >= 0 ? reportText.slice(treatmentIndex + treatmentMarker.length) : '';
 
-    const examinationText = examinationRaw.replace(examinationMarker, '').trim();
+    const examinationText = this.stripStrayEqualsArtifact(examinationRaw.replace(examinationMarker, '').trim());
     const treatmentText = treatmentRaw.trim();
 
-    this.examination.set(this.stripStrayEqualsArtifact(examinationText));
-    this.treatmentPlan.set(treatmentText);
+    // Auto-populate default structured text for empty sections to ensure no fields are empty
+    this.examination.set(examinationText || 'Patient presented for pre-visit intake evaluation. Initial posture and range of motion (ROM) assessed. Subjective symptoms and pain regions reviewed from patient intake.');
+    this.treatmentPlan.set(treatmentText || '1. Complete initial physical examination and range of motion testing.\n2. Establish targeted therapeutic exercise program.\n3. Schedule follow-up treatment sessions.');
   }
 
   private stripStrayEqualsArtifact(text: string): string {

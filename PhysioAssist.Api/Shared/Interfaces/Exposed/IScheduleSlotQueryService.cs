@@ -1,7 +1,7 @@
 ﻿using PhysioAssist.Api.Shared.Dtos.Patient;
 namespace PhysioAssist.Api.Shared.Interfaces.Exposed;
 
-public record ScheduleSlotResult(Guid PatientId, DateTimeOffset SlotStart, DateTimeOffset SlotEnd);
+public record ScheduleSlotResult(Guid? PatientId, DateTimeOffset SlotStart, DateTimeOffset SlotEnd);
 
 public interface IScheduleSlotQueryService
 {

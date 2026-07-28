@@ -1,8 +1,9 @@
-﻿namespace PhysioAssist.Api.Modules.Intake.Entities;
+namespace PhysioAssist.Api.Modules.Intake.Entities;
 
 public class PreVisitIntake
 {
     public Guid Id { get; set; } = Guid.CreateVersion7();
+    public string ShortCode { get; set; } = string.Empty;
     public Guid DoctorId { get; set; }
     public Guid FormSchemaId { get; set; }
     public int FormSchemaVersion { get; set; }

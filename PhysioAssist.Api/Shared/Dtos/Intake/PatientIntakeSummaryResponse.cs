@@ -7,5 +7,6 @@ public record PatientIntakeSummaryResponse(
     string? ChiefComplaint,
     string? InjuryDescription,
     DateTime? InjuryDate,
-    PatientCategory? PatientCategory
+    PatientCategory? PatientCategory,
+    string? PatientType
     );

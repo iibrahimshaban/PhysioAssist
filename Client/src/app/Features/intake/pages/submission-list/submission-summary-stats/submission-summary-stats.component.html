@@ -1,0 +1,105 @@
+@if (!loading) {
+  <div class="stats-grid">
+    @if (mode === 'archive') {
+      <!-- Stat: Total Submissions (teal gradient) -->
+      <button
+        type="button"
+        class="stat-block stat-block--total"
+        [class.active]="selectedStatus === null"
+        (click)="onCardClick(null)">
+        <i class="pi pi-inbox stat-icon stat-icon--deco"></i>
+        <div class="stat-content">
+          <span class="stat-value">{{ totalCount }}</span>
+          <span class="stat-label">Total Submissions</span>
+        </div>
+        <i class="pi pi-inbox stat-bg-icon"></i>
+      </button>
+
+      <!-- Stat: Pending Review (amber gradient) -->
+      <button
+        type="button"
+        class="stat-block stat-block--pending"
+        [class.active]="selectedStatus === IntakeStatus.Pending"
+        (click)="onCardClick(IntakeStatus.Pending)">
+        <i class="pi pi-clock stat-icon stat-icon--deco"></i>
+        <div class="stat-content">
+          <span class="stat-value">{{ pendingCount }}</span>
+          <span class="stat-label">Pending</span>
+        </div>
+        <i class="pi pi-clock stat-bg-icon"></i>
+        @if (pendingCount > 0) {
+          <span class="stat-pulse"></span>
+        }
+      </button>
+
+      <!-- Stat: In Review (purple gradient) -->
+      <button
+        type="button"
+        class="stat-block stat-block--review"
+        [class.active]="selectedStatus === IntakeStatus.InReview"
+        (click)="onCardClick(IntakeStatus.InReview)">
+        <i class="pi pi-eye stat-icon stat-icon--deco"></i>
+        <div class="stat-content">
+          <span class="stat-value">{{ inReviewCount }}</span>
+          <span class="stat-label">In Review</span>
+        </div>
+        <i class="pi pi-eye stat-bg-icon"></i>
+      </button>
+
+      <!-- Stat: Approved (emerald gradient) -->
+      <button
+        type="button"
+        class="stat-block stat-block--approved"
+        [class.active]="selectedStatus === IntakeStatus.Approved"
+        (click)="onCardClick(IntakeStatus.Approved)">
+        <i class="pi pi-check-circle stat-icon stat-icon--deco"></i>
+        <div class="stat-content">
+          <span class="stat-value">{{ approvedCount }}</span>
+          <span class="stat-label">Approved</span>
+        </div>
+        <i class="pi pi-check-circle stat-bg-icon"></i>
+      </button>
+    } @else {
+      <!-- Stat: Waiting (amber gradient) -->
+      <button
+        type="button"
+        class="stat-block stat-block--pending"
+        [class.active]="selectedStatus === IntakeStatus.Pending"
+        (click)="onCardClick(IntakeStatus.Pending)">
+        <i class="pi pi-clock stat-icon stat-icon--deco"></i>
+        <div class="stat-content">
+          <span class="stat-value">{{ pendingCount }}</span>
+          <span class="stat-label">Waiting</span>
+        </div>
+        <i class="pi pi-clock stat-bg-icon"></i>
+        @if (pendingCount > 0) {
+          <span class="stat-pulse"></span>
+        }
+      </button>
+
+      <!-- Stat: In Review (purple gradient) -->
+      <button
+        type="button"
+        class="stat-block stat-block--review"
+        [class.active]="selectedStatus === IntakeStatus.InReview"
+        (click)="onCardClick(IntakeStatus.InReview)">
+        <i class="pi pi-eye stat-icon stat-icon--deco"></i>
+        <div class="stat-content">
+          <span class="stat-value">{{ inReviewCount }}</span>
+          <span class="stat-label">In Review</span>
+        </div>
+        <i class="pi pi-eye stat-bg-icon"></i>
+      </button>
+
+      <!-- Stat: Today's Arrivals (blue gradient) -->
+      <div class="stat-block stat-block--total">
+        <i class="pi pi-calendar stat-icon stat-icon--deco"></i>
+        <div class="stat-content">
+          <span class="stat-value">{{ todayCount }}</span>
+          <span class="stat-label">Today's Arrivals</span>
+        </div>
+        <i class="pi pi-calendar stat-bg-icon"></i>
+      </div>
+    }
+  </div>
+}

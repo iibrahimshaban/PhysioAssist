@@ -10,5 +10,6 @@ public interface IPreVisitIntakeRepository
     Task<IReadOnlyList<PreVisitIntake>> GetByDoctorAsync(Guid doctorId, IntakeStatus? status = null, CancellationToken cancellationToken = default);
     Task<PreVisitIntake?> GetByAccessTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default);
     Task<bool> ExistsConvertedAsync(Guid intakeId, CancellationToken cancellationToken = default);
+    Task<int> CountByFormSchemaAsync(Guid formSchemaId, CancellationToken cancellationToken = default);
     void Update(PreVisitIntake intake);
 }

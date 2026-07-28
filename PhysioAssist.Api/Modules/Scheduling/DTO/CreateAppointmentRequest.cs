@@ -3,7 +3,8 @@
     public class CreateAppointmentRequest
     {
         public Guid DoctorId { get; init; }
-        public Guid PatientId { get; init; }
+        public Guid? PatientId { get; init; }
+        public Guid? GuestId { get; init; }
         public DateTimeOffset SlotStart { get; init; }
         public DateTimeOffset SlotEnd { get; init; }
 

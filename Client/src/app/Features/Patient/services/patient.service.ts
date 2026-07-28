@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
   CreateDirectIntakeRequest,
+  CreateFromIntakeRequest,
   PatientScheduleOverviewDto,
 } from '../../../Shared/Models/Patient.model';
 import {
@@ -143,7 +144,10 @@ export class PatientService {
   );
 }
 
-  createDirectIntake(request: CreateDirectIntakeRequest): Observable<PreVisitIntakeResponse> {
-    return this.http.post<PreVisitIntakeResponse>(`${this.intakeUrl}/direct`, request);
-  }
+  
+
+  
+  createPatientFromIntake(request: CreateFromIntakeRequest): Observable<{ patientId: string }> {
+  return this.http.post<{ patientId: string }>(`${this.apiUrl}/create-from-intake`, request);
+}
 }

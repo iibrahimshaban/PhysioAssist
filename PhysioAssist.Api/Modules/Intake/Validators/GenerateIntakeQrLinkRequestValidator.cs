@@ -6,10 +6,10 @@ public class GenerateIntakeQrLinkRequestValidator : AbstractValidator<GenerateIn
 {
     public GenerateIntakeQrLinkRequestValidator()
     {
-        RuleFor(x => x.ExpiryHours)
+        RuleFor(x => x.ExpiryMonths)
             .GreaterThan(0)
-            .WithMessage("Expiry hours must be greater than 0.")
-            .LessThanOrEqualTo(8760)
-            .WithMessage("Expiry hours cannot exceed 8760 (1 year).");
+            .WithMessage("Expiry months must be greater than 0.")
+            .LessThanOrEqualTo(24)
+            .WithMessage("Expiry months cannot exceed 24 (2 years).");
     }
 }

@@ -367,3 +367,6 @@ FodyWeavers.xsd
 
 # Environment-specific settings (may contain secrets)
 appsettings.Development.json
+
+# Agent/tool workspace files
+.hermes/

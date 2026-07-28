@@ -26,19 +26,19 @@
 }
 
 .toast-success {
-  background: linear-gradient(135deg, #16a34a, #15803d);
+  background: linear-gradient(135deg, var(--color-success, #16a34a), var(--color-success-dark, #15803d));
 }
 
 .toast-error {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  background: linear-gradient(135deg, var(--color-danger, #dc2626), var(--color-danger-dark, #b91c1c));
 }
 
 .toast-warning {
-  background: linear-gradient(135deg, #d97706, #b45309);
+  background: linear-gradient(135deg, var(--color-warning, #d97706), var(--color-warning-dark, #b45309));
 }
 
 .toast-info {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, var(--brand-gradient-start, #1888CC), var(--brand-gradient-end, #0FB3A5));
 }
 
 .toast-icon {

@@ -1,0 +1,98 @@
+<div class="filters-bar">
+  <!-- Unified Search + Controls Row -->
+  <div class="filters-unified-row">
+    <!-- Search Input with colored left border -->
+    <div class="filters-search-wrap">
+      <i class="pi pi-search filters-search-icon" aria-hidden="true"></i>
+      <input
+        type="text"
+        [ngModel]="searchTerm"
+        (ngModelChange)="onSearchInput($event)"
+        placeholder="Search patient name, submission code, or symptoms..."
+        class="filters-search-input"
+        aria-label="Search submissions" />
+
+      @if (searchTerm) {
+        <button
+          type="button"
+          (click)="onClearSearch()"
+          class="filters-clear-btn"
+          title="Clear search"
+          aria-label="Clear search text">
+          <i class="pi pi-times"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Sort & View Toggle Group -->
+    @if (mode === 'archive') {
+      <div class="filters-controls-group">
+        <!-- Sort Select -->
+        <div class="filters-sort-wrap">
+          <i class="pi pi-sort-alt filters-sort-icon"></i>
+          <select
+            [ngModel]="sortOption"
+            (ngModelChange)="onSortSelect($event)"
+            class="filters-sort-select"
+            aria-label="Sort submissions">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="name">Patient Name (A-Z)</option>
+            <option value="pain">Pain Regions (High to Low)</option>
+          </select>
+        </div>
+
+        <!-- View Toggle -->
+        <div class="filters-view-group" role="group" aria-label="View mode toggle">
+          <button
+            type="button"
+            class="filters-view-btn"
+            [class.active]="viewMode === 'cards'"
+            (click)="onViewModeToggle('cards')"
+            title="Card Grid View"
+            aria-label="Switch to Card Grid View">
+            <i class="pi pi-th-large"></i>
+          </button>
+          <button
+            type="button"
+            class="filters-view-btn"
+            [class.active]="viewMode === 'table'"
+            (click)="onViewModeToggle('table')"
+            title="Compact Table View"
+            aria-label="Switch to Table View">
+            <i class="pi pi-list"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Status Filter Chips -->
+  <div class="filters-chips-row">
+    <div class="filters-chips-scroll">
+      @for (opt of statusOptions; track opt.label) {
+        <button
+          type="button"
+          class="filters-chip"
+          [class.active]="selectedStatus === opt.value"
+          (click)="onStatusSelect(opt.value)">
+          <span>{{ opt.label }}</span>
+          @if (opt.count !== undefined) {
+            <span class="filters-chip-count">{{ opt.count }}</span>
+          }
+        </button>
+      }
+    </div>
+
+    @if (searchTerm || selectedStatus !== null) {
+      <button
+        type="button"
+        (click)="clearFilters.emit()"
+        class="filters-clear-chip"
+        title="Clear all active filters">
+        <i class="pi pi-filter-slash"></i>
+        <span>Reset</span>
+      </button>
+    }
+  </div>
+</div>

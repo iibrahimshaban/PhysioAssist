@@ -7,15 +7,12 @@ namespace PhysioAssist.Api.Shared.Interfaces.Common;
 
 public interface IUnitOfWork 
 {
-    public IBaseRepository<TEntity> Repository<TEntity>() where TEntity : class;
-
     IScheduleSlotRepository ScheduleSlots { get; }
-
     IWorkingScheduleRepository WorkingSchedules { get; }
-
     IWorkingScheduleDayRepository WorkingScheduleDays { get; }
     ITreatmentSchedulePlanRepository TreatmentSchedulePlans { get; }
+    IGuestRepository Guests { get; }
 
-    Task SaveAsync(CancellationToken cancellationToken= default);
+    Task SaveAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
 }

@@ -1,0 +1,52 @@
+<button
+  type="button"
+  (click)="selected.emit(submission)"
+  class="submission-row">
+
+  <!-- 4px Left Accent Border (status) -->
+  <div class="row-accent" [ngClass]="getStatusAccentClass(submission.status)"></div>
+
+  <div class="row-inner">
+    <!-- Avatar with gradient border ring -->
+    <div class="row-avatar-ring">
+      <div
+        class="row-avatar"
+        [style.background]="getAvatarGradient(submission.patientName, submission.id)">
+        {{ getInitials(submission.patientName) }}
+      </div>
+    </div>
+
+    <!-- LEFT zone: identity + details (for reading) -->
+    <div class="row-body">
+      <span class="row-name">{{ getDisplayName(submission) }}</span>
+      @if (submission.shortCode) {
+        <span class="row-code">{{ getShortCodeDisplay(submission.shortCode) }}</span>
+      }
+      <div class="row-meta">
+        <span class="row-meta-item">
+          <i class="pi pi-clock"></i>
+          {{ timeAgo(submission.submittedAt) }}
+        </span>
+        <span class="row-meta-item">
+          <i class="pi pi-heart"></i>
+          {{ submission.painRegionCount }} pain {{ submission.painRegionCount === 1 ? 'region' : 'regions' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- RIGHT zone: status + action (for scanning) -->
+    <div class="row-aside">
+      <span class="status-pill" [ngClass]="getStatusPillClass(submission.status)">
+        <span class="status-dot" [ngClass]="getStatusDotClass(submission.status)"></span>
+        {{ getQueueStatusLabel(submission.status) }}
+      </span>
+      <div
+        class="row-action-circle"
+        role="button"
+        tabindex="-1"
+        aria-label="View submission details">
+        <i class="pi pi-chevron-right"></i>
+      </div>
+    </div>
+  </div>
+</button>

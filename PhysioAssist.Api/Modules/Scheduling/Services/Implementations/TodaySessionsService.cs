@@ -11,7 +11,7 @@ public class TodaySessionsQueryService(
     private static readonly TimeSpan EgyptOffset = TimeSpan.FromHours(3);
 
     public async Task<Result<TodaySessionsOverviewDto>> GetTodaySessionsAsync(
-        Guid doctorId, CancellationToken cancellationToken = default)
+     Guid doctorId, CancellationToken cancellationToken = default)
     {
         var nowUtc = DateTimeOffset.UtcNow;
         var today = DateOnly.FromDateTime(nowUtc.ToOffset(EgyptOffset).Date);
@@ -32,10 +32,29 @@ public class TodaySessionsQueryService(
             return Result.Success(new TodaySessionsOverviewDto { Date = today });
 
         var slotIds = slots.Select(s => s.Id).ToList();
-        var patientIds = slots.Select(s => s.PatientId).Distinct().ToList();
+
+        // Only real patients go to the cross-module patient lookup now.
+        var patientIds = slots
+            .Where(s => s.PatientId.HasValue)
+            .Select(s => s.PatientId!.Value)
+            .Distinct()
+            .ToList();
+
+        // Guests are resolved locally — no cross-module call needed, same
+        // reasoning as GuestRepository: Guest lives inside Scheduling itself.
+        var guestIds = slots
+            .Where(s => s.GuestId.HasValue)
+            .Select(s => s.GuestId!.Value)
+            .Distinct()
+            .ToList();
 
         var sessionsBySlot = await sessionLookupService.GetSessionsByScheduleSlotIdsAsync(slotIds, cancellationToken);
+
         var patientsById = await patientLookupService.GetPatientsByIdsAsync(patientIds, cancellationToken);
+
+        var guestsById = await context.Set<Guest>()
+            .Where(g => guestIds.Contains(g.Id))
+            .ToDictionaryAsync(g => g.Id, cancellationToken);
 
         var inProgress = new List<TodaySessionCardDto>();
         var upNext = new List<TodaySessionCardDto>();
@@ -46,7 +65,24 @@ public class TodaySessionsQueryService(
         foreach (var slot in slots)
         {
             sessionsBySlot.TryGetValue(slot.Id, out var session);
-            patientsById.TryGetValue(slot.PatientId, out var patient);
+
+            string displayName;
+            string? note = null;
+
+            if (slot.PatientId is { } patientId && patientsById.TryGetValue(patientId, out var patient))
+            {
+                displayName = patient?.FullName ?? "Unknown Patient";
+                note = patient?.CaseNotes;
+            }
+            else if (slot.GuestId is { } guestId && guestsById.TryGetValue(guestId, out var guest))
+            {
+                displayName = guest.FullName;
+                // Guests carry no case notes — nothing to fall back to here.
+            }
+            else
+            {
+                displayName = "Unknown";
+            }
 
             var lane = ResolveLane(slot, session?.Status, nowUtc);
 
@@ -55,10 +91,10 @@ public class TodaySessionsQueryService(
                 SlotId = slot.Id,
                 SessionId = session?.Id,
                 PatientId = slot.PatientId,
-                PatientName = patient?.FullName ?? "Unknown Patient",
+                PatientName = displayName,
                 SlotStart = slot.SlotStart,
                 SlotEnd = slot.SlotEnd,
-                Note = patient?.CaseNotes,
+                Note = note,
                 Lane = lane
             };
 

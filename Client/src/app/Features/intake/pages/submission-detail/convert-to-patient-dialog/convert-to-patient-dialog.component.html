@@ -1,0 +1,91 @@
+<p-dialog
+  [visible]="visible"
+  (visibleChange)="!$event && cancelDialog.emit()"
+  [modal]="true"
+  [style]="{ width: 'min(500px, calc(100vw - 2rem))' }"
+  [draggable]="false"
+  [closable]="true"
+  aria-labelledby="convert-dialog-header">
+
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-[var(--color-primary,#1a7fd4)] text-white flex items-center justify-center shadow-sm shrink-0">
+        <i class="pi pi-user-plus text-base"></i>
+      </div>
+      <div>
+        <h3 id="convert-dialog-header" class="font-bold text-base m-0 text-[var(--color-text-primary,#0f172a)]">
+          Convert to Patient
+        </h3>
+        <p class="text-xs text-[var(--color-text-secondary,#64748b)] m-0">
+          Create an active patient profile from this intake submission
+        </p>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="space-y-4 py-1">
+    <div class="p-3.5 rounded-xl bg-[var(--color-primary-soft,#eff6ff)] border border-[var(--color-info-border,#bfdbfe)] text-xs text-[var(--color-text-primary,#0f172a)] flex items-start gap-2.5">
+      <i class="pi pi-info-circle text-[var(--color-primary,#1a7fd4)] text-sm mt-0.5 shrink-0"></i>
+      <span>
+        Converting this submission will create a new patient record in the system using the pre-visit intake data provided.
+      </span>
+    </div>
+
+    <!-- Details Card -->
+    <div class="rounded-xl border border-[var(--color-border,#e2e8f0)] overflow-hidden bg-[var(--color-surface,#ffffff)] shadow-xs">
+      <div class="bg-[var(--color-page-bg,#f8fafc)] px-4 py-2.5 border-b border-[var(--color-border,#e2e8f0)] flex items-center justify-between">
+        <span class="text-xs font-bold text-[var(--color-text-secondary,#64748b)] uppercase tracking-wider">
+          Patient Profile Summary
+        </span>
+        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+          Ready to Import
+        </span>
+      </div>
+
+      <div class="p-4 space-y-3">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-xs font-semibold text-[var(--color-text-secondary,#64748b)] uppercase tracking-wide">Full Name</span>
+          <span class="font-bold text-[var(--color-text-primary,#0f172a)] capitalize">
+            {{ patientName || 'Unnamed Patient' }}
+          </span>
+        </div>
+
+        @if (patientEmail) {
+          <div class="flex items-center justify-between text-sm pt-2 border-t border-[var(--color-border,#e2e8f0)]">
+            <span class="text-xs font-semibold text-[var(--color-text-secondary,#64748b)] uppercase tracking-wide">Email</span>
+            <span class="font-medium text-[var(--color-text-primary,#0f172a)]">{{ patientEmail }}</span>
+          </div>
+        }
+
+        @if (patientPhone) {
+          <div class="flex items-center justify-between text-sm pt-2 border-t border-[var(--color-border,#e2e8f0)]">
+            <span class="text-xs font-semibold text-[var(--color-text-secondary,#64748b)] uppercase tracking-wide">Phone</span>
+            <span class="font-medium text-[var(--color-text-primary,#0f172a)]">{{ patientPhone }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex items-center justify-end gap-2 pt-1">
+      <button
+        type="button"
+        (click)="cancelDialog.emit()"
+        class="px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary,#64748b)] hover:text-[var(--color-text-primary,#0f172a)] bg-white hover:bg-[var(--color-page-bg,#f8fafc)] border border-[var(--color-border,#e2e8f0)] rounded-xl transition-all shadow-xs"
+        aria-label="Cancel conversion">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        (click)="confirmDialog.emit()"
+        [disabled]="updating"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[var(--color-primary,#1a7fd4)] hover:bg-[var(--color-primary-dark,#0e5fa3)] disabled:opacity-60 rounded-xl transition-all shadow-sm"
+        aria-label="Confirm convert to patient">
+        <i class="pi text-xs" [ngClass]="updating ? 'pi-spin pi-spinner' : 'pi-user-plus'"></i>
+        Confirm &amp; Create Patient
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>

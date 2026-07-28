@@ -82,5 +82,15 @@
             "Appointment.RangeTooLarge",
             $"The requested range cannot exceed {maxDays} days.",
             StatusCodes.Status400BadRequest);
+
+        public static Error MissingOwner => new(
+            "Appointment.MissingOwner",
+            "Appointment must reference either a Patient or a Guest.",
+            StatusCodes.Status400BadRequest);
+
+        public static Error BothOwnersSpecified => new(
+            "Appointment.BothOwnersSpecified",
+            "Appointment cannot reference both a Patient and a Guest.",
+            StatusCodes.Status400BadRequest);
     }
 }

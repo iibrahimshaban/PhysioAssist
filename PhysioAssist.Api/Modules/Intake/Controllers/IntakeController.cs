@@ -112,6 +112,56 @@ public class IntakeController(IIntakeService intakeService) : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
 
+    [HttpPost("form-schemas/default")]
+    [HasPermission(Permissions.IntakeManageForms)]
+    public async Task<IActionResult> GenerateDefaultFormSchema(CancellationToken cancellationToken)
+    {
+        var doctorId = Guid.Parse(User.GetUserId()!);
+        var result = await _intakeService.GenerateDefaultFormSchemaAsync(doctorId, cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+
+    [HttpPost("form-schemas/{schemaId:guid}/duplicate")]
+    [HasPermission(Permissions.IntakeManageForms)]
+    public async Task<IActionResult> DuplicateFormSchema(Guid schemaId, CancellationToken cancellationToken)
+    {
+        var doctorId = Guid.Parse(User.GetUserId()!);
+        var result = await _intakeService.DuplicateFormSchemaAsync(schemaId, doctorId, cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+
+    [HttpDelete("form-schemas/{schemaId:guid}")]
+    [HasPermission(Permissions.IntakeManageForms)]
+    public async Task<IActionResult> DeleteFormSchema(Guid schemaId, CancellationToken cancellationToken)
+    {
+        var doctorId = Guid.Parse(User.GetUserId()!);
+        var result = await _intakeService.DeleteFormSchemaAsync(schemaId, doctorId, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+
+    [HttpPost("form-schemas/{schemaId:guid}/archive")]
+    [HasPermission(Permissions.IntakeManageForms)]
+    public async Task<IActionResult> ArchiveFormSchema(Guid schemaId, CancellationToken cancellationToken)
+    {
+        var doctorId = Guid.Parse(User.GetUserId()!);
+        var result = await _intakeService.ArchiveFormSchemaAsync(schemaId, doctorId, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+
+    [HttpPost("form-schemas/{schemaId:guid}/unarchive")]
+    [HasPermission(Permissions.IntakeManageForms)]
+    public async Task<IActionResult> UnarchiveFormSchema(Guid schemaId, CancellationToken cancellationToken)
+    {
+        var doctorId = Guid.Parse(User.GetUserId()!);
+        var result = await _intakeService.UnarchiveFormSchemaAsync(schemaId, doctorId, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+
     [HttpPost("submissions/{id:guid}/convert-to-patient")]
     [HasPermission(Permissions.IntakeConvert)]
     public async Task<IActionResult> ConvertToPatient(Guid id, [FromBody] ConvertIntakeToPatientRequest request, CancellationToken cancellationToken)

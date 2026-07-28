@@ -5,6 +5,7 @@ using Microsoft.SemanticKernel.Connectors.OpenAI;
 using PhysioAssist.Api.Modules.Scheduling.helpers;
 using PhysioAssist.Api.Modules.Scheduling.Plugins;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
+using PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations.PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces;
 using PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
@@ -18,6 +19,7 @@ public static class DependencyInjection
     {
         services
             .AddScoped<IScheduleSlotRepository, ScheduleSlotRepository>()
+            .AddScoped<IGuestRepository,GuestRepository>()
             .AddScoped<IAppointmentContactResolver, AppointmentContactResolver>()
             .AddScoped<IWorkingScheduleRepository, WorkingScheduleRepository>()
             .AddScoped<IWorkingScheduleDayRepository, WorkingScheduleDayRepository>()
@@ -26,7 +28,9 @@ public static class DependencyInjection
             .AddScoped<IWorkingScheduleService, WorkingScheduleService>()
             .AddScoped<IScheduleSlotQueryService, ScheduleSlotQueryService>()
             .AddScoped<IPatientSessionSchedulingService, PatientSessionSchedulingService>()
-            .AddScoped<ITodaySessionsService, TodaySessionsQueryService>();
+            .AddScoped<ITodaySessionsService, TodaySessionsQueryService>()
+            .AddScoped<IGuestService, GuestService>();
+            
 
         services.AddScoped<IPatientSessionPackageAdjustmentService, PatientSessionPackageAdjustmentService>();
         services.AddScoped<IPackageSchedulingStatusService, PackageSchedulingStatusService>();

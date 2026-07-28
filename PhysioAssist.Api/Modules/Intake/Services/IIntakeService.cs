@@ -16,6 +16,11 @@ public interface IIntakeService
     Task<Result<FormSchemaResponse>> GetFormSchemaByIdAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<FormSchemaSummaryResponse>>> GetFormSchemasByDoctorAsync(Guid doctorId, CancellationToken cancellationToken = default);
     Task<Result<FormSchemaResponse>> GetDefaultFormSchemaAsync(Guid doctorId, CancellationToken cancellationToken = default);
+    Task<Result<FormSchemaResponse>> GenerateDefaultFormSchemaAsync(Guid doctorId, CancellationToken cancellationToken = default);
+    Task<Result<FormSchemaResponse>> DuplicateFormSchemaAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default);
+    Task<Result> DeleteFormSchemaAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default);
+    Task<Result> ArchiveFormSchemaAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default);
+    Task<Result> UnarchiveFormSchemaAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default);
     Task<Result<GenerateIntakeQrLinkResponse>> GenerateIntakeQrLinkAsync(Guid schemaId, GenerateIntakeQrLinkRequest request, Guid doctorId, CancellationToken cancellationToken = default);
 
     // Public Anonymous Access

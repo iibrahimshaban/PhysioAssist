@@ -1,5 +1,5 @@
 export interface GenerateIntakeQrLinkRequest {
-  expiryHours: number;
+  expiryMonths: number;
 }
 
 export interface GenerateIntakeQrLinkResponse {
@@ -14,11 +14,13 @@ export interface PublicIntakeFormResponse {
   formDescription?: string;
   schemaJson: string;
   version: number;
-  showPainMap:boolean;
+  showPainMap: boolean;
+  clinicName: string;
 }
 
 export interface PublicIntakeSubmissionResponse {
   submissionId: string;
+  shortCode: string;
   submittedAt: string;
   message: string;
 }

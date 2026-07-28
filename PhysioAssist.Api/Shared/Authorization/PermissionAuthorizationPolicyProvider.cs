@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
+using System.Collections.Concurrent;
 
 namespace PhysioAssist.Api.Shared.Authorization;
 
 public class PermissionAuthorizationPolicyProvider(IOptions<AuthorizationOptions> options)
     : DefaultAuthorizationPolicyProvider(options)
 {
-    private readonly AuthorizationOptions _authorizationOptions = options.Value;
+    private readonly ConcurrentDictionary<string, AuthorizationPolicy> _addedPolicies = new();
     public override async Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
     {
         var policy = await base.GetPolicyAsync(policyName);
@@ -14,12 +15,9 @@ public class PermissionAuthorizationPolicyProvider(IOptions<AuthorizationOptions
         if (policy is not null)
             return policy;
 
-        var permissionPolicy = new AuthorizationPolicyBuilder()
-            .AddRequirements(new PermissionRequirement(policyName))
-            .Build();
-
-        _authorizationOptions.AddPolicy(policyName, permissionPolicy);
-
-        return permissionPolicy;
+        return _addedPolicies.GetOrAdd(policyName, _ =>
+            new AuthorizationPolicyBuilder()
+                .AddRequirements(new PermissionRequirement(policyName))
+                .Build());
     }
 }

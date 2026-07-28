@@ -1,0 +1,30 @@
+:host { display: contents; }
+
+.confirm-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 60; }
+
+.confirm-dialog {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: min(360px, calc(100vw - 32px)); background: var(--color-surface); border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.2); z-index: 70; padding: 20px;
+  display: flex; flex-direction: column; gap: 12px; animation: popIn 0.15s ease-out;
+}
+@keyframes popIn { from { opacity: 0; transform: translate(-50%, -48%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+
+.confirm-dialog__title { margin: 0; font-size: 16px; font-weight: 700; color: var(--color-text-primary); }
+.confirm-dialog__message { margin: 0; font-size: 13.5px; color: var(--color-text-secondary); line-height: 1.4; }
+.confirm-dialog__actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+
+.confirm-btn {
+  height: 38px; padding: 0 16px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);
+  background: var(--color-surface); font-size: 13.5px; font-weight: 600; cursor: pointer; color: var(--color-text-primary);
+  &:hover { background: var(--color-bg-page); }
+  &--danger { background: var(--color-danger); color: #fff; border-color: var(--color-danger); &:hover { opacity: 0.9; } }
+  &--warning { background: var(--color-warning); color: #fff; border-color: var(--color-warning); &:hover { opacity: 0.9; } }
+  &--success { background: var(--color-success); color: #fff; border-color: var(--color-success); &:hover { opacity: 0.9; } }
+}
+
+@media (max-width: 420px) {
+  .confirm-dialog { padding: 16px; }
+  .confirm-dialog__actions { flex-direction: column-reverse; }
+  .confirm-btn { width: 100%; }
+}

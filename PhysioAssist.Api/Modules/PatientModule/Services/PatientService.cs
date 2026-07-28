@@ -1,12 +1,13 @@
 ﻿using Mapster;
 using MapsterMapper;
+using PhysioAssist.Api.Modules.Intake.Helpers;
+using PhysioAssist.Api.Modules.Intake.QueryServices;
 using PhysioAssist.Api.Modules.PatientModule.DTOs;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Errors;
 using PhysioAssist.Api.Modules.PatientModule.Repositories;
-using PhysioAssist.Api.Persistence;
-using System.Security.Claims;
-using PhysioAssist.Api.Shared.Interfaces.Common;
+using PhysioAssist.Api.Modules.PatientModule.Helpers;
+
 
 namespace PhysioAssist.Api.Modules.PatientModule.Services
 {
@@ -19,6 +20,10 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         private readonly ApplicationDbContext _context;
         private readonly IPatientOverviewIntakeQueryService _overviewIntakeQueryService;
         private readonly IPatientOverviewIntakeCommandService _overviewIntakeCommandService;
+        private readonly IIntakeCreationQueryService _intakeCreationQueryService;
+        private readonly IIntakeConversionMarkerService _intakeConversionMarkerService;
+        private readonly IPatientQueryService _patientQueryService;
+
 
 
         public PatientService(
@@ -29,15 +34,21 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             IScheduleSlotQueryService scheduleSlotQueryService,
             IPatientOverviewIntakeQueryService overviewIntakeQueryService,
             IPatientOverviewIntakeCommandService overviewIntakeCommandService,
+            IIntakeCreationQueryService intakeCreationQueryService,
+            IIntakeConversionMarkerService intakeConversionMarkerService,
+            IPatientQueryService patientQueryService,
             ApplicationDbContext context,
             IHttpContextAccessor httpContextAccessor)
         {
             _patientRepo = patientRepo;
             _unitOfWork = unitOfWork;
+            _patientQueryService = patientQueryService;
             _doctorPatientRepo = doctorPatientRepo;
             _scheduleSlotQueryService = scheduleSlotQueryService;
             _overviewIntakeQueryService = overviewIntakeQueryService;
             _overviewIntakeCommandService = overviewIntakeCommandService;
+            _intakeCreationQueryService = intakeCreationQueryService;
+            _intakeConversionMarkerService = intakeConversionMarkerService;
             _context = context;
         }
 
@@ -224,6 +235,68 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         {
             return await _overviewIntakeCommandService.UpdateOverviewDataAsync(
                 patientId, formSubmissionData, painPointsData, ct);
+        }
+
+        public async Task<Result<Guid>> CreatePatientFromDynamicFormAsync(
+    Guid formSchemaId, string formSubmissionData, string? painPointsData, Guid doctorId, CancellationToken ct = default)
+        {
+            // Step 1 — extract fields using Patient module's own helper (no DB writes yet, no dependency on Intake's DTOs)
+            using var submissionDoc = PatientIntakeExtractionHelper.ParseSubmissionJson(formSubmissionData);
+            if (submissionDoc is null)
+                return Result.Failure<Guid>(PatientErrors.InvalidIntakeSubmission);
+
+            var root = submissionDoc.RootElement;
+
+            var fullName = PatientIntakeExtractionHelper.ExtractAnswerString(root, "question_default_full_name", "text");
+            var email = PatientIntakeExtractionHelper.ExtractAnswerString(root, "question_default_email", "email");
+            var phone = PatientIntakeExtractionHelper.ExtractAnswerString(root, "question_default_phone", "phone");
+            var gender = PatientIntakeExtractionHelper.ExtractAnswerString(root, "question_default_gender", "radio");
+            DateTime? dateOfBirth = PatientIntakeExtractionHelper.ExtractAnswerDate(root, "question_default_dob", "date");
+            var job = PatientIntakeExtractionHelper.ExtractAnswerString(root, "question_default_job", "text");
+            var freeTime = PatientIntakeExtractionHelper.ExtractAnswerString(root, "question_default_free_time", "text");
+            var patientCategory = PatientIntakeExtractionHelper.ExtractPatientCategory(painPointsData);
+            var caseNotes = PatientIntakeExtractionHelper.ExtractChiefComplaint(painPointsData);
+
+            if (string.IsNullOrWhiteSpace(fullName))
+                return Result.Failure<Guid>(PatientErrors.InvalidIntakeSubmission);
+
+            // Step 2 — create the patient FIRST, via the existing, already-transactional query service.
+            // If this fails (duplicate email, etc.), we return immediately — nothing has touched
+            // PreVisitIntake at all yet, so there is no orphaned intake row possible from this path.
+            var createPatientResult = await _patientQueryService.CreatePatientFromIntakeAsync(
+                new PhysioAssist.Api.Shared.Dtos.Patient.CreatePatientFromIntakeRequest(
+                    fullName,
+                    email,
+                    phone,
+                    gender,
+                    dateOfBirth ?? default,
+                    job,
+                    doctorId,
+                    patientCategory,
+                    freeTime,
+                    caseNotes),
+                ct);
+
+            if (createPatientResult.IsFailure)
+                return Result.Failure<Guid>(createPatientResult.Error);
+
+            var patientId = createPatientResult.Value;
+
+            // Step 3 — only now, after the patient exists, create the intake row via the exposed Intake function
+            var createIntakeResult = await _intakeCreationQueryService.CreateDirectIntakeAsync(
+                formSchemaId, formSubmissionData, painPointsData, doctorId, ct);
+
+            if (createIntakeResult.IsFailure)
+                return Result.Failure<Guid>(createIntakeResult.Error);
+
+            var intakeId = createIntakeResult.Value;
+
+            // Step 4 — wire the intake to the patient via the exposed Intake function
+            var markResult = await _intakeConversionMarkerService.MarkIntakeConvertedAsync(intakeId, patientId, doctorId, ct);
+            if (markResult.IsFailure)
+                return Result.Failure<Guid>(markResult.Error);
+
+            return Result.Success(patientId);
         }
     }
 }

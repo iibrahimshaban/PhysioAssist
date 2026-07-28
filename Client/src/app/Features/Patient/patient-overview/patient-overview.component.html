@@ -78,7 +78,6 @@
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 class="mb-4 text-sm font-bold uppercase tracking-wide text-slate-600">Notes for the Doctor</h2>
 
-          <!-- Read-only view -->
           <div *ngIf="!isEditMode()">
             <div *ngIf="doctorInfo()">
               <div *ngFor="let key of objectKeys(doctorInfo())" class="mb-4 last:mb-0">

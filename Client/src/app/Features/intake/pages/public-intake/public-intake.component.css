@@ -1,0 +1,321 @@
+:host {
+  display: block;
+  min-width: 0;
+  overflow-x: hidden;
+  background: var(--color-page-bg);
+  color: var(--color-text-primary);
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--intake-color-border);
+}
+
+header div {
+  min-width: 0;
+}
+
+.clinic-name {
+  font-size: clamp(1.25rem, 1rem + 0.8vw, 1.75rem);
+  font-weight: 800;
+  color: var(--intake-color-text-primary);
+  line-height: 1.2;
+}
+
+.powered-by {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--intake-color-text-secondary);
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.powered-by svg {
+  color: var(--brand-gradient-start);
+  flex-shrink: 0;
+}
+
+.page-title {
+  font-size: clamp(1.5rem, 1.1rem + 1vw, 2rem);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 0.925rem;
+  color: var(--intake-color-text-secondary);
+  margin-top: 0.35rem;
+}
+
+@media (max-width: 480px) {
+  .page-title { font-size: 1.25rem; }
+  .page-subtitle { font-size: 0.85rem; }
+}
+
+.app-dynamic-form-renderer,
+.app-body-pain-map {
+  width: 100%;
+}
+
+.public-intake-content {
+  max-width: 45rem;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 2rem;
+}
+
+.public-intake-panel {
+  background: var(--intake-color-surface);
+  border: 1px solid var(--intake-color-border);
+  border-radius: 1.5rem;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+  padding: 1.5rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.public-intake-panel + .public-intake-panel {
+  margin-top: 1.25rem;
+}
+
+.public-intake-banner {
+  margin-bottom: 1.5rem;
+}
+
+.public-intake-title {
+  margin-bottom: 0.5rem;
+}
+
+.public-intake-subtitle {
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.public-intake-error,
+.public-intake-success {
+  max-width: 44rem;
+  margin: 1.5rem auto;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 10px rgba(15, 23, 42, 0.06);
+}
+
+.public-intake-error {
+  border: 1px solid var(--intake-color-danger-border);
+  background: var(--intake-color-surface);
+}
+
+.public-intake-success {
+  border: 1px solid var(--intake-color-border);
+  background: var(--intake-color-surface);
+}
+
+.public-intake-error h2,
+.public-intake-success h2 {
+  font-size: 1.25rem;
+}
+
+.public-intake-success svg {
+  width: 4rem;
+  height: 4rem;
+}
+
+.public-intake-summary {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: var(--intake-color-page-bg);
+  border: 1px solid var(--intake-color-border);
+}
+
+.public-intake-summary p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.public-intake-form-group {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.public-intake-form-group .intake-field-label {
+  margin-bottom: 0.4rem;
+}
+
+.public-intake-pain-section {
+  margin-top: 2rem;
+}
+
+.public-intake-submit {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--intake-color-border);
+}
+
+.public-intake-submit-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--intake-color-text-secondary);
+}
+
+.public-intake-submit-note i {
+  font-size: 0.8rem;
+}
+
+.public-intake-submit-button {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .public-intake-submit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .public-intake-submit-button {
+    width: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .public-intake-content {
+    padding: 1rem 0.85rem 1.85rem;
+  }
+}
+
+/* ── Progress Bar ──────────────────────────────────────────── */
+.progress-bar-container {
+  padding: 1rem 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 6px;
+  background: var(--color-page-bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--brand-gradient);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0;
+}
+
+/* ── Confirmation Dialog ───────────────────────────────────── */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.confirm-dialog {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  max-width: 28rem;
+  width: 100%;
+  padding: 2rem;
+  text-align: center;
+  animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.confirm-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.confirm-icon i {
+  font-size: 1.5rem;
+  color: var(--color-primary);
+}
+
+.confirm-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.confirm-message {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 1.25rem;
+  line-height: 1.5;
+}
+
+.confirm-details {
+  background: var(--color-page-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: 0.875rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.confirm-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-primary);
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.confirm-actions button {
+  flex: 1;
+}
+
+@media (max-width: 480px) {
+  .confirm-dialog {
+    padding: 1.5rem;
+  }
+
+  .confirm-actions {
+    flex-direction: column;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

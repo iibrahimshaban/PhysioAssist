@@ -1,9 +1,14 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
-import { Appointment, shortId } from '../schedule.models';
+import { Component, ChangeDetectionStrategy, input, output, inject, computed, signal } from '@angular/core';
+import { Appointment } from '../schedule.models';
+import { OwnerDirectoryService } from '../../../Core/Services/owner-directory.service';
+import { ConfirmDialogComponent, ConfirmDialogTone } from '../ConfirmDialogComponent/ConfirmDialogComponent';
+
+type PendingCardAction = { kind: 'complete' | 'cancel'; title: string; message: string; tone: ConfirmDialogTone } | null;
 
 @Component({
   selector: 'app-appointment-card',
   standalone: true,
+  imports: [ConfirmDialogComponent],
   templateUrl: './appointment-card.component.html',
   styleUrl: './appointment-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -15,12 +20,15 @@ export class AppointmentCardComponent {
   dragging = input<boolean>(false);
 
   cardClicked = output<Appointment>();
-  dragStarted = output<{ appointment: Appointment; clientY: number ; clientX:number}>();
+  dragStarted = output<{ appointment: Appointment; clientY: number; clientX: number }>();
   resizeStarted = output<{ appointment: Appointment; clientY: number }>();
   quickComplete = output<Appointment>();
   quickCancel = output<Appointment>();
 
-  protected readonly shortId = shortId;
+  private readonly ownerDirectory = inject(OwnerDirectoryService);
+  protected readonly owner = computed(() => this.ownerDirectory.resolveOwner(this.appointment()));
+
+  protected readonly pendingAction = signal<PendingCardAction>(null);
 
   protected get durationLabel(): string {
     const minutes = (this.appointment().slotEnd.getTime() - this.appointment().slotStart.getTime()) / 60000;
@@ -35,15 +43,14 @@ export class AppointmentCardComponent {
     this.cardClicked.emit(this.appointment());
   }
 
-// Only this method changes — everything else in the file stays as-is.
-protected onDragHandlePointerDown(event: PointerEvent): void {
-  event.stopPropagation();
-  this.dragStarted.emit({
-    appointment: this.appointment(),
-    clientY: event.clientY,
-    clientX: event.clientX // added — needed for horizontal (day-to-day) drag resolution
-  });
-}
+  protected onDragHandlePointerDown(event: PointerEvent): void {
+    event.stopPropagation();
+    this.dragStarted.emit({
+      appointment: this.appointment(),
+      clientY: event.clientY,
+      clientX: event.clientX
+    });
+  }
 
   protected onResizeHandlePointerDown(event: PointerEvent): void {
     event.stopPropagation();
@@ -52,11 +59,32 @@ protected onDragHandlePointerDown(event: PointerEvent): void {
 
   protected onQuickComplete(event: Event): void {
     event.stopPropagation();
-    this.quickComplete.emit(this.appointment());
+    this.pendingAction.set({
+      kind: 'complete',
+      title: 'Complete appointment?',
+      message: `Mark ${this.owner().name}'s appointment as completed.`,
+      tone: 'success'
+    });
   }
 
   protected onQuickCancel(event: Event): void {
     event.stopPropagation();
-    this.quickCancel.emit(this.appointment());
+    this.pendingAction.set({
+      kind: 'cancel',
+      title: 'Cancel appointment?',
+      message: `This will cancel ${this.owner().name}'s appointment.`,
+      tone: 'danger'
+    });
+  }
+
+  protected onConfirmed(): void {
+    const action = this.pendingAction();
+    if (action?.kind === 'complete') this.quickComplete.emit(this.appointment());
+    if (action?.kind === 'cancel') this.quickCancel.emit(this.appointment());
+    this.pendingAction.set(null);
+  }
+
+  protected onCancelled(): void {
+    this.pendingAction.set(null);
   }
 }
