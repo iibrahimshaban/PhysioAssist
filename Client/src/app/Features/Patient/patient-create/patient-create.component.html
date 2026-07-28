@@ -26,17 +26,17 @@
     <div *ngIf="!isLoadingSchemas && availableSchemas.length > 0">
 
       <div class="mb-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-  <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Intake Form</label>
-  <p-select
-    [options]="availableSchemas"
-    optionLabel="name"
-    optionValue="id"
-    [(ngModel)]="selectedSchemaId"
-    (onChange)="onSchemaSelected()"
-    styleClass="w-full !rounded-xl !border-slate-200"
-    placeholder="Select an intake form">
-  </p-select>
-</div>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Intake Form</label>
+        <p-select
+          [options]="availableSchemas"
+          optionLabel="name"
+          optionValue="id"
+          [(ngModel)]="selectedSchemaId"
+          (onChange)="onSchemaSelected()"
+          styleClass="w-full !rounded-xl !border-slate-200"
+          placeholder="Select an intake form">
+        </p-select>
+      </div>
 
       <div *ngIf="isLoadingForm" class="py-16 text-center text-slate-400">
         <i class="pi pi-spin pi-spinner text-2xl"></i>
@@ -56,6 +56,11 @@
           [formSchemaVersion]="formSchemaVersion"
           (submissionChange)="onSubmissionChange($event)">
         </app-dynamic-form-renderer>
+
+        <app-body-pain-map
+          [showDoctorFields]="true"
+          (mapChange)="onPainMapChange($event)">
+        </app-body-pain-map>
 
         <div *ngIf="errorMessage" class="mt-4 rounded-xl bg-red-50 border border-red-100 p-3 text-sm text-red-600">
           {{ errorMessage }}

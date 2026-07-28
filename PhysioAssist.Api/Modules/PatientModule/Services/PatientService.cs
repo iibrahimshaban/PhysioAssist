@@ -227,24 +227,20 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         }
 
 
-        public async Task<Result> UpdatePatientOverviewSubmissionAsync(Guid patientId, string formSubmissionData, CancellationToken ct = default)
+        public async Task<Result> UpdatePatientOverviewSubmissionAsync(
+            Guid patientId,
+            string formSubmissionData,
+            string? painPointsData,
+            CancellationToken ct = default)
         {
-            return await _overviewIntakeCommandService.UpdateFormSubmissionDataAsync(patientId, formSubmissionData, ct);
+            return await _overviewIntakeCommandService.UpdateOverviewDataAsync(
+                patientId, formSubmissionData, painPointsData, ct);
         }
 
         public async Task<Result<Guid>> CreatePatientFromDynamicFormAsync(
     Guid formSchemaId, string formSubmissionData, string? painPointsData, Guid doctorId, CancellationToken ct = default)
         {
-            // Step 1 — create the intake row via the exposed Intake function (Intake module owns this write)
-            var createIntakeResult = await _intakeCreationQueryService.CreateDirectIntakeAsync(
-                formSchemaId, formSubmissionData, painPointsData, doctorId, ct);
-
-            if (createIntakeResult.IsFailure)
-                return Result.Failure<Guid>(createIntakeResult.Error);
-
-            var intakeId = createIntakeResult.Value;
-
-            // Step 2 — extract fields using Patient module's own helper (no dependency on Intake's DTOs)
+            // Step 1 — extract fields using Patient module's own helper (no DB writes yet, no dependency on Intake's DTOs)
             using var submissionDoc = PatientIntakeExtractionHelper.ParseSubmissionJson(formSubmissionData);
             if (submissionDoc is null)
                 return Result.Failure<Guid>(PatientErrors.InvalidIntakeSubmission);
@@ -264,8 +260,9 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             if (string.IsNullOrWhiteSpace(fullName))
                 return Result.Failure<Guid>(PatientErrors.InvalidIntakeSubmission);
 
-            // Step 3 — create the patient via the EXISTING, already-transactional query service
-            // (handles duplicate-email check, free-time parsing, DoctorPatient creation — not reimplemented here)
+            // Step 2 — create the patient FIRST, via the existing, already-transactional query service.
+            // If this fails (duplicate email, etc.), we return immediately — nothing has touched
+            // PreVisitIntake at all yet, so there is no orphaned intake row possible from this path.
             var createPatientResult = await _patientQueryService.CreatePatientFromIntakeAsync(
                 new PhysioAssist.Api.Shared.Dtos.Patient.CreatePatientFromIntakeRequest(
                     fullName,
@@ -285,7 +282,16 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
 
             var patientId = createPatientResult.Value;
 
-            // Step 4 — wire the intake to the new patient via the exposed Intake function
+            // Step 3 — only now, after the patient exists, create the intake row via the exposed Intake function
+            var createIntakeResult = await _intakeCreationQueryService.CreateDirectIntakeAsync(
+                formSchemaId, formSubmissionData, painPointsData, doctorId, ct);
+
+            if (createIntakeResult.IsFailure)
+                return Result.Failure<Guid>(createIntakeResult.Error);
+
+            var intakeId = createIntakeResult.Value;
+
+            // Step 4 — wire the intake to the patient via the exposed Intake function
             var markResult = await _intakeConversionMarkerService.MarkIntakeConvertedAsync(intakeId, patientId, doctorId, ct);
             if (markResult.IsFailure)
                 return Result.Failure<Guid>(markResult.Error);

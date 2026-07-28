@@ -23,8 +23,11 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         Task<Result<PatientOverviewResponse>> GetPatientOverviewAsync(Guid patientId, CancellationToken ct = default);
 
 
-        Task<Result> UpdatePatientOverviewSubmissionAsync(Guid patientId, string formSubmissionData, CancellationToken ct = default);
-
+        Task<Result> UpdatePatientOverviewSubmissionAsync(
+            Guid patientId,
+            string formSubmissionData,
+            string? painPointsData,
+            CancellationToken ct = default);
 
         Task<Result<Guid>> CreatePatientFromDynamicFormAsync(Guid formSchemaId, string formSubmissionData, string? painPointsData, Guid doctorId, CancellationToken ct = default);
     }

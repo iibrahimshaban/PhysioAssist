@@ -8,7 +8,11 @@ public class PatientOverviewIntakeCommandService(ApplicationDbContext context) :
 {
     private readonly ApplicationDbContext _context = context;
 
-    public async Task<Result> UpdateFormSubmissionDataAsync(Guid patientId, string formSubmissionData, CancellationToken ct = default)
+    public async Task<Result> UpdateOverviewDataAsync(
+        Guid patientId,
+        string formSubmissionData,
+        string? painPointsData,
+        CancellationToken ct = default)
     {
         var intake = await _context.PreVisitIntakes
             .Where(x => x.ConvertedToPatientId == patientId)
@@ -19,6 +23,11 @@ public class PatientOverviewIntakeCommandService(ApplicationDbContext context) :
             return Result.Failure(IntakeErrors.SubmissionNotFound);
 
         intake.FormSubmissionData = formSubmissionData;
+
+        // null means "leave pain points untouched" (e.g. a pure form-answer edit
+        // where the doctor didn't open/change the pain map at all)
+        if (painPointsData is not null)
+            intake.PainPointsData = painPointsData;
 
         await _context.SaveChangesAsync(ct);
 
