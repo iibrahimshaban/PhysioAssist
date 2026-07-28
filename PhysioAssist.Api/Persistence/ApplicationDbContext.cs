@@ -71,6 +71,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<WorkingScheduleDay> workingScheduleDays { get; set; }
     public DbSet<DoctorSchedulingPreference> DoctorSchedulingPreferences { get; set; }
     public DbSet<PatientSessionPackage> PatientSessionPackages { get; set; }
+    public DbSet<Guest> Guests { get; set; }
     //documentation 
     public DbSet<DocumentationSummary> DocumentationSummaries { get; set; }
     public DbSet<DocumentationTemplate> DocumentationTemplates { get; set; }

@@ -34,7 +34,7 @@
   @if (upcomingAppointment(); as next) {
     <div class="stat-card stat-card--highlight">
       <span class="stat-card__label">Upcoming Appointment</span>
-      <span class="stat-card__value stat-card__value--small">{{ formatTime(next.slotStart) }} · Patient {{ shortId(next.patientId) }}</span>
+      <!-- <span class="stat-card__value stat-card__value--small">{{ formatTime(next.slotStart) }} · Patient {{ shortId(next.patientId) }}</span> -->
     </div>
   }
   @if (nextAvailableSlot(); as slot) {

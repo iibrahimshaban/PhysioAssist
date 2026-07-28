@@ -4,14 +4,17 @@
   [class.appointment-card--completed]="appointment().status === 'Completed'"
   [class.appointment-card--cancelled]="appointment().status === 'Cancelled'"
   [class.appointment-card--noshow]="appointment().status === 'NoShow'"
+  [class.appointment-card--patient]="owner().kind === 'patient'"
+  [class.appointment-card--guest]="owner().kind === 'guest'"
   [class.appointment-card--dragging]="dragging()"
   [style.top.px]="top()"
   [style.height.px]="height()"
+  [title]="owner().name"
   (click)="onCardClick()"
   (pointerdown)="onDragHandlePointerDown($event)"
 >
   <div class="appointment-card__body">
-    <span class="appointment-card__name">Patient {{ shortId(appointment().patientId) }}</span>
+    <span class="appointment-card__name">{{ owner().name }}</span>
     <span class="appointment-card__meta">{{ timeLabel }} · {{ durationLabel }} · {{ appointment().status }}</span>
   </div>
 
@@ -24,3 +27,13 @@
 
   <div class="appointment-card__resize-handle" (pointerdown)="onResizeHandlePointerDown($event)"></div>
 </div>
+
+<app-confirm-dialog
+  [isOpen]="pendingAction() !== null"
+  [title]="pendingAction()?.title ?? ''"
+  [message]="pendingAction()?.message ?? ''"
+  [tone]="pendingAction()?.tone ?? 'default'"
+  confirmLabel="Yes"
+  (confirmed)="onConfirmed()"
+  (cancelled)="onCancelled()"
+/>
