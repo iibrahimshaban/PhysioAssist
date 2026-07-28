@@ -1,6 +1,4 @@
 import {
-  DaysOfWeekFlags,
-  PreferredTimeOfDay,
   SchedulingPriority,
   SlotCandidateDto,
 } from '../../Shared/Models/InitialReport.models';
@@ -13,8 +11,6 @@ export interface ReceptionistCreateSessionPackageRequest {
   sessionDuration: string; // TimeSpan -> "hh:mm:ss"
   sessionsPerWeek: number;
   minimumGapBetweenSessionsDays: number;
-  preferredTimeOfDay: PreferredTimeOfDay;
-  preferredDays: DaysOfWeekFlags;
   priority: SchedulingPriority;
   firstSessionSlot?: SlotCandidateDto;
 }
@@ -84,8 +80,6 @@ export interface PendingTreatmentPlanDto {
   sessionDurationMinutes: number;
   sessionsPerWeek: number;
   minimumGapBetweenSessionsDays: number;
-  preferredTimeOfDay: PreferredTimeOfDay;
-  preferredDays: DaysOfWeekFlags;
   priority: SchedulingPriority;
 }
  
@@ -102,8 +96,6 @@ export interface PatientSchedulingContextDto {
 export interface ConvertPlanToPackageRequest {
   sessionsPerWeek?: number | null;
   minimumGapBetweenSessionsDays?: number | null;
-  preferredTimeOfDay?: PreferredTimeOfDay | null;
-  preferredDays?: DaysOfWeekFlags | null;
   priority?: SchedulingPriority | null;
 }
 

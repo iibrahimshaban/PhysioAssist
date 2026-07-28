@@ -10,7 +10,5 @@ public class PendingTreatmentPlanDto
     public required int SessionDurationMinutes { get; init; }
     public required int SessionsPerWeek { get; init; }
     public required int MinimumGapBetweenSessionsDays { get; init; }
-    public required PreferredTimeOfDay PreferredTimeOfDay { get; init; }
-    public required DaysOfWeekFlags PreferredDays { get; init; }
     public required SchedulingPriority Priority { get; init; }
 }

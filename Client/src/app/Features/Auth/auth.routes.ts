@@ -28,4 +28,8 @@ export const authRoutes: Routes = [
     path: 'verify-otp',
     loadComponent: () => import('./verify-otp/verify-otp.component').then((m) => m.VerifyOtpComponent),
   },
+    {
+    path: 'google-onboarding',
+    loadComponent: () => import('./google-onboarding/google-onboarding.component').then(m => m.GoogleOnboardingComponent),
+  }
 ];

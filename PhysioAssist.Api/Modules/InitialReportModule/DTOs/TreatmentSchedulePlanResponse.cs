@@ -10,8 +10,6 @@ public record TreatmentSchedulePlanResponse(
         int SessionDurationMinutes,
         int SessionsPerWeek,
         int MinimumGapBetweenSessionsDays,
-        PreferredTimeOfDay PreferredTimeOfDay,
-        DaysOfWeekFlags PreferredDays,
         SchedulingPriority Priority,
         TreatmentSchedulePlanStatus Status,
         Guid? PackageId,

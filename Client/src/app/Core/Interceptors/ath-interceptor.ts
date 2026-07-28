@@ -8,10 +8,8 @@ import { inject } from '@angular/core';
 import { BehaviorSubject, catchError, filter, switchMap, take, throwError } from 'rxjs';
 import { AuthService } from '../Services/auth.service';
 
-
 let isRefreshing = false;
 const newToken$ = new BehaviorSubject<string | null>(null);
-
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
@@ -21,19 +19,27 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const token = authService.getToken();
+
+  // Proactive path: token is missing/expired/about to expire — refresh first, then send.
+  if (token && authService.isTokenExpiringSoon(token)) {
+    return refreshAndRetry(req, next, authService);
+  }
+
   const outgoing = token ? withBearer(req, token) : req;
 
+  // Reactive fallback: covers clock skew, server-side revocation, or a token that
+  // looked fine locally but was rejected anyway.
   return next(outgoing).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
-        return handle401(req, next, authService);
+        return refreshAndRetry(req, next, authService);
       }
       return throwError(() => error);
     })
   );
 };
 
-function handle401(
+function refreshAndRetry(
   req: HttpRequest<unknown>,
   next: HttpHandlerFn,
   authService: AuthService

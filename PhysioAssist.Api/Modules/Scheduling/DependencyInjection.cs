@@ -31,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<IPatientSessionPackageAdjustmentService, PatientSessionPackageAdjustmentService>();
         services.AddScoped<IPackageSchedulingStatusService, PackageSchedulingStatusService>();
 
+        services.AddScoped<IDoctorSchedulingPreferenceService, DoctorSchedulingPreferenceService>();
+
 
 
         services

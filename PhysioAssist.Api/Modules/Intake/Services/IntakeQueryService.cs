@@ -1,5 +1,4 @@
-﻿using PhysioAssist.Api.Modules.Intake.Entities;
-using PhysioAssist.Api.Modules.Intake.Errors;
+﻿using PhysioAssist.Api.Modules.Intake.Errors;
 using PhysioAssist.Api.Modules.Intake.Helpers;
 using PhysioAssist.Api.Shared.Dtos.Intake;
 
@@ -91,5 +90,29 @@ public class IntakeQueryService(ApplicationDbContext context) : IIntakeQueryServ
         var freeTimeText = ExtractInputValuesHelper.ExtractAnswerString(submission, "question_default_free_time", "text");
 
         return Result.Success(freeTimeText);
+    }
+
+    public async Task<Result<PendingIntakesResult>> GetPendingIntakesAsync(Guid doctorId, int take, CancellationToken cancellationToken = default)
+    {
+        var pendingQuery = _context.PreVisitIntakes
+            .AsNoTracking()
+            .Where(x => x.DoctorId == doctorId && x.Status == IntakeStatus.Pending); // ASSUMPTION: confirm enum member name
+
+        var totalCount = await pendingQuery.CountAsync(cancellationToken);
+
+        var intakes = await pendingQuery
+            .OrderBy(x => x.SubmittedAt) // oldest first
+            .Take(take)
+            .ToListAsync(cancellationToken);
+
+        var items = intakes
+            .Select(intake => new PendingIntakeSummaryDto(
+                intake.Id,
+                ExtractInputValuesHelper.ExtractPatientNameSafe(intake.FormSubmissionData) ?? "Unknown Patient",
+                intake.SubmittedAt,
+                ExtractInputValuesHelper.CountPainRegions(intake.PainPointsData)))
+            .ToList();
+
+        return Result.Success(new PendingIntakesResult(totalCount, items));
     }
 }

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { TodaySessionsService } from '../../Core/Services/today-sessions.service';
 import { SlotBoardLane, TodaySessionCardDto, TodaySessionsOverviewDto } from '../../Shared/Models/today-sessions.model';
@@ -15,7 +15,8 @@ import { DatePipe } from '@angular/common';
 export class TodaySessionsDashboardComponent {
   private readonly router = inject(Router);
   private readonly todaySessionsService = inject(TodaySessionsService);
-  protected readonly now = signal(new Date());
+  private readonly destroyRef = inject(DestroyRef);
+   protected readonly now = signal(new Date());
 
   protected readonly laneEnum = SlotBoardLane;
   private readonly noShowDialog = viewChild.required(NoShowConfirmDialogComponent);
@@ -43,6 +44,9 @@ export class TodaySessionsDashboardComponent {
 
   constructor() {
     this.load();
+
+    const intervalId = setInterval(() => this.now.set(new Date()), 60_000);
+    this.destroyRef.onDestroy(() => clearInterval(intervalId));
   }
 
   private load(): void {
@@ -56,16 +60,20 @@ export class TodaySessionsDashboardComponent {
     });
   }
 
+  protected readonly nowPosition = computed(() => {
+    const range = this.timelineRange();
+    if (!range) return 0;
+    const t = this.now().getTime();
+    const pct = ((t - range.start) / (range.end - range.start)) * 100;
+    return Math.min(100, Math.max(0, pct));
+  });
+
   protected timelinePosition(isoDate: string): number {
     const range = this.timelineRange();
     if (!range) return 0;
     const t = new Date(isoDate).getTime();
     const pct = ((t - range.start) / (range.end - range.start)) * 100;
     return Math.min(100, Math.max(0, pct));
-  }
-
-  protected nowPosition(): number {
-    return this.timelinePosition(new Date().toISOString());
   }
 
   protected laneDotClass(lane: SlotBoardLane): string {

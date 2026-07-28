@@ -25,9 +25,9 @@ export class PatientService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(): Observable<PatientResponse[]> {
-    return this.http.get<PatientResponse[]>(this.apiUrl);
-  }
+  // getAll(): Observable<PatientResponse[]> {
+  //   return this.http.get<PatientResponse[]>(this.apiUrl);
+  // }
 
   getById(id: string): Observable<PatientResponse> {
     return this.http.get<PatientResponse>(`${this.apiUrl}/${id}`);
@@ -51,17 +51,17 @@ export class PatientService {
 
   // ---- Patient <-> Doctor relationships ----
 
-  assignPatient(patientId: string, doctorId: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${patientId}/assign/${doctorId}`, {});
-  }
+  // assignPatient(patientId: string, doctorId: string): Observable<void> {
+  //   return this.http.post<void>(`${this.apiUrl}/${patientId}/assign/${doctorId}`, {});
+  // }
 
-  dischargePatient(patientId: string, doctorId: string): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${patientId}/discharge/${doctorId}`, {});
-  }
+  // dischargePatient(patientId: string, doctorId: string): Observable<void> {
+  //   return this.http.put<void>(`${this.apiUrl}/${patientId}/discharge/${doctorId}`, {});
+  // }
 
-  setPrimaryDoctor(patientId: string, doctorId: string): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${patientId}/set-primary/${doctorId}`, {});
-  }
+  // setPrimaryDoctor(patientId: string, doctorId: string): Observable<void> {
+  //   return this.http.put<void>(`${this.apiUrl}/${patientId}/set-primary/${doctorId}`, {});
+  // }
 
   // ---- Slots / overview ----
 

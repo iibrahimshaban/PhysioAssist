@@ -12,3 +12,6 @@
   line-height: 1.9;
   font-family: Inter, 'Segoe UI', Tahoma, Arial, sans-serif;
 }
+textarea[dir="auto"] {
+  unicode-bidi: plaintext;
+}

@@ -74,31 +74,6 @@
         ></p-select>
       </div>
       <div>
-        <label class="text-xs font-semibold text-gray-600 block mb-1">Preferred time of day</label>
-        <p-select
-          [options]="preferredTimeOfDayOptions"
-          [ngModel]="preferredTimeOfDay()"
-          (ngModelChange)="preferredTimeOfDay.set($event)"
-          optionLabel="label"
-          optionValue="value"
-          [disabled]="readonlyMode"
-          styleClass="w-full"
-        ></p-select>
-      </div>
-      <div class="sm:col-span-2">
-        <label class="text-xs font-semibold text-gray-600 block mb-1">Preferred days</label>
-        <p-multiSelect
-          [options]="preferredDaysOptions"
-          [ngModel]="selectedPreferredDays()"
-          (ngModelChange)="selectedPreferredDays.set($event)"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Any day"
-          [disabled]="readonlyMode"
-          styleClass="w-full"
-        ></p-multiSelect>
-      </div>
-      <div>
         <label class="text-xs font-semibold text-gray-600 block mb-1">Priority</label>
         <p-select
           [options]="priorityOptions"
@@ -121,6 +96,7 @@
           icon="pi pi-search"
           class="p-button-sm"
           [disabled]="saving()"
+          [loading]="saving()"
           (click)="searchSlots()"
         ></button>
       </div>
@@ -156,6 +132,7 @@
             icon="pi pi-check"
             class="p-button-success"
             [disabled]="selectedCandidateIndex() === null || booking()"
+            [loading]="booking()"
             (click)="confirmBooking()"
           ></button>
           <button
@@ -165,6 +142,7 @@
             icon="pi pi-send"
             class="p-button-outlined"
             [disabled]="sendingToReceptionist()"
+            [loading]="sendingToReceptionist()"
             (click)="sendToReceptionist()"
           ></button>
         </div>
@@ -178,6 +156,7 @@
           icon="pi pi-send"
           class="p-button-outlined"
           [disabled]="sendingToReceptionist()"
+          [loading]="sendingToReceptionist()"
           (click)="sendToReceptionist()"
         ></button>
       </div>

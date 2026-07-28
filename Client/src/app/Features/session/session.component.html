@@ -10,9 +10,18 @@
       <app-session-notes
         [notes]="notes()"
         [audioFileUrl]="sessionDetails()?.audioFileUrl ?? null"
+        [isOpen]="notesOpen()"
+        [isRecording]="isRecording()"
+        [isPaused]="isPaused()"
+        [recordingSeconds]="recordingSeconds()"
         [isUploadingAudio]="isUploadingAudio()"
         (notesChange)="onNotesChanged($event)"
-        (record)="openRecordingModal()"
+        (toggle)="toggleNotes()"
+        (record)="startRecording()"
+        (pause)="pauseRecording()"
+        (resume)="resumeRecording()"
+        (stop)="stopRecording()"
+        (cancel)="cancelRecording()"
       ></app-session-notes>
 
       <!-- Treatment plan -->
@@ -35,9 +44,9 @@
       <!-- Attachments -->
       <app-session-attachments
         class="mt-4"
-        [session]="sessionDetails()"
+        [attachments]="visibleAttachments()"
         [(selectedFiles)]="selectedAttachmentFiles"
-        (deleteUploaded)="deleteAttachment($event)"
+        (deleteUploaded)="stageAttachmentForDeletion($event)"
       ></app-session-attachments>
 
       <!-- Actions -->

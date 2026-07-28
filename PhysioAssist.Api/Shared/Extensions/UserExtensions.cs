@@ -17,7 +17,10 @@ public static class UserExtensions
         if (userId is null)
             return null;
 
-        if (user.IsInRole(DefaultRoles.Receptionist))
+        var roles = user.FindAll("Roles").Select(c => c.Value);
+        var isReceptionist = roles.Contains(DefaultRoles.Receptionist);
+
+        if (isReceptionist)
         {
             return await context.Receptionists
                 .Where(r => r.UserId == userId)

@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.DocumentationModule.Seed;
-using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Consts;
 using System.Security.Claims;
 
 namespace PhysioAssist.Api.Shared.Helpers;
@@ -91,23 +89,7 @@ public static class DataSeeder
 
         var existingClaims = await roleManager.GetClaimsAsync(soloDoctorRole);
 
-        var soloDoctorPermissions = new[]
-        {
-            Permissions.IntakeRead,
-            Permissions.IntakeManageForms,
-            Permissions.IntakeReview,
-            Permissions.IntakeConvert,
-            Permissions.QRGenerate,
-            Permissions.QRValidate,
-            Permissions.GetReceptionist,
-            Permissions.CreateReceptionist,
-            Permissions.UpdateReceptionist,
-            Permissions.CheckInPatients,
-            Permissions.ManageSchedule,
-            Permissions.CreateSessionPackage,
-            Permissions.ConfirmSessionSlot,
-            Permissions.GetSessionCandidates
-        };
+        var soloDoctorPermissions = Permissions.GetSoloDoctorPermissions();
 
         foreach (var permission in soloDoctorPermissions)
         {

@@ -1,16 +1,16 @@
 import { Component, input, output, signal } from '@angular/core';
-import { SessionDetailsResponse } from '../../../../Shared/Models/session-details-response';
+import { ButtonModule } from 'primeng/button';
+import { Attachment } from '../../../../Shared/Models/session-details-response';
 import { SelectedAttachment } from '../../../../Shared/Models/selected-attachment';
 
 @Component({
   selector: 'app-session-attachments',
-  imports: [],
+  imports: [ButtonModule],
   templateUrl: './session-attachments.component.html',
   styleUrl: './session-attachments.component.css',
 })
 export class SessionAttachmentsComponent {
-  session = input<SessionDetailsResponse | null>(null);
-
+  attachments = input<Attachment[]>([]);
   selectedFiles = input.required<SelectedAttachment[]>();
 
   selectedFilesChange = output<SelectedAttachment[]>();
@@ -24,34 +24,23 @@ export class SessionAttachmentsComponent {
 
   onFilesSelected(event: Event) {
     const inputElement = event.target as HTMLInputElement;
-
-    if (!inputElement.files || inputElement.files.length === 0) {
-      return;
-    }
+    if (!inputElement.files || inputElement.files.length === 0) return;
 
     const newFiles: SelectedAttachment[] = Array.from(inputElement.files).map((file) => ({
       file,
       preview: URL.createObjectURL(file),
     }));
 
-    const updatedFiles = [...this.selectedFiles(), ...newFiles];
-
-    this.selectedFilesChange.emit(updatedFiles);
-
+    this.selectedFilesChange.emit([...this.selectedFiles(), ...newFiles]);
     inputElement.value = '';
   }
 
   removeSelectedAttachment(index: number) {
     const currentFiles = this.selectedFiles();
     const selectedFile = currentFiles[index];
+    if (selectedFile) URL.revokeObjectURL(selectedFile.preview);
 
-    if (selectedFile) {
-      URL.revokeObjectURL(selectedFile.preview);
-    }
-
-    const updatedFiles = currentFiles.filter((_, currentIndex) => currentIndex !== index);
-
-    this.selectedFilesChange.emit(updatedFiles);
+    this.selectedFilesChange.emit(currentFiles.filter((_, i) => i !== index));
   }
 
   deleteAttachment(attachmentId: string) {

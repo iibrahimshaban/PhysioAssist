@@ -73,8 +73,9 @@
 
 </div>
 
-@if (auth.isAuthenticated()){
+<ng-container *appHasPermission="'QueryAgent:Write'">
   <app-ask-asi-button></app-ask-asi-button>
   <app-ask-asi-panel></app-ask-asi-panel>
-}
+</ng-container>
+
 

@@ -64,6 +64,7 @@
               <app-slot-candidates-grid
                 [round]="round()"
                 [isConfirming]="isConfirming()"
+                [isLoading]="schedulingService.isLoading()"
                 (pick)="onPickSlot($event)"
                 (manualSchedule)="onManualSchedule()"
               />

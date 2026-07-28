@@ -51,4 +51,16 @@ public static class UserErrors
 
     public static readonly Error ReceptionistMustHaveOwner =
         new("User.ReceptionistMustHaveOwner", "Receptionists must have an associated doctor.", StatusCodes.Status400BadRequest);
+
+    public static readonly Error InvalidGoogleToken =
+    new("User.InvalidGoogleToken", "The Google token is invalid or could not be verified.", StatusCodes.Status401Unauthorized);
+
+    public static readonly Error GoogleEmailNotVerified =
+        new("User.GoogleEmailNotVerified", "Your Google account email is not verified.", StatusCodes.Status400BadRequest);
+
+    public static readonly Error AccountExistsWithPassword =
+        new("User.AccountExistsWithPassword", "An account with this email already exists. Please sign in with your password.", StatusCodes.Status409Conflict);
+
+    public static readonly Error InvalidOrExpiredOnboardingTicket =
+        new("User.InvalidOrExpiredOnboardingTicket", "This onboarding session has expired. Please sign in with Google again.", StatusCodes.Status400BadRequest);
 }

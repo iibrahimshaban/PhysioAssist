@@ -1,6 +1,6 @@
 ﻿using PhysioAssist.Api.Modules.Scheduling.DTO.TodaySessions;
 
-namespace PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+namespace PhysioAssist.Api.Shared.Interfaces.Exposed;
 
 public interface ITodaySessionsService
 {

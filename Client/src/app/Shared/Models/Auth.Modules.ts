@@ -5,9 +5,10 @@ export interface CurrentUser {
   email: string;
   firstName: string;
   lastName: string;
-  role: string;
+  role: string;       // keep for backward compatibility if used elsewhere
+  roles: string[];     // new
+  permissions: string[];
   profilePictureUrl: string;
-  permissions: string[]; // decoded from the `permissions` JWT claim
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -68,4 +69,30 @@ export interface AuthResponse {
 export interface VerifyResetOtpRequest {
   email: string;
   otp: string;
+}
+
+export interface GoogleLoginRequest {
+  idToken: string;
+}
+
+export interface GoogleOnboardingRequiredResponse {
+  onboardingToken: string;
+  email: string;
+  suggestedFirstName: string;
+  suggestedLastName: string;
+}
+
+export type GoogleLoginResponse = AuthResponse | GoogleOnboardingRequiredResponse;
+
+export interface CompleteGoogleOnboardingRequest {
+  onboardingToken: string;
+  firstName: string;
+  lastName: string;
+  clinicName: string;
+  profilePhoto?: File;
+}
+
+// Type guard used by the login component to branch on the response shape
+export function requiresOnboarding(res: GoogleLoginResponse): res is GoogleOnboardingRequiredResponse {
+  return 'onboardingToken' in res;
 }

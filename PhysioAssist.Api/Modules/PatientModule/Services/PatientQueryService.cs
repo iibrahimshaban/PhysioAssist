@@ -150,21 +150,7 @@ public class PatientQueryService(
         return Result.Success(patient.Id);
     }
 
-    public async Task<Result<PatientTimePreferenceInfo>> GetPatientTimePreferenceAsync(
-    Guid patientId, CancellationToken cancellationToken = default)
-    {
-        var patient = await _patientRepo.GetByIdAsync(patientId);
-
-        if (patient is null)
-            return Result.Failure<PatientTimePreferenceInfo>(PatientErrors.NotFound);
-
-        return Result.Success(new PatientTimePreferenceInfo(
-            patient.ParsedPreferredDayToken,
-            patient.ParsedPreferredWeekdays,
-            patient.ParsedPreferredTimeFrom,
-            patient.ParsedPreferredTimeTo)
-            );
-    }
+    
     public async Task<Result<PatientTimePreferenceInfo>> ResolvePatientTimePreferenceAsync(
         Guid patientId,
         string? freeTimeOverrideText,
@@ -177,6 +163,7 @@ public class PatientQueryService(
             return await GetPatientTimePreferenceAsync(patientId, cancellationToken);
 
         var patient = await _patientRepo.GetByIdAsync(patientId);
+
         if (patient is null)
             return Result.Failure<PatientTimePreferenceInfo>(PatientErrors.NotFound);
 
@@ -225,4 +212,20 @@ public class PatientQueryService(
             .Select(p => new PatientLookupResult(p.Id, p.FullName, p.PatientCaseNotes))
             .ToDictionaryAsync(p => p.Id, cancellationToken);
     }
+    private async Task<Result<PatientTimePreferenceInfo>> GetPatientTimePreferenceAsync(
+    Guid patientId, CancellationToken cancellationToken = default)
+    {
+        var patient = await _patientRepo.GetByIdAsync(patientId);
+
+        if (patient is null)
+            return Result.Failure<PatientTimePreferenceInfo>(PatientErrors.NotFound);
+
+        return Result.Success(new PatientTimePreferenceInfo(
+            patient.ParsedPreferredDayToken,
+            patient.ParsedPreferredWeekdays,
+            patient.ParsedPreferredTimeFrom,
+            patient.ParsedPreferredTimeTo)
+            );
+    }
 }
+

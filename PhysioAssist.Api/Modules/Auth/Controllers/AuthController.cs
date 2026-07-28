@@ -72,4 +72,24 @@ public class AuthController(IAuthService authService) : ControllerBase
         var result = await _authService.VerifyResetOtpAsync(request);
         return result.IsSuccess ? NoContent() : result.ToProblem();
     }
+    [HttpPost("google")]
+    public async Task<IActionResult> GoogleLogin(GoogleLoginRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _authService.GoogleLoginAsync(request, cancellationToken);
+
+        if (result.IsFailure)
+            return result.ToProblem();
+
+        return result.Value.RequiresOnboarding
+            ? Ok(result.Value.Onboarding)
+            : Ok(result.Value.Tokens);
+    }
+
+    [HttpPost("google/complete-onboarding")]
+    public async Task<IActionResult> CompleteGoogleOnboarding(
+        [FromForm] CompleteGoogleOnboardingRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _authService.CompleteGoogleOnboardingAsync(request, cancellationToken);
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
 }

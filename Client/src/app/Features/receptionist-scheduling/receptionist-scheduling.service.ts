@@ -1,5 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { SlotCandidateDto } from '../../Shared/Models/InitialReport.models';
@@ -13,6 +13,7 @@ import {
   ConvertPlanToPackageRequest,
 } from './SessionScheduling.model';
 import { ScheduleSlotDto } from '../../Features/Schedule/schedule.models';
+import { SKIP_GLOBAL_LOADING } from '../../Core/Interceptors/skip-global-loading.token';
 
 @Injectable({ providedIn: 'root' })
 export class ReceptionistSchedulingService {
@@ -38,7 +39,11 @@ export class ReceptionistSchedulingService {
       persistFreeTimeOverride,
     };
     this.http
-      .post<SessionBookingRoundDto>(`${this.baseUrl}/packages/${packageId}/next-candidates`, body)
+      .post<SessionBookingRoundDto>(
+        `${this.baseUrl}/packages/${packageId}/next-candidates`,
+        body,
+        { context: new HttpContext().set(SKIP_GLOBAL_LOADING, true) },
+      )
       .subscribe({
         next: round => {
           this.currentRound.set(round);

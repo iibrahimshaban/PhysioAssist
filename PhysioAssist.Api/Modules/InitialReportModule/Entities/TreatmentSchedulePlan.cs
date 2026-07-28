@@ -16,8 +16,6 @@ public class TreatmentSchedulePlan : AuditableEntity
     // --- Optional, with safety defaults (see PatientSessionPackage on the Scheduling side) ---
     public int SessionsPerWeek { get; set; } = 3;
     public int MinimumGapBetweenSessionsDays { get; set; } = 2;
-    public PreferredTimeOfDay PreferredTimeOfDay { get; set; } = PreferredTimeOfDay.Unspecified;
-    public DaysOfWeekFlags PreferredDays { get; set; } = DaysOfWeekFlags.None;
     public SchedulingPriority Priority { get; set; } = SchedulingPriority.Normal;
 
     // --- Lifecycle ---

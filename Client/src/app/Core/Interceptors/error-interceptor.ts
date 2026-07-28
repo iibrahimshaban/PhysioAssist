@@ -38,6 +38,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => err);
       }
 
+      if (err.status === 403) {
+        window.open('/unauthorized', '_blank');
+      }
+
       // FluentValidation
       if (body?.errors && !Array.isArray(body.errors) && typeof body.errors === 'object') {
         Object.values(body.errors as Record<string, string[]>)

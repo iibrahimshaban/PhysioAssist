@@ -1,0 +1,94 @@
+@if (preferenceResource.isLoading()) {
+  <div class="flex justify-center py-12 text-surface-500">Loading scheduling preferences…</div>
+} @else if (preferenceResource.error()) {
+  <div class="mx-auto max-w-2xl rounded-md border border-red-200 bg-red-50 p-4 text-red-700">
+    Couldn't load your scheduling preferences.
+    <button type="button" class="ml-2 underline" (click)="preferenceResource.reload()">Try again</button>
+  </div>
+} @else {
+  <div class="mx-auto max-w-2xl px-4 py-8 sm:px-8">
+    <h1 class="text-xl font-semibold text-surface-900">Slot matching</h1>
+    <p class="mt-1 text-sm text-surface-500">
+      These control which free slots get offered to patients when booking against your calendar.
+    </p>
+
+    <div class="mt-8 divide-y divide-surface-200">
+      <div class="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+        <div class="sm:max-w-[65%]">
+          <label for="allow-shorter" class="block font-medium text-surface-900">Suggest shorter appointments when there's no perfect match</label>
+          <p class="mt-0.5 text-sm text-surface-500">
+            If a patient asks for, say, a 60-minute session and your calendar only has a 45-minute gap, turning
+            this on lets the system offer that shorter opening instead of nothing. Turn it off to only show
+            patients times that match exactly what they asked for.
+          </p>
+        </div>
+        <p-toggleswitch id="allow-shorter" [ngModel]="allowShorterSlots()" (ngModelChange)="allowShorterSlots.set($event)" />
+      </div>
+
+      <div
+        class="flex flex-col gap-3 py-5 transition-opacity sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+        [class.opacity-50]="!allowShorterSlots()"
+      >
+        <div class="sm:max-w-[65%]">
+          <label for="shortfall-tolerance" class="block font-medium text-surface-900">Maximum shortfall tolerance</label>
+          <p class="mt-0.5 text-sm text-surface-500">
+            How much shorter than requested a slot can be and still get offered — e.g. 15 minutes lets a
+            45-minute opening stand in for a 60-minute request.
+          </p>
+        </div>
+        <p-inputnumber
+          inputId="shortfall-tolerance"
+          [ngModel]="maxShortfallToleranceMinutes()"
+          (ngModelChange)="maxShortfallToleranceMinutes.set($event)"
+          [disabled]="!allowShorterSlots()"
+          [showButtons]="true"
+          buttonLayout="horizontal"
+          decrementButtonIcon="pi pi-minus"
+          incrementButtonIcon="pi pi-plus"
+          [min]="0"
+          [max]="120"
+          [step]="5"
+          suffix=" min"
+          inputStyleClass="text-center"
+          styleClass="w-full sm:w-40"
+        />
+      </div>
+
+      <div
+        class="flex flex-col gap-3 py-5 transition-opacity sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+        [class.opacity-50]="!allowShorterSlots()"
+      >
+        <div class="sm:max-w-[65%]">
+          <label for="days-out" class="block font-medium text-surface-900">Exact-match window</label>
+          <p class="mt-0.5 text-sm text-surface-500">
+            Beyond this many days out, stop holding out for an exact-length slot and start surfacing
+            near-miss shorter slots instead.
+          </p>
+        </div>
+        <p-inputnumber
+          inputId="days-out"
+          [ngModel]="maxDaysOutForExactMatch()"
+          (ngModelChange)="maxDaysOutForExactMatch.set($event)"
+          [disabled]="!allowShorterSlots()"
+          [showButtons]="true"
+          buttonLayout="horizontal"
+          decrementButtonIcon="pi pi-minus"
+          incrementButtonIcon="pi pi-plus"
+          [min]="0"
+          [max]="90"
+          [step]="1"
+          suffix=" days"
+          inputStyleClass="text-center"
+          styleClass="w-full sm:w-40"
+        />
+      </div>
+    </div>
+
+    <div class="mt-6 flex flex-col-reverse gap-4 border-t border-surface-200 pt-6 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+      <button type="button" class="text-sm text-surface-500 underline" (click)="resetToDefaults()">
+        Reset to defaults
+      </button>
+      <p-button label="Save changes" icon="pi pi-check" styleClass="w-full sm:w-auto" (onClick)="save()" [loading]="saving()" [disabled]="!canSave()" />
+    </div>
+  </div>
+}

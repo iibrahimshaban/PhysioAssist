@@ -16,14 +16,6 @@ public class PatientSessionPackageConfiguration : IEntityTypeConfiguration<Patie
         builder.Property(p => p.SessionDuration)
             .IsRequired();
 
-        builder.Property(p => p.PreferredTimeOfDay)
-            .HasConversion<int>()
-            .IsRequired();
-
-        builder.Property(p => p.PreferredDays)
-            .HasConversion<int>() // [Flags] enum stored as a single int column
-            .IsRequired();
-
         builder.Property(p => p.Priority)
             .HasConversion<int>()
             .IsRequired();

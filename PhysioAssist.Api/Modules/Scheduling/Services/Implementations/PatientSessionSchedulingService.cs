@@ -38,8 +38,6 @@ public class PatientSessionSchedulingService(
             Status = PackageStatus.Active,
             SessionsPerWeek = request.SessionsPerWeek,
             MinimumGapBetweenSessionsDays = request.MinimumGapBetweenSessionsDays,
-            PreferredTimeOfDay = request.PreferredTimeOfDay,
-            PreferredDays = request.PreferredDays,
             Priority = request.Priority
         };
 
@@ -54,9 +52,7 @@ public class PatientSessionSchedulingService(
                 FirstSessionSlot = null
             });
 
-        // Doctor already picked a slot on the same screen — book it right away
-        // through the exact same path the receptionist will use for sessions 2..N,
-        // so ScheduledSessions/RemainingSessions bookkeeping only lives in one place.
+
         var confirmResult = await ConfirmSessionSlotAsync(package.Id, request.FirstSessionSlot, cancellationToken);
         if (confirmResult.IsFailure)
             return Result.Failure<CreateSessionPackageResult>(confirmResult.Error);
@@ -92,8 +88,7 @@ public class PatientSessionSchedulingService(
         var sessionDuration = sessionDurationOverride ?? package.SessionDuration;
         var sessionsPerWeek = sessionsPerWeekOverride ?? package.SessionsPerWeek;
         var minimumGapDays = minimumGapOverrideDays ?? package.MinimumGapBetweenSessionsDays;
-        var preferredTimeOfDay = preferredTimeOfDayOverride ?? package.PreferredTimeOfDay;
-        var preferredDays = preferredDaysOverride ?? package.PreferredDays;
+
 
         var patientFreeTimeText = string.IsNullOrWhiteSpace(patientFreeTimeOverride)
             ? await _context.Set<Patient>()
@@ -172,21 +167,20 @@ public class PatientSessionSchedulingService(
                 fallbackStart, fallbackStart, quotaMet: false, noRoom: true, candidates: [], patientFreeTimeText));
         }
 
-        var (packageFrom, packageTo) = MapPreferredTimeOfDay(preferredTimeOfDay);
-
-        TimeOnly? patientFrom = null;
-        TimeOnly? patientTo = null;
+        TimeOnly? preferredFrom = null;
+        TimeOnly? preferredTo = null;
+        DaysOfWeekFlags preferredDays = DaysOfWeekFlags.None;
 
         var patientPreferenceResult = await _patientQueryService.ResolvePatientTimePreferenceAsync(
             package.PatientId, patientFreeTimeOverride, persistFreeTimeOverride, cancellationToken);
 
         if (patientPreferenceResult.IsSuccess)
         {
-            patientFrom = patientPreferenceResult.Value.PreferredTimeFrom;
-            patientTo = patientPreferenceResult.Value.PreferredTimeTo;
+            preferredFrom = patientPreferenceResult.Value.PreferredTimeFrom;
+            preferredTo = patientPreferenceResult.Value.PreferredTimeTo;
+            preferredDays = patientPreferenceResult.Value.PreferredWeekdays;
         }
 
-        var (preferredFrom, preferredTo) = IntersectTimeWindows(packageFrom, packageTo, patientFrom, patientTo);
 
         var from = new DateTimeOffset(minDate.ToDateTime(TimeOnly.MinValue), EgyptOffset);
         var to = new DateTimeOffset(weekEnd.ToDateTime(TimeOnly.MaxValue), EgyptOffset);
@@ -266,8 +260,6 @@ public class PatientSessionSchedulingService(
             Status = PackageStatus.Active,
             SessionsPerWeek = request.SessionsPerWeek,
             MinimumGapBetweenSessionsDays = request.MinimumGapBetweenSessionsDays,
-            PreferredTimeOfDay = request.PreferredTimeOfDay,
-            PreferredDays = request.PreferredDays,
             Priority = request.Priority
         };
 
@@ -319,13 +311,16 @@ public class PatientSessionSchedulingService(
     }
 
     public async Task<Result<IReadOnlyList<SlotCandidateDto>>> GetTopRecommendedSlotsAsync(
-    Guid doctorId,
-    TimeSpan requestedDuration,
-    Guid patientId,
-    int topN = 5,
-    CancellationToken cancellationToken = default)
+        Guid doctorId,
+        TimeSpan requestedDuration,
+        Guid patientId,
+        int topN = 5,
+        string? patientFreeTimeOverride = null,
+        CancellationToken cancellationToken = default)
     {
-        var preferenceResult = await _patientQueryService.GetPatientTimePreferenceAsync(patientId, cancellationToken);
+
+        var preferenceResult = await _patientQueryService.ResolvePatientTimePreferenceAsync(
+            patientId, patientFreeTimeOverride, persistOverride : false, cancellationToken);
 
         if (preferenceResult.IsFailure)
             return Result.Failure<IReadOnlyList<SlotCandidateDto>>(preferenceResult.Error);
@@ -450,34 +445,5 @@ public class PatientSessionSchedulingService(
         };
         return flags.HasFlag(flag);
     }
-    private static (TimeOnly? From, TimeOnly? To) IntersectTimeWindows(
-        TimeOnly? aFrom, TimeOnly? aTo, TimeOnly? bFrom, TimeOnly? bTo)
-        {
-            TimeOnly? from = (aFrom, bFrom) switch
-            {
-                (null, null) => null,
-                (null, _) => bFrom,
-                (_, null) => aFrom,
-                _ => aFrom!.Value > bFrom!.Value ? aFrom : bFrom
-            };
 
-            TimeOnly? to = (aTo, bTo) switch
-            {
-                (null, null) => null,
-                (null, _) => bTo,
-                (_, null) => aTo,
-                _ => aTo!.Value < bTo!.Value ? aTo : bTo
-            };
-
-            return (from, to);
-        }
-
-    private static (TimeOnly? From, TimeOnly? To) MapPreferredTimeOfDay(PreferredTimeOfDay preference) =>
-        preference switch
-        {
-            PreferredTimeOfDay.Morning => (new TimeOnly(6, 0), new TimeOnly(12, 0)),
-            PreferredTimeOfDay.Afternoon => (new TimeOnly(12, 0), new TimeOnly(17, 0)),
-            PreferredTimeOfDay.Evening => (new TimeOnly(17, 0), new TimeOnly(22, 0)),
-            _ => (null, null)
-        };
 }

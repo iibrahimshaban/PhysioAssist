@@ -1,6 +1,5 @@
 ﻿using PhysioAssist.Api.Modules.Scheduling.DTO.TodaySessions;
 using PhysioAssist.Api.Modules.Scheduling.Entities;
-using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 

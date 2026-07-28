@@ -1,20 +1,22 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '../../Core/Guards/permission-guard';
 
 export const patientRoutes: Routes = [
   {
     path: '',
-    loadComponent: () =>
-      import('./patient-list/patient-list.component').then((m) => m.PatientListComponent),
+    loadComponent: () => import('./patient-list/patient-list.component').then((m) => m.PatientListComponent),
   },
   {
     path: 'create',
-    loadComponent: () =>
-      import('./patient-create/patient-create.component').then((m) => m.PatientCreateComponent),
+    loadComponent: () => import('./patient-create/patient-create.component').then((m) => m.PatientCreateComponent),
+    canActivate: [permissionGuard],
+    data: { permissions: ['Patient:Write']}
   },
   {
     path: 'edit/:id',
-    loadComponent: () =>
-      import('./patient-form/patient-form.component').then((m) => m.PatientFormComponent),
+    loadComponent: () => import('./patient-form/patient-form.component').then((m) => m.PatientFormComponent),
+    canActivate: [permissionGuard],
+    data: { permissions: ['Patient:Write']}
   },
   {
     path: ':id',

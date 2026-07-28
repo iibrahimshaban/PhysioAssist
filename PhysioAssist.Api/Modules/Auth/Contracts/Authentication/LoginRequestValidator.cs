@@ -12,9 +12,7 @@ public class LoginRequestValidator : AbstractValidator<LoginRequest>
             .EmailAddress().WithMessage("Invalid email address.");
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("password is required")
-            .Matches(RegexPattern.Password)
-            .WithMessage("Password should be at least 8 digits and should contains Lowercase, NonAlphanumeric and Uppercase");
+            .NotEmpty().WithMessage("password is required");
 
     }
 }

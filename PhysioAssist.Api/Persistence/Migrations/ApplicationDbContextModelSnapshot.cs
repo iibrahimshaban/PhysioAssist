@@ -180,6 +180,9 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("GoogleId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDisabled")
                         .HasColumnType("bit");
 
@@ -651,12 +654,6 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<Guid?>("PackageId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("PreferredDays")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PreferredTimeOfDay")
-                        .HasColumnType("int");
-
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
@@ -998,12 +995,6 @@ namespace PhysioAssist.Api.Persistence.Migrations
 
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("PreferredDays")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PreferredTimeOfDay")
-                        .HasColumnType("int");
 
                     b.Property<int>("Priority")
                         .HasColumnType("int");
