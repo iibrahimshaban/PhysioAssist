@@ -37,14 +37,17 @@ interface QuestionTypeOption {
   icon: string;
 }
 
-// Core field IDs that are locked by the system
+// Core field IDs that are locked by the system (question_default_ convention, per requirements)
 const CORE_FIELD_IDS = new Set([
-  'core_full_name',
-  'core_email',
-  'core_phone',
-  'core_gender',
-  'core_dob',
-  'core_occupation'
+  'question_default_full_name',
+  'question_default_email',
+  'question_default_phone',
+  'question_default_free_time',
+  'question_default_gender',
+  'question_default_dob',
+  'question_default_chief_complaint',
+  'question_default_injury_date',
+  'question_default_patient_type'
 ]);
 
 // Core field texts for matching
@@ -52,9 +55,12 @@ const CORE_FIELD_TEXTS = new Set([
   'Full Name',
   'Email Address',
   'Phone Number',
+  'Patient Free Time',
   'Gender',
   'Date of Birth',
-  'Occupation'
+  'Chief Complaint',
+  'Injury Date',
+  'Patient Type'
 ]);
 
 const CORE_SECTION_ID = 'section_core_fields';
@@ -146,7 +152,7 @@ export class SchemaBuilderComponent implements OnInit {
         // Try matching by text
         const byText = allQuestions.find(q => CORE_FIELD_TEXTS.has(q.text));
         if (!byText) {
-          issues.push({ fieldName: coreId.replace('core_', '').replace('_', ' '), issue: 'Missing from schema' });
+          issues.push({ fieldName: coreId.replace('question_default_', '').replace('_', ' '), issue: 'Missing from schema' });
           continue;
         }
         if (!byText.required) {
@@ -196,9 +202,8 @@ export class SchemaBuilderComponent implements OnInit {
     { label: 'Boolean', value: 'boolean', icon: 'pi pi-check' },
     { label: 'File Upload', value: 'file', icon: 'pi pi-upload' },
     { label: 'File Upload (Legacy)', value: 'fileupload', icon: 'pi pi-upload' },
-    { label: 'Pain Point', value: 'painpoint', icon: 'pi pi-map-marker' },
-    { label: 'Body Selector', value: 'bodyselector', icon: 'pi pi-user' },
-    { label: 'Pain Scale', value: 'painscale', icon: 'pi pi-chart-bar' }
+    { label: 'Pain Scale', value: 'painscale', icon: 'pi pi-chart-bar' },
+    { label: 'Clinical Summary', value: 'summary', icon: 'pi pi-file-edit' }
   ];
 
   ngOnInit(): void {
@@ -370,12 +375,15 @@ export class SchemaBuilderComponent implements OnInit {
           order: 1,
           isLocked: true,
           questions: [
-            { questionId: 'core_full_name', text: 'Full Name', type: 'text', order: 1, required: true, isLocked: true, placeholder: 'e.g. John Doe' },
-            { questionId: 'core_email', text: 'Email Address', type: 'email', order: 2, required: true, isLocked: true, placeholder: 'john@example.com' },
-            { questionId: 'core_phone', text: 'Phone Number', type: 'phone', order: 3, required: true, isLocked: true, placeholder: '(555) 000-0000' },
-            { questionId: 'core_gender', text: 'Gender', type: 'radio', order: 4, required: true, isLocked: true, options: ['Male', 'Female'] },
-            { questionId: 'core_dob', text: 'Date of Birth', type: 'date', order: 5, required: true, isLocked: true },
-            { questionId: 'core_occupation', text: 'Occupation', type: 'text', order: 6, required: true, isLocked: true, placeholder: 'e.g. Software Engineer' },
+            { questionId: 'question_default_full_name', text: 'Full Name', type: 'text', order: 1, required: true, isLocked: true, placeholder: 'e.g. John Doe' },
+            { questionId: 'question_default_email', text: 'Email Address', type: 'email', order: 2, required: true, isLocked: true, placeholder: 'john@example.com' },
+            { questionId: 'question_default_phone', text: 'Phone Number', type: 'phone', order: 3, required: true, isLocked: true, placeholder: '(555) 000-0000' },
+            { questionId: 'question_default_free_time', text: 'Patient Free Time', type: 'text', order: 4, required: true, isLocked: true, placeholder: 'e.g. Weekdays after 5pm' },
+            { questionId: 'question_default_gender', text: 'Gender', type: 'radio', order: 5, required: true, isLocked: true, options: ['Male', 'Female'] },
+            { questionId: 'question_default_dob', text: 'Date of Birth', type: 'date', order: 6, required: true, isLocked: true },
+            { questionId: 'question_default_chief_complaint', text: 'Chief Complaint', type: 'textarea', order: 7, required: true, isLocked: true, placeholder: 'Primary reason for the visit' },
+            { questionId: 'question_default_injury_date', text: 'Injury Date', type: 'date', order: 8, required: true, isLocked: true },
+            { questionId: 'question_default_patient_type', text: 'Patient Type', type: 'select', order: 9, required: true, isLocked: true, options: ['New Patient', 'Returning Patient', 'Post-Surgery', 'Chronic Condition'] },
           ]
         }
       ]
