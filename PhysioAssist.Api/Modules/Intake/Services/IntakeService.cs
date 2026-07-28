@@ -555,6 +555,19 @@ public class IntakeService(
         if (schema.IsDefault)
             return Result.Failure(IntakeErrors.CannotDeleteDefaultSchema);
 
+        // NOTE: the FK is intentionally Restrict (not Cascade) — an earlier
+        // migration (CascadeDeleteIntakeSubmissions) briefly set it to
+        // Cascade, but a later migration (BackfillDefaultFormShortCodes)
+        // reverted it back to Restrict, matching this guard's assumption.
+        // This guard is what actually prevents the 500; it does not depend
+        // on the DB's FK behavior.
+        var submissionCount = await _preVisitIntakeRepository.CountByFormSchemaAsync(schemaId, cancellationToken);
+        if (submissionCount > 0)
+            return Result.Failure(new Error(
+                "Intake.FormSchemaInUse",
+                $"This form has {submissionCount} submission(s) and cannot be deleted. Archive it instead.",
+                StatusCodes.Status409Conflict));
+
         _patientFormSchemaRepository.Remove(schema);
         await _unitOfWork.SaveAsync(cancellationToken);
 

@@ -5,6 +5,12 @@
 namespace PhysioAssist.Api.Persistence.Migrations
 {
     /// <inheritdoc />
+    /// <remarks>
+    /// SUPERSEDED: this migration briefly set FK_PreVisitIntake_PatientFormSchema_FormSchemaId
+    /// to Cascade, but a later migration (20260725085226_BackfillDefaultFormShortCodes)
+    /// reverted it to Restrict. The schema-delete 500 is instead prevented in code by
+    /// IntakeService.DeleteFormSchemaAsync's submission-count guard. Do not re-apply Cascade here.
+    /// </remarks>
     public partial class CascadeDeleteIntakeSubmissions : Migration
     {
         /// <inheritdoc />

@@ -67,6 +67,11 @@ public static class IntakeErrors
         "Default form schema cannot be deleted.",
         StatusCodes.Status400BadRequest);
 
+    public static readonly Error FormSchemaInUse = new(
+        "Intake.FormSchemaInUse",
+        "This form has associated submissions and cannot be deleted. Archive it instead.",
+        StatusCodes.Status409Conflict);
+
     public static readonly Error SchemaAlreadyArchived = new(
         "Intake.SchemaAlreadyArchived",
         "Form schema is already archived.",
