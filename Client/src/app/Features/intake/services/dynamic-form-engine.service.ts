@@ -73,7 +73,8 @@ export class DynamicFormEngineService {
       fileupload: 'pi pi-upload',
       painpoint: 'pi pi-map-marker',
       painscale: 'pi pi-chart-bar',
-      bodyselector: 'pi pi-user'
+      bodyselector: 'pi pi-user',
+      summary: 'pi pi-file-edit'
     };
     return icons[type] || 'pi pi-question';
   }

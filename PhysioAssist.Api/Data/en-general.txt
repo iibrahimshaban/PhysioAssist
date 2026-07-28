@@ -1,0 +1,56 @@
+# English general vocabulary for PhysioAssist autocomplete
+# Format: term|weight|category
+# These are general English words used in clinical notes and documentation.
+
+# Common clinical / documentation words
+patient|100|general
+doctor|95|general
+clinic|90|general
+appointment|85|general
+session|90|general
+treatment|90|general
+diagnosis|90|general
+assessment|85|general
+evaluation|85|general
+history|80|general
+follow-up|80|general
+referral|75|general
+discharge|75|general
+report|80|general
+note|75|general
+progress|80|general
+outcome|75|general
+goal|80|general
+plan|75|general
+review|70|general
+complaint|75|general
+symptom|85|general
+pain|90|general
+swelling|80|general
+inflammation|80|general
+injury|85|general
+condition|80|general
+function|80|general
+mobility|85|general
+strength|85|general
+flexibility|80|general
+coordination|75|general
+posture|80|general
+endurance|75|general
+fatigue|80|general
+recovery|80|general
+rehabilitation|85|general
+exercise|85|general
+therapy|85|general
+medication|75|general
+surgery|75|general
+procedure|70|general
+imaging|70|general
+X-ray|70|general
+MRI|75|general
+ultrasound|70|general
+blood pressure|75|general
+heart rate|75|general
+temperature|65|general
+weight|70|general
+height|65|general

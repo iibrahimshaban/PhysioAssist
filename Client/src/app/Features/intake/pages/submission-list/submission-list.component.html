@@ -1,0 +1,244 @@
+<app-intake-page-container>
+<div class="intake-module submission-page" aria-live="polite">
+
+  <!-- Page Header -->
+  <div class="intake-page-header">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-[var(--color-text-primary,#0f172a)] tracking-tight">
+            Submissions
+          </h1>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-page-bg,#f1f5f9)] text-[var(--color-text-secondary,#64748b)] border border-[var(--color-border,#e2e8f0)]">
+            {{ submissions().length }} Total
+          </span>
+        </div>
+        <p class="text-sm text-[var(--color-text-secondary,#64748b)] mt-1">
+          Manage pre-visit intake questionnaires submitted by patients
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Area -->
+  <div class="intake-page-body">
+
+    <!-- Summary KPI Stats -->
+    <app-submission-summary-stats
+      [totalCount]="submissions().length"
+      [pendingCount]="pendingCount()"
+      [inReviewCount]="inReviewCount()"
+      [approvedCount]="approvedCount()"
+      [convertedCount]="convertedCount()"
+      [selectedStatus]="selectedStatus()"
+      [loading]="loading()"
+      (selectStatus)="onStatusChange($event)" />
+
+    <!-- Error State -->
+    @if (error()) {
+      <div class="py-12 text-center" role="alert">
+        <div class="w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4 text-2xl">
+          <i class="pi pi-exclamation-triangle"></i>
+        </div>
+        <h3 class="text-base font-bold text-[var(--color-text-primary,#0f172a)] mb-1">Failed to load submissions</h3>
+        <p class="text-sm text-[var(--color-text-secondary,#64748b)] mb-4">{{ error() }}</p>
+        <button
+          type="button"
+          (click)="loadSubmissions()"
+          class="btn-action-primary">
+          <i class="pi pi-refresh text-xs"></i>
+          Try Again
+        </button>
+      </div>
+    }
+
+    @if (!error()) {
+      <!-- Filters & Controls Bar -->
+      <app-submission-filters-bar
+        [searchTerm]="searchTerm()"
+        [selectedStatus]="selectedStatus()"
+        [statusOptions]="statusOptions()"
+        [sortOption]="sortOption()"
+        [viewMode]="viewMode()"
+        (searchChange)="onSearch($event)"
+        (statusChange)="onStatusChange($event)"
+        (sortChange)="onSortChange($event)"
+        (viewModeChange)="onViewModeChange($event)"
+        (clearFilters)="clearFilters()" />
+
+      <!-- Loading Skeleton -->
+      @if (loading()) {
+        <div class="space-y-3 mt-4">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="skeleton h-[68px] rounded-xl border border-[var(--color-border)]"></div>
+          }
+        </div>
+      }
+
+      <!-- Submissions Content -->
+      @if (!loading()) {
+        @if (filteredSubmissions().length === 0) {
+          <!-- Premium Empty State -->
+          <div class="empty-state-premium">
+            <div class="empty-blob">
+              <div class="empty-icon-wrap">
+                <i class="pi pi-inbox"></i>
+              </div>
+            </div>
+            <h2 class="empty-title">
+              @if (searchTerm() || selectedStatus() !== null) { No matching submissions } @else { No submissions yet }
+            </h2>
+            <p class="empty-desc">
+              @if (searchTerm() || selectedStatus() !== null) {
+                We couldn't find any patient submissions matching your active search or filter criteria.
+              } @else {
+                Patient intake submissions will automatically appear here once patients complete the form. Share your intake form link with patients to get started.
+              }
+            </p>
+            @if (searchTerm() || selectedStatus() !== null) {
+                <button
+                  type="button"
+                  (click)="clearFilters()"
+                  class="empty-state-cta">
+                  <i class="pi pi-filter-slash text-xs"></i>
+                  Clear All Filters
+                </button>
+            }
+          </div>
+        } @else {
+
+          <!-- View Mode 1: Cards View (list rows) -->
+          @if (viewMode() === 'cards') {
+            <div class="mt-4">
+              @for (row of paginatedSubmissions(); track row.id) {
+                <app-submission-row
+                  [submission]="row"
+                  (selected)="viewSubmission($event)" />
+              }
+            </div>
+          }
+
+          <!-- View Mode 2: Table View -->
+          @if (viewMode() === 'table') {
+            <div class="overflow-x-auto rounded-xl border border-[var(--color-border,#e2e8f0)] mt-4">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-[var(--color-page-bg,#f8fafc)] border-b border-[var(--color-border,#e2e8f0)] text-xs font-bold text-[var(--color-text-secondary,#64748b)] uppercase tracking-wider">
+                    <th class="py-3 px-4">Patient</th>
+                    <th class="py-3 px-4">Intake Code</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4">Pain Regions</th>
+                    <th class="py-3 px-4">Submitted</th>
+                    <th class="py-3 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[var(--color-border,#e2e8f0)]">
+                  @for (row of paginatedSubmissions(); track row.id) {
+                    <tr
+                      (click)="viewSubmission(row)"
+                      class="hover:bg-[var(--color-page-bg,#f8fafc)] cursor-pointer transition-colors text-sm">
+                      <td class="py-3 px-4">
+                        <div class="flex items-center gap-3">
+                          <div
+                            class="w-8 h-8 rounded-lg text-white text-xs font-bold flex items-center justify-center shrink-0"
+                            [style.background]="getAvatarGradient(row.patientName, row.id)">
+                            {{ getInitials(row.patientName) }}
+                          </div>
+                          <span class="font-semibold text-[var(--color-text-primary,#0f172a)]">
+                            {{ row.patientName || 'Unnamed Patient' }}
+                          </span>
+                        </div>
+                      </td>
+                      <td class="py-3 px-4">
+                        <span class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--color-page-bg,#f1f5f9)] text-[var(--color-text-secondary,#64748b)] border border-[var(--color-border,#e2e8f0)]">
+                          #{{ row.shortCode || 'N/A' }}
+                        </span>
+                      </td>
+                      <td class="py-3 px-4">
+                        <span class="status-badge" [ngClass]="getStatusPillClass(row.status)">
+                          {{ getQueueStatusLabel(row.status) }}
+                        </span>
+                      </td>
+                      <td class="py-3 px-4 text-[var(--color-text-secondary,#64748b)]">
+                        {{ row.painRegionCount }} region(s)
+                      </td>
+                      <td class="py-3 px-4 text-xs text-[var(--color-text-secondary,#64748b)]">
+                        {{ timeAgo(row.submittedAt) }}
+                      </td>
+                      <td class="py-3 px-4 text-right">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-primary,#0b8eea)] hover:underline">
+                          View <i class="pi pi-chevron-right text-[10px]"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          <!-- Pagination Bar -->
+          @if (totalPages() > 1) {
+            <div class="submission-pagination">
+              <div class="submission-pagination-info">
+                <span class="hidden sm:inline">Showing </span>
+                <span class="font-semibold text-[var(--color-text-primary,#0f172a)]">
+                  {{ ((currentPage() - 1) * pageSize()) + 1 }}–{{ pageEndIndex() }}
+                </span>
+                <span> of {{ filteredSubmissions().length }} submissions</span>
+              </div>
+
+              <div class="submission-pagination-controls">
+                <button
+                  type="button"
+                  class="submission-page-btn"
+                  (click)="goToPage(currentPage() - 1)"
+                  [disabled]="currentPage() === 1"
+                  aria-label="Previous page">
+                  <i class="pi pi-chevron-left text-xs"></i>
+                </button>
+
+                @for (page of pageNumbers(); track page) {
+                  <button
+                    type="button"
+                    class="submission-page-btn"
+                    [class.submission-page-btn--active]="currentPage() === page"
+                    (click)="goToPage(page)">
+                    {{ page }}
+                  </button>
+                }
+
+                <button
+                  type="button"
+                  class="submission-page-btn"
+                  (click)="goToPage(currentPage() + 1)"
+                  [disabled]="currentPage() === totalPages()"
+                  aria-label="Next page">
+                  <i class="pi pi-chevron-right text-xs"></i>
+                </button>
+              </div>
+
+              <div class="submission-page-size">
+                <select
+                  [ngModel]="pageSize()"
+                  (ngModelChange)="onPageSizeChange($event)"
+                  class="submission-page-size-select"
+                  aria-label="Items per page">
+                  <option [value]="5">5</option>
+                  <option [value]="10">10</option>
+                  <option [value]="20">20</option>
+                  <option [value]="50">50</option>
+                </select>
+                <span class="hidden sm:inline text-xs text-[var(--color-text-secondary,#64748b)]">per page</span>
+              </div>
+            </div>
+          }
+
+        }
+      }
+    }
+  </div>
+</div>
+</app-intake-page-container>

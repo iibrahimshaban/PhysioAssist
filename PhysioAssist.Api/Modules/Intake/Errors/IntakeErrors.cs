@@ -51,4 +51,90 @@ public static class IntakeErrors
         "Intake.SubmissionNotFound",
         "The requested intake submission was not found.",
         StatusCodes.Status404NotFound);
+
+    public static readonly Error LockedQuestionRemoved = new(
+        "Intake.LockedQuestionRemoved",
+        "Locked questions cannot be removed.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error CopyLimitExceeded = new(
+        "Intake.CopyLimitExceeded",
+        "Maximum number of copies per form has been reached.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error CannotDeleteDefaultSchema = new(
+        "Intake.CannotDeleteDefaultSchema",
+        "Default form schema cannot be deleted.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error FormSchemaInUse = new(
+        "Intake.FormSchemaInUse",
+        "This form has associated submissions and cannot be deleted. Archive it instead.",
+        StatusCodes.Status409Conflict);
+
+    public static readonly Error SchemaAlreadyArchived = new(
+        "Intake.SchemaAlreadyArchived",
+        "Form schema is already archived.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error SchemaNotArchived = new(
+        "Intake.SchemaNotArchived",
+        "Form schema is not archived.",
+        StatusCodes.Status400BadRequest);
+
+    // ─── Core / Minimum Required Field Errors ───────────────
+
+    public static readonly Error CoreFieldMissing = new(
+        "Intake.CoreFieldMissing",
+        "One or more required core fields are missing from the schema.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error CoreFieldTypeChanged = new(
+        "Intake.CoreFieldTypeChanged",
+        "The type of a locked core field cannot be changed.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error CoreFieldRequiredFlagChanged = new(
+        "Intake.CoreFieldRequiredFlagChanged",
+        "The required flag of a locked core field cannot be disabled.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error RequiredFieldEmpty = new(
+        "Intake.RequiredFieldEmpty",
+        "One or more required fields have empty values in the submission.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error BodyMapRequired = new(
+        "Intake.BodyMapRequired",
+        "Please mark at least one body region where you feel pain before submitting.",
+        StatusCodes.Status400BadRequest);
+
+    public static readonly Error PublishValidationFailed = new(
+        "Intake.PublishValidationFailed",
+        "The schema cannot be published because it does not meet the minimum requirements.",
+        StatusCodes.Status400BadRequest);
+
+    /// <summary>
+    /// Creates a detailed error for missing core fields listing which ones are missing.
+    /// </summary>
+    public static Error CoreFieldsMissing(IReadOnlyList<string> missingFieldNames)
+    {
+        var details = string.Join(", ", missingFieldNames);
+        return new Error(
+            "Intake.CoreFieldMissing",
+            $"The following required core fields are missing from the schema: {details}.",
+            StatusCodes.Status400BadRequest);
+    }
+
+    /// <summary>
+    /// Creates a detailed error for empty required fields in a submission.
+    /// </summary>
+    public static Error RequiredFieldsEmpty(IReadOnlyList<string> emptyFieldNames)
+    {
+        var details = string.Join(", ", emptyFieldNames);
+        return new Error(
+            "Intake.RequiredFieldEmpty",
+            $"The following required fields cannot be empty: {details}.",
+            StatusCodes.Status400BadRequest);
+    }
 }

@@ -1,7 +1,7 @@
-import { Component, computed, inject, OnInit, signal, DestroyRef } from '@angular/core';
+import { Component, computed, inject, OnInit, signal, DestroyRef, HostListener } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -22,114 +22,14 @@ import { BodyPainMapPayload, BodyPainMapComponent } from '../../components/body-
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    ReactiveFormsModule,
     ButtonModule,
     InputTextModule,
     DynamicFormRendererComponent,
     BodyPainMapComponent
-],
-  template: `
-    <div class="min-h-screen bg-slate-50/50 flex flex-col font-sans" role="main" aria-label="Intake form page">
-      <!-- ── Branded Header ──────────────────────────────────────── -->
-      <header class="bg-white border-b border-slate-100 sticky top-0 z-50 backdrop-blur-md bg-white/90">
-        <div class="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white">
-              <i class="pi pi-heart-fill text-sm"></i>
-            </div>
-            <span class="text-base font-bold text-slate-900 tracking-tight">Physio<span class="text-indigo-600">Assist</span></span>
-          </div>
-          <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
-            Patient Portal
-          </span>
-        </div>
-      </header>
-
-      <!-- ── Success State ────────────────────────────────────────── -->
-      @if (submitted() && submissionResult()) {
-        <div class="max-w-lg mx-auto mt-12 px-4 w-full animate-fade-in-up">
-          <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 text-center" role="status" aria-label="Form submitted successfully">
-            <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg class="w-10 h-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                <path stroke-linecap="round" stroke-linejoin="round" class="success-checkmark-check" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h2 class="text-xl font-bold text-slate-900 mb-2">Thank you!</h2>
-            <p class="text-slate-500 mb-6 text-sm">{{ submissionResult()!.message }}</p>
-
-            <div class="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100 text-left">
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Receipt ID</p>
-              <p class="text-xs font-mono text-slate-800 break-all select-all font-semibold">{{ submissionResult()!.submissionId }}</p>
-            </div>
-
-            <p class="text-[11px] text-slate-400">
-              Submitted at {{ submissionResult()!.submittedAt | date:'medium' }}
-            </p>
-          </div>
-        </div>
-      }
-
-      <!-- ── Form View ────────────────────────────────────────────── -->
-      @if (formData() && schema() && !submitted()) {
-        <div class="max-w-3xl mx-auto py-8 px-4 w-full flex-1 flex flex-col justify-between">
-          <div>
-            <!-- Banner / Header Info -->
-            <div class="mb-8">
-              <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ formData()!.formName }}</h1>
-              @if (formData()!.formDescription) {
-                <p class="text-slate-500 mt-2 text-sm leading-relaxed">{{ formData()!.formDescription }}</p>
-              }
-            </div>
-
-            <!-- Dynamic Fields Render -->
-            <app-dynamic-form-renderer
-              [schema]="schema()"
-              [formSchemaId]="formData()!.formSchemaId"
-              [formSchemaVersion]="formData()!.version"
-              (submissionChange)="onSubmissionChange($event)"
-              (validityChange)="onValidityChange($event)" />
-
-            <!-- Submission Errors -->
-            @if (submitError()) {
-              <div class="mt-4 p-4 bg-rose-50 border border-rose-100 rounded-2xl" role="alert">
-                <p class="text-sm text-rose-800 font-semibold flex items-center gap-2 m-0">
-                  <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-                  {{ submitError() }}
-                </p>
-              </div>
-            }
-          </div>
-
-          <!-- Pain Map Section -->
-           @if (formData()!.showPainMap) {
-            <app-body-pain-map (mapChange)="onPainMapChange($event)" />
-           }
-
-
-          <!-- Submit Buttons -->
-          <div class="mt-8 pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-2 text-xs text-slate-400">
-              <i class="pi pi-lock text-[10px]"></i>
-              <span>Your data is encrypted and secure</span>
-            </div>
-            <p-button
-              label="Submit Form"
-              icon="pi pi-check"
-              [disabled]="!canSubmit()"
-              [loading]="submitting()"
-              (onClick)="submit()"
-              severity="primary"
-              size="large"
-              styleClass="w-full sm:w-auto shadow-sm">
-            </p-button>
-          </div>
-        </div>
-      }
-    </div>
-  `,
-  styles: [`
-    :host { display: block; }
-  `]
+  ],
+  templateUrl: './public-intake.component.html',
+  styleUrl: './public-intake.component.css'
 })
 export class PublicIntakeComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -151,11 +51,48 @@ export class PublicIntakeComponent implements OnInit {
   readonly submissionResult = signal<PublicIntakeSubmissionResponse | null>(null);
   readonly submitError = signal<string | null>(null);
 
+  readonly showConfirmDialog = signal(false);
+  readonly isDirty = signal(false);
+
+  readonly requiredTotal = signal(0);
+  readonly requiredCompleted = signal(0);
+
+  readonly progressPercent = computed(() => {
+    const total = this.requiredTotal();
+    if (total === 0) return 0;
+    return Math.round((this.requiredCompleted() / total) * 100);
+  });
+
   readonly canSubmit = computed(() =>
     this.isFormValid()
     && !this.submitting()
     && !this.submitted()
   );
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(e: BeforeUnloadEvent): void {
+    if (this.isDirty() && !this.submitted()) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  }
+
+  schemaHasBodySelector(): boolean {
+    const schema = this.schema();
+    if (!schema) return false;
+
+    for (const section of schema.sections) {
+      for (const group of section.groups) {
+        for (const question of group.questions) {
+          if (question.type === 'bodyselector') {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
@@ -174,16 +111,47 @@ export class PublicIntakeComponent implements OnInit {
 
   onSubmissionChange(submission: DynamicFormSubmissionDto): void {
     this.submission.set(submission);
+    this.isDirty.set(true);
   }
 
   onValidityChange(valid: boolean): void {
     this.isFormValid.set(valid);
   }
 
+  onRequiredStatsChange(event: { completed: number; total: number }): void {
+    this.requiredCompleted.set(event.completed);
+    this.requiredTotal.set(event.total);
+  }
+
   painMapPayload = signal<BodyPainMapPayload | null>(null);
 
   onPainMapChange(payload: BodyPainMapPayload) {
     this.painMapPayload.set(payload);
+    this.isDirty.set(true);
+  }
+
+  requestSubmit(): void {
+    if (!this.canSubmit()) {
+      this.markAllAsTouched();
+      return;
+    }
+    this.showConfirmDialog.set(true);
+  }
+
+  cancelSubmit(): void {
+    this.showConfirmDialog.set(false);
+  }
+
+  confirmSubmit(): void {
+    this.showConfirmDialog.set(false);
+    this.submit();
+  }
+
+  private markAllAsTouched(): void {
+    const schema = this.schema();
+    if (!schema) return;
+    // This triggers validation display on all visible fields
+    // The dynamic-form-renderer will handle marking its own controls
   }
 
   submit(): void {
@@ -208,6 +176,7 @@ export class PublicIntakeComponent implements OnInit {
         this.submissionResult.set(response);
         this.submitted.set(true);
         this.submitting.set(false);
+        this.isDirty.set(false);
       },
       error: (err) => {
         const detail = err?.error?.detail || err?.error?.title || err?.error?.message;
@@ -260,4 +229,5 @@ export class PublicIntakeComponent implements OnInit {
       }
     });
   }
+
 }

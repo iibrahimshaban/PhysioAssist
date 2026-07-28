@@ -698,6 +698,9 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("CopyNumber")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -722,6 +725,13 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<Guid?>("OriginalFormId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("OriginalName")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
                     b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("datetime2");
 
@@ -733,6 +743,11 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<string>("SchemaJson")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShortCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<bool>("ShowPainMap")
                         .ValueGeneratedOnAdd()
@@ -758,6 +773,10 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
+
+                    b.HasIndex("ShortCode")
+                        .IsUnique()
+                        .HasDatabaseName("IX_PatientFormSchema_ShortCode");
 
                     b.HasIndex("UpdatedById");
 
@@ -810,6 +829,11 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<Guid?>("ReviewedByDoctorId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ShortCode")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
                     b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -830,6 +854,10 @@ namespace PhysioAssist.Api.Persistence.Migrations
 
                     b.HasIndex("FormSchemaId")
                         .HasDatabaseName("IX_PreVisitIntake_FormSchemaId");
+
+                    b.HasIndex("ShortCode")
+                        .IsUnique()
+                        .HasDatabaseName("IX_PreVisitIntake_ShortCode");
 
                     b.HasIndex("DoctorId", "Status", "SubmittedAt")
                         .HasDatabaseName("IX_PreVisitIntake_DoctorId_Status_SubmittedAt");

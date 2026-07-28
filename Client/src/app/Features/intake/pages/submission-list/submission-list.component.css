@@ -1,0 +1,189 @@
+@import '../../intake-theme.css';
+
+/* ─── Intake Module consistent rhythm ────────────────────────────────────
+ * Matches the Intake Forms (schema-list) reference page exactly:
+ *   • stats cards -> filter bar : 1.5rem (24px)  [was 0 — causing the jump]
+ *   • filter bar  -> content    : 1rem  (16px)
+ * The shared <app-intake-page-container> still owns width + gutters. */
+.intake-page-header {
+  margin-bottom: 1.5rem;   /* subtitle -> stat cards */
+}
+
+.intake-page-body > app-submission-summary-stats {
+  margin-bottom: 1.5rem;   /* stat cards -> filter bar */
+}
+
+.intake-page-body > app-submission-filters-bar {
+  margin-bottom: 1rem;     /* filter bar -> content */
+}
+
+/* Remove stray inline top-margins now handled by the rhythm above */
+.intake-page-body > .space-y-3,
+.intake-page-body > div.mt-4 {
+  margin-top: 0;
+}
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--intake-color-page-bg, #f1f5f9);
+}
+
+/* ─── Pagination ─────────────────────────────────────────────────────── */
+.submission-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.25rem 0 0.25rem;
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--intake-color-border, #e2e8f0);
+}
+
+@media (max-width: 639px) {
+  .submission-pagination {
+    gap: 0.75rem;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.submission-pagination-info {
+  font-size: 0.8125rem;
+  color: var(--intake-color-text-secondary, #64748b);
+  white-space: nowrap;
+}
+
+.submission-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.submission-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--intake-color-border, #e2e8f0);
+  border-radius: 0.625rem;
+  background: var(--intake-color-surface, #ffffff);
+  color: var(--intake-color-text-secondary, #64748b);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.submission-page-btn:hover:not(:disabled) {
+  border-color: var(--brand-gradient-start, #1888CC);
+  color: var(--brand-gradient-start, #1888CC);
+  background: rgba(24, 136, 204, 0.08);
+}
+
+.submission-page-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.submission-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.submission-page-btn--active {
+  background: var(--brand-gradient);
+  border-color: var(--brand-gradient-start, #1888CC);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(24, 136, 204, 0.25);
+}
+
+.submission-page-btn--active:hover {
+  box-shadow: 0 4px 10px rgba(24, 136, 204, 0.3);
+  color: #ffffff;
+}
+
+.submission-page-size {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.submission-page-size-select {
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--intake-color-border, #e2e8f0);
+  border-radius: 0.5rem;
+  background: var(--intake-color-surface, #ffffff);
+  color: var(--intake-color-text-primary, #0f172a);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.submission-page-size-select:focus {
+  border-color: var(--brand-gradient-start, #1888CC);
+  box-shadow: 0 0 0 3px rgba(24, 136, 204, 0.15);
+}
+
+/* ─── Premium Empty State ────────────────────────────────────────────── */
+.empty-state-premium {
+  text-align: center;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-blob {
+  width: 7rem;
+  height: 7rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(24, 136, 204, 0.15), transparent 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  animation: float-blob 3s ease-in-out infinite;
+}
+
+@keyframes float-blob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.empty-icon-wrap {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 1rem;
+  background: var(--brand-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  box-shadow: 0 4px 12px rgba(24, 136, 204, 0.15);
+}
+
+.empty-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--intake-color-text-primary, #0f172a);
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.empty-desc {
+  font-size: 1rem;
+  color: var(--intake-color-text-secondary, #64748b);
+  line-height: 1.7;
+  max-width: 28rem;
+  margin: 0 auto 1.5rem;
+}

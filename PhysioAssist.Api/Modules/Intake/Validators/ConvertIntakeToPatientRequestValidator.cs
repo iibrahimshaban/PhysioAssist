@@ -7,13 +7,13 @@ public class ConvertIntakeToPatientRequestValidator : AbstractValidator<ConvertI
     public ConvertIntakeToPatientRequestValidator()
     {
         RuleFor(x => x.FormSubmissionData)
-            .MaximumLength(2000)
-            .WithMessage("Form submission data cannot exceed 2000 characters.")
+            .MaximumLength(100_000)
+            .WithMessage("Form submission data cannot exceed 100,000 characters.")
             .When(x => !string.IsNullOrWhiteSpace(x.FormSubmissionData));
 
         RuleFor(x => x.PainPointsData)
-            .MaximumLength(2000)
-            .WithMessage("Pain points data cannot exceed 2000 characters.")
+            .MaximumLength(100_000)
+            .WithMessage("Pain points data cannot exceed 100,000 characters.")
             .When(x => !string.IsNullOrWhiteSpace(x.PainPointsData));
     }
 }

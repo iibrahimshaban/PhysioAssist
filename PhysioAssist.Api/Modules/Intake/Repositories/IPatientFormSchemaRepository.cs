@@ -12,4 +12,7 @@ public interface IPatientFormSchemaRepository
     Task<bool> ExistsNameForDoctorAsync(Guid doctorId, string name, Guid? excludeId, CancellationToken cancellationToken = default);
     Task UnsetDefaultSchemasAsync(Guid doctorId, CancellationToken cancellationToken = default);
     void Update(PatientFormSchema schema);
+    void Remove(PatientFormSchema schema);
+    Task<IReadOnlyList<PatientFormSchema>> GetCopiesByOriginalFormIdAsync(Guid originalFormId, Guid doctorId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<PatientFormSchema>> GetAllAsync(CancellationToken cancellationToken = default);
 }

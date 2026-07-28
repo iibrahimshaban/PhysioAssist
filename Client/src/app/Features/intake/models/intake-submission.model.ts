@@ -10,6 +10,7 @@ export enum IntakeStatus {
 
 export interface PreVisitIntakeResponse {
   id: string;
+  shortCode: string;
   doctorId: string;
   formSchemaId: string;
   formSchemaVersion: number;
@@ -25,6 +26,7 @@ export interface PreVisitIntakeResponse {
 
 export interface PreVisitIntakeDetailsResponse {
   id: string;
+  shortCode: string;
   doctorId: string;
   formSchemaId: string;
   formSchemaVersion: number;
@@ -48,8 +50,8 @@ export interface UpdateIntakeStatusRequest {
 }
 
 export interface ConvertIntakeToPatientRequest {
-  formSubmissionData?: string; // ADDED
-  painPointsData?: string;     // ADDED
+  formSubmissionData?: string;
+  painPointsData?: string;
 }
 
 

@@ -1,0 +1,189 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+/* ─── Premium Stats Grid ────────────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 480px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ─── Stat Block ────────────────────────────────────────────────────────── */
+.stat-block {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 1.25rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 5.5rem;
+}
+
+.stat-block:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.stat-block:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-block.active {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6), 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* ─── Theme Gradients: #1888CC → #0FB3A5 at 135deg ─────────────────────── */
+/* All cards use variations of the same sky-blue-to-teal gradient */
+
+/* Total Submissions — lightest opacity of the gradient */
+.stat-block--total {
+  background: linear-gradient(135deg, rgba(24, 136, 204, 0.1) 0%, rgba(15, 179, 165, 0.1) 100%);
+  box-shadow: 0 4px 12px rgba(24, 136, 204, 0.08);
+}
+
+.stat-block--total .stat-value { color: var(--brand-gradient-start); }
+.stat-block--total .stat-label { color: var(--brand-gradient-start); }
+.stat-block--total .stat-icon--deco { color: var(--brand-gradient-start); }
+.stat-block--total .stat-bg-icon { color: rgba(24, 136, 204, 0.06); }
+
+/* Pending / Waiting — soft opacity */
+.stat-block--pending {
+  background: linear-gradient(135deg, rgba(24, 136, 204, 0.2) 0%, rgba(15, 179, 165, 0.2) 100%);
+  box-shadow: 0 4px 12px rgba(24, 136, 204, 0.10);
+}
+
+.stat-block--pending .stat-value { color: var(--brand-gradient-start); }
+.stat-block--pending .stat-label { color: var(--brand-gradient-start); }
+.stat-block--pending .stat-icon--deco { color: var(--brand-gradient-start); }
+.stat-block--pending .stat-bg-icon { color: rgba(24, 136, 204, 0.08); }
+
+/* In Review — medium opacity */
+.stat-block--review {
+  background: linear-gradient(135deg, rgba(24, 136, 204, 0.4) 0%, rgba(15, 179, 165, 0.4) 100%);
+  box-shadow: 0 4px 12px rgba(24, 136, 204, 0.12);
+}
+
+.stat-block--review .stat-value { color: var(--brand-gradient-start); }
+.stat-block--review .stat-label { color: var(--brand-gradient-start); }
+.stat-block--review .stat-icon--deco { color: var(--brand-gradient-start); }
+.stat-block--review .stat-bg-icon { color: rgba(15, 179, 165, 0.08); }
+
+/* Approved / Completed — strongest opacity, rich sky-blue to teal */
+.stat-block--approved {
+  background: var(--brand-gradient);
+  box-shadow: 0 4px 12px rgba(24, 136, 204, 0.14);
+}
+
+.stat-block--approved .stat-value { color: #0B2D4A; }
+.stat-block--approved .stat-label { color: white; }
+.stat-block--approved .stat-icon--deco { color: white; }
+.stat-block--approved .stat-bg-icon { color: rgba(15, 179, 165, 0.10); }
+
+/* ─── Stat Content ──────────────────────────────────────────────────────── */
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  z-index: 1;
+  position: relative;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.stat-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}
+
+/* ─── Decorative Icon (top-left) ────────────────────────────────────────── */
+.stat-icon--deco {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  z-index: 1;
+  position: relative;
+  margin-top: 0.125rem;
+}
+
+/* ─── Background Decorative Icon (bottom-right) ─────────────────────────── */
+.stat-bg-icon {
+  position: absolute;
+  bottom: -0.25rem;
+  right: -0.25rem;
+  font-size: 3rem;
+  opacity: 0.5;
+  pointer-events: none;
+  transform: rotate(8deg);
+}
+
+/* ─── Pulse Dot ──────────────────────────────────────────────────────────── */
+.stat-pulse {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  background: var(--brand-teal);
+  animation: stat-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  z-index: 2;
+}
+
+@keyframes stat-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.4); }
+}
+
+/* ─── Mobile ─────────────────────────────────────────────────────────────── */
+@media (max-width: 639px) {
+  .stat-block {
+    padding: 1rem;
+    min-height: 4.5rem;
+    gap: 0.75rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.625rem;
+  }
+
+  .stat-icon--deco {
+    font-size: 1.125rem;
+  }
+
+  .stat-bg-icon {
+    font-size: 2.5rem;
+  }
+}

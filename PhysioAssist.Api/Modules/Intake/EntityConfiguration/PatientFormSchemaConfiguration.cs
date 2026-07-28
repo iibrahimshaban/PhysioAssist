@@ -1,4 +1,4 @@
-﻿using PhysioAssist.Api.Modules.Intake.Entities;
+using PhysioAssist.Api.Modules.Intake.Entities;
 
 namespace PhysioAssist.Api.Modules.Intake.EntityConfiguration;
 
@@ -59,5 +59,24 @@ public class PatientFormSchemaConfiguration : IEntityTypeConfiguration<PatientFo
         builder.Property(p => p.ShowPainMap)
            .IsRequired()
            .HasDefaultValue(true);
+
+        // New properties for copy tracking and short code
+        builder.Property(p => p.ShortCode)
+               .IsRequired()
+               .HasMaxLength(10);
+
+        builder.Property(p => p.OriginalFormId)
+               .IsRequired(false);
+
+        builder.Property(p => p.OriginalName)
+               .HasMaxLength(150)
+               .IsRequired(false);
+
+        builder.Property(p => p.CopyNumber)
+               .IsRequired(false);
+
+        builder.HasIndex(p => p.ShortCode)
+               .HasDatabaseName("IX_PatientFormSchema_ShortCode")
+               .IsUnique();
     }
 }

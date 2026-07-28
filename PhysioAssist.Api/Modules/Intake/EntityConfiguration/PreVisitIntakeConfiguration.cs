@@ -1,4 +1,4 @@
-﻿using PhysioAssist.Api.Modules.Intake.Entities;
+using PhysioAssist.Api.Modules.Intake.Entities;
 
 namespace PhysioAssist.Api.Modules.Intake.EntityConfiguration;
 
@@ -15,6 +15,10 @@ public class PreVisitIntakeConfiguration : IEntityTypeConfiguration<PreVisitInta
 
         builder.Property(p => p.DoctorId)
                .IsRequired();
+
+        builder.Property(p => p.ShortCode)
+               .IsRequired()
+               .HasMaxLength(8);
 
         builder.Property(p => p.FormSchemaId)
                .IsRequired();
@@ -70,5 +74,9 @@ public class PreVisitIntakeConfiguration : IEntityTypeConfiguration<PreVisitInta
 
         builder.HasIndex(p => p.ConvertedToPatientId)
                .HasDatabaseName("IX_PreVisitIntake_ConvertedToPatientId");
+
+        builder.HasIndex(p => p.ShortCode)
+               .HasDatabaseName("IX_PreVisitIntake_ShortCode")
+               .IsUnique();
     }
 }
