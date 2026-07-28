@@ -104,6 +104,11 @@ public static class IntakeErrors
         "One or more required fields have empty values in the submission.",
         StatusCodes.Status400BadRequest);
 
+    public static readonly Error BodyMapRequired = new(
+        "Intake.BodyMapRequired",
+        "Please mark at least one body region where you feel pain before submitting.",
+        StatusCodes.Status400BadRequest);
+
     public static readonly Error PublishValidationFailed = new(
         "Intake.PublishValidationFailed",
         "The schema cannot be published because it does not meet the minimum requirements.",

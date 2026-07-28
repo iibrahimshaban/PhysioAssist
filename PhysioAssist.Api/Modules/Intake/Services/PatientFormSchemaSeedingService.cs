@@ -30,7 +30,7 @@ public class PatientFormSchemaSeedingService(IIntakeService intakeService) : IPa
             Name = string.IsNullOrWhiteSpace(clinicName)
                 ? "Default Intake Form"
                 : $"{clinicName} - Form",
-            Description = "welecome to our clinic, please fill out the form",
+            Description = "Welcome to our clinic, please fill out the form.",
             SchemaJson = schemaJson,
             IsDefault = true,
         };

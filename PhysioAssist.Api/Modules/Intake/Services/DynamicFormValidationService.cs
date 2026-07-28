@@ -19,7 +19,7 @@ public class DynamicFormValidationService : IDynamicFormValidationService
         return Result.Success();
     }
 
-    public Result ValidateSubmissionAgainstSchema(DynamicFormSchemaDto schema, DynamicFormSubmissionDto submission)
+    public Result ValidateSubmissionAgainstSchema(DynamicFormSchemaDto schema, DynamicFormSubmissionDto submission, string? painPointsData = null)
     {
         if (schema is null)
             return Result.Failure(IntakeErrors.InvalidSchema);
@@ -44,7 +44,101 @@ public class DynamicFormValidationService : IDynamicFormValidationService
         if (requiredFieldsResult.IsFailure)
             return requiredFieldsResult;
 
+        // NEW: if the form has a body-map question, at least one region must be selected.
+        // The selection can arrive either as a bodyselector/painpoint answer inside the
+        // submission, OR as the standalone painPointsData payload (public patient flow).
+        var bodyMapResult = ValidateBodyMapRequired(schema, submission, painPointsData);
+        if (bodyMapResult.IsFailure)
+            return bodyMapResult;
+
         return Result.Success();
+    }
+
+    /// <summary>
+    /// If the schema contains a body-map question (bodyselector / painpoint), the submission
+    /// must include at least one selected region. Prevents a patient from submitting a form
+    /// without marking where they feel pain. Works for the body-selector answer stored in the
+    /// submission (regions array length >= 1).
+    /// </summary>
+    private static Result ValidateBodyMapRequired(DynamicFormSchemaDto schema, DynamicFormSubmissionDto submission, string? painPointsData)
+    {
+        bool hasBodyQuestion = false;
+        foreach (var section in schema.Sections)
+            foreach (var group in section.Groups)
+                foreach (var question in group.Questions)
+                    if (question.Type is "bodyselector" or "painpoint")
+                        hasBodyQuestion = true;
+
+        if (!hasBodyQuestion)
+            return Result.Success();
+
+        foreach (var section in submission.Sections)
+        {
+            foreach (var group in section.Groups)
+            {
+                foreach (var answer in group.Answers)
+                {
+                    var q = FindQuestionInSchema(schema, answer.QuestionId);
+                    if (q is null || q.Type is not ("bodyselector" or "painpoint")) continue;
+
+                    if (HasBodySelection(answer.Value))
+                        return Result.Success();
+                }
+            }
+        }
+
+        // The public patient flow sends the body selection as a separate painPointsData payload
+        // (the standalone body-pain-map component). If it contains at least one region, that
+        // satisfies the requirement.
+        if (HasBodySelectionInPainPoints(painPointsData))
+            return Result.Success();
+
+        return Result.Failure(IntakeErrors.BodyMapRequired);
+    }
+
+    private static bool HasBodySelectionInPainPoints(string? painPointsData)
+    {
+        if (string.IsNullOrWhiteSpace(painPointsData))
+            return false;
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(painPointsData);
+            return HasBodySelection(doc.RootElement);
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return false;
+        }
+    }
+
+    private static bool HasBodySelection(object? value)
+    {
+        if (value is null) return false;
+        JsonElement? element = value is JsonElement je ? je : null;
+        if (element is null && value is System.Text.Json.Nodes.JsonNode node)
+        {
+            // Accept JsonNode from in-process callers; treat as present if it has a regions array > 0.
+            if (node is System.Text.Json.Nodes.JsonObject obj && obj.TryGetPropertyValue("regions", out var reg))
+                return reg is System.Text.Json.Nodes.JsonArray arr && arr.Count > 0;
+            return false;
+        }
+        if (element is null) return false;
+
+        // Accept either { regions: [...] } or the legacy { regions: [...] } wrapper.
+        if (element.Value.ValueKind == JsonValueKind.Object)
+        {
+            if (element.Value.TryGetProperty("regions", out var regions) && regions.ValueKind == JsonValueKind.Array)
+                return regions.GetArrayLength() > 0;
+            // Also accept a direct { "bodyselector": {...} } / { "painpoint": {...} } wrapper.
+            foreach (var prop in element.Value.EnumerateObject())
+            {
+                if (prop.Value.ValueKind == JsonValueKind.Object &&
+                    prop.Value.TryGetProperty("regions", out var r) && r.ValueKind == JsonValueKind.Array)
+                    return r.GetArrayLength() > 0;
+            }
+        }
+        return false;
     }
 
     /// <summary>
@@ -129,6 +223,12 @@ public class DynamicFormValidationService : IDynamicFormValidationService
                 foreach (var question in group.Questions)
                 {
                     if (!question.Required) continue;
+
+                    // Body-map questions (bodyselector / painpoint) are satisfied by the separate
+                    // painPointsData payload (public patient flow) or an in-form bodyselector answer,
+                    // not by a regular form answer. Their requirement is enforced by
+                    // ValidateBodyMapRequired, so skip them here to avoid a false "required empty".
+                    if (question.Type is "bodyselector" or "painpoint") continue;
 
                     var answer = FindAnswerInSubmission(submission, section.SectionId, group.GroupId, question.QuestionId);
 
@@ -542,7 +642,8 @@ public class DynamicFormValidationService : IDynamicFormValidationService
             "fileupload",
             "painpoint",
             "painscale",
-            "bodyselector"
+            "bodyselector",
+            "summary"
         };
 
         public static bool IsSupported(string type) => SupportedTypes.Contains(type);

@@ -5,6 +5,6 @@ namespace PhysioAssist.Api.Modules.Intake.Services;
 public interface IDynamicFormValidationService
 {
     Result ValidateSchema(DynamicFormSchemaDto schema);
-    Result ValidateSubmissionAgainstSchema(DynamicFormSchemaDto schema, DynamicFormSubmissionDto submission);
+    Result ValidateSubmissionAgainstSchema(DynamicFormSchemaDto schema, DynamicFormSubmissionDto submission, string? painPointsData = null);
     Result ValidateSchemaForPublish(DynamicFormSchemaDto schema);
 }
