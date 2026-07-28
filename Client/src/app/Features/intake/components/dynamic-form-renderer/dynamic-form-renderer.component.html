@@ -280,6 +280,30 @@
                             </div>
                           </div>
                         }
+                        @case ('bodyselector') {
+                          <app-body-pain-map
+                            [showDoctorFields]="false"
+                            [readOnly]="readOnly()"
+                            [initialValue]="getControl(question.questionId).value || null"
+                            (mapChange)="onBodyMapChange(question.questionId, $event)">
+                          </app-body-pain-map>
+                        }
+                        @case ('summary') {
+                          <div
+                            class="w-full text-sm px-3 py-3 rounded-xl"
+                            [attr.id]="'q-' + question.questionId"
+                            role="note"
+                            aria-label="{{ question.text }}"
+                            style="border: 1px dashed var(--color-border); background: var(--color-page-bg); color: var(--color-text-secondary);">
+                            @if (getControl(question.questionId).value) {
+                              <div class="whitespace-pre-wrap">{{ getControl(question.questionId).value }}</div>
+                            } @else {
+                              <span class="italic" style="color: var(--color-text-muted);">
+                                {{ question.placeholder || 'Auto-generated clinical summary will appear here once the intake is submitted.' }}
+                              </span>
+                            }
+                          </div>
+                        }
                         @default {
                           <input
                             type="text"

@@ -101,6 +101,7 @@ const BACK_REGIONS: BodyRegionDef[] = [
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './body-pain-map.component.html',
+  styleUrl: './body-pain-map.component.css',
 })
 export class BodyPainMapComponent {
   /** Fires on every change so the parent form can keep a live copy of the payload. */

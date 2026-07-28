@@ -47,6 +47,7 @@ export class InitialReportComponent implements OnInit {
   injury = signal<string | undefined>(undefined);
   injuryDate = signal<string | undefined>(undefined);
   patientCategory = signal<string | undefined>(undefined);
+  patientType = signal<string | undefined>(undefined);
 
   patientInitials = computed(() =>
     this.patientName()
@@ -155,6 +156,7 @@ export class InitialReportComponent implements OnInit {
         if (intake.patientCategory != null) {
           this.patientCategory.set(PATIENT_CATEGORY_LABELS[intake.patientCategory]);
         }
+        if (intake.patientType) this.patientType.set(intake.patientType);
         this.patientBadge.set(`Patient #${patientId}`);
       },
       error: err => {

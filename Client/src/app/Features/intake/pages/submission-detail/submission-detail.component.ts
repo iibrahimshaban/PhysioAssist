@@ -370,8 +370,17 @@ export class SubmissionDetailComponent implements OnInit {
 
     this.updating.set(true);
 
-    const submission = this.isEditing() ? this.editedSubmission() : this.submissionData();
     const painMap = this.isEditing() ? this.editedPainMap() : this.painMapPayload();
+
+    // Doctor-only body fields (Chief Complaint + Patient Category) are required when the
+    // doctor submits/edits an intake. They are pinned (always present) via the body-pain-map.
+    if (this.isEditing() && (!painMap?.chiefComplaint?.trim() || !painMap?.patientCategory)) {
+      this.updating.set(false);
+      this.snackbar.error('Missing required fields', ['Please complete Chief Complaint and Patient Category before submitting.']);
+      return;
+    }
+
+    const submission = this.isEditing() ? this.editedSubmission() : this.submissionData();
 
     const request: ConvertIntakeToPatientRequest = {
       formSubmissionData: submission ? JSON.stringify(submission) : (this.details()?.formSubmissionData ?? '{}'),

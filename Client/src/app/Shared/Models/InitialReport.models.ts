@@ -47,6 +47,7 @@ export interface PatientIntakeSummaryResponse {
   injuryDescription?: string;
   injuryDate?: string;
   patientCategory?: number; // enum ordinal from backend
+  patientType?: string; // intake Patient Type (New/Returning/Post-Surgery/Chronic)
 }
 
 // --- Schedule Requirements section --------------------------------------

@@ -477,6 +477,12 @@
                                     }
                                   </div>
                                 }
+                                @case ('summary') {
+                                  <div class="preview-upload-zone" style="border-style: dashed;">
+                                    <i class="pi pi-file-edit text-[var(--color-primary)] text-sm"></i>
+                                    <span class="text-xs text-[var(--color-text-secondary)]">Auto-generated clinical summary (read-only)</span>
+                                  </div>
+                                }
                                 @default {
                                   <div class="preview-input">Input</div>
                                 }
@@ -976,7 +982,7 @@
           <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
           <div>
             <p class="text-xs text-blue-700 m-0 font-medium">How to fix</p>
-            <p class="text-xs text-blue-600 mt-0.5 m-0">Add the missing fields using the "Quick Add" presets in the right panel, or ensure existing fields have the correct question IDs (core_full_name, core_email, core_phone, core_gender, core_dob, core_occupation) and the "Required" checkbox enabled.</p>
+            <p class="text-xs text-blue-600 mt-0.5 m-0">Add the missing fields using the "Quick Add" presets in the right panel, or ensure existing fields have the correct question IDs (question_default_full_name, question_default_email, question_default_phone, question_default_gender, question_default_dob, question_default_free_time, question_default_chief_complaint, question_default_injury_date, question_default_patient_type) and the "Required" checkbox enabled.</p>
           </div>
         </div>
       </div>

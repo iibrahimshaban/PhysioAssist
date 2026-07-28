@@ -20,13 +20,22 @@ import {
   FormQuestionDto,
 } from '../../models';
 
+// Pinned/required core fields. These MUST match CoreFieldConstants.HardRequiredFields
+// on the backend (which uses question_default_* IDs); using the same IDs lets the
+// schema pass the server's publish guard and core-field merge. Previously this list
+// was hardcoded with core_* IDs and only 6 fields (and included "Occupation", which
+// is not a core field) — so Chief Complaint, Patient Type, Injury Date and Patient
+// Free Time were missing and from-scratch forms failed to publish.
 const CORE_FIELD_IDS = new Set([
-  'core_full_name',
-  'core_email',
-  'core_phone',
-  'core_gender',
-  'core_dob',
-  'core_occupation'
+  'question_default_full_name',
+  'question_default_email',
+  'question_default_phone',
+  'question_default_gender',
+  'question_default_dob',
+  'question_default_free_time',
+  'question_default_chief_complaint',
+  'question_default_injury_date',
+  'question_default_patient_type'
 ]);
 
 const CORE_FIELD_TEXTS = new Set([
@@ -35,7 +44,10 @@ const CORE_FIELD_TEXTS = new Set([
   'Phone Number',
   'Gender',
   'Date of Birth',
-  'Occupation'
+  'Patient Free Time',
+  'Chief Complaint',
+  'Injury Date',
+  'Patient Type'
 ]);
 
 interface PublishValidationIssue {
@@ -372,7 +384,7 @@ export class SchemaWizardComponent {
       if (!found) {
         const byText = allQuestions.find(q => CORE_FIELD_TEXTS.has(q.text));
         if (!byText) {
-          issues.push({ fieldName: coreId.replace('core_', '').replace('_', ' '), issue: 'Missing from schema' });
+          issues.push({ fieldName: coreId.replace('question_default_', '').replace('_', ' '), issue: 'Missing from schema' });
           continue;
         }
         if (!byText.required) {
@@ -469,16 +481,19 @@ export class SchemaWizardComponent {
       order: 0,
       groups: [{
         groupId: CORE_GROUP_ID,
-        title: 'Personal Information',
+        title: 'Patient Details',
         isLocked: true,
         order: 0,
         questions: [
-          { questionId: 'core_full_name', text: 'Full Name', type: 'text', required: true, isLocked: true, order: 0 },
-          { questionId: 'core_email', text: 'Email Address', type: 'email', required: true, isLocked: true, order: 1 },
-          { questionId: 'core_phone', text: 'Phone Number', type: 'tel', required: true, isLocked: true, order: 2 },
-          { questionId: 'core_gender', text: 'Gender', type: 'select', required: true, isLocked: true, order: 3, options: ['Male', 'Female', 'Other'] },
-          { questionId: 'core_dob', text: 'Date of Birth', type: 'date', required: true, isLocked: true, order: 4 },
-          { questionId: 'core_occupation', text: 'Occupation', type: 'text', required: true, isLocked: true, order: 5 },
+          { questionId: 'question_default_full_name', text: 'Full Name', type: 'text', required: true, isLocked: true, order: 0 },
+          { questionId: 'question_default_email', text: 'Email Address', type: 'email', required: true, isLocked: true, order: 1 },
+          { questionId: 'question_default_phone', text: 'Phone Number', type: 'tel', required: true, isLocked: true, order: 2 },
+          { questionId: 'question_default_gender', text: 'Gender', type: 'radio', required: true, isLocked: true, order: 3, options: ['Male', 'Female', 'Other', 'Prefer not to say'] },
+          { questionId: 'question_default_dob', text: 'Date of Birth', type: 'date', required: true, isLocked: true, order: 4 },
+          { questionId: 'question_default_free_time', text: 'Patient Free Time', type: 'text', required: true, isLocked: true, order: 5 },
+          { questionId: 'question_default_chief_complaint', text: 'Chief Complaint', type: 'textarea', required: true, isLocked: true, order: 6 },
+          { questionId: 'question_default_injury_date', text: 'Injury Date', type: 'date', required: true, isLocked: true, order: 7 },
+          { questionId: 'question_default_patient_type', text: 'Patient Type', type: 'select', required: true, isLocked: true, order: 8, options: ['New Patient', 'Returning Patient', 'Post-Surgical', 'Athlete', 'Pediatric', 'Geriatric'] },
         ]
       }]
     };
@@ -489,7 +504,7 @@ export class SchemaWizardComponent {
   }
 
   isQuestionLocked(question: any): boolean {
-    return question.isLocked === true || question.questionId?.startsWith('core_') === true;
+    return question.isLocked === true || question.questionId?.startsWith('question_default_') === true;
   }
 
   // ─── Build: Section Management ───────────────────────────

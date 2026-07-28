@@ -146,6 +146,7 @@
           [schema]="schema()"
           [formSchemaId]="formData()!.formSchemaId"
           [formSchemaVersion]="formData()!.version"
+          [patientMode]="true"
           (submissionChange)="onSubmissionChange($event)"
           (validityChange)="onValidityChange($event)"
           (requiredStatsChange)="onRequiredStatsChange($event)" />

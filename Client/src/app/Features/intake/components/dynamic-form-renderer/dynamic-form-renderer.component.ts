@@ -14,6 +14,7 @@ import {
   SubmissionGroupDto,
   SubmissionAnswerDto
 } from '../../models';
+import { BodyPainMapComponent, BodyPainMapPayload } from '../../components/body-pain-map/body-pain-map.component';
 
 @Component({
   selector: 'app-dynamic-form-renderer',
@@ -23,7 +24,8 @@ import {
     ReactiveFormsModule,
     InputNumberModule,
     MultiSelect,
-    SelectButtonModule
+    SelectButtonModule,
+    BodyPainMapComponent
   ],
   templateUrl: './dynamic-form-renderer.component.html',
   styleUrl: './dynamic-form-renderer.component.css'
@@ -35,7 +37,11 @@ export class DynamicFormRendererComponent implements OnDestroy {
   readonly formSchemaId = input<string>('');
   readonly formSchemaVersion = input<number>(1);
   readonly conditionLogic = input<'AND' | 'OR'>('AND');
+  readonly readOnly = input<boolean>(false);
   readonly initialAnswers = input<Record<string, any> | null>(null);
+  // When true, doctor-only / auto-computed fields (e.g. the "summary" Clinical Summary)
+  // are hidden from the patient-facing form. They are still shown on doctor-side views.
+  readonly patientMode = input<boolean>(false);
 
   readonly submissionChange = output<DynamicFormSubmissionDto>();
   readonly validityChange = output<boolean>();
@@ -49,7 +55,7 @@ export class DynamicFormRendererComponent implements OnDestroy {
 
   private readonly wideTypes = new Set([
     'textarea', 'checkbox', 'multiselect', 'radio', 'painpoint', 'painscale',
-    'bodyselector', 'file', 'fileupload'
+    'bodyselector', 'file', 'fileupload', 'summary'
   ]);
 
   private readonly wrapTypes = new Set([
@@ -101,6 +107,11 @@ export class DynamicFormRendererComponent implements OnDestroy {
   }
 
   protected isQuestionVisible(question: FormQuestionDto): boolean {
+    // The Clinical Summary (type "summary") is auto-generated server-side after submit
+    // and is doctor-only. Never show it on the patient-facing form (otherwise the patient
+    // sees an empty "Clinical Summary" box).
+    if (this.patientMode() && question.type === 'summary') return false;
+
     if (!question.conditions || question.conditions.length === 0) return true;
 
     const currentAnswers = this.form.value as Record<string, any>;
@@ -183,6 +194,14 @@ export class DynamicFormRendererComponent implements OnDestroy {
     }
   }
 
+  onBodyMapChange(questionId: string, payload: BodyPainMapPayload): void {
+    const control = this.form.get(questionId) as FormControl | null;
+    if (!control) return;
+    control.setValue(payload);
+    control.markAsTouched();
+    this.emitOutputs();
+  }
+
   readonly submission = signal<DynamicFormSubmissionDto | null>(null);
 
   readonly isValid = signal(false);
@@ -205,6 +224,10 @@ export class DynamicFormRendererComponent implements OnDestroy {
               description: ['']
             });
             this.form.addControl(question.questionId, nestedGroup, { emitEvent: false });
+          } else if (question.type === 'bodyselector') {
+            // Body map selection is stored as a BodyPainMapPayload (regions array) so the
+            // backend can require >=1 selected region on submit.
+            this.form.addControl(question.questionId, new FormControl<BodyPainMapPayload | null>(null, validators), { emitEvent: false });
           } else if (question.type === 'checkbox' || question.type === 'multiselect') {
             this.form.addControl(question.questionId, new FormControl([], validators), { emitEvent: false });
           } else {
