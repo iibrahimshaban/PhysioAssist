@@ -9,7 +9,7 @@ import { environment } from '../../../../environments/environment';
 })
 export class PatientService {
 
-  private intakeUrl = '${environment.apiUrl}intake';
+  private intakeUrl = `${environment.apiUrl}intake`;
 
   private apiUrl = `${environment.apiUrl}patient`;
 
@@ -87,8 +87,8 @@ getAllFormSchemas() {
 
   createPatientFromIntake(body: { formSchemaId: string; formSubmissionData: string; painPointsData: string | null }) {
     return this.http.post<any>(`${this.apiUrl}/create-from-intake`, body);
+    }
+  getScheduleOverview(patientId: string): Observable<PatientScheduleOverviewDto> {
+    return this.http.get<PatientScheduleOverviewDto>(`${this.apiUrl}/${patientId}/schedule-overview`);
   }
-getScheduleOverview(patientId: string): Observable<PatientScheduleOverviewDto> {
-  return this.http.get<PatientScheduleOverviewDto>(`${this.apiUrl}/${patientId}/schedule-overview`);
-}
 }

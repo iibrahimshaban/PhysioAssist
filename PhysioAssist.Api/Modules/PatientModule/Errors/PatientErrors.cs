@@ -19,5 +19,8 @@
 
         public static readonly Error DuplicateEmail =
     new("Patient.DuplicateEmail", "A patient with this email address already exists.", StatusCodes.Status409Conflict);
+
+        public static readonly Error InvalidIntakeSubmission =
+    new("Patient.InvalidIntakeSubmission", "The intake form submission could not be processed.", StatusCodes.Status400BadRequest);
     }
 }
