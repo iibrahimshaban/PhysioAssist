@@ -33,5 +33,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
         {
             _context.DoctorPatients.Update(entity);
         }
+
+        public void Delete(DoctorPatient doctorPatient) => _context.DoctorPatients.Remove(doctorPatient);
     }
 }

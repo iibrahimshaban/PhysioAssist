@@ -93,3 +93,9 @@ export interface CreateDirectIntakeRequest {
   formSubmissionData: string; // raw JSON string — untouched, whatever the dynamic form produced
   painPointsData?: string;    // raw JSON string — untouched
 }
+
+export interface CreateFromIntakeRequest {
+  formSchemaId: string;
+  formSubmissionData: string;
+  painPointsData?: string;
+}
