@@ -6,9 +6,21 @@
       <button type="button" class="drawer__close" (click)="closeRequested.emit()">✕</button>
     </div>
 
-    <div class="drawer__section">
-      <span class="drawer__label">Patient</span>
-      <span class="drawer__value">Patient {{ shortId(a.patientId) }}</span>
+    <div class="drawer__section owner-section"
+         [class.owner-section--patient]="owner()?.kind === 'patient'"
+         [class.owner-section--guest]="owner()?.kind === 'guest'">
+      <span class="owner-badge" [class.owner-badge--patient]="owner()?.kind === 'patient'"
+                                 [class.owner-badge--guest]="owner()?.kind === 'guest'">
+        {{ owner()?.kind === 'guest' ? 'Guest' : owner()?.kind === 'patient' ? 'Patient' : 'Unknown' }}
+      </span>
+      <span class="drawer__value drawer__value--large">{{ owner()?.name }}</span>
+
+      @if (owner()?.phoneNumber) {
+        <span class="owner-detail">📞 {{ owner()!.phoneNumber }}</span>
+      }
+      @if (owner()?.emailAddress) {
+        <span class="owner-detail">✉️ {{ owner()!.emailAddress }}</span>
+      }
     </div>
 
     <div class="drawer__section">
@@ -33,12 +45,22 @@
 
     <div class="drawer__actions">
       @if (a.status === 'Booked') {
-        <button type="button" class="drawer-btn drawer-btn--success" (click)="completeRequested.emit(a.id)">Complete</button>
+        <button type="button" class="drawer-btn drawer-btn--success" (click)="requestComplete()">Complete</button>
         <button type="button" class="drawer-btn" (click)="rescheduleRequested.emit(a)">Reschedule</button>
-        <button type="button" class="drawer-btn drawer-btn--warning" (click)="noShowRequested.emit(a.id)">Mark No Show</button>
-        <button type="button" class="drawer-btn drawer-btn--danger" (click)="cancelRequested.emit(a.id)">Cancel</button>
+        <button type="button" class="drawer-btn drawer-btn--warning" (click)="requestNoShow()">Mark No Show</button>
+        <button type="button" class="drawer-btn drawer-btn--danger" (click)="requestCancel()">Cancel</button>
       }
-      <button type="button" class="drawer-btn drawer-btn--outline-danger" (click)="deleteRequested.emit(a.id)">Delete</button>
+      <button type="button" class="drawer-btn drawer-btn--outline-danger" (click)="requestDelete()">Delete</button>
     </div>
   </div>
+
+  <app-confirm-dialog
+    [isOpen]="pendingAction() !== null"
+    [title]="pendingAction()?.title ?? ''"
+    [message]="pendingAction()?.message ?? ''"
+    [confirmLabel]="pendingAction()?.confirmLabel ?? 'Confirm'"
+    [tone]="pendingAction()?.tone ?? 'default'"
+    (confirmed)="onConfirmed()"
+    (cancelled)="onCancelled()"
+  />
 }

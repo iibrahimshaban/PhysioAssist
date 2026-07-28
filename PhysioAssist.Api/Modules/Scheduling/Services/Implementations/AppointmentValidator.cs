@@ -19,6 +19,10 @@ namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations
 
         public async Task<Result> ValidateCreateAsync(CreateAppointmentRequest request, CancellationToken cancellationToken = default)
         {
+            var ownerResult = ValidateOwner(request.PatientId, request.GuestId);
+            if (ownerResult.IsFailure)
+                return ownerResult;
+
             var shapeResult = ValidateBasicShape(request.SlotStart, request.SlotEnd);
             if (shapeResult.IsFailure)
                 return shapeResult;
@@ -28,6 +32,17 @@ namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations
                 return workingHoursResult;
 
             return await ValidateOverlapAsync(request.DoctorId, request.SlotStart, request.SlotEnd, excludeAppointmentId: null, cancellationToken);
+        }
+
+        private static Result ValidateOwner(Guid? patientId, Guid? guestId)
+        {
+            if (patientId is null && guestId is null)
+                return Result.Failure(AppointmentErrors.MissingOwner);
+
+            if (patientId is not null && guestId is not null)
+                return Result.Failure(AppointmentErrors.BothOwnersSpecified);
+
+            return Result.Success();
         }
 
         public async Task<Result> ValidateRescheduleAsync(ScheduleSlot existing, RescheduleAppointmentRequest request, CancellationToken cancellationToken = default)

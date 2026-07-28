@@ -7,36 +7,57 @@
     </div>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="drawer__form">
-
       <div class="form-field">
         <span class="form-field__label">Patient</span>
 
         <div class="patient-mode-toggle">
-          <button type="button" class="mode-btn" [class.mode-btn--active]="patientMode() === 'existing'"
-            (click)="setMode('existing')">Existing Patient</button>
-          <button type="button" class="mode-btn" [class.mode-btn--active]="patientMode() === 'guest'"
-            (click)="setMode('guest')">Guest</button>
+          <button
+            type="button"
+            class="mode-btn"
+            [class.mode-btn--active]="patientMode() === 'existing'"
+            (click)="setMode('existing')"
+          >
+            Existing Patient
+          </button>
+          <button
+            type="button"
+            class="mode-btn"
+            [class.mode-btn--active]="patientMode() === 'guest'"
+            (click)="setMode('guest')"
+          >
+            Guest
+          </button>
         </div>
 
         @if (patientMode() === 'existing') {
           <div class="patient-search">
-            <input type="text" class="form-field__input" placeholder="Search patient by name..."
+            <input
+              type="text"
+              class="form-field__input"
+              placeholder="Search patient by name..."
               [value]="patientSearchTerm()"
               (input)="onSearchInput($any($event.target).value)"
               (focus)="openPatientList()"
-              (blur)="closePatientList()" />
+              (blur)="closePatientList()"
+            />
 
             @if (isPatientListOpen()) {
               <div class="patient-dropdown">
                 @if (patientsLoading()) {
                   <div class="patient-dropdown__status">Loading patients...</div>
                 } @else if (patientsError()) {
-                  <div class="patient-dropdown__status patient-dropdown__status--error">{{ patientsError() }}</div>
+                  <div class="patient-dropdown__status patient-dropdown__status--error">
+                    {{ patientsError() }}
+                  </div>
                 } @else if (filteredPatients().length === 0) {
                   <div class="patient-dropdown__status">No patients found</div>
                 } @else {
                   @for (patient of filteredPatients(); track patient.id) {
-                    <button type="button" class="patient-option" (mousedown)="selectPatient(patient)">
+                    <button
+                      type="button"
+                      class="patient-option"
+                      (mousedown)="selectPatient(patient)"
+                    >
                       {{ patient.name }}
                     </button>
                   }
@@ -49,10 +70,29 @@
             }
           </div>
         } @else {
-          <div class="guest-info">
-            <p class="guest-info__text">A random guest ID will be assigned to this appointment.</p>
-            @if (guestId()) {
-              <code class="guest-info__id">{{ guestId() }}</code>
+          <div class="guest-fields" [formGroup]="guestForm">
+            <label class="form-field">
+              <span class="form-field__label">Full Name</span>
+              <input
+                type="text"
+                formControlName="fullName"
+                class="form-field__input"
+                placeholder="Guest's full name"
+              />
+            </label>
+
+            <label class="form-field">
+              <span class="form-field__label">Phone Number</span>
+              <input
+                type="tel"
+                formControlName="phoneNumber"
+                class="form-field__input"
+                placeholder="Phone number"
+              />
+            </label>
+
+            @if (guestError()) {
+              <div class="guest-fields__error">{{ guestError() }}</div>
             }
           </div>
         }
@@ -67,15 +107,22 @@
         <span class="form-field__label">Duration</span>
         <div class="duration-buttons">
           @for (option of durationOptions; track option) {
-            <button type="button" class="duration-btn"
+            <button
+              type="button"
+              class="duration-btn"
               [class.duration-btn--active]="form.value.durationMinutes === option"
-              (click)="selectDuration(option)">{{ option }}m</button>
+              (click)="selectDuration(option)"
+            >
+              {{ option }}m
+            </button>
           }
         </div>
       </div>
 
       <div class="drawer__actions">
-        <button type="submit" class="drawer-btn drawer-btn--primary" [disabled]="!canSubmit()">Create</button>
+        <button type="submit" class="drawer-btn drawer-btn--primary" [disabled]="!canSubmit()">
+          {{ isCreatingGuest() ? 'Creating guest...' : 'Create' }}
+        </button>
         <button type="button" class="drawer-btn" (click)="onCancel()">Cancel</button>
       </div>
     </form>
