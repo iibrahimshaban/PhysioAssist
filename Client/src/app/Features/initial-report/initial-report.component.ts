@@ -244,8 +244,9 @@ export class InitialReportComponent implements OnInit {
    *  As of this merge NO existing record hits this path — all stored reports
    *  are empty-string — so this is currently a latent edge case only. Proper
    *  handling of legacy Diagnosis content requires a product/clinical
-   *  decision (discard / merge into Treatment Plan / archive separately);
-   *  tracked in FOLLOWUP-legacy-3section-report-format.md. */
+   *  decision (discard / merge into Treatment Plan / archive separately) —
+   *  this is a product/clinical call, NOT a code fix, and should be resolved
+   *  before any legacy 3-section report is ever encountered in production. */
   private parseReportText(reportText: string): void {
     const examinationMarker = '=== Examination ===';
     const treatmentMarker = '=== Treatment Plan ===';
