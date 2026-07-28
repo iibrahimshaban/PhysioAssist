@@ -1,10 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { BookTreatmentSlotRequest, CreateInitialReportRequest, InitialReportResponse, PatientIntakeSummaryResponse, PreVisitIntakeDataResponse, ReportAttachmentResponse, TreatmentSchedulePlanResponse, UpdateReportTextRequest, UpsertTreatmentSchedulePlanRequest } from '../../Shared/Models/InitialReport.models';
+import { BookTreatmentSlotRequest, CreateInitialReportRequest, InitialReportResponse, PatientIntakeSummaryResponse, PreVisitIntakeDataResponse, ReportAttachmentResponse, TranscriptionResponse, TreatmentSchedulePlanResponse, UpdateReportTextRequest, UpsertTreatmentSchedulePlanRequest } from '../../Shared/Models/InitialReport.models';
+import { SKIP_ERROR_SNACKBAR } from '../Interceptors/skip-error-interceptor.token';
+import { SKIP_GLOBAL_LOADING } from '../Interceptors/skip-global-loading.token';
 
 @Injectable({ providedIn: 'root' })
 export class InitialReportService {
+
+
   private readonly baseUrl = `${environment.apiUrl}InitialReport`;
 
   constructor(private readonly http: HttpClient) {}
@@ -14,11 +18,17 @@ export class InitialReportService {
   }
 
   getIntakeDataSummaryByPatientId(patientId: string) {
-    return this.http.get<PatientIntakeSummaryResponse>(`${this.baseUrl}/patient/${patientId}/summary`);
+    // 404 = intake not filled yet; loadIntakeHeader already handles this locally.
+    return this.http.get<PatientIntakeSummaryResponse>(`${this.baseUrl}/patient/${patientId}/summary`, {
+      context: new HttpContext().set(SKIP_ERROR_SNACKBAR, true),
+    });
   }
 
   getReportByPatientId(patientId: string) {
-    return this.http.get<InitialReportResponse>(`${this.baseUrl}/patient/${patientId}`);
+    // 404 = no report yet; loadOrCreateReport creates one on 404, that's expected.
+    return this.http.get<InitialReportResponse>(`${this.baseUrl}/patient/${patientId}`, {
+      context: new HttpContext().set(SKIP_ERROR_SNACKBAR, true),
+    });
   }
 
   getReportById(reportId: string) {
@@ -51,27 +61,42 @@ export class InitialReportService {
     const formData = new FormData();
     formData.append('audioFile', audioBlob, 'voice-recording.webm');
     const query = languageHint ? `?languageHint=${encodeURIComponent(languageHint)}` : '';
-    return this.http.post<InitialReportResponse>(`${this.baseUrl}/${reportId}/transcribe${query}`, formData);
+    return this.http.post<TranscriptionResponse>(
+      `${this.baseUrl}/${reportId}/transcribe${query}`,
+      formData,
+      { context: new HttpContext().set(SKIP_GLOBAL_LOADING, true) }, // from the earlier fix
+    );
   }
-  
-  /** POST api/InitialReport/{id}/schedule-plan — create or update the section;
- *  response always includes freshly computed candidateSlots. */
+
   upsertSchedulePlan(reportId: string, request: UpsertTreatmentSchedulePlanRequest) {
-    return this.http.post<TreatmentSchedulePlanResponse>(`${this.baseUrl}/${reportId}/schedule-plan`, request);
+    return this.http.post<TreatmentSchedulePlanResponse>(
+      `${this.baseUrl}/${reportId}/schedule-plan`,
+      request,
+      { context: new HttpContext().set(SKIP_GLOBAL_LOADING, true) },
+    );
   }
+
 
   /** GET api/InitialReport/{id}/schedule-plan — 404 if none exists yet for this report. */
   getSchedulePlan(reportId: string) {
-    return this.http.get<TreatmentSchedulePlanResponse>(`${this.baseUrl}/${reportId}/schedule-plan`);
+    return this.http.get<TreatmentSchedulePlanResponse>(`${this.baseUrl}/${reportId}/schedule-plan`, {
+      context: new HttpContext().set(SKIP_ERROR_SNACKBAR, true),
+    });
   }
 
-  /** POST api/InitialReport/{id}/schedule-plan/book — doctor picked a candidate slot himself. */
   bookSchedulePlan(reportId: string, request: BookTreatmentSlotRequest) {
-    return this.http.post<TreatmentSchedulePlanResponse>(`${this.baseUrl}/${reportId}/schedule-plan/book`, request);
+    return this.http.post<TreatmentSchedulePlanResponse>(
+      `${this.baseUrl}/${reportId}/schedule-plan/book`,
+      request,
+      { context: new HttpContext().set(SKIP_GLOBAL_LOADING, true) },
+    );
   }
 
-  /** POST api/InitialReport/{id}/schedule-plan/send-to-receptionist — defers booking. */
   sendSchedulePlanToReceptionist(reportId: string) {
-    return this.http.post<TreatmentSchedulePlanResponse>(`${this.baseUrl}/${reportId}/schedule-plan/send-to-receptionist`, {});
+    return this.http.post<TreatmentSchedulePlanResponse>(
+      `${this.baseUrl}/${reportId}/schedule-plan/send-to-receptionist`,
+      {},
+      { context: new HttpContext().set(SKIP_GLOBAL_LOADING, true) },
+    );
   }
 }

@@ -10,8 +10,6 @@ public class ReceptionistCreateSessionPackageRequest
     public required TimeSpan SessionDuration { get; init; }
     public int SessionsPerWeek { get; init; } = 3;
     public int MinimumGapBetweenSessionsDays { get; init; } = 2;
-    public PreferredTimeOfDay PreferredTimeOfDay { get; init; } = PreferredTimeOfDay.Unspecified;
-    public DaysOfWeekFlags PreferredDays { get; init; } = DaysOfWeekFlags.None;
     public SchedulingPriority Priority { get; init; } = SchedulingPriority.Normal;
     public SlotCandidateDto? FirstSessionSlot { get; init; }
 }

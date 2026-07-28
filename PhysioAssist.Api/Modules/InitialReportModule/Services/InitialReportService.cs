@@ -77,12 +77,13 @@ public class InitialReportService(
         return Result.Success(MapToResponse(report));
     }
 
-    public async Task<Result<InitialReportResponse>> TranscribeAsync(Guid reportId, IFormFile audioFile, string? languageHint)
+    public async Task<Result<TranscriptionResponse>> TranscribeAsync(
+    Guid reportId, IFormFile audioFile, string? languageHint)
     {
-        var report = await _reportRepository.GetWithAttachmentsAsync(reportId);
+        var report = await _reportRepository.GetByIdAsync(reportId); // existence check only — no need for attachments here
 
         if (report is null)
-            return Result.Failure<InitialReportResponse>(InitialReportErrors.NotFound);
+            return Result.Failure<TranscriptionResponse>(InitialReportErrors.NotFound);
 
         await using var audioStream = audioFile.OpenReadStream();
 
@@ -95,13 +96,11 @@ public class InitialReportService(
         var transcriptionResult = await _audioTranscriptionService.TranscribeAsync(transcriptionRequest);
 
         if (transcriptionResult.IsFailure)
-            return Result.Failure<InitialReportResponse>(InitialReportErrors.TranscriptionFailed);
+            return Result.Failure<TranscriptionResponse>(InitialReportErrors.TranscriptionFailed);
 
-        report.ReportText = transcriptionResult.Value.RefinedText;
-        _reportRepository.Update(report);
-        await _unitOfWork.SaveAsync();
-
-        return Result.Success(MapToResponse(report));
+        // Not persisted — the frontend merges this into the field being recorded
+        // and saves it via the existing UpdateReportText endpoint on Save Draft/Submit.
+        return Result.Success(new TranscriptionResponse(transcriptionResult.Value.RefinedText));
     }
 
     public async Task<Result<ReportAttachmentResponse>> UploadAttachmentAsync(Guid reportId, IFormFile file)

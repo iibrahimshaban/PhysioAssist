@@ -5,7 +5,7 @@ public static class TreatmentSchedulePlanErrors
     public static readonly Error NotFound = new(
         "TreatmentSchedulePlan.NotFound",
         "No schedule requirements section found for this report.",
-        StatusCodes.Status400BadRequest);
+        StatusCodes.Status404NotFound);
 
     public static readonly Error InvalidTotalSessions = new(
         "TreatmentSchedulePlan.InvalidTotalSessions",

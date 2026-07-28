@@ -12,7 +12,7 @@ export interface SessionDetailsResponse {
   treatmentPlan: string | null;
 }
 
-interface Attachment {
+export interface Attachment {
   id: string;
   fileUrl: string;
   fileName: string;

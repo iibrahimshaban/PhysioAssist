@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
-import { DaysOfWeekFlags, PreferredTimeOfDay, SchedulingPriority, SlotFitType, TreatmentSchedulePlanResponse, TreatmentSchedulePlanStatus, UpsertTreatmentSchedulePlanRequest } from '../../../Shared/Models/InitialReport.models';
+import {SchedulingPriority, SlotFitType, TreatmentSchedulePlanResponse, TreatmentSchedulePlanStatus, UpsertTreatmentSchedulePlanRequest } from '../../../Shared/Models/InitialReport.models';
 import { SnackbarService } from '../../../Core/Services/snackbar.service';
 import { InitialReportService } from '../../../Core/Services/initial-report.service';
 import { ConfirmationService } from 'primeng/api';
@@ -7,11 +7,10 @@ import { ButtonModule } from 'primeng/button';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SelectModule } from 'primeng/select';
-import { MultiSelect } from 'primeng/multiselect';
 
 @Component({
   selector: 'app-schedule-requirements',
-  imports: [CommonModule, FormsModule, ButtonModule, SelectModule, MultiSelect],
+  imports: [CommonModule, FormsModule, ButtonModule, SelectModule],
   templateUrl: './schedule-requirements.component.html',
   styleUrl: './schedule-requirements.component.css',
 })
@@ -41,7 +40,6 @@ export class ScheduleRequirementsComponent implements OnInit {
   sessionDurationMinutes = signal<number | null>(null);
   sessionsPerWeek = signal(3);
   minimumGapBetweenSessionsDays = signal(2);
-  preferredTimeOfDay = signal<PreferredTimeOfDay>(PreferredTimeOfDay.Unspecified);
   selectedPreferredDays = signal<number[]>([]);
   priority = signal<SchedulingPriority>(SchedulingPriority.Normal);
  
@@ -49,21 +47,7 @@ export class ScheduleRequirementsComponent implements OnInit {
   readonly sessionDurationOptions = [30, 45, 60, 75, 90].map(m => ({ label: `${m} min`, value: m }));
   readonly sessionsPerWeekOptions = [1, 2, 3, 4, 5].map(n => ({ label: `${n}/week`, value: n }));
   readonly minimumGapOptions = [0, 1, 2, 3, 4, 5, 7].map(n => ({ label: `${n} day${n === 1 ? '' : 's'}`, value: n }));
-  readonly preferredTimeOfDayOptions = [
-  { label: 'No preference', value: PreferredTimeOfDay.Unspecified },
-  { label: 'Morning (6:00 AM – 12:00 PM)', value: PreferredTimeOfDay.Morning },
-  { label: 'Afternoon (12:00 PM – 5:00 PM)', value: PreferredTimeOfDay.Afternoon },
-  { label: 'Evening (5:00 PM – 10:00 PM)', value: PreferredTimeOfDay.Evening },
-];
-  readonly preferredDaysOptions = [
-    { label: 'Sunday', value: DaysOfWeekFlags.Sunday },
-    { label: 'Monday', value: DaysOfWeekFlags.Monday },
-    { label: 'Tuesday', value: DaysOfWeekFlags.Tuesday },
-    { label: 'Wednesday', value: DaysOfWeekFlags.Wednesday },
-    { label: 'Thursday', value: DaysOfWeekFlags.Thursday },
-    { label: 'Friday', value: DaysOfWeekFlags.Friday },
-    { label: 'Saturday', value: DaysOfWeekFlags.Saturday },
-  ];
+
   readonly priorityOptions = [
     { label: 'Normal', value: SchedulingPriority.Normal },
     { label: 'Low', value: SchedulingPriority.Low },
@@ -98,21 +82,11 @@ export class ScheduleRequirementsComponent implements OnInit {
     this.sessionDurationMinutes.set(plan.sessionDurationMinutes || null);
     this.sessionsPerWeek.set(plan.sessionsPerWeek);
     this.minimumGapBetweenSessionsDays.set(plan.minimumGapBetweenSessionsDays);
-    this.preferredTimeOfDay.set(plan.preferredTimeOfDay);
-    this.selectedPreferredDays.set(this.flagsToArray(plan.preferredDays));
     this.priority.set(plan.priority);
     this.selectedCandidateIndex.set(null);
     this.planChanged.emit(plan);
   }
- 
-  private flagsToArray(flags: DaysOfWeekFlags): number[] {
-    return this.preferredDaysOptions.map(o => o.value).filter(v => (flags & v) !== 0);
-  }
- 
-  private arrayToFlags(values: number[]): number {
-    return values.reduce((acc, v) => acc | v, 0);
-  }
- 
+  
   get isPending(): boolean {
     return !this.plan() || this.plan()!.status === TreatmentSchedulePlanStatus.Pending;
   }
@@ -130,8 +104,6 @@ export class ScheduleRequirementsComponent implements OnInit {
       sessionDurationMinutes: this.sessionDurationMinutes()!,
       sessionsPerWeek: this.sessionsPerWeek(),
       minimumGapBetweenSessionsDays: this.minimumGapBetweenSessionsDays(),
-      preferredTimeOfDay: this.preferredTimeOfDay(),
-      preferredDays: this.arrayToFlags(this.selectedPreferredDays()),
       priority: this.priority(),
     };
  

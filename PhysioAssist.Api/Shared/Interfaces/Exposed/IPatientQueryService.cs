@@ -10,7 +10,6 @@ public interface IPatientQueryService
     Task<Result<List<PatientResponse>>> GetAllPatientsForDoctorAsync( Guid DoctorId, CancellationToken ct = default);
     Task<Result<Guid>> CreatePatientFromIntakeAsync(CreatePatientFromIntakeRequest request,
         CancellationToken cancellationToken = default);
-    Task<Result<PatientTimePreferenceInfo>> GetPatientTimePreferenceAsync(Guid patientId, CancellationToken cancellationToken = default);
     Task<Result<PatientTimePreferenceInfo>> ResolvePatientTimePreferenceAsync(Guid patientId,string? freeTimeOverrideText,
         bool persistOverride, CancellationToken cancellationToken = default);
 

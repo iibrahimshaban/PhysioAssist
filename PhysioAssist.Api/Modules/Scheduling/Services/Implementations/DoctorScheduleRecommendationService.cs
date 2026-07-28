@@ -44,16 +44,6 @@ public class DoctorScheduleRecommendationService(
 
         var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(EgyptOffset).Date);
 
-        // AvailabilityCalculator.CalculateFreeIntervals (owned outside this service)
-        // mislabels the working-hours window as UTC and converts appointment
-        // boundaries back through .UtcDateTime — so any interval edge that touches a
-        // real appointment comes back shifted by -EgyptOffset, while edges bounded
-        // only by the working window come back correct. There's no way to tell
-        // which is which from AvailableIntervalDto alone, so rather than try to
-        // "undo" a non-uniform shift, we independently pull this doctor's actual
-        // booked/completed slots — real DateTimeOffset values, no TimeOnly
-        // round-trip — and use them as a second, authoritative overlap filter on
-        // top of whatever the (possibly mis-boundaried) interval walk proposes.
         var rangeStart = from ?? DateTimeOffset.UtcNow;
         var rangeEnd = to ?? rangeStart.AddDays(DefaultMaxDaysOutForExactMatch);
 

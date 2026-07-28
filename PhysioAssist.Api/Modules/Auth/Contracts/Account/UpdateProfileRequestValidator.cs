@@ -7,11 +7,10 @@ public class UpdateProfileRequestValidator : AbstractValidator<UpdateProfileRequ
     public UpdateProfileRequestValidator()
     {
         RuleFor(x => x.UserName)
-           .NotEmpty().WithMessage("Username is required.")
-           .Matches(RegexPattern.UserName).WithMessage("Username can only have letters and numbers");
+           .NotEmpty().WithMessage("Username is required.");
 
         RuleFor(x => x.FirstName)
-            .NotEmpty().WithMessage("First name is required.");
+            .NotEmpty().WithMessage("First name is required."); 
 
         RuleFor(x => x.LastName)
             .NotEmpty().WithMessage("Last name is required.");

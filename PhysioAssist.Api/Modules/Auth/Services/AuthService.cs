@@ -1,36 +1,35 @@
-﻿using Hangfire;
-using Mapster;
+﻿using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using PhysioAssist.Api.Modules.Auth.Contracts.Authentication;
 using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.Auth.Errors;
 using PhysioAssist.Api.Modules.Auth.JwtService;
-using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Helpers;
-using PhysioAssist.Api.Shared.Interfaces.Common;
-using PhysioAssist.Api.Shared.Interfaces.Exposed;
+using PhysioAssist.Api.Shared.Options;
 using System.Security.Cryptography;
 
 namespace PhysioAssist.Api.Modules.Auth.Services;
 
 public class AuthService(
         UserManager<ApplicationUser> userManager,
-        IJwtProvider jwtProvider,
+        IJwtProvider _jwtProvider,
         SignInManager<ApplicationUser> signInManager,
         ApplicationDbContext context,
         ICustomEmailService emailService,
         IMediaStorageService storageService,
         IPatientFormSchemaSeedingService formSchemaSeedingService,
-        ILogger<AuthService> _logger
+        ILogger<AuthService> _logger,
+        IOptions<GoogleOptions> googleOptions
         ) : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
-    private readonly IJwtProvider _jwtToken = jwtProvider;
     private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
     private readonly ApplicationDbContext _context = context;
     private readonly ICustomEmailService _emailService = emailService;
     private readonly IMediaStorageService _storageService= storageService;
     private readonly IPatientFormSchemaSeedingService _formSchemaSeedingService = formSchemaSeedingService;
+    private readonly GoogleOptions _googleOptions = googleOptions.Value;
 
     private static readonly int RefreshTokenExpiryInDays = 90;
     private const int OtpExpiryIn = 15;
@@ -53,7 +52,7 @@ public class AuthService(
         if (result.Succeeded)
         {
             (var Roles, var Permissions) = await GetUserRolesAndPermissions(user);
-            (var token, var expiresIn) = _jwtToken.GenerateToken(user, Roles, Permissions);
+            (var token, var expiresIn) = _jwtProvider.GenerateToken(user, Roles, Permissions);
 
             var refreshToken = GenerateRefreshToken();
             var refreshTokenExpiryDate = DateTime.UtcNow.AddDays(RefreshTokenExpiryInDays);
@@ -137,7 +136,7 @@ public class AuthService(
 
     public async Task<Result<AuthResponse>> GetRefreshTokenAsync(RefreshTokenRequest request, CancellationToken cancellation=default)
     {
-        var result = _jwtToken.ValidateToken(request.Token, validateLifetime: false);
+        var result = _jwtProvider.ValidateToken(request.Token, validateLifetime: false);
 
         if (result.IsFailure)
             return Result.Failure<AuthResponse>(UserErrors.InvalidJwtToken);
@@ -163,7 +162,7 @@ public class AuthService(
         userRefreshToken.RevokedOn = DateTime.UtcNow;
 
         (var Roles, var Permissions) = await GetUserRolesAndPermissions(user);
-        (var NewToken, var ExpiryIn) = _jwtToken.GenerateToken(user, Roles,Permissions);
+        (var NewToken, var ExpiryIn) = _jwtProvider.GenerateToken(user, Roles,Permissions);
 
         var NewRefreshToken = GenerateRefreshToken();
         var RefreshTokenExpiryDate = DateTime.UtcNow.AddDays(RefreshTokenExpiryInDays);
@@ -184,7 +183,7 @@ public class AuthService(
 
     public async Task<Result> RevokeRefreshTokenAsync(RefreshTokenRequest request, CancellationToken cancellation = default)
     {
-        var result = _jwtToken.ValidateToken(request.Token, validateLifetime:false);
+        var result = _jwtProvider.ValidateToken(request.Token, validateLifetime:false);
 
         if (result.IsFailure)
             return Result.Failure(UserErrors.InvalidJwtToken);
@@ -376,6 +375,136 @@ public class AuthService(
             return Result.Failure(UserErrors.InvalidCode);
 
         return Result.Success();
+    }
+    public async Task<Result<GoogleLoginResult>> GoogleLoginAsync(GoogleLoginRequest request, CancellationToken cancellationToken = default)
+    {
+        GoogleJsonWebSignature.Payload payload;
+        try
+        {
+            payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, new GoogleJsonWebSignature.ValidationSettings
+            {
+                Audience = new[] { _googleOptions.ClientId }
+            });
+        }
+        catch (InvalidJwtException)
+        {
+            return Result.Failure<GoogleLoginResult>(UserErrors.InvalidGoogleToken);
+        }
+
+        if (!payload.EmailVerified)
+            return Result.Failure<GoogleLoginResult>(UserErrors.GoogleEmailNotVerified);
+
+        var user = await _userManager.FindByEmailAsync(payload.Email);
+
+        if (user is not null && user.GoogleId is null)
+            return Result.Failure<GoogleLoginResult>(UserErrors.AccountExistsWithPassword);
+
+        if (user is not null && user.GoogleId == payload.Subject)
+        {
+            if (user.IsDisabled)
+                return Result.Failure<GoogleLoginResult>(UserErrors.DisabledUser);
+
+            var authResponse = await IssueAuthResponseAsync(user);
+            return Result.Success(GoogleLoginResult.LoggedIn(authResponse));
+        }
+
+        var onboardingToken = _jwtProvider.GenerateGoogleOnboardingTicket(payload.Subject, payload.Email, payload.Picture);
+        var (firstName, lastName) = SplitName(payload.Name);
+
+        return Result.Success(GoogleLoginResult.NeedsOnboarding(
+            new GoogleOnboardingRequiredResponse(onboardingToken, payload.Email, firstName, lastName)));
+    }
+
+    public async Task<Result<AuthResponse>> CompleteGoogleOnboardingAsync(
+    CompleteGoogleOnboardingRequest request, CancellationToken cancellationToken = default)
+    {
+        var ticketResult = _jwtProvider.ValidateGoogleOnboardingTicket(request.OnboardingToken);
+        if (ticketResult.IsFailure)
+            return Result.Failure<AuthResponse>(ticketResult.Error);
+
+        var (googleSubject, email, googlePictureUrl) = ticketResult.Value;
+
+        if (await _userManager.FindByEmailAsync(email) is not null)
+            return Result.Failure<AuthResponse>(UserErrors.AccountExistsWithPassword);
+
+        var userId = Guid.CreateVersion7();
+
+        var user = new ApplicationUser
+        {
+            Id = userId.ToString(),
+            Email = email,
+            UserName = email,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            IsDisabled = false,
+            ProfilePictureUrl = googlePictureUrl ?? string.Empty,
+            GoogleId = googleSubject,
+            EmailConfirmed = true
+        };
+
+        var result = await _userManager.CreateAsync(user);
+
+        if (!result.Succeeded)
+        {
+            var error = result.Errors.FirstOrDefault();
+            return error is null
+                ? Result.Failure<AuthResponse>(UserErrors.RegistrationFailed)
+                : Result.Failure<AuthResponse>(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
+        }
+
+        await _userManager.AddToRoleAsync(user, DefaultRoles.SoloDoctor);
+
+        if (request.ProfilePhoto is not null)
+        {
+            user.ProfilePictureUrl = await _storageService.UploadImageAsync(request.ProfilePhoto, "users", userId.ToString());
+            await _userManager.UpdateAsync(user);
+        }
+
+        var doctor = new Doctor
+        {
+            Id = userId,
+            UserId = userId.ToString(),
+            ClinicName = request.ClinicName,
+        };
+
+        await _context.Doctors.AddAsync(doctor, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var seedResult = await _formSchemaSeedingService.SeedDefaultSchemaAsync(
+            doctor.Id, doctor.ClinicName, cancellationToken);
+
+        if (seedResult.IsFailure)
+            _logger.LogWarning(
+                "Failed to seed default form schema for doctor {DoctorId}: {Error}",
+                doctor.Id, seedResult.Error);
+
+        return Result.Success(await IssueAuthResponseAsync(user));
+    }
+
+    private async Task<AuthResponse> IssueAuthResponseAsync(ApplicationUser user)
+    {
+        (var roles, var permissions) = await GetUserRolesAndPermissions(user);
+        (var token, var expiresIn) = _jwtProvider.GenerateToken(user, roles, permissions);
+
+        var refreshToken = GenerateRefreshToken();
+        var refreshTokenExpiryDate = DateTime.UtcNow.AddDays(RefreshTokenExpiryInDays);
+
+        user.RefreshTokens.Add(new RefreshToken
+        {
+            Token = refreshToken,
+            ExpiresOn = refreshTokenExpiryDate
+        });
+
+        await _userManager.UpdateAsync(user);
+
+        return new AuthResponse(user.Id, user.FirstName, user.LastName, user.Email!, user.UserName!,
+            token, expiresIn, refreshToken, refreshTokenExpiryDate, user.ProfilePictureUrl);
+    }
+
+    private static (string FirstName, string LastName) SplitName(string fullName)
+    {
+        var parts = fullName.Trim().Split(' ', 2);
+        return parts.Length == 2 ? (parts[0], parts[1]) : (parts[0], string.Empty);
     }
     private static string GenerateRefreshToken()
     {

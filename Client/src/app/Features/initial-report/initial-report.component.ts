@@ -85,6 +85,7 @@ export class InitialReportComponent implements OnInit {
   // --- Voice input (MediaRecorder -> backend transcribe/refine pipeline) ---
   activeVoiceField: 'examination' | 'treatmentPlan' | null = null;
   listening = signal(false);
+  transcribing = signal(false);
   liveTranscript = signal('');
   private mediaRecorder: MediaRecorder | null = null;
   private recordedChunks: BlobPart[] = [];
@@ -337,9 +338,9 @@ export class InitialReportComponent implements OnInit {
     this.mediaRecorder.stop();
   }
 
-  /** WIP: teammate's transcription pipeline currently returns the whole
-   *  updated report, not a per-field result — so for now this assigns the
-   *  returned text wholesale to whichever field was being recorded. */
+  /** Backend now returns only the freshly transcribed segment (not the whole
+ *  report), so we append it to whatever's already in the target field
+ *  rather than overwriting it. */
   private transcribeVoice(audioBlob: Blob, field: 'examination' | 'treatmentPlan'): void {
     if (!this.reportId) {
       this.snackbar.error('Cannot transcribe audio', ['Report ID is missing.']);
@@ -347,27 +348,30 @@ export class InitialReportComponent implements OnInit {
       return;
     }
 
+    this.transcribing.set(true);
+
     this.initialReportService.transcribeAudio(this.reportId, audioBlob).subscribe({
       next: res => {
-        const trimmedText = res.reportText?.trim() ?? '';
-        if (!trimmedText) {
+        this.transcribing.set(false);
+        const newText = res.text?.trim() ?? '';
+
+        if (!newText) {
           this.snackbar.warning('No transcription result', ['The audio did not return any text.']);
           this.activeVoiceField = null;
           return;
         }
 
-        this.liveTranscript.set(trimmedText);
-        switch (field) {
-          case 'examination':
-            this.examination.set(trimmedText);
-            break;
-          case 'treatmentPlan':
-            this.treatmentPlan.set(trimmedText);
-            break;
-        }
+        this.liveTranscript.set(newText);
+
+        const targetSignal = field === 'examination' ? this.examination : this.treatmentPlan;
+        const existingText = targetSignal().trim();
+        const combined = existingText ? `${existingText}\n${newText}` : newText;
+        targetSignal.set(combined);
+
         this.activeVoiceField = null;
       },
       error: err => {
+        this.transcribing.set(false);
         console.error('Audio transcription failed', err);
         this.snackbar.error('Transcription failed', [this.getApiErrorDetail(err) || 'Unable to transcribe audio.']);
         this.activeVoiceField = null;

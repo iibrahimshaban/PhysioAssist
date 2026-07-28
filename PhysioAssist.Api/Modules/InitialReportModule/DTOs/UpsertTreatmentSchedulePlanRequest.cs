@@ -8,7 +8,5 @@ public record UpsertTreatmentSchedulePlanRequest(
         int SessionDurationMinutes,
         int SessionsPerWeek,
         int MinimumGapBetweenSessionsDays,
-        PreferredTimeOfDay PreferredTimeOfDay,
-        DaysOfWeekFlags PreferredDays,
         SchedulingPriority Priority
     );

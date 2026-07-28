@@ -16,8 +16,6 @@ public class CreatePackageWithFirstBookingRequest
     public int MinimumGapBetweenSessionsDays { get; init; } = 2;
 
     // --- Scheduling-owned optional preferences ---
-    public PreferredTimeOfDay PreferredTimeOfDay { get; init; } = PreferredTimeOfDay.Unspecified;
-    public DaysOfWeekFlags PreferredDays { get; init; } = DaysOfWeekFlags.None;
     public SchedulingPriority Priority { get; init; } = SchedulingPriority.Normal;
 
     // --- The already-chosen first slot (from a SlotCandidateDto the caller selected) ---

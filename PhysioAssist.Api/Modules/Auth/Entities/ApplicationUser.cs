@@ -8,6 +8,7 @@ public class ApplicationUser : IdentityUser
     public string LastName { get; set; } = string.Empty;
     public string ProfilePictureUrl { get; set; } = string.Empty;
     public bool IsDisabled { get; set; } = false;
+    public string? GoogleId { get; set; }
     public Doctor? Doctor { get; set; }
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new HashSet<RefreshToken>();
     public ICollection<OtpEntry> OtpEntries { get; set; } = new HashSet<OtpEntry>();

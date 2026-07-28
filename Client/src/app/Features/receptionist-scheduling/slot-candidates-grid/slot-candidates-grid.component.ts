@@ -13,6 +13,7 @@ import { Button } from "primeng/button";
 export class SlotCandidatesGridComponent {
   round = input<SessionBookingRoundDto | null>(null);
   isConfirming = input<boolean>(false);
+  isLoading = input<boolean>(false);
 
   pick = output<SlotCandidateDto>();
   manualSchedule = output<void>();  

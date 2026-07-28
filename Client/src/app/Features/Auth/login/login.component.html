@@ -104,6 +104,29 @@
             />
  
           </form>
+
+          <!-- Divider -->
+          <div class="flex items-center gap-3 my-6">
+            <div class="flex-1 h-px bg-gray-200"></div>
+            <span class="text-xs text-gray-400 uppercase tracking-wide">or</span>
+            <div class="flex-1 h-px bg-gray-200"></div>
+          </div>
+
+          <!-- Google sign-in -->
+          <div class="flex justify-center">
+            <asl-google-signin-button
+              type="standard"
+              theme="outline"
+              size="large"
+              text="signin_with"
+              shape="rectangular"
+              [width]= "320"
+            ></asl-google-signin-button>
+          </div>
+
+          @if (googleError()) {
+            <p class="text-xs text-red-500 text-center mt-3">{{ googleError() }}</p>
+          }
  
           <!-- Register link -->
           <p class="text-center text-sm text-gray-500 mt-6">

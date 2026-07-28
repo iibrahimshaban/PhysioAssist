@@ -29,7 +29,7 @@ export class ReceptionistSchedulingComponent {
   // Was `packageId` — now bound to the route's actual :patientId param.
   patientId = input.required<string>();
 
-  private readonly schedulingService = inject(ReceptionistSchedulingService);
+  protected readonly schedulingService = inject(ReceptionistSchedulingService);
   protected readonly packageStatusEnum = PackageStatus;
   protected readonly schedulingStateEnum = PatientSchedulingState;
 

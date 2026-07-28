@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using PhysioAssist.Api.Modules.Auth.Errors;
 using PhysioAssist.Api.Modules.Scheduling.DTO;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Shared.Dtos.Schedule;
-using PhysioAssist.Api.Shared.Extensions;
-using PhysioAssist.Api.Shared.ResultPattern;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Controllers
 {
@@ -17,7 +15,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    public class AppointmentsController(IAppointmentService appointmentService) : ControllerBase
+    [Authorize]
+    public class AppointmentsController(IAppointmentService appointmentService, ApplicationDbContext _dbContext) : ControllerBase
     {
         private readonly IAppointmentService _appointmentService = appointmentService;
 
@@ -38,6 +37,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         /// <response code="400">Request shape is invalid (e.g. end before start, duration out of bounds).</response>
         /// <response code="409">Requested time conflicts with working hours or an existing appointment.</response>
         [HttpPost]
+        [HasPermission(Permissions.ManageSchedule)]
         [ProducesResponseType(typeof(ScheduleSlotDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -59,6 +59,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         /// <response code="200">Appointment found and returned.</response>
         /// <response code="404">No appointment exists with the given ID.</response>
         [HttpGet("{id:guid}")]
+        [HasPermission(Permissions.ReadSchedule)]
         [ProducesResponseType(typeof(ScheduleSlotDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ScheduleSlotDto>> GetById(Guid id, CancellationToken cancellationToken)
@@ -83,13 +84,15 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         /// <response code="200">Returns the list of appointments (may be empty).</response>
         /// <response code="401">No doctorId supplied and no valid doctor identity found on the request.</response>
         [HttpGet("doctor/{doctorId:guid?}")]
+        [HasPermission(Permissions.ReadSchedule)]
         public async Task<ActionResult<IReadOnlyList<ScheduleSlotDto>>> GetDoctorAppointments(Guid? doctorId,[FromQuery] DateTimeOffset date,CancellationToken cancellationToken)
         {
-            var resolvedResult = ResolveDoctorId(doctorId);
-            if (resolvedResult is null)
-                return Unauthorized("No valid doctor identity found on the request.");
+            var managingDoctorId = await User.GetDoctorIdAsync(_dbContext, cancellationToken);
 
-            var result = await _appointmentService.GetDoctorAppointmentsAsync(resolvedResult.Value, date, cancellationToken);
+            if (managingDoctorId is null)
+                return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
+
+            var result = await _appointmentService.GetDoctorAppointmentsAsync(managingDoctorId.Value, date, cancellationToken);
             return Ok(result);
         }
 
@@ -109,14 +112,16 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         /// <response code="200">Returns the list of free intervals (may be empty if fully booked or a non-working day).</response>
         /// <response code="401">No doctorId supplied and no valid doctor identity found on the request.</response>
         [HttpGet("doctor/{doctorId:guid?}/availability")]
+        [HasPermission(Permissions.ReadSchedule)]
         [ProducesResponseType(typeof(IReadOnlyList<AvailableIntervalDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IReadOnlyList<AvailableIntervalDto>>> GetAvailability(Guid? doctorId,[FromQuery] DateTimeOffset date,CancellationToken cancellationToken)
         {
-            var resolvedResult = ResolveDoctorId(doctorId);
-            if (resolvedResult is null)
-                return Unauthorized("No valid doctor identity found on the request.");
+            var managingDoctorId = await User.GetDoctorIdAsync(_dbContext, cancellationToken);
 
-            var result = await _appointmentService.GetAvailabilityAsync(resolvedResult.Value, date, cancellationToken);
+            if (managingDoctorId is null)
+                return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
+
+            var result = await _appointmentService.GetAvailabilityAsync(managingDoctorId.Value, date, cancellationToken);
             return Ok(result);
         }
 
@@ -135,6 +140,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         /// <response code="404">No appointment exists with the given ID.</response>
         /// <response code="409">Appointment is not in a cancellable state (e.g. already Completed or Cancelled).</response>
         [HttpPost("{id:guid}/cancel")]
+        [HasPermission(Permissions.ManageSchedule)]
         [ProducesResponseType(typeof(ScheduleSlotDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -162,6 +168,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         /// <response code="404">No appointment exists with the given ID.</response>
         /// <response code="409">Appointment is not reschedulable, or the new time conflicts with working hours/another appointment.</response>
         [HttpPost("{id:guid}/reschedule")]
+        [HasPermission(Permissions.ManageSchedule)]
         [ProducesResponseType(typeof(ScheduleSlotDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -181,6 +188,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         /// <response code="404">No appointment exists with the given ID.</response>
         /// <response code="409">Appointment is not in a completable state (must currently be Booked).</response>
         [HttpPost("{id:guid}/complete")]
+        [HasPermission(Permissions.ManageSchedule)]
         [ProducesResponseType(typeof(ScheduleSlotDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -200,6 +208,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         /// <response code="404">No appointment exists with the given ID.</response>
         /// <response code="409">Appointment is not in a state that can be marked no-show (must currently be Booked).</response>
         [HttpPost("{id:guid}/no-show")]
+        [HasPermission(Permissions.ManageSchedule)]
         [ProducesResponseType(typeof(ScheduleSlotDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -224,6 +233,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         /// <response code="204">Appointment deleted successfully.</response>
         /// <response code="404">No appointment exists with the given ID.</response>
         [HttpDelete("{id:guid}")]
+        [HasPermission(Permissions.ManageSchedule)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
@@ -251,17 +261,19 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         /// <response code="401">No doctorId supplied and no valid doctor identity found on the request.</response>
         /// <response code="404">The doctor has no active working schedule.</response>
         [HttpGet("doctor/{doctorId:guid?}/availability-range")]
+        [HasPermission(Permissions.ReadSchedule)]
         [ProducesResponseType(typeof(IReadOnlyList<DailyAvailabilityDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IReadOnlyList<DailyAvailabilityDto>>> GetAvailabilityRange(Guid? doctorId,[FromQuery] DateTimeOffset? from,[FromQuery] DateTimeOffset? to,CancellationToken cancellationToken)
         {
-            var resolvedResult = ResolveDoctorId(doctorId);
-            if (resolvedResult is null)
-                return Unauthorized("No valid doctor identity found on the request.");
+            var managingDoctorId = await User.GetDoctorIdAsync(_dbContext, cancellationToken);
 
-            var result = await _appointmentService.GetAvailabilityRangeAsync(resolvedResult.Value, from, to, cancellationToken);
+            if (managingDoctorId is null)
+                return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
+
+            var result = await _appointmentService.GetAvailabilityRangeAsync(managingDoctorId.Value, from, to, cancellationToken);
 
             return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
@@ -277,31 +289,19 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         /// with the caller's claim, making the route parameter unreachable; that's fixed here.
         /// </remarks>
         [HttpGet("doctor/{doctorId:guid?}/cancelled")]
+        [HasPermission(Permissions.ReadSchedule)]
         [ProducesResponseType(typeof(IReadOnlyList<ScheduleSlotDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IReadOnlyList<ScheduleSlotDto>>> GetCancelledAppointments(Guid? doctorId,[FromQuery] DateTimeOffset? from,[FromQuery] DateTimeOffset? to,CancellationToken cancellationToken)
         {
-            var resolvedResult = ResolveDoctorId(doctorId);
-            if (resolvedResult is null)
-                return Unauthorized("No valid doctor identity found on the request.");
+            var managingDoctorId = await User.GetDoctorIdAsync(_dbContext, cancellationToken);
 
-            var result = await _appointmentService.GetCancelledAppointmentsAsync(resolvedResult.Value, from, to, cancellationToken);
+            if (managingDoctorId is null)
+                return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
+
+            var result = await _appointmentService.GetCancelledAppointmentsAsync(managingDoctorId.Value, from, to, cancellationToken);
 
             return result.IsFailure ? result.ToProblem() : Ok(result.Value);
-        }
-
-
-        /// <summary>
-        /// Resolves the effective doctor ID: the explicit route value if supplied,
-        /// otherwise the authenticated user's own identity claim.
-        /// </summary>
-        private Guid? ResolveDoctorId(Guid? routeDoctorId)
-        {
-            if (routeDoctorId is not null)
-                return routeDoctorId;
-
-            var doctorIdClaim = User.GetUserId();
-            return Guid.TryParse(doctorIdClaim, out var parsedId) ? parsedId : null;
         }
 
     }

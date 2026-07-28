@@ -52,25 +52,7 @@ export interface PatientIntakeSummaryResponse {
 
 // --- Schedule Requirements section --------------------------------------
  
-export enum PreferredTimeOfDay {
-  Unspecified = 0,
-  Morning = 1,
-  Afternoon = 2,
-  Evening = 3,
-}
- 
-// [Flags] enum on the backend — values are bitmask-combinable.
-export enum DaysOfWeekFlags {
-  None = 0,
-  Sunday = 1,
-  Monday = 2,
-  Tuesday = 4,
-  Wednesday = 8,
-  Thursday = 16,
-  Friday = 32,
-  Saturday = 64,
-}
- 
+
 export enum SchedulingPriority {
   Normal = 0,
   Low = 1,
@@ -106,8 +88,6 @@ export interface UpsertTreatmentSchedulePlanRequest {
   sessionDurationMinutes: number;
   sessionsPerWeek: number;
   minimumGapBetweenSessionsDays: number;
-  preferredTimeOfDay: PreferredTimeOfDay;
-  preferredDays: DaysOfWeekFlags;
   priority: SchedulingPriority;
 }
  
@@ -123,10 +103,12 @@ export interface TreatmentSchedulePlanResponse {
   sessionDurationMinutes: number;
   sessionsPerWeek: number;
   minimumGapBetweenSessionsDays: number;
-  preferredTimeOfDay: PreferredTimeOfDay;
-  preferredDays: DaysOfWeekFlags;
   priority: SchedulingPriority;
   status: TreatmentSchedulePlanStatus;
   packageId?: string;
   candidateSlots: SlotCandidateDto[];
+}
+
+export interface TranscriptionResponse {
+  text: string;
 }

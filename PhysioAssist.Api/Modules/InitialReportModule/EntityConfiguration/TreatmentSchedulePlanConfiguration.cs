@@ -15,8 +15,6 @@ public class TreatmentSchedulePlanConfiguration : IEntityTypeConfiguration<Treat
                .HasForeignKey<TreatmentSchedulePlan>(p => p.ReportId)
                .OnDelete(DeleteBehavior.NoAction);
 
-        builder.Property(p => p.PreferredTimeOfDay).HasConversion<int>();
-        builder.Property(p => p.PreferredDays).HasConversion<int>();
         builder.Property(p => p.Priority).HasConversion<int>();
         builder.Property(p => p.Status).HasConversion<int>();
     }

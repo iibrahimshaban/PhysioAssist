@@ -1,9 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.InitialReportModule.DTOs;
 using PhysioAssist.Api.Modules.InitialReportModule.Services;
-using PhysioAssist.Api.Shared.Extensions;
-using PhysioAssist.Api.Shared.Interfaces.Exposed;
+
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Controllers;
 
@@ -11,12 +9,12 @@ namespace PhysioAssist.Api.Modules.InitialReportModule.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class InitialReportController(
-    IInitialReportService _initialReportService, 
+    IInitialReportService _initialReportService,
     IIntakeQueryService _intakeQueryService,
     ITreatmentSchedulePlanService _treatmentSchedulePlanService) : ControllerBase
 {
-
     [HttpPost]
+    [HasPermission(Permissions.WriteInitialReport)]
     public async Task<IActionResult> Create([FromBody] CreateInitialReportRequest request)
     {
         var doctorId = Guid.Parse(User.GetUserId()!);
@@ -33,6 +31,7 @@ public class InitialReportController(
     }
 
     [HttpGet("{id:guid}")]
+    [HasPermission(Permissions.ReadInitialReport)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _initialReportService.GetByIdAsync(id);
@@ -43,6 +42,7 @@ public class InitialReportController(
     }
 
     [HttpPut("{id:guid}/text")]
+    [HasPermission(Permissions.WriteInitialReport)]
     public async Task<IActionResult> UpdateReportText(Guid id, [FromBody] UpdateReportTextRequest request)
     {
         var result = await _initialReportService.UpdateReportTextAsync(id, request);
@@ -53,6 +53,7 @@ public class InitialReportController(
     }
 
     [HttpPost("{id:guid}/transcribe")]
+    [HasPermission(Permissions.WriteInitialReport)]
     public async Task<IActionResult> Transcribe(Guid id, IFormFile audioFile, [FromQuery] string? languageHint)
     {
         var result = await _initialReportService.TranscribeAsync(id, audioFile, languageHint);
@@ -63,6 +64,7 @@ public class InitialReportController(
     }
 
     [HttpPost("{id:guid}/attachments")]
+    [HasPermission(Permissions.WriteInitialReport)]
     public async Task<IActionResult> UploadAttachment(Guid id, IFormFile file)
     {
         var result = await _initialReportService.UploadAttachmentAsync(id, file);
@@ -73,6 +75,7 @@ public class InitialReportController(
     }
 
     [HttpDelete("{id:guid}/attachments/{attachmentId:guid}")]
+    [HasPermission(Permissions.WriteInitialReport)]
     public async Task<IActionResult> DeleteAttachment(Guid id, Guid attachmentId)
     {
         var result = await _initialReportService.DeleteAttachmentAsync(id, attachmentId);
@@ -81,7 +84,9 @@ public class InitialReportController(
             ? NoContent()
             : result.ToProblem();
     }
+
     [HttpGet("patient/{patientId:guid}/intake")]
+    [HasPermission(Permissions.ReadInitialReport)]
     public async Task<IActionResult> GetIntakeDataByPatientId(Guid patientId)
     {
         var result = await _intakeQueryService.GetPreVisitIntakeByPatientIdAsync(patientId);
@@ -90,24 +95,29 @@ public class InitialReportController(
             ? Ok(result.Value)
             : result.ToProblem();
     }
+
     [HttpGet("patient/{patientId:guid}")]
+    [HasPermission(Permissions.ReadInitialReport)]
     public async Task<IActionResult> GetByPatientId(Guid patientId)
     {
         var result = await _initialReportService.GetByPatientIdAsync(patientId);
         return result.IsSuccess
             ? Ok(result.Value)
-            : result.ToProblem(); 
+            : result.ToProblem();
     }
+
     [HttpGet("patient/{patientId:guid}/summary")]
+    [HasPermission(Permissions.ReadInitialReport)]
     public async Task<IActionResult> GetIntakeDataSummaryByPatientId(Guid patientId)
     {
         var result = await _intakeQueryService.GetPatientIntakeSummaryAsync(patientId);
         return result.IsSuccess
             ? Ok(result.Value)
-            : result.ToProblem(); 
+            : result.ToProblem();
     }
 
     [HttpPost("{id:guid}/submit")]
+    [HasPermission(Permissions.WriteInitialReport)]
     public async Task<IActionResult> Submit(Guid id)
     {
         var result = await _initialReportService.SubmitAsync(id);
@@ -116,7 +126,9 @@ public class InitialReportController(
             ? Ok(result.Value)
             : result.ToProblem();
     }
+
     [HttpPost("{id:guid}/schedule-plan")]
+    [HasPermission(Permissions.WriteInitialReport)]
     public async Task<IActionResult> UpsertSchedulePlan(Guid id, [FromBody] UpsertTreatmentSchedulePlanRequest request)
     {
         var result = await _treatmentSchedulePlanService.UpsertAsync(id, request);
@@ -127,6 +139,7 @@ public class InitialReportController(
     }
 
     [HttpGet("{id:guid}/schedule-plan")]
+    [HasPermission(Permissions.ReadInitialReport)]
     public async Task<IActionResult> GetSchedulePlan(Guid id)
     {
         var result = await _treatmentSchedulePlanService.GetAsync(id);
@@ -137,6 +150,7 @@ public class InitialReportController(
     }
 
     [HttpPost("{id:guid}/schedule-plan/book")]
+    [HasPermission(Permissions.WriteInitialReport)]
     public async Task<IActionResult> BookSchedulePlan(Guid id, [FromBody] BookTreatmentSlotRequest request)
     {
         var result = await _treatmentSchedulePlanService.BookNowAsync(id, request);
@@ -147,6 +161,7 @@ public class InitialReportController(
     }
 
     [HttpPost("{id:guid}/schedule-plan/send-to-receptionist")]
+    [HasPermission(Permissions.WriteInitialReport)]
     public async Task<IActionResult> SendSchedulePlanToReceptionist(Guid id)
     {
         var result = await _treatmentSchedulePlanService.SendToReceptionistAsync(id);

@@ -1,7 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import { environment } from '../../../environments/environment';
 import {
@@ -15,8 +14,12 @@ import {
   ForgetPasswordRequest,
   ResetPasswordRequest,
   VerifyResetOtpRequest,
+  CompleteGoogleOnboardingRequest,
+  GoogleLoginResponse,
+  GoogleLoginRequest,
 } from '../../Shared/Models/Auth.Modules';
-
+import { DefaultRoles } from '../const/DefaultRoles';
+import { catchError, map, of, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -35,9 +38,13 @@ export class AuthService {
   currentUser = signal<CurrentUser | null>(null);
   isAuthenticated = computed(() => !!this.currentUser());
 
-  constructor() {
-    this.loadUserFromStorage();
-  }
+  roles = computed(() => this.currentUser()?.roles ?? []);
+
+  isDoctor = computed(() =>
+    this.roles().includes(DefaultRoles.SoloDoctor) || this.roles().includes(DefaultRoles.Admin),
+  );
+
+  isReceptionist = computed(() => this.roles().includes(DefaultRoles.Receptionist));
 
   // ─── Endpoints ─────────────────────────────────────────────────────────────
 
@@ -113,23 +120,58 @@ export class AuthService {
   saveResetOtp(otp: string): void {
     sessionStorage.setItem('reset_otp', otp);
   }
-  
+
   getResetOtp(): string | null {
     return sessionStorage.getItem('reset_otp');
   }
-  
+
   clearResetOtp(): void {
     sessionStorage.removeItem('reset_otp');
   }
- 
+
+  loginWithGoogle(request: GoogleLoginRequest) {
+    return this.http.post<GoogleLoginResponse>(`${this.baseUrl}/google`, request);
+    // no .pipe(tap(handleAuthResponse)) here — branching happens in the component,
+    // since a NeedsOnboarding response has no token to store yet
+  }
+
+  completeGoogleOnboarding(request: CompleteGoogleOnboardingRequest) {
+    const form = new FormData();
+    form.append('onboardingToken', request.onboardingToken);
+    form.append('firstName', request.firstName);
+    form.append('lastName', request.lastName);
+    form.append('clinicName', request.clinicName);
+    if (request.profilePhoto) {
+      form.append('profilePhoto', request.profilePhoto);
+    }
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/google/complete-onboarding`, form)
+      .pipe(tap(response => this.handleAuthResponse(response)));
+  }
+
   // ─── Token accessors (used by the auth interceptor) ────────────────────────
 
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
+  isTokenExpiringSoon(token: string, bufferSeconds = 30): boolean {
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+      if (!decoded.exp) return false; // no exp claim — can't check, let it through
+      const expiresAtMs = decoded.exp * 1000;
+      return expiresAtMs - bufferSeconds * 1000 < Date.now();
+    } catch {
+      return true; // malformed/undecodable — force the refresh path
+    }
+  }
+
   hasPermission(permission: string): boolean {
     return this.currentUser()?.permissions.includes(permission) ?? false;
+  }
+
+  hasRole(role: string): boolean {
+    return this.roles().includes(role);
   }
 
   // ─── Internal helpers ──────────────────────────────────────────────────────
@@ -140,53 +182,65 @@ export class AuthService {
     this.currentUser.set(this.decodeUser(response.token));
   }
 
-  private loadUserFromStorage(): void {
+  initializeAuth() {
     const token = localStorage.getItem(this.TOKEN_KEY);
-    if (!token) return;
+    const refreshToken = localStorage.getItem(this.REFRESH_TOKEN_KEY);
+
+    if (!token || !refreshToken) {
+      return of(false);
+    }
 
     try {
       const decoded = jwtDecode<JwtPayload>(token);
       const isExpired = (decoded.exp ?? 0) * 1000 < Date.now();
 
-      if (isExpired) {
-        // Token is expired — clear storage; the auth interceptor will attempt refresh
+    if (!isExpired) {
+        this.currentUser.set(this.buildUser(decoded));
+        return of(true);
+      }
+      } catch {
         this.clearStorage();
-        return;
+        return of(false);
       }
 
-      this.currentUser.set(this.buildUser(decoded));
-    } catch {
-      this.clearStorage();
-    }
-  }
+    // Access token expired, refresh token present — try to use it now,
+    // synchronously as part of app startup, before any guard runs.
+    const refresh$ = this.refreshToken();
+    if (!refresh$) return of(false);
 
+    return refresh$.pipe(
+      map(() => true),
+      catchError(() => {
+        this.clearStorage();
+        this.currentUser.set(null);
+        return of(false);
+      })
+    );
+  }
   private decodeUser(token: string): CurrentUser {
     const decoded = jwtDecode<JwtPayload>(token);
     return this.buildUser(decoded);
   }
 
   private buildUser(decoded: JwtPayload): CurrentUser {
+    const roles = decoded['Roles'] ?? [];
     return {
       id: decoded.sub ?? '',
       email: decoded.email ?? '',
       firstName: decoded.given_name ?? '',
       lastName: decoded.family_name ?? '',
-      role: decoded['Roles']?.[0] ?? '',    
-      permissions: decoded['Permissions'] ?? [], 
+      role: roles[0] ?? '',
+      roles,
+      permissions: decoded['Permissions'] ?? [],
       profilePictureUrl: decoded['profilePictureUrl'] ?? '',
     };
   }
- 
-  
 
   private clearStorage(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
   }
 }
-
-// ─── JWT payload shape ────────────────────────────────────────────────────────
-// Extend as you add more claims to GenerateToken()
 
 interface JwtPayload {
   sub?: string;
@@ -198,5 +252,3 @@ interface JwtPayload {
   Roles?: string[];
   Permissions?: string[];
 }
-
-

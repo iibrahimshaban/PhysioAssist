@@ -50,6 +50,7 @@ public interface IPatientSessionSchedulingService
         TimeSpan requestedDuration,
         Guid patientId,
         int topN = 5,
+        string? patientFreeTimeOverride = null,
         CancellationToken cancellationToken = default);
 
     Task<Guid?> GetPackageDoctorIdAsync(Guid packageId, CancellationToken cancellationToken = default);

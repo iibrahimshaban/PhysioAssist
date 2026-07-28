@@ -4,10 +4,11 @@ import { HeaderComponent } from "../../Layout/header/header.component";
 import { AskAsiPanelComponent } from "../../Shared/Components/ask-asi-panel/ask-asi-panel.component";
 import { AskAsiButtonComponent } from "../../Shared/Components/ask-asi-button/ask-asi-button.component";
 import { AuthService } from '../../Core/Services/auth.service';
+import { HasPermissionDirective } from '../../Shared/Directives/has-permission-directive';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, HeaderComponent, AskAsiPanelComponent, AskAsiButtonComponent],
+  imports: [RouterLink, HeaderComponent, AskAsiPanelComponent, AskAsiButtonComponent, HasPermissionDirective],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })

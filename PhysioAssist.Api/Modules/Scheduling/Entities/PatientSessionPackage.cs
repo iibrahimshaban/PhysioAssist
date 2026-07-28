@@ -21,7 +21,5 @@ public class PatientSessionPackage : AuditableEntity
     public PackageStatus Status { get; set; } = PackageStatus.Active;
     public int SessionsPerWeek { get; set; } = 3;
     public int MinimumGapBetweenSessionsDays { get; set; } = 2;
-    public PreferredTimeOfDay PreferredTimeOfDay { get; set; } = PreferredTimeOfDay.Unspecified;
-    public DaysOfWeekFlags PreferredDays { get; set; } = DaysOfWeekFlags.None;
     public SchedulingPriority Priority { get; set; } = SchedulingPriority.Normal; // informational only for now
 }

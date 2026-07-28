@@ -9,6 +9,7 @@ using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Infrastructure.GroqClient.Options;
 using PhysioAssist.Api.Modules.Auth;
 using PhysioAssist.Api.Modules.Auth.Services;
+using PhysioAssist.Api.Modules.DashboardModule.Services;
 using PhysioAssist.Api.Modules.DocumentationModule;
 using PhysioAssist.Api.Modules.InitialReportModule;
 using PhysioAssist.Api.Modules.Intake;
@@ -51,7 +52,8 @@ public static class DependancyInjection
             .AddCorsConfiguration(configuration)
             .AddCloudinaryImageHosting(configuration)
             .AddAudioTranscriptionConfig()
-            .AddHangfireBGJobs(configuration);
+            .AddHangfireBGJobs(configuration)
+            .AddGoogleAuthentication();
 
 
         services.AddQrCodeConfig(configuration);
@@ -59,6 +61,7 @@ public static class DependancyInjection
         services.AddScoped<INotificationService, PhysioAssist.Api.Shared.NotificationService.NotificationService>();
         services.AddScoped<IAnswerTranslationService, GitHubModelsAnswerTranslationService>();
         services.AddScoped<IPatientTimePreferenceParser, GitHubModelsTimePreferenceParser>();
+        services.AddScoped<IDoctorDashboardService, DoctorDashboardService>();
 
         services
            .AddAuthModule(configuration)
@@ -89,6 +92,18 @@ public static class DependancyInjection
             .ValidateOnStart();
 
         services.AddScoped<IQRService, QRService>();
+
+        return services;
+    }
+    private static IServiceCollection AddGoogleAuthentication(this IServiceCollection services)
+    {
+
+        services
+            .AddOptions<GoogleOptions>()
+            .BindConfiguration(GoogleOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart(); ;
+
 
         return services;
     }

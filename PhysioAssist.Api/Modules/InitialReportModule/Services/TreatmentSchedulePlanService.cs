@@ -2,6 +2,7 @@
 using PhysioAssist.Api.Modules.InitialReportModule.Entities;
 using PhysioAssist.Api.Modules.InitialReportModule.Errors;
 using PhysioAssist.Api.Modules.InitialReportModule.Repositories;
+using PhysioAssist.Api.Modules.Intake.Services;
 using PhysioAssist.Api.Shared.Dtos.Schedule;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Services;
@@ -10,6 +11,7 @@ public class TreatmentSchedulePlanService(
         ITreatmentSchedulePlanRepository _planRepository,
         IInitialReportRepository _reportRepository,
         IPatientSessionSchedulingService _PatientSessionSchedulingService,
+        IIntakeQueryService _intakeQueryService,
         IUnitOfWork _unitOfWork) : ITreatmentSchedulePlanService
 {
 
@@ -48,8 +50,6 @@ public class TreatmentSchedulePlanService(
         plan.SessionDurationMinutes = request.SessionDurationMinutes;
         plan.SessionsPerWeek = request.SessionsPerWeek;
         plan.MinimumGapBetweenSessionsDays = request.MinimumGapBetweenSessionsDays;
-        plan.PreferredTimeOfDay = request.PreferredTimeOfDay;
-        plan.PreferredDays = request.PreferredDays;
         plan.Priority = request.Priority;
 
         await _unitOfWork.SaveAsync(cancellationToken);
@@ -61,10 +61,12 @@ public class TreatmentSchedulePlanService(
     public async Task<Result<TreatmentSchedulePlanResponse>> GetAsync(Guid reportId, CancellationToken cancellationToken = default)
     {
         var report = await _reportRepository.GetByIdAsync(reportId);
+
         if (report is null)
             return Result.Failure<TreatmentSchedulePlanResponse>(TreatmentSchedulePlanErrors.NotFound);
 
         var plan = await _planRepository.GetByReportIdAsync(reportId, cancellationToken);
+
         if (plan is null)
             return Result.Failure<TreatmentSchedulePlanResponse>(TreatmentSchedulePlanErrors.NotFound);
 
@@ -94,8 +96,6 @@ public class TreatmentSchedulePlanService(
             SessionDuration = TimeSpan.FromMinutes(plan.SessionDurationMinutes),
             SessionsPerWeek = plan.SessionsPerWeek,
             MinimumGapBetweenSessionsDays = plan.MinimumGapBetweenSessionsDays,
-            PreferredTimeOfDay = plan.PreferredTimeOfDay,
-            PreferredDays = plan.PreferredDays,
             Priority = plan.Priority,
             SlotStart = request.SlotStart,
             SlotEnd = request.SlotEnd
@@ -132,22 +132,26 @@ public class TreatmentSchedulePlanService(
     }
 
     private async Task<IReadOnlyList<SlotCandidateDto>> GetCandidateSlotsAsync(
-    TreatmentSchedulePlan plan, Guid doctorId, Guid patientId, CancellationToken cancellationToken)
+        TreatmentSchedulePlan plan, Guid doctorId, Guid patientId, CancellationToken cancellationToken)
     {
         if (plan.Status != TreatmentSchedulePlanStatus.Pending)
             return [];
+
+        var freeTimeResult = await _intakeQueryService.GetPatientFreeTimeTextAsync(patientId, cancellationToken);
+        var freeTimeOverride = freeTimeResult.IsSuccess ? freeTimeResult.Value : null;
 
         var slotsResult = await _PatientSessionSchedulingService.GetTopRecommendedSlotsAsync(
             doctorId,
             TimeSpan.FromMinutes(plan.SessionDurationMinutes),
             patientId,
             DefaultCandidateCount,
+            freeTimeOverride,
             cancellationToken);
 
         return slotsResult.IsSuccess ? slotsResult.Value : [];
     }
     public async Task<Result<PatientSchedulingContextDto>> GetSchedulingContextForPatientAsync(
-    Guid patientId, CancellationToken cancellationToken = default)
+     Guid patientId, CancellationToken cancellationToken = default)
     {
         var report = await _reportRepository.GetByPatientIdAsync(patientId);
         if (report is null)
@@ -170,8 +174,6 @@ public class TreatmentSchedulePlanService(
                     SessionDurationMinutes = plan.SessionDurationMinutes,
                     SessionsPerWeek = plan.SessionsPerWeek,
                     MinimumGapBetweenSessionsDays = plan.MinimumGapBetweenSessionsDays,
-                    PreferredTimeOfDay = plan.PreferredTimeOfDay,
-                    PreferredDays = plan.PreferredDays,
                     Priority = plan.Priority
                 }
             });
@@ -219,8 +221,6 @@ public class TreatmentSchedulePlanService(
             SessionDuration = TimeSpan.FromMinutes(plan.SessionDurationMinutes),
             SessionsPerWeek = request.SessionsPerWeek ?? plan.SessionsPerWeek,
             MinimumGapBetweenSessionsDays = request.MinimumGapBetweenSessionsDays ?? plan.MinimumGapBetweenSessionsDays,
-            PreferredTimeOfDay = request.PreferredTimeOfDay ?? plan.PreferredTimeOfDay,
-            PreferredDays = request.PreferredDays ?? plan.PreferredDays,
             Priority = request.Priority ?? plan.Priority,
             FirstSessionSlot = null
         }, cancellationToken);
@@ -258,8 +258,6 @@ public class TreatmentSchedulePlanService(
         plan.SessionDurationMinutes,
         plan.SessionsPerWeek,
         plan.MinimumGapBetweenSessionsDays,
-        plan.PreferredTimeOfDay,
-        plan.PreferredDays,
         plan.Priority,
         plan.Status,
         plan.PackageId,

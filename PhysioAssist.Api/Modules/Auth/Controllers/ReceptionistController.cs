@@ -59,7 +59,7 @@ public class ReceptionistController(
     }
 
     [HttpPut("{id:guid}")]
-    [HasPermission(Permissions.UpdateReceptionist)]
+    [HasPermission(Permissions.CreateReceptionist)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateReceptionistRequest request, CancellationToken cancellationToken)
     {
         var result = await _receptionistService.UpdateAsync(id, request,cancellationToken);
@@ -67,7 +67,7 @@ public class ReceptionistController(
     }
 
     [HttpPatch("{id:guid}/toggle-disabled")]
-    [HasPermission(Permissions.UpdateReceptionist)]
+    [HasPermission(Permissions.CreateReceptionist)]
     public async Task<IActionResult> ToggleDisabled(Guid id)
     {
         var result = await _receptionistService.ToggleDisabledAsync(id);
@@ -75,19 +75,20 @@ public class ReceptionistController(
     }
 
     [HttpDelete("{id:guid}")]
-    [HasPermission(Permissions.UpdateReceptionist)]
+    [HasPermission(Permissions.CreateReceptionist)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _receptionistService.DeleteAsync(id);
         return result.IsSuccess ? NoContent() : result.ToProblem();
     }
     [HttpPost("packages")]
-    [HasPermission(Permissions.CreateSessionPackage)]
+    [HasPermission(Permissions.ManageSchedule)]
     public async Task<IActionResult> CreatePackage(
         [FromBody] ReceptionistCreateSessionPackageRequest request,
         CancellationToken cancellationToken)
     {
         var managingDoctorId = await User.GetDoctorIdAsync(_dbContext, cancellationToken);
+
         if (managingDoctorId is null)
             return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
 
@@ -102,8 +103,6 @@ public class ReceptionistController(
             SessionDuration = request.SessionDuration,
             SessionsPerWeek = request.SessionsPerWeek,
             MinimumGapBetweenSessionsDays = request.MinimumGapBetweenSessionsDays,
-            PreferredTimeOfDay = request.PreferredTimeOfDay,
-            PreferredDays = request.PreferredDays,
             Priority = request.Priority,
             FirstSessionSlot = request.FirstSessionSlot
         };
@@ -113,7 +112,7 @@ public class ReceptionistController(
     }
 
     [HttpPost("packages/{packageId:guid}/next-candidates")]
-    [HasPermission(Permissions.GetSessionCandidates)]
+    [HasPermission(Permissions.ManageSchedule)]
     public async Task<IActionResult> GetNextSessionCandidates(
     Guid packageId,
     [FromBody] GetNextSessionCandidatesRequest? request,
@@ -133,7 +132,7 @@ public class ReceptionistController(
     }
 
     [HttpPost("packages/{packageId:guid}/confirm-slot")]
-    [HasPermission(Permissions.ConfirmSessionSlot)]
+    [HasPermission(Permissions.ManageSchedule)]
     public async Task<IActionResult> ConfirmSessionSlot(
         Guid packageId,
         [FromBody] SlotCandidateDto chosenSlot,
@@ -149,7 +148,7 @@ public class ReceptionistController(
 
     
     [HttpGet("packages/{packageId:guid}/summary")]
-    [HasPermission(Permissions.GetSessionCandidates)]
+    [HasPermission(Permissions.ManageSchedule)]
     public async Task<IActionResult> GetPackageSummary(Guid packageId, CancellationToken cancellationToken)
     {
         var ownershipCheck = await EnsurePackageBelongsToCallerAsync(packageId, cancellationToken);
@@ -160,7 +159,7 @@ public class ReceptionistController(
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
     [HttpGet("patients/{patientId:guid}/scheduling-context")]
-    [HasPermission(Permissions.GetSessionCandidates)]
+    [HasPermission(Permissions.ManageSchedule)]
     public async Task<IActionResult> GetSchedulingContext(Guid patientId, CancellationToken cancellationToken)
     {
         var result = await _treatmentSchedulePlanService.GetSchedulingContextForPatientAsync(patientId, cancellationToken);
@@ -168,7 +167,7 @@ public class ReceptionistController(
     }
 
     [HttpPost("treatment-plans/{treatmentPlanId:guid}/convert-to-package")]
-    [HasPermission(Permissions.CreateSessionPackage)]
+    [HasPermission(Permissions.ManageSchedule)]
     public async Task<IActionResult> ConvertPlanToPackage(
         Guid treatmentPlanId, [FromBody] ConvertPlanToPackageRequest request, CancellationToken cancellationToken)
     {

@@ -5,10 +5,12 @@ import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/
 
 import { SessionService } from '../../../../Core/Services/session.service';
 import { Suggestion } from '../../../../Shared/Models/suggestion';
+import { TooltipModule } from 'primeng/tooltip';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'app-session-notes',
-  imports: [],
+  imports: [ButtonModule, TooltipModule],
   templateUrl: './session-notes.component.html',
   styleUrl: './session-notes.component.css',
 })
@@ -18,10 +20,15 @@ export class SessionNotesComponent {
 
   notes = input.required<string>();
   audioFileUrl = input<string | null>(null);
-  isUploadingAudio = input(false);
+
+  isOpen = input.required<boolean>();
+  toggle = output<void>();
+
+  onToggle() {
+    this.toggle.emit();
+  }
 
   notesChange = output<string>();
-  record = output<void>();
 
   suggestions = signal<Suggestion[]>([]);
 
@@ -29,6 +36,17 @@ export class SessionNotesComponent {
 
   private currentWordStart = 0;
   private currentWordEnd = 0;
+
+  isRecording = input(false);
+  isPaused = input(false);
+  recordingSeconds = input(0);
+  isUploadingAudio = input(false);
+
+  record = output<void>();
+  pause = output<void>();
+  resume = output<void>();
+  stop = output<void>();
+  cancel = output<void>();
 
   constructor() {
     this.initializeAutocomplete();
@@ -96,6 +114,12 @@ export class SessionNotesComponent {
 
       textarea.setSelectionRange(newCursorPosition, newCursorPosition);
     });
+  }
+
+  formatTime(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
   private initializeAutocomplete() {

@@ -2,13 +2,18 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { BusyService } from '../Services/busy.service';
 import { finalize } from 'rxjs';
+import { SKIP_GLOBAL_LOADING } from './skip-global-loading.token';
 
 export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
-   const busyService = inject(BusyService)
+  const busyService = inject(BusyService);
 
-    busyService.busy();
+  if (req.context.get(SKIP_GLOBAL_LOADING)) {
+    return next(req);
+  }
 
-    return next(req).pipe(
-      finalize(() => busyService.idle())
-    );
+  busyService.busy();
+
+  return next(req).pipe(
+    finalize(() => busyService.idle())
+  );
 };

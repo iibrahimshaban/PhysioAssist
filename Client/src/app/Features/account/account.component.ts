@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, ValidationErrors, Validators, AbstractControl } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -7,10 +7,12 @@ import { DialogModule } from 'primeng/dialog';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TextareaModule } from 'primeng/textarea';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { MenuModule } from 'primeng/menu';
 import { UserProfile } from '../../Shared/Models/account.model';
 import { AccountService } from '../../Core/Services/account.service';
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
 import { AuthService } from '../../Core/Services/auth.service';
+import { NavigationService } from '../../Core/Services/navigation.service';
 import { Router } from '@angular/router';
 
 function passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
@@ -31,6 +33,7 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
     ProgressBarModule,
     TextareaModule,
     InputNumberModule,
+    MenuModule,
     ImageCropperComponent
 ],
   templateUrl: './account.component.html',
@@ -38,8 +41,11 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
 })
 export class AccountComponent implements OnInit {
   private readonly accountService = inject(AccountService);
-  private readonly fb = inject(FormBuilder);
   readonly authService = inject(AuthService);
+
+  isDoctor = this.authService.isDoctor;
+  private readonly fb = inject(FormBuilder);
+  private readonly nav = inject(NavigationService);
   private readonly router = inject(Router);
 
   profile = signal<UserProfile | null>(null);
@@ -68,17 +74,13 @@ export class AccountComponent implements OnInit {
     };
     reader.readAsDataURL(file);
 
-    input.value = ''; // allow re-selecting the same file later
+    input.value = '';
   }
 
   onImageCropped(event: ImageCroppedEvent): void {
     if (event.blob) {
       this.croppedBlob = event.blob;
     }
-  }
-
-  goToStaff(): void {
-    this.router.navigateByUrl('/app/account/staff');
   }
 
   confirmCrop(): void {
@@ -99,7 +101,6 @@ export class AccountComponent implements OnInit {
     this.imageToCrop.set(null);
     this.croppedBlob = null;
   }
-
 
   form = this.fb.group({
     userName: ['', [Validators.required]],
@@ -157,7 +158,6 @@ export class AccountComponent implements OnInit {
     this.isEditMode.set(false);
   }
 
-
   removePhoto(): void {
     this.selectedPhotoFile = null;
     this.removePhotoFlag.set(true);
@@ -178,13 +178,15 @@ export class AccountComponent implements OnInit {
       firstName: value.firstName!,
       lastName: value.lastName!,
       phoneNumber: value.phoneNumber,
-      title: value.title,
-      clinicName: value.clinicName,
-      clinicAddress: value.clinicAddress,
       about: value.about,
-      yearsOfExperience: value.yearsOfExperience,
       profilePhoto: this.selectedPhotoFile,
       removeProfilePhoto: this.removePhotoFlag(),
+      ...(this.isDoctor() && {
+        title: value.title,
+        clinicName: value.clinicName,
+        clinicAddress: value.clinicAddress,
+        yearsOfExperience: value.yearsOfExperience,
+      }),
     }).subscribe({
       next: () => {
         this.isSaving.set(false);
@@ -224,11 +226,9 @@ export class AccountComponent implements OnInit {
       next: () => {
         this.isChangingPassword.set(false);
         this.isPasswordDialogOpen.set(false);
-        // Optional: snackbar success message here if you have one injected
       },
       error: () => {
         this.isChangingPassword.set(false);
-        // errorInterceptor already shows a snackbar for the failure (e.g. wrong current password)
       },
     });
   }
