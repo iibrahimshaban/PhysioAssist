@@ -64,16 +64,6 @@ public class IntakeService(
         return shortCode;
     }
 
-    private async Task<string> GenerateUniqueIntakeShortCodeAsync(CancellationToken cancellationToken)
-    {
-        string? shortCode;
-        do
-        {
-            shortCode = GenerateShortCode();
-        } while (await _context.PreVisitIntakes.AnyAsync(i => i.ShortCode == shortCode, cancellationToken));
-        return shortCode;
-    }
-
     private static readonly HashSet<(IntakeStatus, IntakeStatus)> _allowedStatusTransitions = new()
     {
         // Pending can go to review states or be rejected/expired
@@ -730,7 +720,7 @@ public class IntakeService(
         var formSubmissionData = ExtractInputValuesHelper.WriteClinicalSummaryIntoSubmissionJson(request.FormSubmissionData, clinicalSummary, schemaDto);
 
         var intake = _mapper.Map<PreVisitIntake>(request);
-        intake.ShortCode = await GenerateUniqueIntakeShortCodeAsync(cancellationToken);
+        intake.ShortCode = await GenerateUniqueFormShortCodeAsync(cancellationToken);
         intake.DoctorId = schema.DoctorId;
         intake.FormSchemaId = schema.Id;
         intake.FormSchemaVersion = schema.Version;
@@ -1091,60 +1081,6 @@ public class IntakeService(
         }
 
         return Result.Success();
-    }
-
-    public async Task<Result<PreVisitIntakeResponse>> CreateDirectIntakeAsync(
-    CreateDirectIntakeRequest request, Guid doctorId, CancellationToken cancellationToken = default)
-    {
-        var schema = await _patientFormSchemaRepository.GetByIdAsync(request.FormSchemaId, cancellationToken);
-        if (schema is null)
-            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.SchemaNotFound);
-
-        if (schema.DoctorId != doctorId)
-            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.UnauthorizedDoctor);
-
-        var schemaDto = DeserializeSchemaJson(schema.SchemaJson);
-        if (schemaDto is null)
-            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSchema);
-
-        // Just checks the submission JSON is well-formed and matches the schema's questions.
-        // No question IDs are hardcoded here — this walks whatever the schema actually defines.
-        var submissionDto = ExtractInputValuesHelper.DeserializeSubmissionJson(request.FormSubmissionData);
-        if (submissionDto is null)
-            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.InvalidSubmission);
-
-        var validationResult = _dynamicFormValidationService.ValidateSubmissionAgainstSchema(schemaDto, submissionDto, request.PainPointsData);
-        if (validationResult.IsFailure)
-            return Result.Failure<PreVisitIntakeResponse>(validationResult.Error);
-
-        var schemaForSummary = await LoadFormSchemaAsync(schema.Id, cancellationToken);
-        var clinicalSummary = ExtractInputValuesHelper.BuildClinicalSummaryText(
-            submissionDto, schemaForSummary, request.PainPointsData);
-        var formSubmissionData = ExtractInputValuesHelper.WriteClinicalSummaryIntoSubmissionJson(
-            request.FormSubmissionData, clinicalSummary, schemaDto);
-
-        var shortCode = await GenerateUniqueIntakeShortCodeAsync(cancellationToken);
-
-        var intake = new PreVisitIntake
-        {
-            DoctorId = doctorId,
-            FormSchemaId = schema.Id,
-            FormSchemaVersion = schema.Version,
-            ShortCode = shortCode,
-            FormSubmissionData = formSubmissionData,   // includes computed clinical summary
-            PainPointsData = request.PainPointsData,     // raw, untouched
-            Status = IntakeStatus.Pending,
-            SubmittedAt = DateTime.UtcNow
-        };
-
-        await _preVisitIntakeRepository.AddAsync(intake, cancellationToken);
-        await _unitOfWork.SaveAsync(cancellationToken);
-
-        _logger.LogInformation("Doctor {DoctorId} created a direct intake {IntakeId} using schema {SchemaId}",
-            doctorId, intake.Id, schema.Id);
-
-        var response = _mapper.Map<PreVisitIntakeResponse>(intake);
-        return Result.Success(response);
     }
 
     // ─── Serialization ──────────────────────────────────────────────

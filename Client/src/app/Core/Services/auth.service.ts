@@ -190,18 +190,20 @@ export class AuthService {
       return of(false);
     }
 
+    let decoded: JwtPayload;
     try {
-      const decoded = jwtDecode<JwtPayload>(token);
-      const isExpired = (decoded.exp ?? 0) * 1000 < Date.now();
+      decoded = jwtDecode<JwtPayload>(token);
+    } catch {
+      this.clearStorage();
+      return of(false);
+    }
+
+    const isExpired = (decoded.exp ?? 0) * 1000 < Date.now();
 
     if (!isExpired) {
-        this.currentUser.set(this.buildUser(decoded));
-        return of(true);
-      }
-      } catch {
-        this.clearStorage();
-        return of(false);
-      }
+      this.currentUser.set(this.buildUser(decoded));
+      return of(true);
+    }
 
     // Access token expired, refresh token present — try to use it now,
     // synchronously as part of app startup, before any guard runs.
@@ -217,6 +219,7 @@ export class AuthService {
       })
     );
   }
+
   private decodeUser(token: string): CurrentUser {
     const decoded = jwtDecode<JwtPayload>(token);
     return this.buildUser(decoded);

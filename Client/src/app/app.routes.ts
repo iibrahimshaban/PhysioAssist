@@ -2,10 +2,12 @@ import { Routes } from '@angular/router';
 import { noAuthGuard } from './Core/Guards/no-auth-guard';
 import { authGuard } from './Core/Guards/auth-guard';
 import { MainLayoutComponent } from './Layout/main-layout/main-layout.component';
+import { homeRedirectGuard } from './Core/Guards/home-redirect-guard';
 
 export const routes: Routes = [
   {
     path: '',
+    canActivate: [homeRedirectGuard],
     loadComponent: () => import('./Features/home/home.component').then((m) => m.HomeComponent),
   },
   {
