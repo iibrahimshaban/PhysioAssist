@@ -54,7 +54,7 @@ export class DynamicFormRendererComponent implements OnDestroy {
   private previousVisibility = new Map<string, boolean>();
 
   private readonly wideTypes = new Set([
-    'textarea', 'checkbox', 'multiselect', 'radio', 'painpoint', 'painscale',
+    'textarea', 'checkbox', 'multiselect', 'painpoint', 'painscale',
     'bodyselector', 'file', 'fileupload', 'summary'
   ]);
 
@@ -63,6 +63,10 @@ export class DynamicFormRendererComponent implements OnDestroy {
     'select', 'radio', 'boolean', 'multiselect', 'checkbox', 'painscale',
     'file', 'fileupload'
   ]);
+
+  markAllAsTouched(): void {
+    this.form.markAllAsTouched();
+  }
 
   constructor() {
     effect(() => {
@@ -104,6 +108,13 @@ export class DynamicFormRendererComponent implements OnDestroy {
   protected getNestedControl(questionId: string, field: string): FormControl {
     const group = this.form.get(questionId) as unknown as FormGroup;
     return group?.get(field) as FormControl;
+  }
+
+  protected isGroupVisible(group: { hiddenFromPatient?: boolean }): boolean {
+    // Doctor-only groups (e.g. Clinical Summary) are never shown on the patient-facing
+    // public intake form, but remain visible on doctor-side submission/edit views where
+    // patientMode is false.
+    return !(this.patientMode() && group.hiddenFromPatient === true);
   }
 
   protected isQuestionVisible(question: FormQuestionDto): boolean {
@@ -212,6 +223,7 @@ export class DynamicFormRendererComponent implements OnDestroy {
 
     for (const section of schema.sections) {
       for (const group of section.groups) {
+        if (!this.isGroupVisible(group)) continue;
         for (const question of group.questions) {
           const validators = this.buildValidators(question);
 
@@ -307,6 +319,7 @@ export class DynamicFormRendererComponent implements OnDestroy {
   private updateControlVisibility(schema: DynamicFormSchemaDto, logic: 'AND' | 'OR'): void {
     for (const section of schema.sections) {
       for (const group of section.groups) {
+        if (!this.isGroupVisible(group)) continue;
         for (const question of group.questions) {
           const visible = this.isQuestionVisible(question);
           const wasVisible = this.previousVisibility.get(question.questionId);
@@ -356,18 +369,20 @@ export class DynamicFormRendererComponent implements OnDestroy {
       const currentAnswers = this.form.value as Record<string, any>;
 
       const sections: SubmissionSectionDto[] = s.sections.map(section => {
-        const groups: SubmissionGroupDto[] = section.groups.map(group => {
-          const answers: SubmissionAnswerDto[] = group.questions
-            .filter(q => this.isQuestionVisible(q))
-            .map(q => ({
-              questionId: q.questionId,
-              value: this.wrapTypes.has(q.type)
-                ? { [q.type]: currentAnswers[q.questionId] }
-                : currentAnswers[q.questionId],
-              attachments: q.type === 'file' ? [] : undefined
-            }));
-          return { groupId: group.groupId, answers };
-        });
+        const groups: SubmissionGroupDto[] = section.groups
+          .filter(group => this.isGroupVisible(group))
+          .map(group => {
+            const answers: SubmissionAnswerDto[] = group.questions
+              .filter(q => this.isQuestionVisible(q))
+              .map(q => ({
+                questionId: q.questionId,
+                value: this.wrapTypes.has(q.type)
+                  ? { [q.type]: currentAnswers[q.questionId] }
+                  : currentAnswers[q.questionId],
+                attachments: q.type === 'file' ? [] : undefined
+              }));
+            return { groupId: group.groupId, answers };
+          });
         return { sectionId: section.sectionId, groups };
       });
 
@@ -390,6 +405,7 @@ export class DynamicFormRendererComponent implements OnDestroy {
     if (s) {
       for (const section of s.sections) {
         for (const group of section.groups) {
+          if (!this.isGroupVisible(group)) continue;
           for (const question of group.questions) {
             if (!this.isQuestionVisible(question)) continue;
 

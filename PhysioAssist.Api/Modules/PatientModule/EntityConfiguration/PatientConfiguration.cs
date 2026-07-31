@@ -32,9 +32,6 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
         builder.Property(p => p.Status)
                .HasConversion<int>();
 
-        builder.Property(p => p.ParsedPreferredWeekdays)
-               .HasConversion<int>();
-
         builder.HasIndex(p => p.QRCodeToken)
                .IsUnique();
 

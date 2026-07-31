@@ -1,25 +1,24 @@
-﻿namespace PhysioAssist.Api.Modules.Scheduling.helpers;
+﻿using PhysioAssist.Api.Shared.Dtos.Patient;
+
+namespace PhysioAssist.Api.Modules.Scheduling.helpers;
 
 public static class TimePreferenceResolver
 {
-    public static (DateOnly Start, DateOnly End) ResolveDateRange(PatientTimePreferenceDto preference, DateOnly today)
+    public static (DateOnly Start, DateOnly End) ResolveDateRange(
+    RelativeDayToken dayToken, DateOnly? explicitDate, DaysOfWeekFlags weekdays, DateOnly today)
     {
-        if (preference.ExplicitDate is { } explicitDate)
-            return (explicitDate, explicitDate);
+        if (explicitDate is { } date)
+            return (date, date);
 
-        return preference.DayToken switch
+        return dayToken switch
         {
             RelativeDayToken.Today => (today, today),
             RelativeDayToken.Tomorrow => (today.AddDays(1), today.AddDays(1)),
             RelativeDayToken.DayAfterTomorrow => (today.AddDays(2), today.AddDays(2)),
             RelativeDayToken.ThisWeek => (today, EndOfWeek(today)),
             RelativeDayToken.NextWeek => (StartOfNextWeek(today), EndOfWeek(StartOfNextWeek(today))),
-
-            // Single AND multiple named weekdays now both live under SpecificWeekdays,
-            // distinguished only by how many bits are set in PreferredWeekdays.
-            RelativeDayToken.SpecificWeekdays => ResolveSpecificWeekdaysRange(preference.PreferredWeekdays, today),
-
-            _ => (today, today.AddDays(7)) // Unspecified — default one-week search window
+            RelativeDayToken.SpecificWeekdays => ResolveSpecificWeekdaysRange(weekdays, today),
+            _ => (today, today.AddDays(7))
         };
     }
 

@@ -1,4 +1,6 @@
-﻿namespace PhysioAssist.Api.Modules.Auth.Entities;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace PhysioAssist.Api.Modules.Auth.Entities;
 
 public class RefreshToken
 {
@@ -7,6 +9,8 @@ public class RefreshToken
     public DateTime ExpiresOn { get; set; }
     public DateTime CreatedOn { get; set; }
     public DateTime? RevokedOn { get; set; }
+    [Timestamp]
+    public byte[] RowVersion { get; set; } = default!;
     public string UserId { get; set; } = string.Empty;
     public ApplicationUser User { get; set; } = default!;
     public bool IsExpired => DateTime.UtcNow >= ExpiresOn;

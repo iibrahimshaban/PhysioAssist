@@ -24,12 +24,14 @@
         }
 
         @for (group of section.groups; track group.groupId) {
-          <fieldset class="mb-6 rounded-2xl shadow-sm p-4 sm:p-6" style="background: var(--color-surface); border: 1px solid var(--color-border);">
+          @if (isGroupVisible(group)) {
+          <fieldset class="mb-6 rounded-2xl shadow-sm p-4 sm:p-6 intake-group-card">
             @if (group.title) {
-              <legend class="text-sm font-bold uppercase tracking-wider mb-1 px-0 flex items-center gap-2" style="color: var(--color-text-primary);">
-                <i class="pi pi-list text-xs" style="color: var(--color-primary);"></i>
-                {{ group.title }}
-              </legend>
+              <legend class="sr-only">{{ group.title }}</legend>
+              <div class="intake-group-header" aria-hidden="true">
+                <span class="intake-group-icon"><i class="pi pi-list"></i></span>
+                <span class="intake-group-title">{{ group.title }}</span>
+              </div>
             }
             @if (group.description) {
               <p class="text-xs mb-4" style="color: var(--color-text-secondary);">{{ group.description }}</p>
@@ -337,6 +339,7 @@
               }
             </div>
           </fieldset>
+          }
         }
       </section>
     }

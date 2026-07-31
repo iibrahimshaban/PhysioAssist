@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed, DestroyRef } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, DestroyRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -8,7 +8,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { DynamicFormEngineService } from '../../services/dynamic-form-engine.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
-import { DynamicFormRendererComponent } from '../../components/dynamic-form-renderer/dynamic-form-renderer.component';
+import { AuthService } from '../../../../Core/Services/auth.service';
 import { BodyPainMapComponent, BodyPainMapPayload } from '../../components/body-pain-map/body-pain-map.component';
 import {
   PreVisitIntakeDetailsResponse,
@@ -49,8 +49,11 @@ export class SubmissionDetailComponent implements OnInit {
   private readonly engine = inject(DynamicFormEngineService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly snackbar = inject(SnackbarService);
+  private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly submissionId = signal<string | null>(null);
+
+  private static readonly CONVERT_PERMISSION = 'Intake:Convert';
 
   readonly loading = signal(true);
   readonly updating = signal(false);
@@ -69,13 +72,17 @@ export class SubmissionDetailComponent implements OnInit {
 
   readonly hasPainData = computed(() => (this.painMapPayload()?.regions.length ?? 0) > 0);
 
-  /** These three are extracted from submissionData() (or editedSubmission() while
-   *  editing) rather than the backend response — PreVisitIntakeDetailsResponse no
-   *  longer carries patientName/Email/Phone directly, but formSubmissionData is
-   *  already included in this response, so no extra request is needed.
-   *  
-   *  Uses the loaded schema to dynamically find question IDs by text, so this
-   *  works even when doctors customize the form (which regenerates question IDs). */
+   @ViewChild(SubmittedAnswersViewerComponent) private answersViewer?: SubmittedAnswersViewerComponent;
+
+  readonly chiefComplaintDisplay = computed(() => {
+    const questionId = this.findQuestionIdByText('Chief Complaint') ?? 'question_default_chief_complaint';
+    return this.extractAnswer(questionId);
+  });
+  readonly patientCategoryDisplay = computed(() => {
+    const questionId = this.findQuestionIdByText('Patient Type') ?? 'question_default_patient_type';
+    return this.extractAnswer(questionId);
+  });
+
   readonly patientNameDisplay = computed(() => {
     const questionId = this.findQuestionIdByText('Full Name') ?? this.findQuestionIdByText('Name') ?? 'question_default_full_name';
     return this.extractAnswer(questionId);
@@ -88,6 +95,61 @@ export class SubmissionDetailComponent implements OnInit {
     const questionId = this.findQuestionIdByText('Phone') ?? this.findQuestionIdByText('Phone Number') ?? 'question_default_phone';
     return this.extractAnswer(questionId);
   });
+
+  // --- Permissions ---
+
+  /** Only users holding Intake:Convert (doctors) may edit or convert. Receptionists
+   *  never see Edit or the Convert action, regardless of submission status. */
+  readonly canEditPermission = computed(() =>
+    this.auth.hasPermission(SubmissionDetailComponent.CONVERT_PERMISSION)
+  );
+
+  readonly canEdit = computed(() => {
+    const status = this.details()?.status;
+    const statusOk = status != null && status !== IntakeStatus.Converted && status !== IntakeStatus.Expired;
+    return statusOk && this.canEditPermission();
+  });
+
+  
+
+  // --- Conversion validation (runs whether editing or not — quick-convert from
+  //     Approved status must be validated too, not just the edit-mode path) ---
+
+  readonly conversionValidation = computed<{ isValid: boolean; missing: string[] }>(() => {
+    const chiefComplaint = this.chiefComplaintDisplay();
+    const patientCategory = this.patientCategoryDisplay();
+    const submission = this.isEditing() ? this.editedSubmission() : this.submissionData();
+
+    const missing: string[] = [];
+    if (!chiefComplaint?.trim()) missing.push('Chief Complaint');
+    if (!patientCategory) missing.push('Patient Category');
+    missing.push(...this.getMissingRequiredQuestions(submission));
+
+    return { isValid: missing.length === 0, missing };
+  });
+
+  private getMissingRequiredQuestions(submission: DynamicFormSubmissionDto | null): string[] {
+    const s = this.schema();
+    if (!s || !submission) return [];
+
+    const answered = new Map<string, any>();
+    for (const section of submission.sections) {
+      for (const group of section.groups) {
+        for (const answer of group.answers) {
+          answered.set(answer.questionId, this.unwrapAnswerValue(answer.value));
+        }
+      }
+    }
+
+    const missing: string[] = [];
+    for (const question of this.engine.getAllQuestions(s)) {
+      if (!question.required) continue;
+      const value = answered.get(question.questionId);
+      const isEmpty = value == null || value === '' || (Array.isArray(value) && value.length === 0);
+      if (isEmpty) missing.push(question.text);
+    }
+    return missing;
+  }
 
   private findQuestionIdByText(text: string): string | undefined {
     const s = this.schema();
@@ -120,8 +182,6 @@ export class SubmissionDetailComponent implements OnInit {
     return undefined;
   }
 
-  /** Unwraps the stored submission's {questionId: {type: value}} shape into a flat
-   *  {questionId: value} record so DynamicFormRendererComponent can be pre-filled. */
   readonly initialAnswersForEdit = computed<Record<string, any>>(() => {
     const data = this.submissionData();
     if (!data) return {};
@@ -171,6 +231,8 @@ export class SubmissionDetailComponent implements OnInit {
   readonly availableActions = computed<{ type: 'status' | 'convert'; status: IntakeStatus; label: string; icon: string; severity: 'info' | 'warn' | 'success' | 'danger' | 'secondary' | 'contrast'; message: string }[]>(() => {
     const current = this.details()?.status;
     if (current == null) return [];
+    const canConvert = this.canEditPermission();
+
     switch (current) {
       case IntakeStatus.Pending:
       case IntakeStatus.Submitted:
@@ -200,22 +262,24 @@ export class SubmissionDetailComponent implements OnInit {
           message: 'Reject this submission?'
         }];
       case IntakeStatus.Approved:
-        return [{
-          type: 'convert',
-          status: IntakeStatus.Converted,
-          label: 'Convert to Patient',
-          icon: 'pi pi-user-plus',
-          severity: 'success' as const,
-          message: ''
-        },
-        {
-          type: 'status',
-          status: IntakeStatus.Rejected,
-          label: 'Reject',
-          icon: 'pi pi-times-circle',
-          severity: 'danger' as const,
-          message: 'Reject this submission? This will mark the intake as rejected.'
-        }];
+        return [
+          ...(canConvert ? [{
+            type: 'convert' as const,
+            status: IntakeStatus.Converted,
+            label: 'Convert to Patient',
+            icon: 'pi pi-user-plus',
+            severity: 'success' as const,
+            message: ''
+          }] : []),
+          {
+            type: 'status' as const,
+            status: IntakeStatus.Rejected,
+            label: 'Reject',
+            icon: 'pi pi-times-circle',
+            severity: 'danger' as const,
+            message: 'Reject this submission? This will mark the intake as rejected.'
+          }
+        ];
       case IntakeStatus.Rejected:
         return [{
           type: 'status',
@@ -228,14 +292,6 @@ export class SubmissionDetailComponent implements OnInit {
       default:
         return [];
     }
-  });
-
-  /** Edit is available for anything that hasn't already been converted or expired —
-   *  editing now leads straight into Convert to Patient, so it no longer depends on
-   *  an Approve transition being on the table. */
-  readonly canEdit = computed(() => {
-    const status = this.details()?.status;
-    return status != null && status !== IntakeStatus.Converted && status !== IntakeStatus.Expired;
   });
 
   ngOnInit(): void {
@@ -302,6 +358,10 @@ export class SubmissionDetailComponent implements OnInit {
   // --- Edit mode ---
 
   startEditing(): void {
+    if (!this.canEditPermission()) {
+      this.snackbar.error('Not permitted', ['You do not have permission to edit this submission.']);
+      return;
+    }
     this.editedSubmission.set(this.submissionData());
     this.editedPainMap.set(this.painMapPayload());
     this.editIsValid.set(true);
@@ -322,9 +382,29 @@ export class SubmissionDetailComponent implements OnInit {
     return value;
   }
 
+  attemptConvert(): void {
+    if (!this.canEditPermission()) {
+      this.snackbar.error('Not permitted', ['You do not have permission to convert this submission.']);
+      return;
+    }
+
+    const validation = this.conversionValidation();
+    if (!validation.isValid) {
+      if (this.isEditing()) {
+        this.answersViewer?.markAllTouched();
+      }
+      this.snackbar.error('Missing required fields', [
+        `Please complete: ${validation.missing.join(', ')}.`
+      ]);
+      return;
+    }
+
+    this.showConvertDialog.set(true);
+  }
+
   confirmUpdate(action: { type: 'status' | 'convert'; status: IntakeStatus; label: string; icon: string; severity: string; message: string }): void {
     if (action.type === 'convert') {
-      this.showConvertDialog.set(true);
+      this.attemptConvert();
       return;
     }
     this.confirmationService.confirm({
@@ -368,18 +448,27 @@ export class SubmissionDetailComponent implements OnInit {
     const id = this.submissionId();
     if (!id) return;
 
-    this.updating.set(true);
-
-    const painMap = this.isEditing() ? this.editedPainMap() : this.painMapPayload();
-
-    // Doctor-only body fields (Chief Complaint + Patient Category) are required when the
-    // doctor submits/edits an intake. They are pinned (always present) via the body-pain-map.
-    if (this.isEditing() && (!painMap?.chiefComplaint?.trim() || !painMap?.patientCategory)) {
-      this.updating.set(false);
-      this.snackbar.error('Missing required fields', ['Please complete Chief Complaint and Patient Category before submitting.']);
+    if (!this.canEditPermission()) {
+      this.snackbar.error('Not permitted', ['You do not have permission to convert this submission.']);
       return;
     }
 
+    // Validate BEFORE touching `updating` or making the request — the previous
+    // version only checked this while isEditing() was true, so the quick-convert
+    // path (straight from Approved status) skipped validation entirely and the
+    // request silently failed against the backend with no visible feedback.
+    const validation = this.conversionValidation();
+    if (!validation.isValid) {
+      this.snackbar.error('Missing required fields', [
+        `Please complete: ${validation.missing.join(', ')}.`
+      ]);
+      return;
+    }
+
+    this.updating.set(true);
+
+    const painMap = this.isEditing() ? this.editedPainMap() : this.painMapPayload();
+    const chiefComplaint = this.chiefComplaintDisplay();
     const submission = this.isEditing() ? this.editedSubmission() : this.submissionData();
 
     const request: ConvertIntakeToPatientRequest = {
@@ -402,7 +491,7 @@ export class SubmissionDetailComponent implements OnInit {
               patient: {
                 id: res.convertedToPatientId,
                 name: res.patientName ?? this.patientNameDisplay(),
-                chiefComplaint: painMap?.chiefComplaint,
+                chiefComplaint: chiefComplaint,
               }
             }
           });
@@ -446,34 +535,28 @@ export class SubmissionDetailComponent implements OnInit {
   formatValueRecursive(val: any): string {
     if (val == null || val === '') return '—';
 
-    // Booleans
     if (typeof val === 'boolean') return val ? 'Yes' : 'No';
 
-    // Primitives (strings, numbers)
     if (typeof val === 'string' || typeof val === 'number') {
       const str = String(val).trim();
       return str || '—';
     }
 
-    // Arrays
     if (Array.isArray(val)) {
       if (val.length === 0) return '—';
       const items = val.map(item => this.formatValueRecursive(item)).filter(item => item !== '—');
       return items.length > 0 ? items.join(', ') : '—';
     }
 
-    // Objects
     if (typeof val === 'object') {
       const dict = val as Record<string, any>;
       const keys = Object.keys(dict);
       if (keys.length === 0) return '—';
 
-      // Single key object e.g. { "value": "xyz" } or { "text": "xyz" }
       if (keys.length === 1) {
         return this.formatValueRecursive(dict[keys[0]]);
       }
 
-      // Multiple keys e.g. { value: "Option 1", notes: "Detail" }
       const pairs: string[] = [];
       for (const key of keys) {
         const itemVal = dict[key];

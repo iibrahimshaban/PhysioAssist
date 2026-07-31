@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -40,17 +40,34 @@ export class PatientOverviewComponent implements OnInit {
   submissionData = signal<any>(null);
   formSchema = signal<any>(null);
 
-  // Generic — whatever keys the doctorInfoJson blob contains, no fixed shape assumed
-  doctorInfo = signal<Record<string, any> | null>(null);
   painMapPayload = signal<BodyPainMapPayload | null>(null);
 
   isEditMode = signal(false);
   isSaving = signal(false);
   flatInitialAnswers = signal<Record<string, any> | null>(null);
   pendingPainMap = signal<({ regions: any[] } & Record<string, any>) | null>(null);
-  pendingDoctorInfo = signal<Record<string, any> | null>(null);
 
   private pendingSubmission: DynamicFormSubmissionDto | null = null;
+
+  // Groups are split purely on the schema's `hiddenFromPatient` flag (same flag the
+  // DynamicFormRendererComponent itself uses to decide what the public intake form shows).
+  // Patient-visible groups render in "Patient Details"; hiddenFromPatient groups render in
+  // "Clinical Summary" (doctor-only). Chief Complaint / Patient Category now live as regular
+  // questions inside these groups rather than in a separate doctorInfoJson blob.
+  readonly patientVisibleSections = computed(() => this.filterSectionsByVisibility(false));
+  readonly doctorOnlySections = computed(() => this.filterSectionsByVisibility(true));
+  readonly hasDoctorOnlyContent = computed(() => this.doctorOnlySections().length > 0);
+
+  private filterSectionsByVisibility(hiddenFromPatient: boolean): any[] {
+    const schema = this.formSchema();
+    if (!schema?.sections) return [];
+    return schema.sections
+      .map((section: any) => ({
+        ...section,
+        groups: (section.groups ?? []).filter((g: any) => !!g.hiddenFromPatient === hiddenFromPatient),
+      }))
+      .filter((section: any) => section.groups.length > 0);
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -85,25 +102,7 @@ export class PatientOverviewComponent implements OnInit {
             regions = [];
           }
         }
-
-        let doctorInfo: Record<string, any> | null = null;
-        if (data.doctorInfoJson) {
-          try {
-            doctorInfo = JSON.parse(data.doctorInfoJson);
-          } catch {
-            doctorInfo = null;
-          }
-        }
-        this.doctorInfo.set(doctorInfo);
-
-        if (regions.length > 0 || doctorInfo) {
-          this.painMapPayload.set({
-            regions,
-            ...(doctorInfo ?? {}),
-          } as BodyPainMapPayload);
-        } else {
-          this.painMapPayload.set(null);
-        }
+        this.painMapPayload.set(regions.length > 0 ? { regions } : null);
 
         const schemaId = this.submissionData()?.formSchemaId;
 
@@ -179,9 +178,6 @@ export class PatientOverviewComponent implements OnInit {
     const currentPainMap = this.painMapPayload();
     this.pendingPainMap.set({ regions: currentPainMap?.regions ?? [] });
 
-    const currentDoctorInfo = this.doctorInfo();
-    this.pendingDoctorInfo.set(currentDoctorInfo ? { ...currentDoctorInfo } : {});
-
     this.isEditMode.set(true);
   }
 
@@ -189,7 +185,6 @@ export class PatientOverviewComponent implements OnInit {
     this.isEditMode.set(false);
     this.pendingSubmission = null;
     this.pendingPainMap.set(null);
-    this.pendingDoctorInfo.set(null);
   }
 
   onSubmissionChange(submission: DynamicFormSubmissionDto): void {
@@ -197,27 +192,13 @@ export class PatientOverviewComponent implements OnInit {
   }
 
   onPainMapChange(payload: BodyPainMapPayload): void {
-    // BodyPainMapComponent emits regions + its own chiefComplaint/patientCategory fields
-    // (unused here since showDoctorFields is false), but we only need its regions —
-    // doctor-info fields are tracked separately and generically in pendingDoctorInfo.
+    // Pain map now only carries regions — Chief Complaint / Patient Category live as
+    // regular schema questions and are edited via the dynamic form renderer instead.
     const current = this.pendingPainMap();
     this.pendingPainMap.set({
       ...(current ?? {}),
       regions: payload.regions,
     });
-  }
-
-  updateDoctorInfoField(key: string, value: any): void {
-    const current = this.pendingDoctorInfo() ?? {};
-    this.pendingDoctorInfo.set({ ...current, [key]: value });
-  }
-
-  doctorInfoFieldKeys(): string[] {
-    return Object.keys(this.pendingDoctorInfo() ?? {});
-  }
-
-  objectKeys(obj: any): string[] {
-    return obj ? Object.keys(obj) : [];
   }
 
   saveEdit(): void {
@@ -231,11 +212,7 @@ export class PatientOverviewComponent implements OnInit {
       : this.patient()?.formSubmissionData;
 
     const regions = this.pendingPainMap()?.regions ?? [];
-    const combinedPainMap = {
-      regions,
-      ...(this.pendingDoctorInfo() ?? {}),
-    };
-    const painMapToSave = JSON.stringify(combinedPainMap);
+    const painMapToSave = JSON.stringify({ regions });
 
     this.patientService.updateOverviewSubmission(patientId, {
       formSubmissionData: submissionToSave,

@@ -6,7 +6,6 @@ public sealed record CreatePatientFromIntakeRequest(
     string? Phone,
     string? Gender,
     DateTime? DateOfBirth,
-    string? Occupation,
     Guid DoctorId,
     PatientCategory PatientCategory,
     string? FreeTime,

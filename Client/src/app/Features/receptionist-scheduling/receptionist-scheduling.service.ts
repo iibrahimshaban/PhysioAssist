@@ -63,10 +63,10 @@ export class ReceptionistSchedulingService {
       );
   }
   getPackageSummary(packageId: string) {
-  return this.http
-    .get<PatientSessionPackageSummaryDto>(`${this.baseUrl}/packages/${packageId}/summary`)
-    .pipe(tap(summary => this.summary.set(summary)));
-}
+    return this.http
+      .get<PatientSessionPackageSummaryDto>(`${this.baseUrl}/packages/${packageId}/summary`)
+      .pipe(tap(summary => this.summary.set(summary)));
+  }
 
   getSchedulingContext(patientId: string) {
     return this.http.get<PatientSchedulingContextDto>(

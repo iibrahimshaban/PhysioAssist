@@ -15,7 +15,12 @@ export class ConvertToPatientDialogComponent {
   @Input() patientEmail?: string;
   @Input() patientPhone?: string;
   @Input({ required: true }) updating = false;
+  @Input() missingFields: string[] = [];
 
   @Output() cancelDialog = new EventEmitter<void>();
   @Output() confirmDialog = new EventEmitter<void>();
+
+  get isValid(): boolean {
+    return this.missingFields.length === 0;
+  }
 }

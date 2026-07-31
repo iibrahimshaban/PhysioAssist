@@ -17,4 +17,7 @@ public class PatientFormSchema : AuditableEntity
     public Guid? OriginalFormId { get; set; }
     public string? OriginalName { get; set; }
     public int? CopyNumber { get; set; }
+
+    public string? PublishedSchemaJson { get; set; }
+    public string? PublishedSchemaHash { get; set; }
 }

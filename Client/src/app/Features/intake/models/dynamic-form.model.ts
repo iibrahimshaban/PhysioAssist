@@ -19,6 +19,7 @@ export interface FormGroupDto {
   order: number;
   questions: FormQuestionDto[];
   isLocked?: boolean;
+  hiddenFromPatient?: boolean;
 }
 
 export interface FormQuestionDto {

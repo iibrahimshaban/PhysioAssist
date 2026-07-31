@@ -173,7 +173,14 @@ public class AuthService(
             ExpiresOn = RefreshTokenExpiryDate,
         });
 
-        await _userManager.UpdateAsync(user);
+        try
+        {
+            await _userManager.UpdateAsync(user);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Result.Failure<AuthResponse>(UserErrors.InvalidRefresh);
+        }
 
         var response = new AuthResponse(user.Id, user.FirstName, user.LastName, user.Email!, user.UserName!
         , NewToken, ExpiryIn, NewRefreshToken, RefreshTokenExpiryDate,null);

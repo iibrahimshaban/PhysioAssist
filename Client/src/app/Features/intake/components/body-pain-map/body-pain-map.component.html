@@ -158,41 +158,5 @@
       </div>
     }
   </div>
-
-  <!-- Doctor-only fields: hidden entirely on the public patient-facing form -->
-  @if (showDoctorFields) {
-    <div class="mt-5">
-      <label for="chief-complaint" class="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1.5">
-        Chief complaint
-      </label>
-      <input
-        id="chief-complaint"
-        type="text"
-        [ngModel]="chiefComplaint()"
-        (ngModelChange)="onChiefComplaintInput($event)"
-        [readOnly]="readOnly"
-        [disabled]="readOnly"
-        placeholder="e.g. RT elbow pain since 3 weeks"
-        class="w-full text-sm px-3 py-2 border border-[var(--color-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] disabled:bg-[var(--color-page-bg)] disabled:text-[var(--color-text-secondary)]" />
-    </div>
-
-    <div class="mt-5">
-      <label for="patient-category" class="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1.5">
-        Patient category
-      </label>
-      <select
-        id="patient-category"
-        [ngModel]="patientCategory()"
-        (ngModelChange)="onPatientCategoryChange($event)"
-        [disabled]="readOnly"
-        class="w-full text-sm px-3 py-2 border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] disabled:bg-[var(--color-page-bg)] disabled:text-[var(--color-text-secondary)]">
-        <option value="">Select a category</option>
-        @for (option of patientCategoryOptions; track option) {
-          <option [value]="option">{{ option }}</option>
-        }
-      </select>
-    </div>
-  }
-
-
+  
 </section>
