@@ -18,7 +18,7 @@ export const intakeRoutes: Routes = [
         path: 'reception',
         component: ReceptionComponent,
         canActivate: [permissionGuard],
-        data: { permissions: ['Intake:Review'] }
+        data: { permissions: ['Submission:Read'] }
       },
       {
         path: 'schemas',
@@ -48,13 +48,13 @@ export const intakeRoutes: Routes = [
         path: 'submissions',
         component: SubmissionListComponent,
         canActivate: [permissionGuard],
-        data: { permissions: ['Intake:Review'] }
+        data: { permissions: ['Submission:Read'] }
       },
       {
         path: 'submissions/:id',
         component: SubmissionDetailComponent,
         canActivate: [permissionGuard],
-        data: { permissions: ['Intake:Review'] }
+        data: { permissions: ['Submission:Read'] }
       },
       { path: '', redirectTo: 'reception', pathMatch: 'full' }
     ]

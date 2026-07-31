@@ -5,5 +5,6 @@ public record FormGroupDto
     public string GroupId { get; init; } = string.Empty;
     public string Title { get; init; } = string.Empty;
     public int Order { get; init; }
+    public bool HiddenFromPatient { get; set; } = false;
     public List<FormQuestionDto> Questions { get; init; } = new();
 }

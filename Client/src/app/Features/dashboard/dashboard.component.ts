@@ -55,8 +55,13 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/app/intake/submissions', submissionId]);
   }
 
+  private toUtcDate(isoDate: string): Date {
+    const naive = isoDate.replace(/([+-]\d{2}:\d{2}|Z)$/i, '');
+    return new Date(`${naive}Z`);
+  }
+
   timeAgo(isoDate: string): string {
-    const minutes = Math.floor((Date.now() - new Date(isoDate).getTime()) / 60000);
+    const minutes = Math.floor((Date.now() - this.toUtcDate(isoDate).getTime()) / 60000);
     if (minutes < 1) return 'just now';
     if (minutes < 60) return `${minutes} min ago`;
     const hours = Math.floor(minutes / 60);

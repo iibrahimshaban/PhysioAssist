@@ -1,0 +1,47 @@
+/* ── Quick action cards ─────────────────────────────────────── */
+.dash-action-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.dash-action-card:hover {
+  border-color: var(--brand-gradient-start);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.dash-action-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #ffffff;
+  background: var(--brand-gradient);
+}
+
+/* ── Inline text links (View all / Review) ─────────────────── */
+.dash-link {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--brand-gradient-start);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.dash-link:hover {
+  color: var(--color-primary-dark);
+}

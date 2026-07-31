@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, computed, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, computed, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DynamicFormRendererComponent } from '../../../components/dynamic-form-renderer/dynamic-form-renderer.component';
 import { DynamicFormEngineService } from '../../../services/dynamic-form-engine.service';
@@ -60,6 +60,24 @@ export class SubmittedAnswersViewerComponent {
     }
     return map;
   });
+
+  private readonly answerMap = computed<Record<string, SubmissionAnswerDto>>(() => {
+    const data = this.submissionData;
+    const map: Record<string, SubmissionAnswerDto> = {};
+    if (!data) return map;
+    for (const section of data.sections) {
+      for (const group of section.groups) {
+        for (const answer of group.answers) {
+          map[answer.questionId] = answer;
+        }
+      }
+    }
+    return map;
+  });
+
+  getAnswerFor(questionId: string): SubmissionAnswerDto {
+    return this.answerMap()[questionId] ?? { questionId, value: undefined };
+  }
 
   getSectionTitle(sectionId: string): string | undefined {
     return this.sectionMap()[sectionId];
@@ -126,5 +144,11 @@ export class SubmittedAnswersViewerComponent {
     }
 
     return String(val);
+  }
+
+  @ViewChild(DynamicFormRendererComponent) private formRenderer?: DynamicFormRendererComponent;
+
+  markAllTouched(): void {
+    this.formRenderer?.markAllAsTouched();
   }
 }

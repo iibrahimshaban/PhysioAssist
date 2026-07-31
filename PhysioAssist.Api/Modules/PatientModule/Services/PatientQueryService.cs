@@ -1,5 +1,3 @@
-using Mapster;
-using Microsoft.EntityFrameworkCore;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Errors;
 using PhysioAssist.Api.Modules.PatientModule.Repositories;
@@ -126,13 +124,6 @@ public class PatientQueryService(
         var gender = request.Gender?.Trim() ?? string.Empty;
         if (gender.Length > 10) gender = gender[..10];
 
-        var occupation = request.Occupation?.Trim() ?? string.Empty;
-        if (occupation.Length > 200) occupation = occupation[..200];
-
-        // Pre-empt a unique-email collision instead of catching DbUpdateException inside
-        // the transaction (a failed SaveAsync poisons the transaction scope, so an in-scope
-        // retry is not safe). A real provided email already took the re-link path above, so
-        // this only guards the rare provided-duplicate / race case.
         var duplicateByResolvedEmail = await _patientRepo.GetByEmailAsync(resolvedEmail);
         if (duplicateByResolvedEmail is not null)
             return Result.Failure<Guid>(PatientErrors.DuplicateEmail);
@@ -145,7 +136,6 @@ public class PatientQueryService(
             Gender = gender,
             DateOfBirth = request.DateOfBirth,
             QRCodeToken = $"patient-qr-{Guid.NewGuid():N}",
-            Occupation = occupation,
             Status = PatientStatus.Active,
             PatientFreeTime = request.FreeTime ?? string.Empty,
             PatientCaseNotes = request.Notes ?? string.Empty
@@ -160,10 +150,19 @@ public class PatientQueryService(
 
                 if (preferenceResult.IsSuccess)
                 {
-                    patient.ParsedPreferredDayToken = preferenceResult.Value.DayToken;
-                    patient.ParsedPreferredTimeFrom = preferenceResult.Value.PreferredTimeFrom;
-                    patient.ParsedPreferredTimeTo = preferenceResult.Value.PreferredTimeTo;
-                    patient.ParsedPreferredWeekdays = preferenceResult.Value.PreferredWeekdays;
+                    var parsed = preferenceResult.Value;
+                    patient.ParsedPreferredDayToken = parsed.DayToken;
+                    patient.ParsedPreferredExplicitDate = parsed.ExplicitDate;
+
+                    foreach (var g in parsed.Groups)
+                    {
+                        patient.PreferredTimeSlots.Add(new PatientPreferredTimeSlot
+                        {
+                            Weekdays = g.Weekdays,
+                            TimeFrom = g.TimeFrom,
+                            TimeTo = g.TimeTo
+                        });
+                    }
                 }
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
@@ -217,7 +216,7 @@ public class PatientQueryService(
         if (string.IsNullOrWhiteSpace(freeTimeOverrideText))
             return await GetPatientTimePreferenceAsync(patientId, cancellationToken);
 
-        var patient = await _patientRepo.GetByIdAsync(patientId);
+        var patient = await _patientRepo.GetByPatientWithFreeTimeSlotsAsync(patientId, cancellationToken);
 
         if (patient is null)
             return Result.Failure<PatientTimePreferenceInfo>(PatientErrors.NotFound);
@@ -242,19 +241,33 @@ public class PatientQueryService(
         {
             patient.PatientFreeTime = freeTimeOverrideText;
             patient.ParsedPreferredDayToken = parsed.DayToken;
-            patient.ParsedPreferredTimeFrom = parsed.PreferredTimeFrom;
-            patient.ParsedPreferredTimeTo = parsed.PreferredTimeTo;
-            patient.ParsedPreferredWeekdays = parsed.PreferredWeekdays;
+            patient.ParsedPreferredExplicitDate = parsed.ExplicitDate;
 
-            await _unitOfWork.SaveAsync(cancellationToken);
+            if (patient.PreferredTimeSlots.Any())
+            {
+                _dbContext.RemoveRange(patient.PreferredTimeSlots);
+            }
+
+            foreach (var g in parsed.Groups)
+            {
+                var newSlot = new PatientPreferredTimeSlot { 
+                    PatientId = patient.Id,
+                    Weekdays = g.Weekdays,
+                    TimeFrom = g.TimeFrom,
+                    TimeTo = g.TimeTo
+                };
+
+              _dbContext.PatientPreferredTimeSlots.Add(newSlot);
+            }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         // Parsed value drives *this* search either way — persisted or not.
         return Result.Success(new PatientTimePreferenceInfo(
             parsed.DayToken,
-            parsed.PreferredWeekdays,
-            parsed.PreferredTimeFrom,
-            parsed.PreferredTimeTo));
+            parsed.ExplicitDate,
+            parsed.Groups));
     }
     public async Task<Dictionary<Guid, PatientLookupResult>> GetPatientsByIdsAsync(
         IEnumerable<Guid> patientIds,
@@ -270,17 +283,24 @@ public class PatientQueryService(
     private async Task<Result<PatientTimePreferenceInfo>> GetPatientTimePreferenceAsync(
     Guid patientId, CancellationToken cancellationToken = default)
     {
-        var patient = await _patientRepo.GetByIdAsync(patientId);
+        var patient = await _patientRepo.GetByPatientWithFreeTimeSlotsAsync(patientId, cancellationToken);
 
         if (patient is null)
             return Result.Failure<PatientTimePreferenceInfo>(PatientErrors.NotFound);
 
+        var groups = patient.PreferredTimeSlots
+            .Select(s => new PatientPreferredTimeGroupDto
+            {
+                Weekdays = s.Weekdays,
+                TimeFrom = s.TimeFrom,
+                TimeTo = s.TimeTo
+            })
+            .ToList();
+
         return Result.Success(new PatientTimePreferenceInfo(
             patient.ParsedPreferredDayToken,
-            patient.ParsedPreferredWeekdays,
-            patient.ParsedPreferredTimeFrom,
-            patient.ParsedPreferredTimeTo)
-            );
+            patient.ParsedPreferredExplicitDate,
+            groups));
     }
 }
 

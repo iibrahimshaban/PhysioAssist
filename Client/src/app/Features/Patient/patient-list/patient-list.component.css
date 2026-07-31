@@ -1,0 +1,109 @@
+/* Primary action (Add Patient) — brand gradient */
+.pl-btn-primary {
+  background: var(--brand-gradient);
+  color: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 6px rgba(24, 136, 204, 0.25);
+  transition: box-shadow 0.2s ease;
+}
+.pl-btn-primary:hover {
+  background: linear-gradient(135deg, #1a7fd4, #0b9a86);
+  box-shadow: 0 4px 10px rgba(24, 136, 204, 0.3);
+}
+
+/* Search input */
+.pl-search-input {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  color: var(--color-text-primary);
+  transition: border-color 0.2s ease;
+}
+.pl-search-input::placeholder {
+  color: var(--color-text-muted);
+}
+.pl-search-input:focus {
+  border-color: var(--brand-gradient-start);
+}
+
+/* Tab group */
+.pl-tab-group {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+.pl-tab {
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  transition: color 0.2s ease;
+}
+.pl-tab:hover {
+  color: var(--color-text-primary);
+}
+
+.pl-tab-active {
+  background: var(--brand-gradient);
+  color: #ffffff;
+  font-weight: var(--font-weight-semibold);
+}
+.pl-tab-active:hover {
+  color: #ffffff;
+}
+
+/* Empty / loading states */
+.pl-empty-state {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Patient row card */
+.pl-patient-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease;
+}
+.pl-patient-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Avatar initials circle */
+.pl-avatar {
+  background: var(--brand-gradient);
+  color: #ffffff;
+}
+
+/* Status badges */
+.pl-badge-active {
+  background: var(--color-success-bg);
+  border: 1px solid var(--color-success-border);
+  color: var(--color-success-text);
+  border-radius: var(--radius-full);
+}
+
+.pl-badge-discharged {
+  background: var(--color-danger-light);
+  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger);
+  border-radius: var(--radius-full);
+}
+
+.pl-badge-scheduled {
+  background: var(--neutral-100);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-full);
+}
+
+/* Initial Report inline link */
+.pl-report-link {
+  color: var(--color-primary);
+  transition: color 0.2s ease;
+}
+.pl-report-link:hover {
+  color: var(--color-primary-dark);
+}

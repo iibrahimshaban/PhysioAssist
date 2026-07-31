@@ -28,7 +28,7 @@ public class GitHubModelsQueryTranslationService : IQueryTranslationService
             model = _options.ChatModel,
             messages = new object[]
             {
-                new { role = "system", content = SystemPrompts.TranslateToEnglishPrompt },
+                new { role = "system", content = SystemPrompts.TranslateToEnglishPromptForScheduleParser },
                 new { role = "user", content = query }
             },
             temperature = 0.0

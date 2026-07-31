@@ -521,11 +521,15 @@ export class SchemaListComponent implements OnInit {
 
   relativeTime(dateStr: string | undefined | null): string {
     if (!dateStr) return '';
-    const parsed = new Date(dateStr);
+
+    // Ensure the string is parsed as UTC — backend sends DateTime.UtcNow,
+    // but if the serialized string lacks a timezone suffix, JS parses it
+    // as local time instead, throwing calculations off by the local UTC offset.
+    const utcStr = /Z$|[+-]\d{2}:\d{2}$/.test(dateStr) ? dateStr : `${dateStr}Z`;
+    const parsed = new Date(utcStr);
     if (isNaN(parsed.getTime())) return '';
 
     const diffMs = Date.now() - parsed.getTime();
-    // Guard against future-dated entries (clock skew / bad data)
     if (diffMs < 0) return 'Just now';
 
     const diffSec = Math.floor(diffMs / 1000);
@@ -538,8 +542,11 @@ export class SchemaListComponent implements OnInit {
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays}d ago`;
 
-    // Older than a week: fall back to an absolute, unambiguous date
-    return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return parsed.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'Africa/Cairo' // for the absolute-date fallback, display in Cairo local time
+    });
   }
 
   getStatusLabel(status: FormSchemaStatus): string {

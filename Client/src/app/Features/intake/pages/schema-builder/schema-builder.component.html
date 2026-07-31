@@ -153,6 +153,11 @@
                         </div>
                       }
                       <span class="tree-node-label flex-1 truncate">{{ group.title }}</span>
+                      @if (group.hiddenFromPatient) {
+                        <span class="tree-locked-badge" pTooltip="Doctor-only group" tooltipPosition="right">
+                          <i class="pi pi-eye-slash text-[9px]"></i>
+                        </span>
+                      }
                       @if (!group.isLocked) {
                         <button
                           class="tree-action-btn"
@@ -194,28 +199,26 @@
                             }
                           </div>
                         }
-                        <!-- Add Question (only for non-locked groups) -->
-                        @if (!group.isLocked) {
-                          <button
-                            class="tree-add-btn"
-                            (click)="addQuestion(section.sectionId, group.groupId)">
-                            <i class="pi pi-plus text-xs"></i>
-                            <span>Add Question</span>
-                          </button>
-                        }
+                        <!-- Add Question: allowed even for locked groups. Locking a group only
+                             blocks deleting the group itself and its existing core questions
+                             (enforced per-question via isQuestionLocked in deleteQuestion). -->
+                        <button
+                          class="tree-add-btn"
+                          (click)="addQuestion(section.sectionId, group.groupId)">
+                          <i class="pi pi-plus text-xs"></i>
+                          <span>Add Question</span>
+                        </button>
                       </div>
                     }
                   </div>
                 }
                 <!-- Add Group (only for non-locked sections) -->
-                @if (!isSectionLocked(section)) {
                   <button
                     class="tree-add-btn ml-2"
                     (click)="addGroup(section.sectionId)">
                     <i class="pi pi-plus text-xs"></i>
                     <span>Add Group</span>
                   </button>
-                }
               </div>
             }
           </div>
@@ -662,6 +665,25 @@
                 [showButtons]="true"
                 class="w-full">
               </p-inputNumber>
+            </div>
+
+            <div class="prop-divider"></div>
+
+            <div class="prop-group">
+              <div class="flex items-center gap-2">
+                <p-checkbox
+                  [(ngModel)]="selectedGroup()!.hiddenFromPatient"
+                  [binary]="true"
+                  inputId="group-hidden-from-patient">
+                </p-checkbox>
+                <label for="group-hidden-from-patient" class="prop-label !mb-0">
+                  Hidden from patient (doctor/staff only)
+                </label>
+              </div>
+              <p class="text-xs text-[var(--color-text-secondary)] mt-1 m-0">
+                Questions in this group won't appear on the public intake form.
+                They'll only be visible and editable in the submission review/edit view.
+              </p>
             </div>
           </div>
         }

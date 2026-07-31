@@ -107,26 +107,10 @@ public static class ExtractInputValuesHelper
         ["General / Other"] = PatientCategory.GeneralOther,
     };
 
-    public static PatientCategory ExtractPatientCategory(string? painPointsData, PatientCategory fallback = PatientCategory.GeneralOther)
+    public static PatientCategory ExtractPatientCategory(DynamicFormSubmissionDto submission, PatientCategory fallback = PatientCategory.GeneralOther)
     {
-        if (string.IsNullOrWhiteSpace(painPointsData)) return fallback;
-        try
-        {
-            using var doc = JsonDocument.Parse(painPointsData);
-            if (doc.RootElement.TryGetProperty("patientCategory", out var cat) && cat.ValueKind == JsonValueKind.String)
-            {
-                var value = cat.GetString();
-                if (!string.IsNullOrWhiteSpace(value) && PatientCategoryMap.TryGetValue(value, out var mapped))
-                {
-                    return mapped;
-                }
-            }
-        }
-        catch (JsonException)
-        {
-            // fall through to fallback
-        }
-        return fallback;
+        var raw = ExtractAnswerString(submission, IntakeQuestionIds.PatientType, "select");
+        return Enum.TryParse<PatientCategory>(raw, ignoreCase: true, out var category) ? category : fallback;
     }
     public static string? ExtractChiefComplaint(string? painPointsData)
     {
@@ -190,34 +174,28 @@ public static class ExtractInputValuesHelper
     /// Injury (+date) · Gender/Age. Derived from the submitted form answers (never the
     /// pain map, except for Injury/ChiefComplaint fallbacks that predate the form fields).
     /// </summary>
-    public static string BuildClinicalSummaryText(DynamicFormSubmissionDto submission, DynamicFormSchemaDto? schema, string? painPointsData)
+    public static string BuildClinicalSummaryText(DynamicFormSubmissionDto submission, string? chiefComplaint, string? painPointsData)
     {
         var parts = new List<string>();
 
-        if (schema is not null)
-        {
-            var typeQid = FindQuestionIdByText(schema, "Patient Type") ?? "question_default_patient_type";
-            var patientType = ExtractAnswerString(submission, typeQid, GetWrapperKey(schema, typeQid));
-            if (!string.IsNullOrWhiteSpace(patientType))
-                parts.Add($"Patient Type: {patientType}");
+        var patientType = ExtractAnswerString(submission, IntakeQuestionIds.PatientType, "select");
+        if (!string.IsNullOrWhiteSpace(patientType))
+            parts.Add($"Patient Type: {patientType}");
 
-            var ccQid = FindQuestionIdByText(schema, "Chief Complaint") ?? "question_default_chief_complaint";
-            var chiefComplaint = ExtractAnswerString(submission, ccQid, GetWrapperKey(schema, ccQid));
-            if (string.IsNullOrWhiteSpace(chiefComplaint))
-                chiefComplaint = ExtractChiefComplaint(painPointsData);
-            if (!string.IsNullOrWhiteSpace(chiefComplaint))
-                parts.Add($"Chief Complaint: {chiefComplaint}");
+        if (!string.IsNullOrWhiteSpace(chiefComplaint))
+            parts.Add($"Chief Complaint: {chiefComplaint}");
 
-            var genderQid = FindQuestionIdByText(schema, "Gender") ?? "question_default_gender";
-            var gender = ExtractAnswerString(submission, genderQid, GetWrapperKey(schema, genderQid));
-            var dobQid = FindQuestionIdByText(schema, "Date of Birth") ?? "question_default_dob";
-            var dob = ExtractAnswerDate(submission, dobQid, GetWrapperKey(schema, dobQid));
-            var genderAge = string.IsNullOrWhiteSpace(gender) ? "" : gender;
-            if (dob is not null)
-                genderAge += (genderAge.Length > 0 ? ", " : "") + $"{CalculateAge(dob.Value)}y";
-            if (genderAge.Length > 0)
-                parts.Add(genderAge);
-        }
+        var gender = ExtractAnswerString(submission, IntakeQuestionIds.Gender, "radio");
+        var dob = ExtractAnswerDate(submission, IntakeQuestionIds.DateOfBirth, "date");
+        var genderAge = gender ?? "";
+        if (dob is not null)
+            genderAge += (genderAge.Length > 0 ? ", " : "") + $"{CalculateAge(dob.Value)}y";
+        if (genderAge.Length > 0)
+            parts.Add(genderAge);
+
+        var injuryDate = ExtractAnswerDate(submission, IntakeQuestionIds.InjuryDate, "date");
+        if (injuryDate is not null)
+            parts.Add($"Injury Date: {injuryDate.Value:yyyy-MM-dd}");
 
         var injury = ExtractInjury(painPointsData);
         if (!string.IsNullOrWhiteSpace(injury))

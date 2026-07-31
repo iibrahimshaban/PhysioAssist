@@ -133,6 +133,7 @@ public class IntakeService(
     public async Task<Result<FormSchemaResponse>> CreateFormSchemaAsync(CreateFormSchemaRequest request, Guid doctorId, CancellationToken cancellationToken = default)
     {
         var schemaDto = DeserializeSchemaJson(request.SchemaJson);
+
         if (schemaDto is null)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.InvalidSchema);
 
@@ -274,13 +275,18 @@ public class IntakeService(
     public async Task<Result<FormSchemaResponse>> PublishFormSchemaAsync(Guid schemaId, PublishFormSchemaRequest request, Guid doctorId, CancellationToken cancellationToken = default)
     {
         var schema = await _patientFormSchemaRepository.GetByIdAsync(schemaId, cancellationToken);
+
         if (schema is null)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.SchemaNotFound);
 
         if (schema.DoctorId != doctorId)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.UnauthorizedDoctor);
 
-        if (schema.Status == FormSchemaStatus.Published)
+        if (request.Version != schema.Version)
+            return Result.Failure<FormSchemaResponse>(IntakeErrors.SchemaVersionMismatch);
+
+        // Idempotent no-op: already published AND content hasn't changed since that publish
+        if (schema.Status == FormSchemaStatus.Published && schema.PublishedSchemaHash == schema.SchemaHash)
         {
             var existingResponse = _mapper.Map<FormSchemaResponse>(schema);
             return Result.Success(existingResponse);
@@ -292,9 +298,12 @@ public class IntakeService(
             return Result.Failure<FormSchemaResponse>(IntakeErrors.InvalidSchema);
 
         var publishValidationResult = _dynamicFormValidationService.ValidateSchemaForPublish(schemaDto);
+
         if (publishValidationResult.IsFailure)
             return Result.Failure<FormSchemaResponse>(publishValidationResult.Error);
 
+        schema.PublishedSchemaJson = schema.SchemaJson;
+        schema.PublishedSchemaHash = schema.SchemaHash;
         schema.Status = FormSchemaStatus.Published;
         schema.PublishedAt = DateTime.UtcNow;
         schema.Version++;
@@ -707,6 +716,7 @@ public class IntakeService(
             return Result.Failure<PublicIntakeSubmissionResponse>(IntakeErrors.InvalidSchema);
 
         var submissionDto = ExtractInputValuesHelper.DeserializeSubmissionJson(request.FormSubmissionData);
+
         if (submissionDto is null)
             return Result.Failure<PublicIntakeSubmissionResponse>(IntakeErrors.InvalidSubmission);
 
@@ -716,8 +726,9 @@ public class IntakeService(
 
         // Compute the auto-generated Clinical Summary (doctor-only) from the submitted answers
         // and the pain map, then store it in the form submission so the doctor view shows it.
-        var clinicalSummary = ExtractInputValuesHelper.BuildClinicalSummaryText(submissionDto, schemaDto, request.PainPointsData);
-        var formSubmissionData = ExtractInputValuesHelper.WriteClinicalSummaryIntoSubmissionJson(request.FormSubmissionData, clinicalSummary, schemaDto);
+        var chiefComplaint = ExtractInputValuesHelper.ExtractAnswerString(submissionDto, IntakeQuestionIds.ChiefComplaint, "textarea");
+        var clinicalSummary = ExtractInputValuesHelper.BuildClinicalSummaryText(submissionDto, chiefComplaint, request.PainPointsData);
+        var formSubmissionData = ExtractInputValuesHelper.WriteClinicalSummaryIntoSubmissionJson(request.FormSubmissionData, clinicalSummary);
 
         var intake = _mapper.Map<PreVisitIntake>(request);
         intake.ShortCode = await GenerateUniqueFormShortCodeAsync(cancellationToken);
@@ -754,11 +765,11 @@ public class IntakeService(
 
         foreach (var intake in intakes)
         {
-            _logger.LogInformation("IntakeService.GetSubmissionsAsync: intake.Id={IntakeId}, formSubmissionData={FormSubmissionData}", 
+            _logger.LogInformation("IntakeService.GetSubmissionsAsync: intake.Id={IntakeId}, formSubmissionData={FormSubmissionData}",
                 intake.Id, intake.FormSubmissionData);
             var schema = schemas.GetValueOrDefault(intake.FormSchemaId);
             var patientName = ExtractInputValuesHelper.ExtractPatientNameSafe(intake.FormSubmissionData, schema);
-            _logger.LogInformation("IntakeService.GetSubmissionsAsync: intake.Id={IntakeId}, extracted patientName={PatientName}", 
+            _logger.LogInformation("IntakeService.GetSubmissionsAsync: intake.Id={IntakeId}, extracted patientName={PatientName}",
                 intake.Id, patientName);
         }
 
@@ -839,53 +850,18 @@ public class IntakeService(
         var submission = ExtractInputValuesHelper.DeserializeSubmissionJson(intake.FormSubmissionData)
             ?? new DTOs.DynamicForms.DynamicFormSubmissionDto { Sections = [] };
 
-        var schema = await LoadFormSchemaAsync(intake.FormSchemaId, cancellationToken);
+        var freeTime = ExtractInputValuesHelper.ExtractAnswerString(submission, IntakeQuestionIds.FreeTime, "text");
+        var chiefComplaint = ExtractInputValuesHelper.ExtractAnswerString(submission, IntakeQuestionIds.ChiefComplaint, "textarea");
 
-        var freeTimeQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Free Time for Scheduling")
-            ?? ExtractInputValuesHelper.FindQuestionIdByText(schema, "Free Time")
-            ?? "question_personal_free_time";
-        var freeTime = ExtractInputValuesHelper.ExtractAnswerString(submission, freeTimeQId, ExtractInputValuesHelper.GetWrapperKey(schema, freeTimeQId));
+        var clinicalSummary = ExtractInputValuesHelper.BuildClinicalSummaryText(submission, chiefComplaint, intake.PainPointsData);
+        intake.FormSubmissionData = ExtractInputValuesHelper.WriteClinicalSummaryIntoSubmissionJson(intake.FormSubmissionData, clinicalSummary);
 
-        // Auto-generate the read-only Clinical Summary from the submitted answers.
-        var clinicalSummary = ExtractInputValuesHelper.BuildClinicalSummaryText(submission, schema, intake.PainPointsData);
-        intake.FormSubmissionData = ExtractInputValuesHelper.WriteClinicalSummaryIntoSubmissionJson(intake.FormSubmissionData, clinicalSummary, schema);
+        var fullName = ExtractInputValuesHelper.ExtractAnswerString(submission, IntakeQuestionIds.FullName, "text");
+        var email = ExtractInputValuesHelper.ExtractAnswerString(submission, IntakeQuestionIds.Email, "email");
+        var phone = ExtractInputValuesHelper.ExtractAnswerString(submission, IntakeQuestionIds.Phone, "phone");
+        var gender = ExtractInputValuesHelper.ExtractAnswerString(submission, IntakeQuestionIds.Gender, "radio");
+        DateTime? dateOfBirth = ExtractInputValuesHelper.ExtractAnswerDate(submission, IntakeQuestionIds.DateOfBirth, "date");
 
-        var notesQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Notes")
-            ?? "question_medical_notes";
-        var PatientCaseNotes = ExtractInputValuesHelper.ExtractAnswerString(submission, notesQId, ExtractInputValuesHelper.GetWrapperKey(schema, notesQId));
-
-        var fullNameQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Full Name")
-            ?? ExtractInputValuesHelper.FindQuestionIdByText(schema, "Name")
-            ?? "question_default_full_name"
-            ?? "core_full_name";
-        var emailQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Email")
-            ?? ExtractInputValuesHelper.FindQuestionIdByText(schema, "E-mail")
-            ?? "question_default_email"
-            ?? "core_email";
-        var phoneQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Phone")
-            ?? ExtractInputValuesHelper.FindQuestionIdByText(schema, "Phone Number")
-            ?? "question_default_phone"
-            ?? "core_phone";
-        var genderQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Gender")
-            ?? "question_default_gender"
-            ?? "core_gender";
-        var dobQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Date of Birth")
-            ?? ExtractInputValuesHelper.FindQuestionIdByText(schema, "DOB")
-            ?? "question_default_dob"
-            ?? "core_dob";
-        var jobQId = ExtractInputValuesHelper.FindQuestionIdByText(schema, "Occupation")
-            ?? ExtractInputValuesHelper.FindQuestionIdByText(schema, "Job")
-            ?? "question_default_occupation"
-            ?? "core_occupation";
-
-        var fullName = ExtractInputValuesHelper.ExtractAnswerString(submission, fullNameQId, ExtractInputValuesHelper.GetWrapperKey(schema, fullNameQId));
-        var email = ExtractInputValuesHelper.ExtractAnswerString(submission, emailQId, ExtractInputValuesHelper.GetWrapperKey(schema, emailQId));
-        var phone = ExtractInputValuesHelper.ExtractAnswerString(submission, phoneQId, ExtractInputValuesHelper.GetWrapperKey(schema, phoneQId));
-        var gender = ExtractInputValuesHelper.ExtractAnswerString(submission, genderQId, ExtractInputValuesHelper.GetWrapperKey(schema, genderQId));
-        DateTime? dateOfBirth = ExtractInputValuesHelper.ExtractAnswerDate(submission, dobQId, ExtractInputValuesHelper.GetWrapperKey(schema, dobQId));
-        var job = ExtractInputValuesHelper.ExtractAnswerString(submission, jobQId, ExtractInputValuesHelper.GetWrapperKey(schema, jobQId));
-
-        // If full name is empty, generate a placeholder
         if (string.IsNullOrWhiteSpace(fullName))
         {
             fullName = $"Converted Patient {Guid.NewGuid():N}";
@@ -898,11 +874,10 @@ public class IntakeService(
                 phone,
                 gender,
                 dateOfBirth,
-                job,
                 doctorId,
-                ExtractInputValuesHelper.ExtractPatientCategory(intake.PainPointsData),
+                ExtractInputValuesHelper.ExtractPatientCategory(submission),
                 freeTime,
-                PatientCaseNotes),
+                chiefComplaint),
             cancellationToken);
 
         if (createPatientResult.IsFailure)
@@ -933,26 +908,38 @@ public class IntakeService(
     {
         if (schema.Sections is null || schema.Sections.Count == 0)
         {
-            // No sections exist — create the canonical locked core section/group pair
-            // (matching the schema-builder's section_core_fields/group_core_fields constants)
-            // so the injected fields are protected consistently with the default template.
             return schema with
             {
                 Sections = new List<FormSectionDto>
                 {
                     new()
                     {
-                        SectionId = "section_core_fields",
+                        SectionId = CoreFieldConstants.CoreSectionId,
                         Title = CoreFieldConstants.CoreSectionTitle,
                         Order = 1,
                         Groups = new List<FormGroupDto>
                         {
                             new()
                             {
-                                GroupId = "group_core_fields",
+                                GroupId = CoreFieldConstants.CoreGroupId,
                                 Title = CoreFieldConstants.CoreGroupTitle,
                                 Order = 1,
-                                Questions = CoreFieldConstants.HardRequiredFields.ToList(),
+                                Questions = CoreFieldConstants.PatientDetailsFields.ToList(),
+                            },
+                            new()
+                            {
+                                GroupId = CoreFieldConstants.MedicalInfoGroupId,
+                                Title = CoreFieldConstants.MedicalInfoGroupTitle,
+                                Order = 2,
+                                Questions = CoreFieldConstants.MedicalInfoFields.ToList(),
+                            },
+                            new()
+                            {
+                                GroupId = CoreFieldConstants.ClinicalSummaryGroupId,
+                                Title = CoreFieldConstants.ClinicalSummaryGroupTitle,
+                                Order = 3,
+                                HiddenFromPatient = true, // clinician-only classification, never shown publicly
+                                Questions = CoreFieldConstants.ClinicalSummaryFields.ToList(),
                             }
                         }
                     }
@@ -1111,13 +1098,6 @@ public class IntakeService(
             .Replace('/', '_');
     }
 
-    private async Task<DynamicFormSchemaDto?> LoadFormSchemaAsync(Guid formSchemaId, CancellationToken cancellationToken)
-    {
-        var schemaEntity = await _patientFormSchemaRepository.GetByIdAsync(formSchemaId, cancellationToken);
-        if (schemaEntity is null) return null;
-        return DeserializeSchemaJson(schemaEntity.SchemaJson);
-    }
-    
     private PreVisitIntakeResponse MapToPreVisitIntakeResponse(PreVisitIntake intake, DynamicFormSchemaDto? schema = null)
     {
         var response = _mapper.Map<PreVisitIntakeResponse>(intake);

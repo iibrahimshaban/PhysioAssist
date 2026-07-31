@@ -57,6 +57,8 @@ interface PublishValidationIssue {
 
 const CORE_SECTION_ID = 'section_core_fields';
 const CORE_GROUP_ID = 'group_core_fields';
+const MEDICAL_INFO_GROUP_ID = 'group_medical_information';
+const CLINICAL_SUMMARY_GROUP_ID = 'group_clinical_summary';
 
 /* ─── Wizard Step Enum ─────────────────────────────────── */
 type WizardStep = 'template' | 'details' | 'build' | 'review';
@@ -340,10 +342,41 @@ export class SchemaWizardComponent {
 
   // ─── Build Mode State ────────────────────────────────────
   readonly showQuickAdd = signal(false);
+  readonly showGroupPicker = signal(false);
   readonly customQuestionText = signal('');
   readonly selectedPreset = signal<QuestionPreset | null>(null);
   readonly editingSectionIndex = signal<number | null>(null);
   readonly editingGroupIndex = signal<number | null>(null);
+
+  readonly quickAddTargetGroupTitle = computed<string | null>(() => {
+    const si = this.editingSectionIndex();
+    const gi = this.editingGroupIndex();
+    if (si === null || gi === null) return null;
+    const section = this.formSchema().sections[si];
+    if (!section) return null;
+    const group = section.groups[gi];
+    return group ? group.title : null;
+  });
+
+  // Flat list of every group in the schema, across every section, for the "which group
+  // should this go in?" picker. Rebuilt reactively whenever the schema changes.
+  readonly groupTargets = computed(() => {
+    const targets: { sectionIndex: number; groupIndex: number; sectionTitle: string; groupTitle: string; questionCount: number; locked: boolean; hidden: boolean }[] = [];
+    this.formSchema().sections.forEach((section, si) => {
+      section.groups.forEach((group, gi) => {
+        targets.push({
+          sectionIndex: si,
+          groupIndex: gi,
+          sectionTitle: section.title,
+          groupTitle: group.title,
+          questionCount: group.questions.length,
+          locked: group.isLocked === true,
+          hidden: group.hiddenFromPatient === true,
+        });
+      });
+    });
+    return targets;
+  });
 
   // ─── Computed ────────────────────────────────────────────
   readonly selectedTemplate = computed(() =>
@@ -473,29 +506,55 @@ export class SchemaWizardComponent {
   }
 
   // ─── Core Fields (Locked Section) ────────────────────────
+  // Mirrors schema-builder.component.ts buildCoreFieldsSection() field-for-field
+  // (which itself mirrors backend CoreFieldConstants.HardRequiredFields). Keep these
+  // two in sync until the shared CoreFieldsService lands.
   private buildCoreFieldsSection(): FormSectionDto {
     return {
       sectionId: CORE_SECTION_ID,
-      title: 'Required Information',
-      isLocked: true,
+      title: 'Required Patient Information',
+      description: 'Core fields required for every intake form — cannot be removed',
       order: 0,
-      groups: [{
-        groupId: CORE_GROUP_ID,
-        title: 'Patient Details',
-        isLocked: true,
-        order: 0,
-        questions: [
-          { questionId: 'question_default_full_name', text: 'Full Name', type: 'text', required: true, isLocked: true, order: 0 },
-          { questionId: 'question_default_email', text: 'Email Address', type: 'email', required: true, isLocked: true, order: 1 },
-          { questionId: 'question_default_phone', text: 'Phone Number', type: 'tel', required: true, isLocked: true, order: 2 },
-          { questionId: 'question_default_gender', text: 'Gender', type: 'radio', required: true, isLocked: true, order: 3, options: ['Male', 'Female', 'Other', 'Prefer not to say'] },
-          { questionId: 'question_default_dob', text: 'Date of Birth', type: 'date', required: true, isLocked: true, order: 4 },
-          { questionId: 'question_default_free_time', text: 'Patient Free Time', type: 'text', required: true, isLocked: true, order: 5 },
-          { questionId: 'question_default_chief_complaint', text: 'Chief Complaint', type: 'textarea', required: true, isLocked: true, order: 6 },
-          { questionId: 'question_default_injury_date', text: 'Injury Date', type: 'date', required: true, isLocked: true, order: 7 },
-          { questionId: 'question_default_patient_type', text: 'Patient Type', type: 'select', required: true, isLocked: true, order: 8, options: ['New Patient', 'Returning Patient', 'Post-Surgical', 'Athlete', 'Pediatric', 'Geriatric'] },
-        ]
-      }]
+      isLocked: true,
+      groups: [
+        {
+          groupId: CORE_GROUP_ID,
+          title: 'Patient Details',
+          description: 'Demographics and contact information',
+          order: 1,
+          isLocked: true,
+          questions: [
+            { questionId: 'question_default_full_name', text: 'Full Name', type: 'text', order: 1, required: true, isLocked: true, placeholder: 'e.g. John Doe' },
+            { questionId: 'question_default_email', text: 'Email Address', type: 'email', order: 2, required: true, isLocked: true, placeholder: 'john@example.com' },
+            { questionId: 'question_default_phone', text: 'Phone Number', type: 'phone', order: 3, required: true, isLocked: true, placeholder: '(555) 000-0000' },
+            { questionId: 'question_default_free_time', text: 'Patient Free Time', type: 'text', order: 4, required: true, isLocked: true, placeholder: 'e.g. Weekdays after 5pm' },
+            { questionId: 'question_default_gender', text: 'Gender', type: 'radio', order: 5, required: true, isLocked: true, options: ['Male', 'Female'] },
+            { questionId: 'question_default_dob', text: 'Date of Birth', type: 'date', order: 6, required: true, isLocked: true },
+          ]
+        },
+        {
+          groupId: MEDICAL_INFO_GROUP_ID,
+          title: 'Medical Information',
+          description: 'Details about the presenting condition',
+          order: 2,
+          isLocked: true,
+          questions: [
+            { questionId: 'question_default_chief_complaint', text: 'Chief Complaint', type: 'textarea', order: 1, required: true, isLocked: true, placeholder: 'Primary reason for the visit' },
+            { questionId: 'question_default_injury_date', text: 'Injury Date', type: 'date', order: 2, required: true, isLocked: true },
+          ]
+        },
+        {
+          groupId: CLINICAL_SUMMARY_GROUP_ID,
+          title: 'Clinical Summary',
+          description: 'Classification used by clinicians',
+          order: 3,
+          hiddenFromPatient: true,
+          isLocked: true,
+          questions: [
+            { questionId: 'question_default_patient_type', text: 'Patient Type', type: 'select', order: 1, required: true, isLocked: true, options: ['Orthopedic', 'Neurological', 'Pediatric', 'GeneralOther'] },
+          ]
+        }
+      ]
     };
   }
 
@@ -505,6 +564,14 @@ export class SchemaWizardComponent {
 
   isQuestionLocked(question: any): boolean {
     return question.isLocked === true || question.questionId?.startsWith('question_default_') === true;
+  }
+
+  // Locked groups block deletion of their existing (core) questions, but adding extra
+  // custom questions is always allowed — mirrors schema-builder's "Add Question: allowed
+  // even for locked groups" behavior. Targeting is explicit (via the group picker or a
+  // pre-selected group), so this is safe to allow on every group, not just the first.
+  canAddQuestionInline(group: FormGroupDto): boolean {
+    return true;
   }
 
   // ─── Build: Section Management ───────────────────────────
@@ -564,6 +631,19 @@ export class SchemaWizardComponent {
     if (this.editingGroupIndex() === groupIndex && this.editingSectionIndex() === sectionIndex) {
       this.editingGroupIndex.set(null);
     }
+  }
+
+  // Available on every group, including locked core groups — hiding a group from
+  // patients only affects the public intake form's visibility (enforced backend-side
+  // by ValidateRequiredFields skipping HiddenFromPatient groups); it doesn't touch
+  // whether the group/questions can be deleted, so lock status is irrelevant here.
+  toggleGroupVisibility(sectionIndex: number, groupIndex: number, hidden: boolean): void {
+    const schema = this.formSchema();
+    const section = schema.sections[sectionIndex];
+    const group = section?.groups[groupIndex];
+    if (!group) return;
+    group.hiddenFromPatient = hidden;
+    this.formSchema.set({ ...schema });
   }
 
   // ─── Build: Question Management ──────────────────────────
@@ -668,45 +748,40 @@ export class SchemaWizardComponent {
     this.showQuickAdd.set(true);
   }
 
-  addQuestionToFirstAvailableGroup(): void {
-    const schema = this.formSchema();
-    if (schema.sections.length === 0) {
-      this.addSection();
-      // After adding section, try again on next tick
-      setTimeout(() => this.addQuestionToFirstAvailableGroup(), 0);
-      return;
-    }
-
-    const firstSection = schema.sections[0];
-    if (firstSection.groups.length === 0) {
-      this.addGroup(0);
-      setTimeout(() => this.addQuestionToFirstAvailableGroup(), 0);
-      return;
-    }
-
-    this.addQuestionToGroup(0, 0);
+  private hasPendingQuestion(): boolean {
+    return this.selectedPreset() !== null || this.customQuestionText().trim().length > 0;
   }
 
-  addPresetToFirstAvailableGroup(): void {
-    const preset = this.selectedPreset();
-    if (!preset) return;
+  // Called from the "Add to Form" button (preset selected) and the custom-question
+  // input (Enter key / + button). If a specific group was pre-selected — by clicking
+  // that group's own "Add Question" button — add straight there. Otherwise, ask which
+  // group it should go in via the picker, since a form can have several groups.
+  requestAddQuestion(): void {
+    if (!this.hasPendingQuestion()) return;
 
-    const schema = this.formSchema();
-    if (schema.sections.length === 0) {
-      this.addSection();
-      setTimeout(() => this.addPresetToFirstAvailableGroup(), 0);
+    const si = this.editingSectionIndex();
+    const gi = this.editingGroupIndex();
+    const preselectedGroup = si !== null && gi !== null
+      ? this.formSchema().sections[si]?.groups[gi]
+      : undefined;
+
+    if (preselectedGroup) {
+      this.addQuestionToGroup(si!, gi!, this.selectedPreset() ?? undefined);
+      this.editingSectionIndex.set(null);
+      this.editingGroupIndex.set(null);
       return;
     }
 
-    const firstSection = schema.sections[0];
-    if (firstSection.groups.length === 0) {
-      this.addGroup(0);
-      setTimeout(() => this.addPresetToFirstAvailableGroup(), 0);
-      return;
-    }
+    this.showGroupPicker.set(true);
+  }
 
-    this.addQuestionToGroup(0, 0, preset);
-    this.selectedPreset.set(null);
+  addToPickedGroup(sectionIndex: number, groupIndex: number): void {
+    this.addQuestionToGroup(sectionIndex, groupIndex, this.selectedPreset() ?? undefined);
+    this.showGroupPicker.set(false);
+  }
+
+  closeGroupPicker(): void {
+    this.showGroupPicker.set(false);
   }
 
   // ─── Helpers ─────────────────────────────────────────────

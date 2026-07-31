@@ -21,8 +21,7 @@ public static class Permissions
     public const string CreateReceptionist = "receptionist:Write";
 
 
-    public const string IntakeRead = "Intake:Read";
-    public const string IntakeReview = "Intake:Review";
+    
     public const string IntakeConvert = "Intake:Convert";
 
     public const string ReadInitialReport = "InitialReport:Read";
@@ -33,8 +32,6 @@ public static class Permissions
     public const string ReadSession = "Session:Read";
     public const string WriteSession = "Session:Write";
 
-    public const string QRGenerate = "QR:Generate";
-    public const string QRValidate = "QR:Validate";
     public const string WriteQueryAgent = "QueryAgent:Write";
 
     [PermissionMetadata("Manage schedule", "Create, edit, reschedule and cancel appointments.")]
@@ -49,15 +46,23 @@ public static class Permissions
     [PermissionMetadata("Write doctor availability", "Set doctor working hours.")]
     public const string WriteWorkingSchedule = "WorkingSchedule:Write";
 
-    [PermissionMetadata("Manage patient forms", "Create and edit clinic intake forms for the patient portal.")]
-    public const string IntakeManageForms = "Intake:ManageForms";
-
     [PermissionMetadata("Read patient data", "View patient information.")]
     public const string GetPatients = "Patient:Read";
 
     [PermissionMetadata("Write patient data", "Create and update patient information.")]
     public const string WritePatient = "Patient:Write";
 
+    [PermissionMetadata("Read Form Data", "View forms with their rules and constraints.")]
+    public const string IntakeRead = "Intake:Read";
+
+    [PermissionMetadata("Manage patient forms", "Create and edit clinic intake forms for the patient portal.")]
+    public const string IntakeManageForms = "Intake:ManageForms";
+
+    [PermissionMetadata("Read submission data", "View submitted pateints and patients at receptioniest")]
+    public const string SubmissionRead = "Submission:Read";
+
+    [PermissionMetadata("generate QR code", "generate QR code for each form ")]
+    public const string QRGenerate = "QR:Generate";
     public static IList<string?> GetAllPermissions() =>
         [.. typeof(Permissions).GetFields().Select(field => field.GetValue(field) as string)];
 
@@ -88,7 +93,7 @@ public static class Permissions
             CreateReceptionist,
 
             IntakeRead,
-            IntakeReview,
+            SubmissionRead,
             IntakeConvert,
             IntakeManageForms,
 
@@ -100,7 +105,6 @@ public static class Permissions
             WriteSession,
 
             QRGenerate,
-            QRValidate,
             WriteQueryAgent,
 
             ManageSchedule,

@@ -31,14 +31,28 @@
       </span>
     </div>
 
+    <!-- Inline validation warning — always visible inside the modal itself,
+         so it can never be hidden behind the dialog's own overlay the way a
+         toast can. -->
+    @if (missingFields.length > 0) {
+      <div class="p-3.5 rounded-xl bg-[var(--color-danger-light,#fef2f2)] border border-[var(--color-danger-border,#fecaca)] text-xs text-[var(--color-danger,#b91c1c)] flex items-start gap-2.5" role="alert">
+        <i class="pi pi-exclamation-triangle text-sm mt-0.5 shrink-0"></i>
+        <span>
+          Missing required fields: <strong>{{ missingFields.join(', ') }}</strong>
+        </span>
+      </div>
+    }
+
     <!-- Details Card -->
     <div class="rounded-xl border border-[var(--color-border,#e2e8f0)] overflow-hidden bg-[var(--color-surface,#ffffff)] shadow-xs">
       <div class="bg-[var(--color-page-bg,#f8fafc)] px-4 py-2.5 border-b border-[var(--color-border,#e2e8f0)] flex items-center justify-between">
         <span class="text-xs font-bold text-[var(--color-text-secondary,#64748b)] uppercase tracking-wider">
           Patient Profile Summary
         </span>
-        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-          Ready to Import
+        <span
+          class="text-[10px] font-semibold px-2 py-0.5 rounded-full border"
+          [ngClass]="isValid ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'">
+          {{ isValid ? 'Ready to Import' : 'Incomplete' }}
         </span>
       </div>
 
@@ -80,8 +94,9 @@
       <button
         type="button"
         (click)="confirmDialog.emit()"
-        [disabled]="updating"
+        [disabled]="updating || !isValid"
         class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[var(--color-primary,#1a7fd4)] hover:bg-[var(--color-primary-dark,#0e5fa3)] disabled:opacity-60 rounded-xl transition-all shadow-sm"
+        [attr.aria-disabled]="updating || !isValid"
         aria-label="Confirm convert to patient">
         <i class="pi text-xs" [ngClass]="updating ? 'pi-spin pi-spinner' : 'pi-user-plus'"></i>
         Confirm &amp; Create Patient

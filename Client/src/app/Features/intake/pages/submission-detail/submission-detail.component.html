@@ -9,6 +9,7 @@
   [patientEmail]="patientEmailDisplay()"
   [patientPhone]="patientPhoneDisplay()"
   [updating]="updating()"
+  [missingFields]="conversionValidation().missing"
   (cancelDialog)="showConvertDialog.set(false)"
   (confirmDialog)="convertToPatient()" />
 
@@ -87,7 +88,7 @@
       }
 
       <!-- Actions -->
-      @if (!d.convertedToPatientId) {
+      @if (!d.convertedToPatientId && canEditPermission()) {
         <div class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-4 sm:p-5 mt-4">
           <h3 class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">Actions</h3>
 
@@ -128,8 +129,8 @@
               </button>
               <button
                 type="button"
-                (click)="showConvertDialog.set(true)"
-                [disabled]="!editIsValid() || updating()"
+                (click)="attemptConvert()"
+                [disabled]="updating()"
                 class="btn-action-primary btn-action-mobile"
                 aria-label="Convert to patient">
                 <i class="pi text-xs" [ngClass]="updating() ? 'pi-spin pi-spinner' : 'pi-user-plus'"></i>

@@ -16,6 +16,15 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((err: HttpErrorResponse) => {
       const body = err.error;
 
+      if (err.status === 0) {
+        const message = navigator.onLine
+          ? "Can't reach the server. Please try again in a moment."
+          : 'No internet connection. Please check your network.';
+
+        snackbar.error(message);
+        return throwError(() => err);
+      }
+
       // Caller opted out of the snackbar for an expected 404 (e.g. "no schedule yet").
       // Other statuses on the same request still go through normal handling below.
       if (err.status === 404 && req.context.get(SKIP_ERROR_SNACKBAR)) {

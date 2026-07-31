@@ -67,6 +67,11 @@ public static class IntakeErrors
         "Default form schema cannot be deleted.",
         StatusCodes.Status400BadRequest);
 
+    public static readonly Error SchemaVersionMismatch = new(
+        "Intake.SchemaVersionMismatch",
+        "The schema version does not match the expected version.",
+        StatusCodes.Status400BadRequest);
+
     public static readonly Error FormSchemaInUse = new(
         "Intake.FormSchemaInUse",
         "This form has associated submissions and cannot be deleted. Archive it instead.",

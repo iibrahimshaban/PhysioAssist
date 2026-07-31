@@ -19,7 +19,7 @@ import {
   GoogleLoginRequest,
 } from '../../Shared/Models/Auth.Modules';
 import { DefaultRoles } from '../const/DefaultRoles';
-import { catchError, map, of, tap } from 'rxjs';
+import { catchError, finalize, map, Observable, of, shareReplay, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -28,6 +28,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
+  private inFlightRefresh$: Observable<AuthResponse> | null = null;
   // ─── Storage keys ──────────────────────────────────────────────────────────
 
   private readonly TOKEN_KEY = 'access_token';
@@ -83,11 +84,21 @@ export class AuthService {
 
     if (!token || !refreshToken) return null;
 
+    if (this.inFlightRefresh$) {
+      return this.inFlightRefresh$;
+    }
+
     const request: RefreshTokenRequest = { token, refreshToken };
 
-    return this.http
-      .post<AuthResponse>(`${this.baseUrl}/new-refresh`, request)
-      .pipe(tap(response => this.handleAuthResponse(response)));
+    this.inFlightRefresh$ = this.http.post<AuthResponse>(`${this.baseUrl}/new-refresh`, request).pipe(
+      tap(response => this.handleAuthResponse(response)),
+      finalize(() => {
+        this.inFlightRefresh$ = null;
+      }),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+
+    return this.inFlightRefresh$;
   }
 
   forgetPassword(request: ForgetPasswordRequest) {
