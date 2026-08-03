@@ -10,7 +10,7 @@ import { OwnerDirectoryService } from '../../../Core/Services/owner-directory.se
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class StatisticsPanelComponent {
-   statistics = input.required<ScheduleStatistics>();
+  statistics = input.required<ScheduleStatistics>();
   upcomingAppointment = input<Appointment | null>(null);
   nextAvailableSlot = input<AvailableInterval | null>(null);
   workingHours = input<WorkingDayWindow | null>(null);
@@ -23,6 +23,20 @@ export class StatisticsPanelComponent {
 
   protected formatTime(date: Date): string {
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+
+
+  protected get freeTimeLabel(): string {
+    const totalMinutes = this.statistics().freeMinutesRemaining;
+
+    if (totalMinutes <= 0) return '0h';
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours === 0) return `${minutes}m`;
+    if (minutes === 0) return `${hours}h`;
+    return `${hours}h ${minutes}m`;
   }
 
   protected get workingHoursLabel(): string {

@@ -162,39 +162,6 @@ export class SchedulePageService {
     setTimeout(() => this.toasts.update(list => list.filter(t => t.id !== id)), 4000);
   }
 
-//   // schedule-page.service.ts — add: pure fetch, does not touch the main availability signal
-// async fetchAvailabilityForDate(doctorId: string, date: Date): Promise<AvailableInterval[]> {
-//   const dtos = await firstValueFrom(
-//     this.http.get<AvailableIntervalDto[]>(`${APPOINTMENTS_BASE}/doctor/${doctorId}/availability`, {
-//       params: { date: date.toISOString() }
-//     }).pipe(this.catchAsProblem())
-//   );
-//   return dtos.map(d => ({ start: new Date(d.start), end: new Date(d.end) }));
-// }
-
-
-  // schedule-page.service.ts
-
-// // New: single round trip for a date range, replaces the old N-calls-per-week
-// // workaround. Backend omits non-working days entirely from the response,
-// // so anything NOT in this list is implicitly a day the doctor doesn't work.
-// async fetchAvailabilityRange(doctorId: string, from: Date, to: Date): Promise<DailyAvailability[]> {
-//   const dtos = await firstValueFrom(
-//     this.http.get<DailyAvailabilityDto[]>(`${APPOINTMENTS_BASE}/doctor/${doctorId}/availability-range`, {
-//       params: { from: toIsoWithOffset(from), to: toIsoWithOffset(to) }
-//     }).pipe(this.catchAsProblem())
-//   );
-
-//   return dtos.map(d => ({
-//     date: this.parseDateOnly(d.date),
-//     intervals: d.intervals.map(i => ({ start: new Date(i.start), end: new Date(i.end) }))
-//   }));
-// }
-
-// private parseDateOnly(value: string): Date {
-//   const [y, m, d] = value.split('-').map(Number);
-//   return new Date(y, m - 1, d);
-// }
 
 
 
@@ -205,9 +172,7 @@ async fetchAvailabilityRange(doctorId: string, from: Date, to: Date): Promise<Da
     }).pipe(this.catchAsProblem())
   );
 
-  // Backend now sends intervals as time-only strings ("09:00:00") scoped to
-  // the day's own "date" field, instead of full ISO datetimes. Each interval
-  // must be reconstructed by combining the parent day's date with its time.
+  
   return dtos.map(d => {
     const date = this.parseDateOnly(d.date);
     return {
@@ -218,6 +183,18 @@ async fetchAvailabilityRange(doctorId: string, from: Date, to: Date): Promise<Da
       }))
     };
   });
+
+  
+}
+
+async refresh(): Promise<void> {
+  const doctorId = this.selectedDoctorId();
+  if (!doctorId) return;
+
+  await Promise.all([
+    this.loadWorkingSchedule(doctorId),
+    this.loadForCurrentSelection(doctorId, this.selectedDate(), this.currentView())
+  ]);
 }
 
 private parseDateOnly(value: string): Date {
@@ -225,10 +202,7 @@ private parseDateOnly(value: string): Date {
   return new Date(y, m - 1, d);
 }
 
-// Combines a calendar date (midnight, local time) with a "HH:mm:ss" time
-// string into a single Date. Assumes an interval never crosses midnight —
-// matches working-hours semantics (an end time of "00:00:00" would need
-// special-casing as next-day, which isn't a real working-hours scenario).
+
 private combineDateAndTime(date: Date, time: string): Date {
   const [h, m, s] = time.split(':').map(Number);
   const result = new Date(date);
@@ -424,6 +398,5 @@ export function toIsoWithOffset(date: Date): string {
     `${sign}${offsetHours}:${offsetMins}`
   );
 }
-
 
 

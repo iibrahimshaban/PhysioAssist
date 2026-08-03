@@ -21,8 +21,10 @@
           />
           <p-button label="Edit profile" (onClick)="enterEditMode()" />
         } @else {
+          <!-- Save moved to the form's own footer — Cancel stays here as a
+               quick "back out" escape hatch reachable without scrolling,
+               regardless of how long the form below gets. -->
           <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="cancelEdit()" />
-          <p-button label="Save" [loading]="isSaving()" (onClick)="save()" />
         }
       </div>
     </div>
@@ -116,47 +118,57 @@
             }
           </div>
         } @else {
-          <form [formGroup]="form" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1">
-              <label class="text-sm text-gray-500">Username</label>
-              <input pInputText formControlName="userName" class="w-full" />
-            </div>
-            @if (isDoctor()) {
+          <form [formGroup]="form" class="flex flex-col gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="flex flex-col gap-1">
-                <label class="text-sm text-gray-500">Title</label>
-                <input pInputText formControlName="title" class="w-full" />
+                <label class="text-sm text-gray-500">Username</label>
+                <input pInputText formControlName="userName" class="w-full" />
               </div>
-            }
-            <div class="flex flex-col gap-1">
-              <label class="text-sm text-gray-500">First name</label>
-              <input pInputText formControlName="firstName" class="w-full" />
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="text-sm text-gray-500">Last name</label>
-              <input pInputText formControlName="lastName" class="w-full" />
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="text-sm text-gray-500">Phone</label>
-              <input pInputText formControlName="phoneNumber" class="w-full" />
-            </div>
-            @if (isDoctor()) {
+              @if (isDoctor()) {
+                <div class="flex flex-col gap-1">
+                  <label class="text-sm text-gray-500">Title</label>
+                  <input pInputText formControlName="title" class="w-full" />
+                </div>
+              }
               <div class="flex flex-col gap-1">
-                <label class="text-sm text-gray-500">Years of experience</label>
-                <p-inputNumber formControlName="yearsOfExperience" [min]="0" [max]="70" styleClass="w-full" />
+                <label class="text-sm text-gray-500">First name</label>
+                <input pInputText formControlName="firstName" class="w-full" />
               </div>
               <div class="flex flex-col gap-1">
-                <label class="text-sm text-gray-500">Clinic name</label>
-                <input pInputText formControlName="clinicName" class="w-full" />
+                <label class="text-sm text-gray-500">Last name</label>
+                <input pInputText formControlName="lastName" class="w-full" />
               </div>
               <div class="flex flex-col gap-1">
-                <label class="text-sm text-gray-500">Clinic address</label>
-                <input pInputText formControlName="clinicAddress" class="w-full" />
+                <label class="text-sm text-gray-500">Phone</label>
+                <input pInputText formControlName="phoneNumber" class="w-full" />
               </div>
-              <div class="sm:col-span-2 flex flex-col gap-1">
-                <label class="text-sm text-gray-500">About</label>
-                <textarea pTextarea formControlName="about" rows="3" class="w-full"></textarea>
-              </div>
-            }
+              @if (isDoctor()) {
+                <div class="flex flex-col gap-1">
+                  <label class="text-sm text-gray-500">Years of experience</label>
+                  <p-inputNumber formControlName="yearsOfExperience" [min]="0" [max]="70" styleClass="w-full" />
+                </div>
+                <div class="flex flex-col gap-1">
+                  <label class="text-sm text-gray-500">Clinic name</label>
+                  <input pInputText formControlName="clinicName" class="w-full" />
+                </div>
+                <div class="flex flex-col gap-1">
+                  <label class="text-sm text-gray-500">Clinic address</label>
+                  <input pInputText formControlName="clinicAddress" class="w-full" />
+                </div>
+                <div class="sm:col-span-2 flex flex-col gap-1">
+                  <label class="text-sm text-gray-500">About</label>
+                  <textarea pTextarea formControlName="about" rows="3" class="w-full"></textarea>
+                </div>
+              }
+            </div>
+
+            <!-- Form footer — Save now lives where the eye naturally lands
+                 after filling the last field, instead of requiring a scroll
+                 back up to the page header. -->
+            <div class="flex justify-end gap-2 pt-4 mt-2 border-t border-gray-100">
+              <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="cancelEdit()" />
+              <p-button label="Save" [loading]="isSaving()" (onClick)="save()" />
+            </div>
           </form>
         }
         </div>
@@ -214,6 +226,7 @@
   </div>
 }
 
+<!-- Change password dialog and Crop dialog — unchanged, omitted here for brevity -->
 <!-- Change password dialog -->
 <p-dialog
   header="Change password"

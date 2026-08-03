@@ -6,41 +6,47 @@
       <button type="button" class="drawer__close" (click)="closeRequested.emit()">✕</button>
     </div>
 
-    <div class="drawer__section owner-section"
+    <div class="owner-section"
          [class.owner-section--patient]="owner()?.kind === 'patient'"
          [class.owner-section--guest]="owner()?.kind === 'guest'">
       <span class="owner-badge" [class.owner-badge--patient]="owner()?.kind === 'patient'"
                                  [class.owner-badge--guest]="owner()?.kind === 'guest'">
         {{ owner()?.kind === 'guest' ? 'Guest' : owner()?.kind === 'patient' ? 'Patient' : 'Unknown' }}
       </span>
-      <span class="drawer__value drawer__value--large">{{ owner()?.name }}</span>
+      <span class="owner-name">{{ owner()?.name }}</span>
 
-      @if (owner()?.phoneNumber) {
-        <span class="owner-detail">📞 {{ owner()!.phoneNumber }}</span>
+      @if (owner()?.phoneNumber || owner()?.emailAddress) {
+        <div class="owner-contact">
+          @if (owner()?.phoneNumber) {
+            <span class="owner-detail">📞 {{ owner()!.phoneNumber }}</span>
+          }
+          @if (owner()?.emailAddress) {
+            <span class="owner-detail">✉️ {{ owner()!.emailAddress }}</span>
+          }
+        </div>
       }
-      @if (owner()?.emailAddress) {
-        <span class="owner-detail">✉️ {{ owner()!.emailAddress }}</span>
-      }
     </div>
 
-    <div class="drawer__section">
-      <span class="drawer__label">Start</span>
-      <span class="drawer__value">{{ formatDateTime(a.slotStart) }}</span>
+    <div class="info-row">
+      <div class="info-cell">
+        <span class="drawer__label">Start</span>
+        <span class="drawer__value">{{ formatDateTime(a.slotStart) }}</span>
+      </div>
+      <div class="info-cell">
+        <span class="drawer__label">End</span>
+        <span class="drawer__value">{{ formatDateTime(a.slotEnd) }}</span>
+      </div>
     </div>
 
-    <div class="drawer__section">
-      <span class="drawer__label">End</span>
-      <span class="drawer__value">{{ formatDateTime(a.slotEnd) }}</span>
-    </div>
-
-    <div class="drawer__section">
-      <span class="drawer__label">Duration</span>
-      <span class="drawer__value">{{ durationLabel() }}</span>
-    </div>
-
-    <div class="drawer__section">
-      <span class="drawer__label">Status</span>
-      <span class="status-pill" [class]="'status-pill--' + a.status.toLowerCase()">{{ a.status }}</span>
+    <div class="info-row info-row--last">
+      <div class="info-cell">
+        <span class="drawer__label">Duration</span>
+        <span class="drawer__value">{{ durationLabel() }}</span>
+      </div>
+      <div class="info-cell">
+        <span class="drawer__label">Status</span>
+        <span class="status-pill" [class]="'status-pill--' + a.status.toLowerCase()">{{ a.status }}</span>
+      </div>
     </div>
 
     <div class="drawer__actions">
