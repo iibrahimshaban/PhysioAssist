@@ -185,7 +185,8 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
 
             // 5. Build slot lookup
             var slotLookup = slots
-                .GroupBy(s => s.PatientId)
+                .Where(s => s.PatientId.HasValue)
+                .GroupBy(s => s.PatientId!.Value)
                 .ToDictionary(g => g.Key, g => g.OrderBy(s => s.SlotStart).First());
 
             // 6. Merge and order

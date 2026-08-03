@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, inject } from '@angular/core';
 import { ScheduleStatistics, Appointment, AvailableInterval, WorkingDayWindow, shortId } from '../schedule.models';
+import { OwnerDirectoryService } from '../../../Core/Services/owner-directory.service';
 
 @Component({
   selector: 'app-statistics-panel',
@@ -9,12 +10,16 @@ import { ScheduleStatistics, Appointment, AvailableInterval, WorkingDayWindow, s
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class StatisticsPanelComponent {
-  statistics = input.required<ScheduleStatistics>();
+   statistics = input.required<ScheduleStatistics>();
   upcomingAppointment = input<Appointment | null>(null);
   nextAvailableSlot = input<AvailableInterval | null>(null);
   workingHours = input<WorkingDayWindow | null>(null);
 
-  protected readonly shortId = shortId;
+  private readonly ownerDirectory = inject(OwnerDirectoryService);
+
+  protected ownerName(a: Appointment): string {
+    return this.ownerDirectory.resolveOwner(a).name;
+  }
 
   protected formatTime(date: Date): string {
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
