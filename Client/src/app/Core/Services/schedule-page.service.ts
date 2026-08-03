@@ -43,7 +43,7 @@ export class SchedulePageService {
     showOnlyToday: false
   });
 
-  readonly filteredAppointments = computed(() => {
+ readonly filteredAppointments = computed(() => {
     const list = this.appointments();
     const f = this.filters();
     const today = new Date();
@@ -52,8 +52,9 @@ export class SchedulePageService {
       if (f.statuses.size > 0 && !f.statuses.has(a.status)) return false;
       if (f.showOnlyToday && a.slotStart.toDateString() !== today.toDateString()) return false;
       if (f.patientSearch.trim().length > 0) {
-        return (a.patientId ?? '').toLowerCase().includes(f.patientSearch.trim().toLowerCase());
-        }
+        const term = f.patientSearch.trim().toLowerCase();
+        return this.ownerDirectory.resolveOwner(a).name.toLowerCase().includes(term);
+      }
       return true;
     });
   });
