@@ -2,62 +2,91 @@
 .drawer-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.35); z-index: 40; }
 .drawer {
   position: fixed; top: 0; right: 0; bottom: 0; width: 380px; background: var(--color-surface);
-  box-shadow: -8px 0 24px rgba(15, 23, 42, 0.12); z-index: 50; padding: 24px; overflow-y: auto;
-  display: flex; flex-direction: column; gap: 18px; animation: slideIn 0.2s ease-out;
+  box-shadow: -8px 0 24px rgba(15, 23, 42, 0.12); z-index: 50; padding: 18px 20px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px; animation: slideIn 0.2s ease-out;
 }
 @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-.drawer__header { display: flex; justify-content: space-between; align-items: center; }
-.drawer__title { margin: 0; font-size: 18px; font-weight: 700; color: var(--color-text-primary); }
-.drawer__close { border: none; background: transparent; font-size: 16px; cursor: pointer; color: var(--color-text-secondary); }
-.drawer__section { display: flex; flex-direction: column; gap: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--color-border); }
-.drawer__label { font-size: 12px; color: var(--color-text-secondary); font-weight: 500; }
-.drawer__value { font-size: 14px; color: var(--color-text-primary); font-weight: 600; }
-.drawer__value--large { font-size: 16px; }
 
-// New — owner (patient/guest) info block
-.owner-section { gap: 6px; }
+.drawer__header { display: flex; justify-content: space-between; align-items: center; }
+.drawer__title { margin: 0; font-size: 17px; font-weight: 700; color: var(--color-text-primary); }
+.drawer__close { border: none; background: transparent; font-size: 15px; cursor: pointer; color: var(--color-text-secondary); }
+
+.drawer__label { font-size: 11px; color: var(--color-text-secondary); font-weight: 500; }
+.drawer__value { font-size: 13px; color: var(--color-text-primary); font-weight: 600; }
+
+// Owner block — tighter than before, no big "large value" text, contact
+// details sit on one line each instead of stacking with extra gaps.
+.owner-section {
+  display: flex; flex-direction: column; gap: 4px; padding-bottom: 10px; border-bottom: 1px solid var(--color-border);
+}
 .owner-section--patient { border-left: 3px solid var(--owner-patient-accent, #2563eb); padding-left: 10px; }
 .owner-section--guest { border-left: 3px solid var(--owner-guest-accent, #9333ea); padding-left: 10px; }
 .owner-badge {
-  align-self: flex-start; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  align-self: flex-start; padding: 1px 7px; border-radius: 999px; font-size: 10px; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.02em; background: color-mix(in srgb, var(--color-border) 40%, transparent);
   color: var(--color-text-secondary);
   &--patient { background: color-mix(in srgb, var(--owner-patient-accent, #2563eb) 15%, transparent); color: var(--owner-patient-accent, #2563eb); }
   &--guest { background: color-mix(in srgb, var(--owner-guest-accent, #9333ea) 15%, transparent); color: var(--owner-guest-accent, #9333ea); }
 }
-.owner-detail { font-size: 13px; color: var(--color-text-secondary); }
+.owner-name { font-size: 15px; font-weight: 700; color: var(--color-text-primary); }
+.owner-contact { display: flex; flex-direction: column; gap: 1px; margin-top: 1px; }
+.owner-detail { font-size: 12px; color: var(--color-text-secondary); }
+
+// Two-column info rows — replaces 4 separate bordered sections with 2,
+// halving the vertical space Start/End/Duration/Status used to take.
+.info-row {
+  display: flex; gap: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--color-border);
+  &--last { border-bottom: 1px solid var(--color-border); }
+}
+.info-cell { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 
 .status-pill {
-  align-self: flex-start; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  align-self: flex-start; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600;
   &--booked { background: var(--status-booked-bg); color: var(--status-booked-text); }
   &--completed { background: var(--status-completed-bg); color: var(--status-completed-text); }
   &--cancelled { background: var(--status-cancelled-bg); color: var(--status-cancelled-text); }
   &--noshow { background: var(--status-noshow-bg); color: var(--status-noshow-text); }
 }
-.drawer__actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+
+.drawer__actions { display: flex; flex-direction: column; gap: 7px; margin-top: 2px; }
+
 .drawer-btn {
-  height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--color-surface);
-  font-size: 13.5px; font-weight: 600; cursor: pointer; color: var(--color-text-primary); transition: background 0.15s;
-  &:hover { background: var(--color-bg-page); }
-  &--success { background: var(--color-success); color: #fff; border-color: var(--color-success); &:hover { opacity: 0.9; } }
-  &--warning { background: var(--color-warning); color: #fff; border-color: var(--color-warning); &:hover { opacity: 0.9; } }
-  &--danger { background: var(--color-danger); color: #fff; border-color: var(--color-danger); &:hover { opacity: 0.9; } }
-  &--outline-danger { color: var(--color-danger); border-color: var(--color-danger); background: transparent; }
+  height: 38px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--color-surface);
+  font-size: 13px; font-weight: 600; cursor: pointer; color: var(--color-text-primary); transition: background 0.15s;
+
+  &:hover { background: color-mix(in srgb, var(--color-bg-page) 100%, black 6%); }
+
+  &--success {
+    background: var(--color-success); color: #fff; border-color: var(--color-success);
+    &:hover { background: color-mix(in srgb, var(--color-success) 100%, black 15%); }
+  }
+  &--warning {
+    background: var(--color-warning); color: #fff; border-color: var(--color-warning);
+    &:hover { background: color-mix(in srgb, var(--color-warning) 100%, black 15%); }
+  }
+  &--danger {
+    background: var(--color-danger); color: #fff; border-color: var(--color-danger);
+    &:hover { background: color-mix(in srgb, var(--color-danger) 100%, black 15%); }
+  }
+  &--outline-danger {
+    color: var(--color-danger); border-color: var(--color-danger); background: transparent;
+    &:hover { background: color-mix(in srgb, var(--color-danger) 10%, transparent); }
+  }
 }
 
-// Mobile — bottom-sheet, matching create-appointment-drawer's pattern
+// Mobile — bottom-sheet, unchanged mechanics, tightened to match
 @media (max-width: 640px) {
   .drawer {
     width: 100%; max-width: 100%; top: auto; border-radius: 0;
     border-top-left-radius: 16px; border-top-right-radius: 16px;
-    padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
-    max-height: 90vh; animation: slideUp 0.2s ease-out;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    max-height: 88vh; animation: slideUp 0.2s ease-out;
   }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .drawer__title { font-size: 16.5px; }
-  .drawer-btn { height: 44px; }
+  .drawer__title { font-size: 16px; }
+  .drawer-btn { height: 42px; }
 }
 
 @media (max-width: 380px) {
-  .drawer { padding: 16px 12px calc(16px + env(safe-area-inset-bottom, 0px)); }
+  .drawer { padding: 14px 12px calc(14px + env(safe-area-inset-bottom, 0px)); }
 }

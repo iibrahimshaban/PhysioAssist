@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, OnInit } from '@angular/core';
 import { AppointmentDrawerComponent } from './appointment-drawer/appointment-drawer.component';
 import { CalendarGridComponent } from './calendar-grid/calendar-grid.component';
 import { CalendarToolbarComponent } from './calendar-toolbar/calendar-toolbar.component';
@@ -9,39 +9,57 @@ import { LoadingSkeletonComponent } from './loading-skeleton/loading-skeleton.co
 import { Doctor, Appointment, AvailableInterval, CreateAppointmentRequest, ScheduleFilters, AvailableIntervalDto } from './schedule.models';
 import { StatisticsPanelComponent } from './statistics-panel/statistics-panel.component';
 import { SchedulePageService, toIsoWithOffset } from '../../Core/Services/schedule-page.service';
-import { AuthService } from '../../Core/Services/auth.service'; // adjust path to match your actual file
+import { AuthService } from '../../Core/Services/auth.service';
 import { RescheduleDialogComponent } from "./reschedule-dialog/reschedule-dialog.component";
+import { OwnerDirectoryService } from '../../Core/Services/owner-directory.service';
 
 @Component({
   selector: 'app-schedule-page',
   standalone: true,
   imports: [
-    CalendarToolbarComponent, CalendarGridComponent, 
+    CalendarToolbarComponent, CalendarGridComponent,
     StatisticsPanelComponent, FiltersBarComponent, AppointmentDrawerComponent,
     CreateAppointmentDrawerComponent, EmptyStateComponent, LoadingSkeletonComponent,
     RescheduleDialogComponent
-],
+  ],
   templateUrl: './schedule-page.component.html',
   styleUrl: './schedule-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SchedulePageComponent {
+export class SchedulePageComponent implements OnInit{
   protected readonly scheduleService = inject(SchedulePageService);
   private readonly authService = inject(AuthService);
+  private readonly ownerDirectory = inject(OwnerDirectoryService);
+    
   protected readonly isRescheduleDialogOpen = signal(false);
   protected readonly reschedulingAppointment = signal<Appointment | null>(null);
   protected readonly currentDoctorId = computed(() => this.authService.currentUser()?.id ?? null);
 
-  // Bound automatically from ?patientId=... via withComponentInputBinding — set
-  // when arriving here via "Set schedule manually" from the receptionist booking
-  // flow. Absent entirely for the doctor's normal day-to-day calendar view.
   patientId = input<string | null>(null);
+  private searchPrefillAppliedForPatientId: string | null = null;
 
   constructor() {
     effect(() => {
       const id = this.currentDoctorId();
       if (id) this.scheduleService.selectDoctor(id);
     });
+
+     effect(() => {
+      const id = this.patientId();
+      const patientsById = this.ownerDirectory.patientsById();
+
+      if (!id || this.searchPrefillAppliedForPatientId === id) return;
+
+      const patient = patientsById.get(id);
+      if (patient) {
+        this.scheduleService.updateFilters({ patientSearch: patient.fullName });
+        this.searchPrefillAppliedForPatientId = id;
+      }
+    });
+  }
+
+  ngOnInit(): void {
+     this.scheduleService.refresh();
   }
 
   protected readonly dateRangeLabel = computed(() => {
@@ -154,4 +172,6 @@ export class SchedulePageComponent {
     next.setDate(next.getDate() + days);
     this.scheduleService.selectDate(next);
   }
+
+
 }

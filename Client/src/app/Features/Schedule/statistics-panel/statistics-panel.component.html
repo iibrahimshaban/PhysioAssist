@@ -9,10 +9,9 @@
     <span class="stat-card__value stat-card__value--small">{{ workingHoursLabel }}</span>
   </div>
   <div class="stat-card">
-    <span class="stat-card__label">Free Time Remaining</span>
-    <span class="stat-card__value">{{ statistics().freeMinutesRemaining }} min</span>
-  </div>
-
+  <span class="stat-card__label">Free Time Remaining</span>
+  <span class="stat-card__value stat-card__value--small">{{ freeTimeLabel }}</span>
+</div>
  @if (upcomingAppointment(); as next) {
   <div class="stat-card stat-card--highlight">
     <span class="stat-card__label">Upcoming Appointment</span>
