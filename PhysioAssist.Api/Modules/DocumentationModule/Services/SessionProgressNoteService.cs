@@ -4,7 +4,7 @@ using PhysioAssist.Api.Shared.Dtos.Documentation;
 
 namespace PhysioAssist.Api.Modules.DocumentationModule.Services;
 
-public class SessionProgressNoteService(ApplicationDbContext context) : ISessionProgressNoteService
+public class SessionProgressNoteService(ApplicationDbContext context, ISessionSummaryGenerationService summaryGenerationService) : ISessionProgressNoteService
 {
     public async Task<Result<SessionProgressNoteResponse>> GetBySessionIdAsync(Guid sessionId, CancellationToken ct = default)
     {
@@ -17,13 +17,10 @@ public class SessionProgressNoteService(ApplicationDbContext context) : ISession
 
         return Result.Success(ToResponse(note));
     }
-
     public async Task<Result<SessionProgressNoteResponse>> UpdateNarrativeAsync(
         Guid sessionId, string subjective, string assessment, string plan, CancellationToken ct = default)
     {
-        var note = await context.SessionProgressNotes
-            .FirstOrDefaultAsync(n => n.SessionId == sessionId, ct);
-
+        var note = await context.SessionProgressNotes.FirstOrDefaultAsync(n => n.SessionId == sessionId, ct);
         if (note is null)
             return Result.Failure<SessionProgressNoteResponse>(DocumentationErrors.ProgressNoteNotFound);
 
@@ -32,6 +29,11 @@ public class SessionProgressNoteService(ApplicationDbContext context) : ISession
         note.Plan = plan;
 
         await context.SaveChangesAsync(ct);
+
+        if (!string.IsNullOrWhiteSpace(subjective) && !string.IsNullOrWhiteSpace(assessment) && !string.IsNullOrWhiteSpace(plan))
+        {
+            await summaryGenerationService.GenerateAndSaveSummaryAsync(sessionId, ct);
+        }
 
         return Result.Success(ToResponse(note));
     }

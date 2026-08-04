@@ -1,16 +1,21 @@
 using CloudinaryDotNet;
 using Microsoft.OpenApi;
 using PhysioAssist.Api.Infrastructure.AutoComplete;
+using PhysioAssist.Api.Infrastructure.Chunking;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
-using PhysioAssist.Api.Infrastructure.GeminiClient;
-using PhysioAssist.Api.Infrastructure.GitHubModelsClient;
+using PhysioAssist.Api.Infrastructure.Embeddding;
 using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
 using PhysioAssist.Api.Infrastructure.GroqClient;
 using PhysioAssist.Api.Infrastructure.GroqClient.Options;
+using PhysioAssist.Api.Infrastructure.Summarization;
+using PhysioAssist.Api.Infrastructure.TimeParser;
+using PhysioAssist.Api.Infrastructure.Transcription;
+using PhysioAssist.Api.Infrastructure.Translation;
 using PhysioAssist.Api.Modules.Auth;
 using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Modules.DashboardModule.Services;
 using PhysioAssist.Api.Modules.DocumentationModule;
+using PhysioAssist.Api.Modules.DocumentationModule.Services;
 using PhysioAssist.Api.Modules.InitialReportModule;
 using PhysioAssist.Api.Modules.Intake;
 using PhysioAssist.Api.Modules.Notification;
@@ -244,6 +249,7 @@ public static class DependancyInjection
             .ValidateOnStart();
 
         services.AddHttpClient<IRollupSummarizationService, GroqRollupSummarizationService>();
+        
 
         return services;
     }
@@ -278,12 +284,9 @@ public static class DependancyInjection
             .ValidateDataAnnotations();
 
         services
-        .AddOptions<GeminiOptions>()
-        .BindConfiguration(GeminiOptions.SectionName)
+        .AddOptions<TranscriptionOptions>()
+        .BindConfiguration(TranscriptionOptions.SectionName)
         .ValidateDataAnnotations();
-
-        services.AddHttpClient<GroqWhisperClient>();
-        services.AddHttpClient<ITranscriptionRefinementService,GroqRefinementClient>();
 
         services.AddHttpClient<IAudioTranscriptionService, GeminiTranscriptionClient>();
 

@@ -49,6 +49,15 @@
         (deleteUploaded)="stageAttachmentForDeletion($event)"
       ></app-session-attachments>
 
+      @if (sessionDetails()?.status === 2) {
+        <app-session-progress-note
+          class="mt-4 block"
+          [sessionId]="sessionDetails()!.id"
+          [isOpen]="progressNoteOpen()"
+          (toggle)="toggleProgressNote()">
+        </app-session-progress-note>
+      }
+
       <!-- Actions -->
       <app-session-actions
         class="mt-4"
@@ -61,7 +70,7 @@
 
     @if (sessionDetails(); as session) {
     <app-next-session-booking
-      class="mt-4 block lg:col-span-4"
+      class="mt-4 block lg:sticky lg:top-5 lg:col-span-4 lg:mt-0 lg:self-start"
       [sessionId]="session.id"
       [patientId]="session.PatientId"
     />

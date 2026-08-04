@@ -411,3 +411,195 @@ html {
 .p-radiobutton .p-radiobutton-box:not(.p-highlight):not(.p-disabled):hover {
   border-color: var(--brand-gradient-start) !important;
 }
+
+/* ── Documentation Templates settings screen ─────────────── */
+
+.category-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.category-card:hover {
+  border-color: var(--brand-gradient-start);
+  box-shadow: var(--shadow-md);
+}
+
+.category-card-active {
+  border-color: var(--brand-gradient-start);
+  box-shadow: 0 0 0 3px var(--color-primary-soft), var(--shadow-md);
+}
+
+.category-icon,
+.category-icon-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.category-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.05rem;
+}
+
+.category-icon-sm {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 0.8rem;
+}
+
+.icon-bg-blue {
+  background: var(--color-primary-soft);
+  color: var(--brand-gradient-start);
+}
+
+.icon-bg-teal {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.icon-bg-amber {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.icon-bg-neutral {
+  background: var(--neutral-100);
+  color: var(--color-text-secondary);
+}
+
+.settings-card .p-card-title {
+  font-size: var(--text-lg);
+}
+
+.settings-card .p-card-subtitle {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+}
+
+.required-badge {
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+  background: var(--neutral-100);
+  border-radius: var(--radius-sm);
+  padding: 0.1rem 0.4rem;
+  text-transform: uppercase;
+}
+
+.preview-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1rem;
+  position: sticky;
+  top: 1.5rem;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.preview-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.preview-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.75rem;
+  background: var(--color-page-bg-alt);
+}
+
+.preview-card-title {
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: 0.4rem;
+}
+
+.preview-skeleton-line {
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--neutral-200);
+  margin-bottom: 0.35rem;
+}
+
+.preview-skeleton-line.short {
+  width: 60%;
+}
+
+/* Toggle switch — brand color instead of PrimeNG's default green */
+.p-toggleswitch.p-toggleswitch-checked .p-toggleswitch-slider {
+  background: var(--brand-gradient) !important;
+}
+
+.p-toggleswitch:not(.p-disabled):has(.p-toggleswitch-input:hover).p-toggleswitch-checked .p-toggleswitch-slider {
+  background: linear-gradient(135deg, #1a7fd4, #0b9a86) !important;
+}
+
+.p-toggleswitch.p-toggleswitch-checked.p-disabled .p-toggleswitch-slider {
+  background: var(--color-primary-soft) !important;
+}
+
+.icon-gradient {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+ 
+p-confirmdialog .p-dialog {
+  width: min(28rem, calc(100vw - 2rem));
+  margin: 0 1rem;
+}
+ 
+p-confirmdialog .p-dialog .p-dialog-content {
+  word-break: break-word;
+}
+ 
+@media (max-width: 639px) {
+  p-confirmdialog .p-dialog .p-dialog-footer {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+ 
+  p-confirmdialog .p-dialog .p-dialog-footer .p-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,160 @@
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="flex items-start justify-between flex-wrap gap-3 mb-6">
+    <div>
+      <h1 class="page-title">Documentation templates</h1>
+      <p class="page-subtitle">Pick which fields appear when documenting each patient category</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <p-button
+        label="Reset"
+        icon="pi pi-refresh"
+        [outlined]="true"
+        [disabled]="!isDirty() || saving()"
+        (onClick)="reset()">
+      </p-button>
+      <p-button
+        label="Save changes"
+        icon="pi pi-check"
+        [loading]="saving()"
+        [disabled]="!isDirty()"
+        (onClick)="save()">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Category cards -->
+  @if (loadingTemplates()) {
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      @for (i of [1, 2, 3]; track i) {
+        <p-skeleton height="4.5rem" styleClass="!rounded-xl"></p-skeleton>
+      }
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      @for (t of templates(); track t.id) {
+        <button
+          type="button"
+          class="category-card"
+          [class.category-card-active]="t.id === activeTemplateId()"
+          (click)="selectTemplate(t.id)">
+          <span class="category-icon" [ngClass]="iconStyle(t.category)">
+            <i class="pi" [ngClass]="categoryIcon(t.category)"></i>
+          </span>
+          <span class="flex flex-col items-start text-left min-w-0">
+            <span class="font-semibold text-[var(--color-text-primary)] truncate w-full">
+              {{ categoryLabels[t.category] }}
+            </span>
+            <span class="text-sm text-[var(--color-text-secondary)]">
+              {{ visibleCount(t.id) }} of {{ totalCount(t.id) }} fields shown
+            </span>
+          </span>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Field list + live preview -->
+  @if (activeTemplateId()) {
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start">
+
+      <p-card styleClass="settings-card">
+        <ng-template pTemplate="title">
+          <div class="flex items-center gap-2">
+            <span class="category-icon-sm" [ngClass]="iconStyle(activeCategory())">
+              <i class="pi" [ngClass]="categoryIcon(activeCategory())"></i>
+            </span>
+            <span>{{ categoryLabel(activeCategory()) }} documentation</span>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="subtitle">
+          Hidden fields won't appear in the report editor for these patients
+        </ng-template>
+
+        <span class="p-input-icon-left w-full block mb-4">
+          <i class="pi pi-search"></i>
+          <input
+            type="text"
+            pInputText
+            class="w-full"
+            placeholder="Search fields"
+            [ngModel]="searchTerm()"
+            (ngModelChange)="onSearchChange($event)" />
+        </span>
+
+        @if (loadingFields()) {
+          <div class="flex flex-col gap-3">
+            @for (i of skeletonRows; track i) {
+              <p-skeleton height="2.75rem"></p-skeleton>
+            }
+          </div>
+        } @else {
+          <div class="flex flex-col divide-y divide-[var(--color-border)]">
+            @for (row of filteredRows(); track row.field.id) {
+              <div class="field-row">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium text-[var(--color-text-primary)] truncate">
+                      {{ row.field.label || row.field.id }}
+                    </span>
+                    @if (row.required) {
+                      <span class="required-badge">Required</span>
+                    }
+                  </div>
+                  @if (fieldHelpText(row.field)) {
+                    <div class="text-sm text-[var(--color-text-secondary)] truncate">
+                      {{ fieldHelpText(row.field) }}
+                    </div>
+                  }
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  <i
+                    class="pi"
+                    [ngClass]="row.visible ? 'pi-eye' : 'pi-eye-slash'"
+                    [style.color]="row.visible ? 'var(--color-text-secondary)' : 'var(--neutral-300)'">
+                  </i>
+                  <p-toggleswitch
+                    [ngModel]="row.visible"
+                    [disabled]="row.required"
+                    (ngModelChange)="toggle(row)">
+                  </p-toggleswitch>
+                </div>
+              </div>
+            } @empty {
+              <div class="py-8 text-center text-sm text-[var(--color-text-secondary)]">
+                No fields match "{{ searchTerm() }}".
+              </div>
+            }
+          </div>
+        }
+      </p-card>
+
+      <div class="preview-panel">
+        <div class="preview-header">
+          <i class="pi pi-desktop"></i>
+          <span>Live preview</span>
+        </div>
+        <div class="preview-body">
+          @if (loadingFields()) {
+            @for (i of [1, 2, 3, 4]; track i) {
+              <p-skeleton height="3.5rem" styleClass="!rounded-md"></p-skeleton>
+            }
+          } @else {
+            @for (row of activeRows(); track row.field.id) {
+              @if (row.visible) {
+                <div class="preview-card">
+                  <div class="preview-card-title">{{ row.field.label || row.field.id }}</div>
+                  <div class="preview-skeleton-line"></div>
+                  <div class="preview-skeleton-line short"></div>
+                </div>
+              }
+            }
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+
+</div>

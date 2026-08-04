@@ -55,4 +55,15 @@ public class SessionQueryService(ApplicationDbContext context) : ISessionQuerySe
             .Select(s => s.ScheduleSlotId)
             .FirstOrDefaultAsync(cancellationToken);
     }
+    public async Task<List<SessionDocumentationListItem>> GetSessionsForDocumentationAsync(
+    Guid doctorId, Guid patientId, CancellationToken ct = default)
+    {
+        return await context.Sessions
+            .AsNoTracking()
+            .Where(s => s.DoctorId == doctorId && s.PatientId == patientId)
+            .OrderByDescending(s => s.CreatedAt)
+            .Select(s => new SessionDocumentationListItem(
+                s.Id, s.ScheduleSlotId, s.Status, s.SummaryText, s.SummaryGeneratedAt))
+            .ToListAsync(ct);
+    }
 }

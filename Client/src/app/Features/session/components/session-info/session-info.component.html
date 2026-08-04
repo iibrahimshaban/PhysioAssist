@@ -4,7 +4,10 @@
     (click)="onToggle()"
     class="flex w-full items-center justify-between px-5 py-4"
   >
-    <span class="text-sm font-bold uppercase text-slate-700"> SESSION INFO </span>
+    <span class="flex items-center text-sm font-bold uppercase text-slate-700">
+      <i class="pi pi-info-circle icon-gradient mr-2"></i>
+      SESSION INFO
+    </span>
 
     <i
       class="fa-solid transition-transform duration-200"
@@ -16,23 +19,23 @@
   @if (isOpen()) {
     <div class="border-t border-slate-100 px-5 py-5">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div>
+        <div class="min-w-0">
           <p class="text-xs text-slate-500">Patient</p>
 
-          <p class="font-semibold text-slate-900">
+          <p class="break-words font-semibold text-slate-900">
             {{ session()?.patientName ?? 'Loading...' }}
           </p>
         </div>
 
-        <div>
+        <div class="min-w-0">
           <p class="text-xs text-slate-500">Scheduled</p>
 
-          <p class="font-semibold text-slate-900">
+          <p class="break-words font-semibold text-slate-900">
             {{ session()?.slotStart | date: 'MMM d · h:mm a' }}
           </p>
         </div>
 
-        <div>
+        <div class="min-w-0">
           <p class="text-xs text-slate-500">Duration</p>
 
           <p class="font-semibold text-slate-900">{{ session()?.durationInMinutes ?? 0 }} min</p>

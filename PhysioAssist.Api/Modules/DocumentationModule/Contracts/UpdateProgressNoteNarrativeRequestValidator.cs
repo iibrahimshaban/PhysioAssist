@@ -4,8 +4,8 @@ public class UpdateProgressNoteNarrativeRequestValidator : AbstractValidator<Upd
 {
     public UpdateProgressNoteNarrativeRequestValidator()
     {
-        RuleFor(x => x.Subjective).NotEmpty();
-        RuleFor(x => x.Assessment).NotEmpty();
-        RuleFor(x => x.Plan).NotEmpty();
+        RuleFor(x => x.Subjective).MaximumLength(4000);
+        RuleFor(x => x.Assessment).MaximumLength(4000);
+        RuleFor(x => x.Plan).MaximumLength(4000);
     }
 }

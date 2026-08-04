@@ -64,4 +64,9 @@ public static class DocumentationErrors
         "Documentation.DocumentationSummaryNotFound",
         "The requested documentation summary was not found.",
         StatusCodes.Status404NotFound);
+
+    public static readonly Error NarrativeDraftFailed = new(
+        "Documentation.NarrativeDraftFailed",
+        "The AI model did not return a valid narrative draft.",
+        StatusCodes.Status502BadGateway);
 }

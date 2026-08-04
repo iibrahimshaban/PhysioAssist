@@ -13,7 +13,8 @@ public static class DependancyInjection
         services.AddScoped<ISessionProgressNoteService, SessionProgressNoteService>();
         services.AddScoped<ISessionSummaryGenerationService, SessionSummaryGenerationService>();
         services.AddScoped<IDocumentationSummaryPdfService, DocumentationSummaryPdfService>();
-
+        services.AddScoped<IPatientDocumentationOverviewService, PatientDocumentationOverviewService>();
+        services.AddScoped<IDocumentationSummaryGenerationService, DocumentationSummaryGenerationService>();
 
         return services;
     }

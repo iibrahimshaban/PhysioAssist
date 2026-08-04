@@ -1,0 +1,165 @@
+<div class="min-h-screen p-6 pb-28" style="background: var(--color-page-bg);">
+  <div class="mx-auto max-w-5xl">
+
+    <div class="mb-6 flex items-center gap-4">
+      <button (click)="goBack()" class="po-back-btn inline-flex items-center gap-1 text-sm">
+        <i class="pi pi-arrow-left"></i> Back
+      </button>
+      <h1 class="text-2xl font-bold" style="color: var(--color-text-primary); letter-spacing: -0.025em;">
+        Documentation
+      </h1>
+    </div>
+
+    @if (loadingSessions()) {
+      <div class="py-20 text-center" style="color: var(--color-text-muted);">
+        <i class="pi pi-spin pi-spinner text-2xl"></i>
+        <p class="mt-2 text-sm">Loading sessions...</p>
+      </div>
+    } @else {
+
+      <!-- Session list -->
+      <div class="po-card mb-5 p-5">
+        <h2 class="mb-4 text-sm font-bold uppercase tracking-wide" style="color: var(--color-text-secondary);">
+          Sessions
+        </h2>
+
+        @if (sessions().length === 0) {
+          <div class="text-center py-6" style="color: var(--color-text-muted);">
+            <i class="pi pi-calendar text-2xl mb-2 block"></i>
+            <p class="text-sm">No sessions found for this patient.</p>
+          </div>
+        } @else {
+          <div class="flex flex-col divide-y" style="border-color: var(--color-border, #e5e7eb);">
+            @for (session of sessions(); track session.sessionId) {
+              <div class="py-4 flex flex-col gap-2">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div class="flex items-center gap-3">
+                    <span class="text-sm font-semibold" style="color: var(--color-text-primary);">
+                      {{ session.date | date: 'MMM d, y, h:mm a' }}
+                    </span>
+                    <span class="text-xs" style="color: var(--color-text-muted);">
+                      {{ session.durationMinutes }} min
+                    </span>
+                    <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                      [ngClass]="slotStatusMeta[session.attendanceStatus].badgeClass">
+                      {{ slotStatusMeta[session.attendanceStatus].label }}
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-2 text-xs" style="color: var(--color-text-muted);">
+                    @if (session.hasProgressNote) {
+                      <span class="inline-flex items-center gap-1"><i class="pi pi-check-circle text-green-600"></i> Note</span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1"><i class="pi pi-circle"></i> No note</span>
+                    }
+
+                    @if (session.hasSummary) {
+                      <span class="inline-flex items-center gap-1"><i class="pi pi-check-circle text-green-600"></i> Summary</span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1"><i class="pi pi-circle"></i> No summary</span>
+                    }
+
+                    @if (session.isSummaryStale) {
+                      <span class="inline-flex items-center gap-1 text-amber-600">
+                        <i class="pi pi-exclamation-triangle"></i> Summary out of date
+                      </span>
+                    }
+                  </div>
+                </div>
+
+                @if (session.narrativeSummary) {
+                  <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary);">
+                    {{ session.narrativeSummary }}
+                  </p>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Rollup generation -->
+      <div class="po-card p-5">
+        <h2 class="mb-1 text-sm font-bold uppercase tracking-wide" style="color: var(--color-text-secondary);">
+          Full Documentation
+        </h2>
+
+        @if (sessionsWithoutSummary() > 0) {
+          <p class="text-xs mb-4" style="color: var(--color-text-muted);">
+            {{ sessionsWithoutSummary() }} session(s) have no summary yet and won't be included.
+          </p>
+        }
+
+        <div class="flex flex-wrap items-center gap-3 mb-3">
+          <p-button
+            [label]="generatingSummary() ? 'Generating...' : 'Generate Documentation'"
+            icon="pi pi-file-export"
+            size="small"
+            [loading]="generatingSummary()"
+            (onClick)="generateSummary()">
+          </p-button>
+
+          <button type="button" class="text-sm underline" style="color: var(--color-text-secondary);" (click)="toggleAdvanced()">
+            {{ showAdvanced() ? 'Hide options' : 'Advanced options' }}
+          </button>
+        </div>
+
+        @if (showAdvanced()) {
+          <div class="flex flex-col gap-3 mb-4 p-3 rounded" style="background: var(--color-page-bg);">
+            <div class="flex flex-col gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide" style="color: var(--color-text-muted);">Audience</span>
+              <select class="text-sm p-2 rounded border" [ngModel]="selectedAudience()" (ngModelChange)="selectedAudience.set($event)">
+                <option [ngValue]="SummaryAudience.Colleague">Colleague</option>
+                <option [ngValue]="SummaryAudience.Patient">Patient</option>
+              </select>
+            </div>
+
+            @if (showScopeOptions()) {
+              <div class="flex flex-col gap-1">
+                <span class="text-xs font-semibold uppercase tracking-wide" style="color: var(--color-text-muted);">Scope</span>
+                <select class="text-sm p-2 rounded border" [ngModel]="selectedScope()" (ngModelChange)="selectedScope.set($event)">
+                  <option [ngValue]="SummaryScope.Full">Full</option>
+                  <option [ngValue]="SummaryScope.Partial">Partial</option>
+                  <option [ngValue]="SummaryScope.Focused">Focused</option>
+                </select>
+              </div>
+            }
+
+            @if (showFocusAreasInput()) {
+              <div class="flex flex-col gap-1">
+                <span class="text-xs font-semibold uppercase tracking-wide" style="color: var(--color-text-muted);">
+                  Focus Areas (comma-separated)
+                </span>
+                <input type="text" class="text-sm p-2 rounded border" placeholder="e.g. balance, gait, tone"
+                  [ngModel]="focusAreasText()" (ngModelChange)="focusAreasText.set($event)" />
+              </div>
+            }
+          </div>
+        }
+
+        @if (summaryResult(); as summary) {
+          <div class="mt-4 pt-4 border-t" style="border-color: var(--color-border, #e5e7eb);">
+            <p class="text-sm leading-relaxed whitespace-pre-wrap mb-3" style="color: var(--color-text-primary);">
+              {{ summary.summaryText }}
+            </p>
+
+            @if (summary.fileUrl) {
+              <a [href]="summary.fileUrl" target="_blank" class="po-btn-outline inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold">
+                <i class="pi pi-file-pdf"></i> View PDF
+              </a>
+            } @else {
+              <p-button
+                label="Generate PDF"
+                icon="pi pi-file-pdf"
+                size="small"
+                severity="secondary"
+                [loading]="generatingPdf()"
+                (onClick)="generatePdf()">
+              </p-button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
