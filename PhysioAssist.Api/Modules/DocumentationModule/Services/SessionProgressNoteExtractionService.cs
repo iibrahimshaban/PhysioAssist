@@ -1,9 +1,7 @@
 ﻿using PhysioAssist.Api.Modules.DocumentationModule.Entities;
 using PhysioAssist.Api.Modules.DocumentationModule.Errors;
-using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.Dtos.Documentation;
 using PhysioAssist.Api.Shared.Interfaces.Documentation;
-using PhysioAssist.Api.Shared.Interfaces.Exposed;
 
 namespace PhysioAssist.Api.Modules.DocumentationModule.Services;
 
@@ -14,6 +12,34 @@ public class SessionProgressNoteExtractionService(
     IDocumentationTemplateResolver templateResolver,
     IDocumentationExtractionService extractionService) : ISessionProgressNoteExtractionService
 {
+     // Orchestrates both AI calls for one review screen. If Objective fails, aborts entirely
+    // (nothing to review). If only the narrative draft fails, still returns the saved Objective
+    // findings with NarrativeDraft = null — frontend can retry narrative-draft alone.
+    public async Task<Result<GenerateAiSummaryResponse>> GenerateAiSummaryAsync(Guid sessionId, CancellationToken ct = default)
+    {
+        var objectiveResult = await GenerateObjectiveFindingsAsync(sessionId, ct);
+        if (objectiveResult.IsFailure)
+            return Result.Failure<GenerateAiSummaryResponse>(objectiveResult.Error);
+
+        var narrativeResult = await GenerateNarrativeDraftAsync(sessionId, ct);
+
+        return Result.Success(new GenerateAiSummaryResponse(
+            objectiveResult.Value,
+            narrativeResult.IsSuccess ? narrativeResult.Value : null));
+    }
+    public async Task<Result<NarrativeDraftResult>> GenerateNarrativeDraftAsync(Guid sessionId, CancellationToken ct = default)
+    {
+        var transcriptContext = await sessionQueryService.GetTranscriptContextAsync(sessionId, ct);
+        if (transcriptContext is null)
+            return Result.Failure<NarrativeDraftResult>(DocumentationErrors.TranscriptNotFound);
+
+        var draft = await extractionService.DraftNarrativeAsync(transcriptContext.TranscriptText, ct);
+        if (draft is null)
+            return Result.Failure<NarrativeDraftResult>(DocumentationErrors.NarrativeDraftFailed);
+
+        return Result.Success(draft);
+    }
+
     public async Task<Result<SessionProgressNoteResponse>> GenerateObjectiveFindingsAsync(Guid sessionId, CancellationToken ct = default)
     {
         var transcriptContext = await sessionQueryService.GetTranscriptContextAsync(sessionId, ct);

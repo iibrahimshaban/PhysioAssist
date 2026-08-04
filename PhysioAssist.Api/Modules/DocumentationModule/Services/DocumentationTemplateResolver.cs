@@ -1,6 +1,6 @@
-﻿using PhysioAssist.Api.Modules.DocumentationModule.Entities;
+﻿using PhysioAssist.Api.Modules.DocumentationModule.Contracts;
+using PhysioAssist.Api.Modules.DocumentationModule.Entities;
 using PhysioAssist.Api.Modules.DocumentationModule.Errors;
-using PhysioAssist.Api.Persistence;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -8,6 +8,18 @@ namespace PhysioAssist.Api.Modules.DocumentationModule.Services;
 
 public class DocumentationTemplateResolver(ApplicationDbContext context) : IDocumentationTemplateResolver
 {
+    public async Task<List<DocumentationTemplateSummaryResponse>> GetTemplatesAsync(PatientCategory? category = null)
+    {
+        var query = context.DocumentationTemplates.AsNoTracking().Where(t => t.IsActive);
+
+        if (category is not null)
+            query = query.Where(t => t.Category == category);
+
+        return await query
+            .OrderBy(t => t.Category).ThenBy(t => t.Name)
+            .Select(t => new DocumentationTemplateSummaryResponse(t.Id, t.Name, t.Category))
+            .ToListAsync();
+    }
     public async Task<Result<JsonArray>> GetAllFieldsAsync(Guid documentationTemplateId)
     {
         var template = await context.DocumentationTemplates

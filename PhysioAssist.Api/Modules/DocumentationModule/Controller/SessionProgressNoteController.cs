@@ -38,4 +38,19 @@ public class SessionProgressNoteController(
 
         return result.IsFailure ? result.ToProblem() : Ok(result.Value);
     }
+    [HttpPost("generate-ai-summary")]
+    public async Task<IActionResult> GenerateAiSummary(Guid sessionId)
+    {
+        var result = await extractionService.GenerateAiSummaryAsync(sessionId);
+        return result.IsFailure ? result.ToProblem() : Ok(result.Value);
+    }
+
+    // Standalone retry path — used when generate-ai-summary succeeded on Objective but the
+    // narrative draft failed, so the doctor can retry just that half without re-running extraction.
+    [HttpPost("generate-narrative-draft")]
+    public async Task<IActionResult> GenerateNarrativeDraft(Guid sessionId)
+    {
+        var result = await extractionService.GenerateNarrativeDraftAsync(sessionId);
+        return result.IsFailure ? result.ToProblem() : Ok(result.Value);
+    }
 }

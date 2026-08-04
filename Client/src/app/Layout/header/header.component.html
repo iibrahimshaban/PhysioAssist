@@ -2,23 +2,7 @@
   <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
     <!-- Logo -->
     <a [routerLink]="homeRoute()" class="flex items-center gap-2 no-underline shrink-0">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="var(--brand-gradient-start, #1888CC)"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path
-          d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"
-        />
-        <path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4" />
-        <circle cx="20" cy="10" r="2" />
-      </svg>
+      <img src="assets/icons/logo.svg" width="24" height="24" alt="PhysioAssist logo" />
       <span class="font-bold text-gray-900 text-base tracking-tight">PhysioAssist</span>
     </a>
  
@@ -67,8 +51,8 @@
             <div class="fixed inset-0 z-40" (click)="closeAccountMenu()"></div>
  
             <div
-              class="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl border border-gray-100 shadow-lg py-1.5 z-50"
-            >
+                class="absolute right-0 top-full mt-2 w-max max-w-xs min-w-[11rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1.5 z-50"
+              >
               <a
                 routerLink="/app/account"
                 (click)="closeAccountMenu()"
@@ -80,24 +64,24 @@
  
               @if (nav.settingsItems().length) {
                 <div class="h-px bg-gray-100 my-1"></div>
- 
+
                 @for (item of nav.settingsItems(); track item.route) {
                   <a
                     [routerLink]="item.route"
                     (click)="closeAccountMenu()"
-                    class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors no-underline"
+                    class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors no-underline whitespace-nowrap"
                   >
-                    <i class="{{ item.icon }} text-gray-400"></i>
-                    {{ item.label }}
+                    <i class="{{ item.icon }} text-gray-400 shrink-0"></i>
+                    <span class="whitespace-nowrap">{{ item.label }}</span>
                   </a>
                 }
               }
  
               <div class="h-px bg-gray-100 my-1"></div>
- 
+
               <button
                 (click)="auth.logout(); closeAccountMenu()"
-                class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-left"
+                class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-left whitespace-nowrap"
               >
                 <i class="pi pi-sign-out"></i>
                 Logout
@@ -142,28 +126,26 @@
         </button>
  
         @if (accountMenuOpen()) {
-          <div class="fixed inset-0 z-40" (click)="closeAccountMenu()"></div>
- 
-          <div class="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50">
-            <a routerLink="/app/account" (click)="closeAccountMenu()" class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline">
-              <i class="pi pi-user text-gray-400 text-xs"></i>
-              Account settings
+          <div class="absolute right-0 top-full mt-2 w-max max-w-[85vw] min-w-[10rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50">
+          <a routerLink="/app/account" (click)="closeAccountMenu()" class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline whitespace-nowrap">
+            <i class="pi pi-user text-gray-400 text-xs"></i>
+            Account settings
+          </a>
+
+          @for (item of nav.settingsItems(); track item.route) {
+            <a [routerLink]="item.route" (click)="closeAccountMenu()" class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline whitespace-nowrap">
+              <i class="{{ item.icon }} text-gray-400 shrink-0"></i>
+              <span class="whitespace-nowrap">{{ item.label }}</span>
             </a>
- 
-            @for (item of nav.settingsItems(); track item.route) {
-              <a [routerLink]="item.route" (click)="closeAccountMenu()" class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline">
-                <i class="{{ item.icon }} text-gray-400 text-xs"></i>
-                {{ item.label }}
-              </a>
-            }
- 
-            <div class="h-px bg-gray-100 my-1"></div>
- 
-            <button (click)="auth.logout(); closeAccountMenu()" class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-left">
-              <i class="pi pi-sign-out text-xs"></i>
-              Logout
-            </button>
-          </div>
+          }
+
+          <div class="h-px bg-gray-100 my-1"></div>
+
+          <button (click)="auth.logout(); closeAccountMenu()" class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-left whitespace-nowrap">
+            <i class="pi pi-sign-out text-xs"></i>
+            Logout
+          </button>
+        </div>
         }
       </div>
     }

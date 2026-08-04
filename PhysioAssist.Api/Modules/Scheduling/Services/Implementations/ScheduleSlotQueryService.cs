@@ -2,6 +2,7 @@
 using PhysioAssist.Api.Modules.Scheduling.Errors;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Shared.Dtos.Patient;
+using PhysioAssist.Api.Shared.Dtos.Schedule;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 
@@ -121,5 +122,13 @@ public class ScheduleSlotQueryService(ApplicationDbContext _context, IPatientSes
 
         return Result.Success<IReadOnlyList<Guid>>(priorSlotIds);
     }
+    public async Task<Dictionary<Guid, ScheduleSlotSummary>> GetSlotSummariesByIdsAsync(IEnumerable<Guid> slotIds, CancellationToken cancellationToken = default)
+    {
+        var ids = slotIds.Distinct().ToList();
 
+        return await _context.Set<ScheduleSlot>()
+            .Where(s => ids.Contains(s.Id))
+            .Select(s => new ScheduleSlotSummary(s.Id, s.SlotStart, s.SlotEnd, s.Status))
+            .ToDictionaryAsync(s => s.SlotId, cancellationToken);
+    }
 }

@@ -4,6 +4,7 @@ using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
+using PhysioAssist.Api.Infrastructure.Summarization;
 using PhysioAssist.Api.Modules.QueryModule.Interfaces;
 using PhysioAssist.Api.Modules.QueryModule.Plugin;
 using PhysioAssist.Api.Modules.QueryModule.Prompts;

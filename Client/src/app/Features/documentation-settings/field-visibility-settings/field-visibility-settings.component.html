@@ -1,0 +1,42 @@
+<p-card>
+  <ng-template pTemplate="title">Documentation Fields</ng-template>
+  <ng-template pTemplate="subtitle">
+    Choose which fields appear in your progress notes for this template. Hidden fields are also skipped by AI extraction.
+  </ng-template>
+
+  @if (loading()) {
+    <div class="flex flex-col gap-3">
+      @for (i of skeletonRows; track i) {
+        <p-skeleton height="2.5rem"></p-skeleton>
+      }
+    </div>
+  } @else {
+    <div class="flex flex-col divide-y divide-surface-200">
+      @for (row of rows(); track row.field.id) {
+        <div class="flex items-center justify-between py-3">
+          <div>
+            <div class="font-medium">{{ row.field.label || row.field.id }}</div>
+            @if (row.field.type) {
+              <div class="text-sm text-surface-500">{{ row.field.type }}</div>
+            }
+          </div>
+          <p-checkbox
+            [binary]="true"
+            [ngModel]="row.visible"
+            (ngModelChange)="toggle(row)">
+          </p-checkbox>
+        </div>
+      }
+    </div>
+
+    <div class="flex items-center justify-between mt-4">
+      <span class="text-sm text-surface-500">{{ hiddenCount() }} field(s) hidden</span>
+      <p-button
+        label="Save"
+        icon="pi pi-check"
+        [loading]="saving()"
+        (onClick)="save()">
+      </p-button>
+    </div>
+  }
+</p-card>

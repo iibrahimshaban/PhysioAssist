@@ -13,20 +13,48 @@
   animation: fadeIn 0.2s ease-out;
 }
 
-.spinner {
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 3px solid rgba(99, 102, 241, 0.2);
-  border-top-color: var(--color-primary-500);
-  border-radius: 50%;
-  animation: spin 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+.brand-loader {
+  filter: drop-shadow(0 4px 12px rgba(15, 23, 42, 0.15));
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.brand-mark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: markPulse 1.6s ease-in-out infinite;
+}
+
+.brand-arc {
+  stroke-dasharray: 14 10;
+  animation: arcFlow 1.1s linear infinite;
+}
+
+.brand-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dotPulse 1.1s ease-in-out infinite;
+}
+
+@keyframes markPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+
+@keyframes arcFlow {
+  to { stroke-dashoffset: -48; }
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.5; }
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark, .brand-arc, .brand-dot {
+    animation: none;
+  }
 }

@@ -265,4 +265,9 @@ export class PatientOverviewComponent implements OnInit {
     if (!patientId) return;
     this.router.navigate(['/app/receptionist-scheduling', patientId]);
   }
+  goToDocumentation(): void {
+    const patientId = this.patient()?.id;
+    if (!patientId) return;
+    this.router.navigate(['/app/patients', patientId, 'documentation']);
+  }
 }

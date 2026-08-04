@@ -5,7 +5,7 @@
     class="flex w-full items-center justify-between px-5 py-5"
   >
     <span class="flex items-center text-sm font-bold uppercase text-slate-700">
-      <i class="pi pi-file-edit mr-2 text-sky-500"></i>
+      <i class="pi pi-file-edit icon-gradient mr-2"></i>
       SESSION NOTES
     </span>
 
@@ -25,7 +25,7 @@
             Transcribing...
           </span>
         } @else if (isRecording()) {
-          <div class="flex w-full items-center justify-between gap-2 rounded-full border border-red-200 bg-red-50 py-1.5 pl-4 pr-1.5 sm:w-auto">
+          <div class="flex w-full flex-wrap items-center justify-between gap-2 rounded-full border border-red-200 bg-red-50 py-1.5 pl-4 pr-1.5 sm:w-auto sm:flex-nowrap">
             <div class="flex items-center gap-2">
               <span class="h-2 w-2 rounded-full"
                 [class.bg-red-500]="!isPaused()" [class.animate-pulse]="!isPaused()" [class.bg-slate-300]="isPaused()"></span>
@@ -82,7 +82,7 @@
           (keydown)="onTranscriptKeyDown($event, notesTextarea)"
           placeholder="Please document:&#10;1) Diagnosis&#10;2) Treatment/exercises performed (with details)&#10;3) Patient's response&#10;4) Plan for the next session"
           spellcheck="true"
-          class="mixed-transcript h-[260px] w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-base outline-none transition focus:border-[#0B8EEA] focus:bg-white sm:h-[320px]"
+          class="mixed-transcript h-[260px] w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-base outline-none transition focus:border-[var(--brand-gradient-start)] focus:bg-white sm:h-[320px]"
         ></textarea>
       </div>
 
@@ -94,10 +94,10 @@
               class="block w-full border-b border-slate-100 px-4 py-3 text-left last:border-b-0 hover:bg-slate-50"
               (mousedown)="$event.preventDefault(); applySuggestion(suggestion, notesTextarea)"
             >
-              <div class="font-medium text-slate-800">{{ suggestion.term }}</div>
+              <div class="break-words font-medium text-slate-800">{{ suggestion.term }}</div>
 
               @if (suggestion.category || suggestion.language) {
-                <div class="mt-1 text-xs text-slate-500">
+                <div class="mt-1 flex flex-wrap items-center gap-1 text-xs text-slate-500">
                   {{ suggestion.category }}
                   @if (suggestion.category && suggestion.language) {
                     <span>•</span>
