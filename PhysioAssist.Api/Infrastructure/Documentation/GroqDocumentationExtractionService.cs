@@ -1,18 +1,17 @@
 ﻿using Microsoft.Extensions.Options;
-using PhysioAssist.Api.Infrastructure.GroqClient.Options;
 using PhysioAssist.Api.Shared.Interfaces.Documentation;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace PhysioAssist.Api.Infrastructure.Summarization;
+namespace PhysioAssist.Api.Infrastructure.Documentation;
 
-public class GitHubModelsDocumentationExtractionService : IDocumentationExtractionService
+public class GroqDocumentationExtractionService : IDocumentationExtractionService
 {
     private readonly HttpClient _httpClient;
-    private readonly GroqRollupSummarizationOptions _options;
+    private readonly DocumentationChatOptions _options;
 
-    public GitHubModelsDocumentationExtractionService(HttpClient httpClient, IOptions<GroqRollupSummarizationOptions> options)
+    public GroqDocumentationExtractionService(HttpClient httpClient, IOptions<DocumentationChatOptions> options)
     {
         _httpClient = httpClient;
         _options = options.Value;
@@ -30,7 +29,7 @@ public class GitHubModelsDocumentationExtractionService : IDocumentationExtracti
             model = _options.ChatModel,
             messages = new object[]
             {
-            new { role = "system", content = SummarizationSystemPrompts.BuildNarrativeDraftSystemPrompt() },
+            new { role = "system", content = DocumnetationSystemPrompts.BuildNarrativeDraftSystemPrompt() },
             new { role = "user", content = transcriptText }
             },
             temperature = 0.0
@@ -63,7 +62,7 @@ public class GitHubModelsDocumentationExtractionService : IDocumentationExtracti
         if (string.IsNullOrWhiteSpace(transcriptText) || effectiveFields.Count == 0)
             return null;
 
-        var systemPrompt = SummarizationSystemPrompts.BuildDocumentationSystemPrompt(effectiveFields);
+        var systemPrompt = DocumnetationSystemPrompts.BuildDocumentationSystemPrompt(effectiveFields);
 
         var payload = new
         {

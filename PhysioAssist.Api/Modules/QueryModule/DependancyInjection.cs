@@ -3,9 +3,9 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
-using PhysioAssist.Api.Infrastructure.Summarization;
+using PhysioAssist.Api.Infrastructure.Documentation;
 using PhysioAssist.Api.Modules.QueryModule.Interfaces;
+using PhysioAssist.Api.Modules.QueryModule.Options;
 using PhysioAssist.Api.Modules.QueryModule.Plugin;
 using PhysioAssist.Api.Modules.QueryModule.Prompts;
 using PhysioAssist.Api.Modules.QueryModule.Services;
@@ -18,20 +18,35 @@ public static class DependancyInjection
 {
     public static IServiceCollection AddQueryModuleConfig(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<TavilyOptions>(
+        services
+            .Configure<TavilyOptions>(
             configuration.GetRequiredSection(TavilyOptions.SectionName));
+
+        services
+        .AddOptions<QueryAgentChatOptions>()
+        .BindConfiguration(QueryAgentChatOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        services
+        .AddOptions<SbgQueryAgentChatOptions>()
+        .BindConfiguration(SbgQueryAgentChatOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        services.AddHttpClient<SbgChatCompletionService>();
 
         services.AddSingleton<IChatHistoryStore, SessionChatHistoryStore>();
 
         services.AddKeyedSingleton<IChatCompletionService>("summarizationAI", (sp, _) =>
         {
-            var summarizationAI = sp.GetRequiredService<IOptions<GitHubModelsDocumentationOptions>>().Value;
+            var summarizationAI = sp.GetRequiredService<IOptions<DocumentationChatOptions>>().Value;
 
             #pragma warning disable SKEXP0010
             return new OpenAIChatCompletionService(
                     modelId: summarizationAI.ChatModel,
                     apiKey: summarizationAI.Token,
-                    endpoint: new Uri("https://models.inference.ai.azure.com"));
+                    endpoint: new Uri(summarizationAI.Endpoint));
         });
 
         services.AddHttpClient(nameof(WebSearchPlugin), (sp, client) =>
@@ -47,7 +62,6 @@ public static class DependancyInjection
 
         services.AddScoped<ChatCompletionAgent>(sp =>
         {
-            var options = sp.GetRequiredService<IOptions<GitHubModelsChatOptions>>().Value;
             var patientPlugin = sp.GetRequiredService<PatientLookupPlugin>();
             var searchPlugin = sp.GetRequiredService<SessionSearchPlugin>();
             var tavilyOptions = sp.GetRequiredService<IOptions<TavilyOptions>>();
@@ -55,14 +69,8 @@ public static class DependancyInjection
             var summarizationService = sp.GetRequiredKeyedService<IChatCompletionService>("summarizationAI");
             var TranslationPlugin = sp.GetRequiredService<AnswerTranslationPlugin>();
 
-
-
-            var kernel = Kernel.CreateBuilder()
-                .AddOpenAIChatCompletion(
-                    modelId: options.ChatModel,
-                    apiKey: options.Token,
-                    endpoint: new Uri(options.Endpoint))
-                .Build();
+            var kernel = BuildSbgKernel(sp);
+            // var kernel = BuildNvidiaKernel(sp);
 
             var webSearchPlugin = new WebSearchPlugin(tavilyClient, tavilyOptions);
 
@@ -90,5 +98,26 @@ public static class DependancyInjection
         });
 
         return services;
+    }
+
+    private static Kernel BuildNvidiaKernel(IServiceProvider sp)
+    {
+        var options = sp.GetRequiredService<IOptions<QueryAgentChatOptions>>().Value;
+
+        return Kernel.CreateBuilder()
+            .AddOpenAIChatCompletion(
+                modelId: options.ChatModel,
+                apiKey: options.Token,
+                endpoint: new Uri(options.Endpoint))
+            .Build();
+    }
+
+    private static Kernel BuildSbgKernel(IServiceProvider sp)
+    {
+        var sbgService = sp.GetRequiredService<SbgChatCompletionService>();
+
+        var builder = Kernel.CreateBuilder();
+        builder.Services.AddSingleton<IChatCompletionService>(sbgService);
+        return builder.Build();
     }
 }

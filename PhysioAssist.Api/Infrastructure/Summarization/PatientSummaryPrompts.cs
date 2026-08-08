@@ -1,4 +1,4 @@
-﻿namespace PhysioAssist.Api.Infrastructure.GroqClient.Prompts;
+﻿namespace PhysioAssist.Api.Infrastructure.Summarization;
 
 public static class PatientSummaryPrompts
 {

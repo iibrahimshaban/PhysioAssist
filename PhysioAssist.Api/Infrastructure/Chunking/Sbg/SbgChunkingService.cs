@@ -1,24 +1,24 @@
 ﻿using Microsoft.Extensions.Options;
-using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
 using PhysioAssist.Api.Shared.Dtos.Chunking;
 using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
-namespace PhysioAssist.Api.Infrastructure.Chunking;
+namespace PhysioAssist.Api.Infrastructure.Chunking.Sbg;
 
-public class GitHubModelsChunkingService : ITranscriptChunkingService
+public class SbgChunkingService : ITranscriptChunkingService
 {
     private readonly HttpClient _httpClient;
-    private readonly GitHubModelsChatOptions _options;
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
+    private readonly SbgChunkingModelOptions _options;
+
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    // SBG has no response_format/json_object param — the JSON-only instruction has to
+    // carry the full weight here, same reliance as the fence-stripping fallback below.
     private static readonly string SystemPrompt =
         ChunkingPrompts.BuildFullPrompt(ChunkingFewShotExamples.Formatted);
 
-    public GitHubModelsChunkingService(HttpClient httpClient, IOptions<GitHubModelsChatOptions> options)
+    public SbgChunkingService(HttpClient httpClient, IOptions<SbgChunkingModelOptions> options)
     {
         _httpClient = httpClient;
         _options = options.Value;
@@ -31,29 +31,29 @@ public class GitHubModelsChunkingService : ITranscriptChunkingService
         if (string.IsNullOrWhiteSpace(text))
             return [];
 
-
         var payload = new
         {
-            model = _options.ChatModel,
+            model_id = _options.ModelId,
             messages = new object[]
             {
-                new { role = "system", content = SystemPrompt },
                 new { role = "user", content = text }
             },
-            temperature = 0.0,
-            response_format = new { type = "json_object" }
+            system_prompt = SystemPrompt,
+            max_tokens = 4096
         };
 
-        using var response = await _httpClient.PostAsJsonAsync(_options.Endpoint, payload, ct);
+        using var response = await _httpClient.PostAsJsonAsync(
+            $"{_options.BaseUrl}{_options.ChatPath}", payload, ct);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<ChatCompletionResponse>(cancellationToken: ct);
-        var content = result?.Choices?.FirstOrDefault()?.Message?.Content;
+        var rawBody = await response.Content.ReadAsStringAsync(ct);
+        var content = SbgResponseParser.ExtractContent(rawBody)?.Trim();
 
         if (string.IsNullOrWhiteSpace(content))
             return [];
 
-        // GPT-4o sometimes wraps JSON in ```json fences despite instructions — strip defensively
+        // Defensive fence-stripping — same insurance as the NVIDIA/GLM version, since
+        // no model reliably skips markdown fences even when told not to
         content = content.Trim().Trim('`').Replace("json", "", StringComparison.OrdinalIgnoreCase).Trim();
 
         try
@@ -61,9 +61,6 @@ public class GitHubModelsChunkingService : ITranscriptChunkingService
             var wrapper = JsonSerializer.Deserialize<ChunksWrapper>(content, JsonOptions);
             return wrapper?.Chunks ?? [];
         }
-
-        // Added response_format json_object to enforce structured JSON output from the model
-        // Changed deserialization to handle wrapped {"chunks": [...]} format
         catch (JsonException)
         {
             // Malformed JSON from the model — don't crash the pipeline, return empty
@@ -72,9 +69,5 @@ public class GitHubModelsChunkingService : ITranscriptChunkingService
         }
     }
 
-    private sealed record ChatCompletionResponse(List<Choice> Choices);
-    private sealed record Choice(ChatMessage Message);
-    private sealed record ChatMessage(string Content);
     private sealed record ChunksWrapper(List<ExtractedChunk> Chunks);
 }
-

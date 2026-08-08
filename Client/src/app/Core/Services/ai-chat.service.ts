@@ -3,12 +3,14 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { AiChatResponse, AiClearResponse } from '../../Shared/Models/chat.model';
 import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AiChatService {
   private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
   private readonly baseUrl = `${environment.apiUrl}`;
 
   ask(conversationId: string, question: string): Observable<AiChatResponse> {
@@ -43,12 +45,14 @@ export class AiChatService {
     url.searchParams.set('conversationId', conversationId);
     url.searchParams.set('question', question);
 
+    const token = this.auth.getToken();
+
     const response = await fetch(url.toString(), {
       method: 'GET',
-      headers: { Accept: 'text/event-stream' },
-      // If your API needs auth, add it here to match whatever your
-      // HttpClient interceptor does today, e.g.:
-      // headers: { Accept: 'text/event-stream', Authorization: `Bearer ${token}` },
+      headers: {
+        Accept: 'text/event-stream',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       signal,
     });
 

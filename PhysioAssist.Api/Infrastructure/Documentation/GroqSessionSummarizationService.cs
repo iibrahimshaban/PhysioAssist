@@ -1,17 +1,15 @@
 ﻿using Microsoft.Extensions.Options;
-using PhysioAssist.Api.Infrastructure.GroqClient.Options;
-using PhysioAssist.Api.Infrastructure.GroqClient.Prompts;
 using PhysioAssist.Api.Shared.Interfaces.Documentation;
 using System.Net.Http.Headers;
 
-namespace PhysioAssist.Api.Infrastructure.GroqClient;
+namespace PhysioAssist.Api.Infrastructure.Documentation;
 
-public class GroqRollupSummarizationService : IRollupSummarizationService
+public class GroqSessionSummarizationService : ISessionSummarizationService
 {
     private readonly HttpClient _httpClient;
-    private readonly GroqRollupSummarizationOptions _options;
+    private readonly DocumentationChatOptions _options;
 
-    public GroqRollupSummarizationService(HttpClient httpClient, IOptions<GroqRollupSummarizationOptions> options)
+    public GroqSessionSummarizationService(HttpClient httpClient, IOptions<DocumentationChatOptions> options)
     {
         _httpClient = httpClient;
         _options = options.Value;
@@ -19,25 +17,22 @@ public class GroqRollupSummarizationService : IRollupSummarizationService
             new AuthenticationHeaderValue("Bearer", _options.Token);
     }
 
-    public async Task<string?> GenerateCaseSummaryAsync(
-        List<SessionSummaryInput> sessions,
-        SummaryAudience audience,
-        SummaryScope? scope,
-        List<string>? focusAreas,
-        CancellationToken ct = default)
+    public async Task<string?> SummarizeSessionAsync(
+        string subjective, string? objectiveFindingsJson, string assessment, string plan, CancellationToken ct = default)
     {
-        if (sessions.Count == 0)
-            return null;
-
-        var systemPrompt = RollupSummaryPrompts.BuildSystemPrompt(audience, scope, focusAreas);
-        var userContent = RollupSummaryPrompts.BuildUserContent(sessions);
+        var userContent = $"""
+            Subjective: {subjective}
+            Objective: {objectiveFindingsJson ?? "(none recorded)"}
+            Assessment: {assessment}
+            Plan: {plan}
+            """;
 
         var payload = new
         {
             model = _options.ChatModel,
             messages = new object[]
             {
-                new { role = "system", content = systemPrompt },
+                new { role = "system", content = DocumnetationSystemPrompts.SessionSummaryPrompt },
                 new { role = "user", content = userContent }
             },
             temperature = 0.3

@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PhysioAssist.Api.Infrastructure.GroqClient.Options;
+namespace PhysioAssist.Api.Infrastructure.Documentation;
 
-public class GroqRollupSummarizationOptions
+public class DocumentationChatOptions
 {
-    public const string SectionName = "GroqRollupSummarizationOptions";
+    public const string SectionName = "DocumentationChatOptions";
 
     [Required]
     public string Endpoint { get; set; } = "https://api.groq.com/openai/v1/chat/completions";
