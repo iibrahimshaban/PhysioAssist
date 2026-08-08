@@ -1,15 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.SemanticKernel.Agents;
 using PhysioAssist.Api.Modules.QueryModule.Interfaces;
-using PhysioAssist.Api.Shared.Authorization;
 using System.Text;
 using System.Text.Json;
 
 namespace PhysioAssist.Api.Modules.QueryModule.Controllers
 {
 #pragma warning disable SKEXP0110
-    [Authorize]
     [Route("api")]
     [ApiController]
     public class QueryAgentController : ControllerBase

@@ -2,7 +2,7 @@ using Hangfire;
 using HangfireBasicAuthenticationFilter;
 using Microsoft.Extensions.Options;
 using PhysioAssist.Api;
-using PhysioAssist.Api.Infrastructure.GroqClient.Options;
+using PhysioAssist.Api.Infrastructure.Summarization;
 using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Modules.DocumentationModule.Seed;
 using PhysioAssist.Api.Shared.Helpers;
@@ -16,7 +16,7 @@ builder.Services.AddControllers();
 builder.Services.AddGlobalServicesRegistration(builder.Configuration);
 
 QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
-
+Console.OutputEncoding = System.Text.Encoding.UTF8;
 
 
 var app = builder.Build();

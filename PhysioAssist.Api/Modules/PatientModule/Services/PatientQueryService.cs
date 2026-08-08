@@ -11,7 +11,6 @@ public class PatientQueryService(
     ApplicationDbContext dbContext,
     IUnitOfWork _unitOfWork, IPatientRepo _patientRepo,
     IDoctorPatientRepo _doctorPatientRepo,
-    IQueryTranslationService _translationService,
     IPatientTimePreferenceParser _preferenceParser,
     ILogger<PatientQueryService> _logger) : IPatientQueryService
 {
@@ -145,8 +144,7 @@ public class PatientQueryService(
         {
             try
             {
-                var englishFreeTime = await _translationService.TranslateToEnglishAsync(request.FreeTime, cancellationToken);
-                var preferenceResult = await _preferenceParser.ParseAsync(englishFreeTime, cancellationToken);
+                var preferenceResult = await _preferenceParser.ParseAsync(request.FreeTime, cancellationToken);
 
                 if (preferenceResult.IsSuccess)
                 {
@@ -224,8 +222,7 @@ public class PatientQueryService(
         var parsed = new PatientTimePreferenceDto();
         try
         {
-            var englishFreeTime = await _translationService.TranslateToEnglishAsync(freeTimeOverrideText, cancellationToken);
-            var preferenceResult = await _preferenceParser.ParseAsync(englishFreeTime, cancellationToken);
+            var preferenceResult = await _preferenceParser.ParseAsync(freeTimeOverrideText, cancellationToken);
 
             if (preferenceResult.IsSuccess)
                 parsed = preferenceResult.Value;

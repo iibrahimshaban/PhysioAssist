@@ -2,20 +2,21 @@ using CloudinaryDotNet;
 using Microsoft.OpenApi;
 using PhysioAssist.Api.Infrastructure.AutoComplete;
 using PhysioAssist.Api.Infrastructure.Chunking;
+using PhysioAssist.Api.Infrastructure.Chunking.Sbg;
 using PhysioAssist.Api.Infrastructure.CloudinaryClient;
+using PhysioAssist.Api.Infrastructure.Documentation;
+using PhysioAssist.Api.Infrastructure.Documentation.Sbg;
 using PhysioAssist.Api.Infrastructure.Embeddding;
-using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
-using PhysioAssist.Api.Infrastructure.GroqClient;
-using PhysioAssist.Api.Infrastructure.GroqClient.Options;
 using PhysioAssist.Api.Infrastructure.Summarization;
 using PhysioAssist.Api.Infrastructure.TimeParser;
+using PhysioAssist.Api.Infrastructure.TimeParser.Sbg;
 using PhysioAssist.Api.Infrastructure.Transcription;
 using PhysioAssist.Api.Infrastructure.Translation;
+using PhysioAssist.Api.Infrastructure.Translation.Sbg;
 using PhysioAssist.Api.Modules.Auth;
 using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Modules.DashboardModule.Services;
 using PhysioAssist.Api.Modules.DocumentationModule;
-using PhysioAssist.Api.Modules.DocumentationModule.Services;
 using PhysioAssist.Api.Modules.InitialReportModule;
 using PhysioAssist.Api.Modules.Intake;
 using PhysioAssist.Api.Modules.Notification;
@@ -50,6 +51,8 @@ public static class DependancyInjection
             .AddPermissionAuthorization()
             .AddMailConfig()
             .AddDocumentationSummarizationConfig()
+            .AddPatientTimePrefernceParser()
+            .AddTranslationServices()
             .AddAutoCompleteService(configuration)
             .AddPatientSummaryConfig(configuration)
             .AddEmbeddingConfig()
@@ -64,8 +67,7 @@ public static class DependancyInjection
         services.AddQrCodeConfig(configuration);
         services.AddScoped<IPdfService, PdfService>();
         services.AddScoped<INotificationService, PhysioAssist.Api.Shared.NotificationService.NotificationService>();
-        services.AddScoped<IAnswerTranslationService, GitHubModelsAnswerTranslationService>();
-        services.AddScoped<IPatientTimePreferenceParser, GitHubModelsTimePreferenceParser>();
+        
         services.AddScoped<IDoctorDashboardService, DoctorDashboardService>();
 
         services
@@ -121,6 +123,45 @@ public static class DependancyInjection
             .ValidateOnStart();
 
         services.AddHttpClient<IPatientSummaryAiService, GroqPatientSummaryService>();
+
+        return services;
+    }
+    private static IServiceCollection AddPatientTimePrefernceParser(this IServiceCollection services)
+    {
+        services
+            .AddOptions<TimeParserChatOptions>()
+            .BindConfiguration(TimeParserChatOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services
+            .AddOptions<SbgTimeParserChatOptions>()
+            .BindConfiguration(SbgTimeParserChatOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IPatientTimePreferenceParser, GroqTimePreferenceParser>();
+        //services.AddHttpClient<IPatientTimePreferenceParser, SbgTimePreferenceParser>();
+
+        return services;
+    }
+    private static IServiceCollection AddTranslationServices(this IServiceCollection services)
+    {
+        services
+        .AddOptions<SbgTranslationChatOptions>()
+        .BindConfiguration(SbgTranslationChatOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        services
+        .AddOptions<TranslationChatOptions>()
+        .BindConfiguration(TranslationChatOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        //services.AddHttpClient<IAnswerTranslationService, NvidiaAnswerTranslationService>();
+
+        services.AddHttpClient<IAnswerTranslationService, SbgAnswerTranslationService>();
 
         return services;
     }
@@ -228,60 +269,56 @@ public static class DependancyInjection
     }
     private static IServiceCollection AddDocumentationSummarizationConfig(this IServiceCollection services)
     {
-
-        services.AddOptions<GitHubModelsDocumentationOptions>()
-             .BindConfiguration(GitHubModelsDocumentationOptions.SectionName)
-             .ValidateDataAnnotations()
-             .ValidateOnStart();
-
-        services.AddHttpClient<IDocumentationExtractionService, GitHubModelsDocumentationExtractionService>();
-
-        services.AddOptions<GroqSummarizationOptions>()
-            .BindConfiguration(GroqSummarizationOptions.SectionName)
+        services.AddOptions<DocumentationChatOptions>()
+            .BindConfiguration(DocumentationChatOptions.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        services.AddOptions<SbgDocumentationChatOptions>()
+            .BindConfiguration(SbgDocumentationChatOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IDocumentationExtractionService, GroqDocumentationExtractionService>();
         services.AddHttpClient<ISessionSummarizationService, GroqSessionSummarizationService>();
-
-        services.AddOptions<GroqRollupSummarizationOptions>()
-            .BindConfiguration(GroqRollupSummarizationOptions.SectionName)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
         services.AddHttpClient<IRollupSummarizationService, GroqRollupSummarizationService>();
-        
+
+        //services.AddHttpClient<IDocumentationExtractionService, SbgDocumentationExtractionService>();
+        //services.AddHttpClient<ISessionSummarizationService, SbgSessionSummarizationService>();
+        //services.AddHttpClient<IRollupSummarizationService, SbgRollupSummarizationService>();
 
         return services;
     }
     private static IServiceCollection AddEmbeddingConfig(this IServiceCollection services)
     {
-        services.AddOptions<GitHubModelsEmbeddingOptions>()
-            .BindConfiguration(GitHubModelsEmbeddingOptions.SectionName)
+        services.AddOptions<EmbeddingOptions>()
+            .BindConfiguration(EmbeddingOptions.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddHttpClient<IEmbeddingService, GitHubModelsEmbeddingService>();
+        services.AddHttpClient<IEmbeddingService, GeminiEmbeddingService>();
         services.AddScoped<ISessionEmbeddingService, SessionEmbeddingService>();
 
-        services.AddOptions<GitHubModelsChatOptions>()
-        .BindConfiguration(GitHubModelsChatOptions.SectionName)
+        services.AddOptions<ChunkingModelOptions>()
+        .BindConfiguration(ChunkingModelOptions.SectionName)
         .ValidateDataAnnotations()
         .ValidateOnStart();
 
-        services.AddHttpClient<ITranscriptChunkingService, GitHubModelsChunkingService>();
-        services.AddHttpClient<IQueryTranslationService, GitHubModelsQueryTranslationService>();
+        services
+        .AddOptions<SbgChunkingModelOptions>()
+        .BindConfiguration(SbgChunkingModelOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        services.AddHttpClient<ITranscriptChunkingService, SbgChunkingService>();
+        //services.AddHttpClient<ITranscriptChunkingService, GlmChunkingService>();
+
         services.AddScoped<ISessionChunkSearchService, SessionChunkSearchService>();
-
-
 
         return services;
     }
     private static IServiceCollection AddAudioTranscriptionConfig(this IServiceCollection services)
     {
-        services
-            .AddOptions<GroqOptions>()
-            .BindConfiguration(GroqOptions.SectionName)
-            .ValidateDataAnnotations();
 
         services
         .AddOptions<TranscriptionOptions>()

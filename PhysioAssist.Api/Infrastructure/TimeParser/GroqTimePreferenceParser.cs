@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
 using PhysioAssist.Api.Shared.Dtos.Patient;
 using PhysioAssist.Api.Shared.Interfaces.Scheduling;
 using System.Net.Http.Headers;
@@ -7,22 +6,20 @@ using System.Text.Json;
 
 namespace PhysioAssist.Api.Infrastructure.TimeParser;
 
-public class GitHubModelsTimePreferenceParser : IPatientTimePreferenceParser
+public class GroqTimePreferenceParser : IPatientTimePreferenceParser
 {
     private readonly HttpClient _httpClient;
-    private readonly GitHubModelsChatOptions _options;
-    private readonly ILogger<GitHubModelsTimePreferenceParser> _logger;
+    private readonly TimeParserChatOptions _options;
+    private readonly ILogger<GroqTimePreferenceParser> _logger;
 
-    // Same convention as DoctorScheduleRecommendationService — today's date in Egypt
-    // must come from real system time, never from the model.
     private static readonly TimeSpan EgyptOffset = TimeSpan.FromHours(3);
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    public GitHubModelsTimePreferenceParser(
+    public GroqTimePreferenceParser(
         HttpClient httpClient,
-        IOptions<GitHubModelsChatOptions> options,
-        ILogger<GitHubModelsTimePreferenceParser> logger)
+        IOptions<TimeParserChatOptions> options,
+        ILogger<GroqTimePreferenceParser> logger)
     {
         _httpClient = httpClient;
         _options = options.Value;
@@ -53,9 +50,17 @@ public class GitHubModelsTimePreferenceParser : IPatientTimePreferenceParser
         try
         {
             using var response = await _httpClient.PostAsJsonAsync(_options.Endpoint, payload, cancellationToken);
-            response.EnsureSuccessStatusCode();
 
-            var result = await response.Content.ReadFromJsonAsync<ChatCompletionResponse>(cancellationToken: cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogWarning("Groq returned {StatusCode}: {ErrorBody}", response.StatusCode, errorBody);
+                response.EnsureSuccessStatusCode(); 
+            }
+
+            var rawBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            var result = JsonSerializer.Deserialize<ChatCompletionResponse>(rawBody, JsonOptions);
             var raw = result?.Choices?.FirstOrDefault()?.Message?.Content?.Trim();
 
             _logger.LogInformation(
@@ -68,7 +73,7 @@ public class GitHubModelsTimePreferenceParser : IPatientTimePreferenceParser
 
             var parsed = JsonSerializer.Deserialize<RawTimePreference>(raw, JsonOptions);
 
- 
+
             return Result.Success(parsed is null ? new PatientTimePreferenceDto() : MapToDto(parsed));
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)

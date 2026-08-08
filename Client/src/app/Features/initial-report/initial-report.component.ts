@@ -181,7 +181,10 @@ export class InitialReportComponent implements OnInit {
     this.initialReportService.getReportByPatientId(patientId).subscribe({
       next: res => {
         this.isExistingReport.set(true);
-        this.readonlyMode.set(true);
+        // A report row can exist but still be empty — e.g. pre-created as a side
+        // effect of patient creation, with nothing actually written into it yet.
+        // Only lock the form once there's real saved content worth protecting.
+        this.readonlyMode.set(this.hasSavedContent(res));
         this.applyReportResponse(res);
       },
       error: err => {
@@ -203,6 +206,10 @@ export class InitialReportComponent implements OnInit {
         }
       }
     });
+  }
+
+  private hasSavedContent(res: InitialReportResponse): boolean {
+    return !!(res.reportText && res.reportText.trim().length > 0) || (res.attachments?.length ?? 0) > 0;
   }
 
   /** Unlocks the form for editing. Only meaningful for a report that already

@@ -34,6 +34,7 @@ public class SessionChunkSearchService : ISessionChunkSearchService
             return Result.Failure<List<ChunkSearchResult>>(SearchErrors.EmptyQuery);
 
         SqlVector<float> queryEmbedding;
+
         try
         {
             queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(englishQuery, ct);
