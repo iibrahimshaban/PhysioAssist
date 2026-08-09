@@ -140,8 +140,8 @@ public static class DependancyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddHttpClient<IPatientTimePreferenceParser, GroqTimePreferenceParser>();
-        //services.AddHttpClient<IPatientTimePreferenceParser, SbgTimePreferenceParser>();
+        //services.AddHttpClient<IPatientTimePreferenceParser, GroqTimePreferenceParser>();
+        services.AddHttpClient<IPatientTimePreferenceParser, SbgTimePreferenceParser>();
 
         return services;
     }
@@ -279,13 +279,13 @@ public static class DependancyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddHttpClient<IDocumentationExtractionService, GroqDocumentationExtractionService>();
-        services.AddHttpClient<ISessionSummarizationService, GroqSessionSummarizationService>();
-        services.AddHttpClient<IRollupSummarizationService, GroqRollupSummarizationService>();
+        //services.AddHttpClient<IDocumentationExtractionService, GroqDocumentationExtractionService>();
+        //services.AddHttpClient<ISessionSummarizationService, GroqSessionSummarizationService>();
+        //services.AddHttpClient<IRollupSummarizationService, GroqRollupSummarizationService>();
 
-        //services.AddHttpClient<IDocumentationExtractionService, SbgDocumentationExtractionService>();
-        //services.AddHttpClient<ISessionSummarizationService, SbgSessionSummarizationService>();
-        //services.AddHttpClient<IRollupSummarizationService, SbgRollupSummarizationService>();
+        services.AddHttpClient<IDocumentationExtractionService, SbgDocumentationExtractionService>();
+        services.AddHttpClient<ISessionSummarizationService, SbgSessionSummarizationService>();
+        services.AddHttpClient<IRollupSummarizationService, SbgRollupSummarizationService>();
 
         return services;
     }
