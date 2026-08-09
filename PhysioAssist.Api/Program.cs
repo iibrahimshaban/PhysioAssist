@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using PhysioAssist.Api;
 using PhysioAssist.Api.Infrastructure.Summarization;
 using PhysioAssist.Api.Modules.Auth.Services;
-using PhysioAssist.Api.Modules.DocumentationModule.Seed;
 using PhysioAssist.Api.Shared.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,10 +26,12 @@ app.Logger.LogInformation("Groq patient summary model: {Model}", options.ChatMod
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    
     app.UseDeveloperExceptionPage();
 }
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
