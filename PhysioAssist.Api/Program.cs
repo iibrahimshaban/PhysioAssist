@@ -5,6 +5,7 @@ using PhysioAssist.Api;
 using PhysioAssist.Api.Infrastructure.Summarization;
 using PhysioAssist.Api.Modules.Auth.Services;
 using PhysioAssist.Api.Shared.Helpers;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,10 @@ builder.Services.AddGlobalServicesRegistration(builder.Configuration);
 
 QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration)
+);
 
 
 var app = builder.Build();
