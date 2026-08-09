@@ -1,11 +1,20 @@
-<header class="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm relative">
+<header
+  class="sticky top-0 z-50 border-b transition-colors duration-300 relative"
+  [class.bg-white]="!scrolled()"
+  [class.border-gray-100]="!scrolled()"
+  [class.shadow-sm]="!scrolled()"
+  [class.bg-white/85]="scrolled()"
+  [class.backdrop-blur-md]="scrolled()"
+  [class.border-gray-200]="scrolled()"
+  [class.shadow-md]="scrolled()"
+>
   <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
     <!-- Logo -->
     <a [routerLink]="homeRoute()" class="flex items-center gap-2 no-underline shrink-0">
       <img src="assets/icons/logo.svg" width="24" height="24" alt="PhysioAssist logo" />
       <span class="font-bold text-gray-900 text-base tracking-tight">PhysioAssist</span>
     </a>
- 
+
     <!-- Desktop nav -->
     <nav class="hidden md:flex items-center gap-1.5 text-sm font-medium">
       @if (auth.isAuthenticated()) {
@@ -18,10 +27,10 @@
             {{ item.label }}
           </a>
         }
- 
+
         <!-- spacer so account menu feels separate from nav links -->
         <div class="w-px h-6 bg-gray-200 mx-2"></div>
- 
+
         <!-- Account dropdown -->
         <div class="relative">
           <button
@@ -45,11 +54,11 @@
               [class.rotate-180]="accountMenuOpen()"
             ></i>
           </button>
- 
+
           @if (accountMenuOpen()) {
             <!-- backdrop to close on outside click -->
             <div class="fixed inset-0 z-40" (click)="closeAccountMenu()"></div>
- 
+
             <div
                 class="absolute right-0 top-full mt-2 w-max max-w-xs min-w-[11rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1.5 z-50"
               >
@@ -61,7 +70,7 @@
                 <i class="pi pi-user text-gray-400"></i>
                 Account settings
               </a>
- 
+
               @if (nav.settingsItems().length) {
                 <div class="h-px bg-gray-100 my-1"></div>
 
@@ -76,7 +85,7 @@
                   </a>
                 }
               }
- 
+
               <div class="h-px bg-gray-100 my-1"></div>
 
               <button
@@ -90,25 +99,38 @@
           }
         </div>
       }
- 
+
       @if (!auth.isAuthenticated()) {
+        <!-- Marketing links: only relevant for logged-out visitors on the landing page -->
+        @for (item of marketingNavItems; track item.fragment) {
+          <a
+            class="px-3.5 py-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
+            [routerLink]="['/']"
+            [fragment]="item.fragment"
+          >
+            {{ item.label }}
+          </a>
+        }
+
+        <div class="w-px h-6 bg-gray-200 mx-2"></div>
+
         <a
           class="px-3.5 py-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
           routerLink="/auth/login"
           routerLinkActive="!text-blue-600 !bg-blue-50"
-          >Login</a
+          >Sign in</a
         >
- 
+
         <a
           class="ml-2 px-4 py-2 rounded-xl text-sm font-medium text-white no-underline hover:opacity-90 transition-opacity"
-          style="background: var(--brand-gradient, linear-gradient(135deg, #1888CC, #0FB3A5))"
+          style="background: var(--brand-gradient, linear-gradient(135deg, #1A7FD4, #0EB8A0))"
           routerLink="/auth/register"
-          >Get started</a
+          >Start for free</a
         >
       }
     </nav>
- 
-    <!-- Mobile: just the avatar trigger now, no hamburger -->
+
+    <!-- Mobile: avatar trigger for logged-in users -->
     @if (auth.isAuthenticated()) {
       <div class="md:hidden relative">
         <button
@@ -124,7 +146,7 @@
           }
           <i class="pi pi-angle-down text-xs text-gray-400 transition-transform" [class.rotate-180]="accountMenuOpen()"></i>
         </button>
- 
+
         @if (accountMenuOpen()) {
           <div class="absolute right-0 top-full mt-2 w-max max-w-[85vw] min-w-[10rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50">
           <a routerLink="/app/account" (click)="closeAccountMenu()" class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline whitespace-nowrap">
@@ -149,13 +171,35 @@
         }
       </div>
     }
- 
+
+    <!-- Mobile: hamburger for logged-out visitors, opens marketing menu -->
     @if (!auth.isAuthenticated()) {
-      <a class="md:hidden px-3 py-1.5 rounded-lg text-sm text-gray-600 no-underline" routerLink="/auth/login">Login</a>
+      <button
+        (click)="toggleMenu()"
+        class="md:hidden flex flex-col justify-center gap-1 w-9 h-9 rounded-lg border border-gray-200 bg-transparent cursor-pointer"
+        [attr.aria-expanded]="menuOpen()"
+        aria-controls="mobile-marketing-menu"
+        aria-label="Toggle navigation menu"
+      >
+        <span
+          class="h-0.5 w-4 mx-auto bg-gray-700 rounded-full transition-transform duration-200"
+          [class.translate-y-[5px]]="menuOpen()"
+          [class.rotate-45]="menuOpen()"
+        ></span>
+        <span
+          class="h-0.5 w-4 mx-auto bg-gray-700 rounded-full transition-opacity duration-200"
+          [class.opacity-0]="menuOpen()"
+        ></span>
+        <span
+          class="h-0.5 w-4 mx-auto bg-gray-700 rounded-full transition-transform duration-200"
+          [class.-translate-y-[5px]]="menuOpen()"
+          [class.-rotate-45]="menuOpen()"
+        ></span>
+      </button>
     }
   </div>
- 
-  <!-- Mobile icon strip -- replaces the old hamburger drawer -->
+
+  <!-- Mobile icon strip for authenticated users -->
   @if (auth.isAuthenticated()) {
     <nav class="md:hidden flex justify-between px-2 py-1.5 border-t border-gray-100 overflow-x-auto">
     @for (item of nav.primaryItems(); track item.route) {
@@ -173,5 +217,36 @@
       </a>
     }
   </nav>
+  }
+
+  <!-- Mobile marketing menu for logged-out visitors -->
+  @if (!auth.isAuthenticated() && menuOpen()) {
+    <nav id="mobile-marketing-menu" class="md:hidden flex flex-col px-4 pb-4 pt-1 border-t border-gray-100 gap-0.5">
+      @for (item of marketingNavItems; track item.fragment) {
+        <a
+          class="px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors no-underline text-sm font-medium border-b border-gray-100"
+          [routerLink]="['/']"
+          [fragment]="item.fragment"
+          (click)="closeMenu()"
+        >
+          {{ item.label }}
+        </a>
+      }
+      <div class="flex gap-2 mt-3">
+        <a
+          routerLink="/auth/login"
+          (click)="closeMenu()"
+          class="flex-1 text-center px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 border border-gray-200 no-underline"
+          >Sign in</a
+        >
+        <a
+          routerLink="/auth/register"
+          (click)="closeMenu()"
+          class="flex-1 text-center px-4 py-2.5 rounded-xl text-sm font-medium text-white no-underline"
+          style="background: var(--brand-gradient, linear-gradient(135deg, #1A7FD4, #0EB8A0))"
+          >Start for free</a
+        >
+      </div>
+    </nav>
   }
 </header>
