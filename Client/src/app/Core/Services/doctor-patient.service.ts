@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment.development';
 import { PatientOption, PatientResponse } from '../../Features/Schedule/schedule.models';
+import { environment } from '../../../environments/environment';
 
 const DOCTOR_PATIENTS_BASE = `${environment.apiUrl}DoctorPatientForSchedule`;
 

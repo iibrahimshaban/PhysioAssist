@@ -11,7 +11,8 @@ public class SessionService(
     ISessionEmbeddingService _sessionEmbeddingService ,
     IMediaStorageService _mediaStorageService,
     IScheduleSlotQueryService _scheduleSlotQueryService,
-    IInitialReportQueryService _initialReportQueryService
+    IInitialReportQueryService _initialReportQueryService,
+    ILogger<SessionService> _logger
     ) : ISessionService
 {
 
@@ -207,19 +208,6 @@ public class SessionService(
                 ? transcription.RawTranscript
                 : transcription.EditedTranscript;
 
-        var embeddingResult =
-            await _sessionEmbeddingService.GenerateAndStoreEmbeddingAsync(
-                transcription.Id,
-                textForEmbedding,
-                cancellationToken
-            );
-
-        if (embeddingResult.IsFailure)
-        {
-            Console.WriteLine(
-                embeddingResult.Error.Description
-            );
-        }
 
         return Result.Success(textForEmbedding);
     }
@@ -259,9 +247,9 @@ public class SessionService(
     }
 
     public async Task<Result> CompleteSessionAsync(
-        Guid sessionId,
-        CompleteSessionRequest request,
-        CancellationToken cancellationToken = default)
+    Guid sessionId,
+    CompleteSessionRequest request,
+    CancellationToken cancellationToken = default)
     {
         var session = await _context.Sessions
             .Include(s => s.Transcription)
@@ -272,6 +260,8 @@ public class SessionService(
 
         if (request.TreatmentPlanUpdated is not null)
             session.TreatmentPlan = request.TreatmentPlanUpdated;
+
+        var transcriptChanged = session.Transcription?.EditedTranscript != request.EditedTranscript;
 
         if (session.Transcription is null)
         {
@@ -310,6 +300,25 @@ public class SessionService(
         session.Status = SessionStatus.Completed;
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Regenerate embeddings whenever the transcript text is new or changed —
+        // covers both the audio-edited case and the text-only (no audio) case
+        if (transcriptChanged && !string.IsNullOrWhiteSpace(request.EditedTranscript))
+        {
+            var embeddingResult = await _sessionEmbeddingService.GenerateAndStoreEmbeddingAsync(
+                session.Transcription.Id,
+                request.EditedTranscript,
+                cancellationToken);
+
+            if (embeddingResult.IsFailure)
+            {
+                _logger.LogError(
+                    "Embedding generation failed for session {SessionId}, transcription {TranscriptionId}: {Error}",
+                    sessionId, session.Transcription.Id, embeddingResult.Error.Description);
+                // Intentionally not failing CompleteSessionAsync — the session itself
+                // completed successfully; embeddings can be backfilled separately
+            }
+        }
 
         if (session.ScheduleSlotId.HasValue)
         {

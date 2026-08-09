@@ -186,7 +186,7 @@
           @if (editingSectionIndex() !== null && editingGroupIndex() !== null) {
             <div class="quick-add-target">
               <i class="pi pi-arrow-right"></i>
-              <span>Adding to: <strong>{{ formSchema().sections[editingSectionIndex()!]?.groups[editingGroupIndex()!]?.title }}</strong></span>
+              <span>Adding to: <strong>{{ formSchema().sections[editingSectionIndex()!]?.groups?.[editingGroupIndex()!]?.title }}</strong></span>
               <button type="button" class="quick-add-target-clear" (click)="editingSectionIndex.set(null); editingGroupIndex.set(null)">
                 Change
               </button>

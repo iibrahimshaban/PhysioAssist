@@ -4,7 +4,10 @@
     (click)="toggleAttachments()"
     class="flex w-full items-center justify-between px-5 py-4"
   >
-    <span class="text-sm font-bold uppercase text-slate-700">ATTACHMENTS</span>
+    <span class="flex items-center text-sm font-bold uppercase text-slate-700">
+      <i class="pi pi-paperclip icon-gradient mr-2"></i>
+      ATTACHMENTS
+    </span>
     <i class="pi" [class.pi-chevron-up]="isOpen()" [class.pi-chevron-down]="!isOpen()"></i>
   </button>
 
@@ -12,7 +15,7 @@
     <div class="border-t border-slate-100 p-5">
       <label
         for="sessionAttachments"
-        class="flex h-24 cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 px-3 text-center text-sm text-slate-500 transition hover:border-[#0B8EEA] hover:text-[#0B8EEA]"
+        class="flex h-24 cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 px-3 text-center text-sm text-slate-500 transition hover:border-[var(--brand-gradient-start)] hover:text-[var(--brand-gradient-start)]"
       >
         <i class="pi pi-paperclip mr-2"></i>
         <span>Drop X-rays or photos here</span>
@@ -73,7 +76,7 @@
                 <img
                   [src]="item.preview"
                   [alt]="item.file.name"
-                  class="h-16 w-16 rounded-lg border object-cover"
+                  class="h-16 w-16 flex-shrink-0 rounded-lg border object-cover"
                 />
 
                 <div class="min-w-0 flex-1">

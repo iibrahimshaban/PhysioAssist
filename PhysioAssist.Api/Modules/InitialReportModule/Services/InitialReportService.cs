@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Options;
-using PhysioAssist.Api.Infrastructure.GeminiClient;
+using PhysioAssist.Api.Infrastructure.Transcription;
 using PhysioAssist.Api.Modules.InitialReportModule.DTOs;
 using PhysioAssist.Api.Modules.InitialReportModule.Entities;
 using PhysioAssist.Api.Modules.InitialReportModule.Errors;

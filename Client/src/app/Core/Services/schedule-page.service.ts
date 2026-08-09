@@ -9,7 +9,7 @@ import {
   DailyAvailabilityDto,
   DailyAvailability
 } from '../../Features/Schedule/schedule.models';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 
 const APPOINTMENTS_BASE = `${environment.apiUrl}appointments`;
 const WORKING_SCHEDULES_BASE = `${environment.apiUrl}workingschedules`;

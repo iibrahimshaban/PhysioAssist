@@ -12,4 +12,6 @@ public interface ISessionQueryService
         CancellationToken cancellationToken = default);
 
     Task<Guid?> GetScheduleSlotIdBySessionIdAsync(Guid sessionId, CancellationToken cancellationToken = default);
+    Task<List<SessionDocumentationListItem>> GetSessionsForDocumentationAsync(
+        Guid doctorId, Guid patientId, CancellationToken ct = default);
 }

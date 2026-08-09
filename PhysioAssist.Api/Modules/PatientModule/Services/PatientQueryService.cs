@@ -1,8 +1,8 @@
+using FuzzySharp;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Errors;
 using PhysioAssist.Api.Modules.PatientModule.Repositories;
 using PhysioAssist.Api.Shared.Dtos.Patient;
-using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 using PhysioAssist.Api.Shared.Interfaces.Scheduling;
 
 namespace PhysioAssist.Api.Modules.PatientModule.Services;
@@ -11,21 +11,44 @@ public class PatientQueryService(
     ApplicationDbContext dbContext,
     IUnitOfWork _unitOfWork, IPatientRepo _patientRepo,
     IDoctorPatientRepo _doctorPatientRepo,
-    IQueryTranslationService _translationService,
     IPatientTimePreferenceParser _preferenceParser,
+    IHttpContextAccessor httpContextAccessor,
     ILogger<PatientQueryService> _logger) : IPatientQueryService
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
+    private Guid DoctorId
+    {
+        get => Guid.Parse(httpContextAccessor.HttpContext?.User.GetUserId() ?? throw new InvalidOperationException("User ID not found in context."));
+
+    }
 
     public async Task<List<PatientLookupResult>> FindByNameAsync(string namePart, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(namePart))
             return [];
 
-        return await _dbContext.Set<Patient>()
-            .Where(p => EF.Functions.Like(p.FullName, $"%{namePart}%"))
+        var doctorId = DoctorId;
+
+        // Pull the doctor's active patients only — bounded set, safe to score in-memory
+        var candidates = await _dbContext.Set<Patient>()
+            .Where(p => p.DoctorPatients.Any(dp =>
+                dp.DoctorId == doctorId &&
+                dp.Status == DoctorPatientStatus.Active))
             .Select(p => new PatientLookupResult(p.Id, p.FullName, p.PatientCaseNotes))
             .ToListAsync(ct);
+
+        const int minScore = 70; // tune this: lower = more forgiving, more false positives
+
+        return candidates
+            .Select(p => new
+            {
+                Patient = p,
+                Score = Fuzz.WeightedRatio(namePart, p.FullName)
+            })
+            .Where(x => x.Score >= minScore)
+            .OrderByDescending(x => x.Score)
+            .Select(x => x.Patient)
+            .ToList();
     }
 
     public async Task<PatientCategory?> GetPatientCategoryAsync(Guid doctorId, Guid patientId, CancellationToken ct = default)
@@ -145,8 +168,7 @@ public class PatientQueryService(
         {
             try
             {
-                var englishFreeTime = await _translationService.TranslateToEnglishAsync(request.FreeTime, cancellationToken);
-                var preferenceResult = await _preferenceParser.ParseAsync(englishFreeTime, cancellationToken);
+                var preferenceResult = await _preferenceParser.ParseAsync(request.FreeTime, cancellationToken);
 
                 if (preferenceResult.IsSuccess)
                 {
@@ -224,8 +246,7 @@ public class PatientQueryService(
         var parsed = new PatientTimePreferenceDto();
         try
         {
-            var englishFreeTime = await _translationService.TranslateToEnglishAsync(freeTimeOverrideText, cancellationToken);
-            var preferenceResult = await _preferenceParser.ParseAsync(englishFreeTime, cancellationToken);
+            var preferenceResult = await _preferenceParser.ParseAsync(freeTimeOverrideText, cancellationToken);
 
             if (preferenceResult.IsSuccess)
                 parsed = preferenceResult.Value;

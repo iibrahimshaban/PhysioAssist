@@ -1,5 +1,5 @@
 <div
-  class="w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:sticky lg:top-5"
+  class="w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
 >
   <button
     type="button"
@@ -7,7 +7,7 @@
     class="flex w-full items-center justify-between px-5 py-5"
   >
     <span class="flex items-center text-sm font-bold uppercase text-slate-700">
-      <i class="fa-solid fa-clipboard-list mr-2 text-sky-500"></i>
+      <i class="fa-solid fa-clipboard-list icon-gradient mr-2"></i>
       TREATMENT PLAN
     </span>
 
@@ -26,7 +26,8 @@
 
       <textarea
         rows="16"
-        class="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-700 focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-400"
+        dir="auto"
+        class="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-700 focus:border-[var(--brand-gradient-start)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-gradient-start)]"
         [value]="plan()"
         (input)="onInput($any($event.target).value)"
         placeholder="No treatment plan yet — this will start from the patient's initial report."

@@ -3,7 +3,6 @@ import { HttpClient, HttpContext } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { BookTreatmentSlotRequest, CreateInitialReportRequest, InitialReportResponse, PatientIntakeSummaryResponse, PreVisitIntakeDataResponse, ReportAttachmentResponse, TranscriptionResponse, TreatmentSchedulePlanResponse, UpdateReportTextRequest, UpsertTreatmentSchedulePlanRequest } from '../../Shared/Models/InitialReport.models';
 import { SKIP_ERROR_SNACKBAR } from '../Interceptors/skip-error-interceptor.token';
-import { SKIP_GLOBAL_LOADING } from '../Interceptors/skip-global-loading.token';
 
 @Injectable({ providedIn: 'root' })
 export class InitialReportService {
@@ -64,15 +63,13 @@ export class InitialReportService {
     return this.http.post<TranscriptionResponse>(
       `${this.baseUrl}/${reportId}/transcribe${query}`,
       formData,
-      { context: new HttpContext().set(SKIP_GLOBAL_LOADING, true) }, // from the earlier fix
     );
   }
 
   upsertSchedulePlan(reportId: string, request: UpsertTreatmentSchedulePlanRequest) {
     return this.http.post<TreatmentSchedulePlanResponse>(
       `${this.baseUrl}/${reportId}/schedule-plan`,
-      request,
-      { context: new HttpContext().set(SKIP_GLOBAL_LOADING, true) },
+      request
     );
   }
 
@@ -87,16 +84,14 @@ export class InitialReportService {
   bookSchedulePlan(reportId: string, request: BookTreatmentSlotRequest) {
     return this.http.post<TreatmentSchedulePlanResponse>(
       `${this.baseUrl}/${reportId}/schedule-plan/book`,
-      request,
-      { context: new HttpContext().set(SKIP_GLOBAL_LOADING, true) },
+      request
     );
   }
 
   sendSchedulePlanToReceptionist(reportId: string) {
     return this.http.post<TreatmentSchedulePlanResponse>(
       `${this.baseUrl}/${reportId}/schedule-plan/send-to-receptionist`,
-      {},
-      { context: new HttpContext().set(SKIP_GLOBAL_LOADING, true) },
+      {}
     );
   }
 }

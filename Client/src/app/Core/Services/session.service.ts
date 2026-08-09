@@ -3,7 +3,6 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment.development';
 import { SessionDetailsResponse } from '../../Shared/Models/session-details-response';
 import { Suggestion } from '../../Shared/Models/suggestion';
-import { SKIP_GLOBAL_LOADING } from '../Interceptors/skip-global-loading.token';
 
 @Injectable({
   providedIn: 'root',
@@ -36,17 +35,16 @@ export class SessionService {
     formData.append('durationSeconds', durationSeconds.toString());
 
     return this.http.post(`${this.api}/${sessionId}/transcription/audio`, formData, {
-      responseType: 'text',
-      context: new HttpContext().set(SKIP_GLOBAL_LOADING, true),
+      responseType: 'text'
     });
   }
 
   uploadAttachments(sessionId: string, files: File[]) {
     const formData = new FormData();
     for (const file of files) formData.append('Files', file);
-    return this.http.post<void>(`${this.api}/${sessionId}/attachments`, formData, {
-      context: new HttpContext().set(SKIP_GLOBAL_LOADING, true),
-    });
+    return this.http.post<void>(`${this.api}/${sessionId}/attachments`, 
+      formData
+    );
   }
 
   completeSession(sessionId: string, editedTranscript: string, files: File[], treatmentPlan: string) {
@@ -54,9 +52,7 @@ export class SessionService {
     formData.append('EditedTranscript', editedTranscript);
     formData.append('TreatmentPlanUpdated', treatmentPlan);
     for (const file of files) formData.append('Files', file);
-    return this.http.put<void>(`${this.api}/${sessionId}/complete`, formData, {
-      context: new HttpContext().set(SKIP_GLOBAL_LOADING, true),
-    });
+    return this.http.put<void>(`${this.api}/${sessionId}/complete`, formData);
   }
 
   saveDraft(sessionId: string, editedTranscript: string, files: File[], treatmentPlan: string) {
@@ -64,15 +60,13 @@ export class SessionService {
     formData.append('EditedTranscript', editedTranscript);
     formData.append('TreatmentPlanUpdated', treatmentPlan);
     for (const file of files) formData.append('Files', file);
-    return this.http.put<void>(`${this.api}/${sessionId}/draft`, formData, {
-      context: new HttpContext().set(SKIP_GLOBAL_LOADING, true),
-    });
+    return this.http.put<void>(`${this.api}/${sessionId}/draft`, formData
+
+    );
   }
 
   deleteAttachment(attachmentId: string) {
-    return this.http.delete<void>(`${this.api}/attachments/${attachmentId}`, {
-      context: new HttpContext().set(SKIP_GLOBAL_LOADING, true),
-    });
+    return this.http.delete<void>(`${this.api}/attachments/${attachmentId}`);
   }
 
   getSuggestions(prefix: string, limit: number = 5) {

@@ -13,6 +13,7 @@ import { TreatmentPlanComponent } from './components/treatment-plan/treatment-pl
 import { NextSessionBookingComponent } from './components/next-session-booking/next-session-booking.component';
 import { SnackbarService } from '../../Core/Services/snackbar.service';
 import { catchError, concatMap, from, map, of, toArray } from 'rxjs';
+import { SessionProgressNoteComponent } from "./components/session-progress-note/session-progress-note.component";
 
 @Component({
   selector: 'app-session',
@@ -24,8 +25,9 @@ import { catchError, concatMap, from, map, of, toArray } from 'rxjs';
     SessionActionsComponent,
     RecordingModalComponent,
     NextSessionBookingComponent,
-    TreatmentPlanComponent
-  ],
+    TreatmentPlanComponent,
+    SessionProgressNoteComponent
+],
   templateUrl: './session.component.html',
   styleUrl: './session.component.css',
 })
@@ -44,6 +46,7 @@ export class SessionComponent implements OnInit {
 
   sessionInfoOpen = signal(true);
   treatmentPlanOpen = signal(true);
+  progressNoteOpen = signal(true);
 
   isRecordingModalOpen = signal(false);
 
@@ -113,6 +116,10 @@ export class SessionComponent implements OnInit {
   }
     toggleNotes() { // NEW
     this.notesOpen.update((value) => !value);
+  }
+
+  toggleProgressNote() {
+    this.progressNoteOpen.update((value) => !value);
   }
 
   async startRecording() {

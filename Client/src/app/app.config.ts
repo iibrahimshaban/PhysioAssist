@@ -10,7 +10,6 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { errorInterceptor } from './Core/Interceptors/error-interceptor';
-import { loadingInterceptor } from './Core/Interceptors/loading-interceptor';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
 import { authInterceptor } from './Core/Interceptors/ath-interceptor';
@@ -18,13 +17,15 @@ import { GoogleLoginProvider, SOCIAL_AUTH_CONFIG, SocialAuthServiceConfig, Socia
 import { environment } from '../environments/environment';
 import { AuthService } from './Core/Services/auth.service';
 import { firstValueFrom } from 'rxjs';
+import { MessageService, ConfirmationService } from 'primeng/api';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    MessageService, ConfirmationService,
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
     provideZonelessChangeDetection(),
-    provideHttpClient(withInterceptors([authInterceptor, errorInterceptor, loadingInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
     providePrimeNG({
       theme: {
         preset: Aura,

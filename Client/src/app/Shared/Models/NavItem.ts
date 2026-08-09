@@ -18,4 +18,5 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Submissions', route: '/app/intake/submissions', icon: 'pi pi-inbox', permissions: ['Submission:Read'], section: 'settings' },
   { label: 'Staff', route: '/app/account/staff', icon: 'pi pi-id-card', permissions: ['receptionist:read'], section: 'settings' },
   { label: 'Intake Schemas', route: '/app/intake/schemas', icon: 'pi pi-file-edit', permissions: ['Intake:Read'], section: 'settings' },
+  { label: 'Documentation Templates', route: '/app/Documentation-settings', icon: 'pi pi-clipboard', section: 'settings' },
 ];

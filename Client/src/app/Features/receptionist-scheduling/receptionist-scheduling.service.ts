@@ -13,7 +13,6 @@ import {
   ConvertPlanToPackageRequest,
 } from './SessionScheduling.model';
 import { ScheduleSlotDto } from '../../Features/Schedule/schedule.models';
-import { SKIP_GLOBAL_LOADING } from '../../Core/Interceptors/skip-global-loading.token';
 
 @Injectable({ providedIn: 'root' })
 export class ReceptionistSchedulingService {
@@ -41,8 +40,7 @@ export class ReceptionistSchedulingService {
     this.http
       .post<SessionBookingRoundDto>(
         `${this.baseUrl}/packages/${packageId}/next-candidates`,
-        body,
-        { context: new HttpContext().set(SKIP_GLOBAL_LOADING, true) },
+        body
       )
       .subscribe({
         next: round => {

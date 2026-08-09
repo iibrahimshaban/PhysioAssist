@@ -1,0 +1,55 @@
+/* ============================================================
+   ADD THESE TO YOUR GLOBAL styles.css
+   (the file that already has :root { --brand-gradient-start ... })
+   ============================================================ */
+
+/* ── Shared gradient-text utility for section header icons ──
+   Used by session-notes, session-progress-note, treatment-plan,
+   session-info, and session-attachments so every collapsible
+   card header uses the real brand gradient instead of a flat
+   Tailwind color (sky-500) or a one-off hex value. */
+.icon-gradient {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Responsive PrimeNG Confirm Dialog ───────────────────────
+   PrimeNG's <p-confirmDialog> (used in session-progress-note)
+   renders inside a <p-confirmdialog> host tag. It has no width
+   constraint by default, so on small screens it can overflow
+   the viewport or sit flush against the edges. Scoped to
+   p-confirmdialog only so it doesn't affect other, wider
+   p-dialog instances elsewhere in the app. */
+p-confirmdialog .p-dialog {
+  width: min(28rem, calc(100vw - 2rem));
+  margin: 0 1rem;
+}
+
+p-confirmdialog .p-dialog .p-dialog-content {
+  word-break: break-word;
+}
+
+/* Confirm dialog buttons default to the same padding as every other
+   p-button in the app (built for 44px touch targets). That's correct
+   for primary actions but reads as oversized for a plain Cancel/Continue
+   pair, so scale them down specifically here. */
+p-confirmdialog .p-dialog .p-button {
+  padding: 0.5rem 1rem !important;
+  font-size: 0.8125rem !important;
+}
+
+@media (max-width: 639px) {
+  p-confirmdialog .p-dialog .p-dialog-footer {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  p-confirmdialog .p-dialog .p-dialog-footer .p-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

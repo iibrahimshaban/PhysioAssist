@@ -64,5 +64,13 @@ export const MainLayoutRoutes : Routes = [
     loadComponent: () => import('../../Features/scheduling-preferences/scheduling-preferences.component').then((c) => c.SchedulingPreferencesComponent),
     canActivate: [permissionGuard],
     data: { permissions: ['WorkingSchedule:Read']}
+  },
+  { 
+    path: 'Documentation-settings', 
+    loadComponent: () => import('../../Features/documentation-settings/documentation-settings.component').then((c) => c.DocumentationSettingsComponent)
+  },
+  {
+  path: 'patients/:patientId/documentation',
+    loadComponent: () => import('../../Features/patient-documentation/patient-documentation.component').then(m => m.PatientDocumentationComponent)
   }
 ];

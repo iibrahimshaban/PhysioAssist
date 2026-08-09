@@ -1,14 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.DocumentationModule.Contracts;
 using PhysioAssist.Api.Modules.DocumentationModule.Services;
-using PhysioAssist.Api.Shared.Extensions;
 
 namespace PhysioAssist.Api.Modules.DocumentationModule.Controller;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class DocumentationTemplateController(IDocumentationTemplateResolver resolver) : ControllerBase
 {
+    [HttpGet]
+    public async Task<IActionResult> GetTemplates([FromQuery] PatientCategory? category)
+    {
+        var templates = await resolver.GetTemplatesAsync(category);
+        return Ok(templates);
+    }
     [HttpGet("{templateId:guid}/fields")]
     public async Task<IActionResult> GetAllFields(Guid templateId)
     {
