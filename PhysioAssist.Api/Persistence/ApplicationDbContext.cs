@@ -24,6 +24,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     {
         var entries = ChangeTracker.Entries<AuditableEntity>();
 
+        var allEntries = ChangeTracker.Entries()
+            .Select(e => new { Type = e.Entity.GetType().Name, e.State })
+            .ToList();
+
         foreach (var entityEntry in entries)
         {
             var currentUserId = _httpContextAccessor.HttpContext?.User.GetUserId();
@@ -49,6 +53,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     // Patient
     public DbSet<Patient> Patients { get; set; }
     public DbSet<DoctorPatient> DoctorPatients { get; set; }
+    public DbSet<PatientPreferredTimeSlot> PatientPreferredTimeSlots { get; set; }
 
     // Intake
     public DbSet<PatientFormSchema> PatientFormSchemas { get; set; }

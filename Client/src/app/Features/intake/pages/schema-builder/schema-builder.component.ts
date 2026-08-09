@@ -65,6 +65,8 @@ const CORE_FIELD_TEXTS = new Set([
 
 const CORE_SECTION_ID = 'section_core_fields';
 const CORE_GROUP_ID = 'group_core_fields';
+const MEDICAL_INFO_GROUP_ID = 'group_medical_information';
+const CLINICAL_SUMMARY_GROUP_ID = 'group_clinical_summary';
 
 interface PublishValidationIssue {
   fieldName: string;
@@ -261,11 +263,15 @@ export class SchemaBuilderComponent implements OnInit {
 
         try {
           const parsed = JSON.parse(schema.schemaJson) as DynamicFormSchemaDto;
-          const sections = parsed.sections ?? [];
+          let sections = parsed.sections ?? [];
           // Ensure core fields section exists
           if (!sections.some(s => s.sectionId === CORE_SECTION_ID)) {
             sections.unshift(this.buildCoreFieldsSection());
           }
+          // Migrate legacy core section layout (Chief Complaint / Injury Date / Patient Type
+          // used to live under "Patient Details") into the current Medical Information /
+          // Clinical Summary groups.
+          sections = sections.map(s => this.migrateCoreSectionGroups(s));
           this.formSchema.set({
             schemaVersion: parsed.schemaVersion ?? 1,
             sections
@@ -381,13 +387,86 @@ export class SchemaBuilderComponent implements OnInit {
             { questionId: 'question_default_free_time', text: 'Patient Free Time', type: 'text', order: 4, required: true, isLocked: true, placeholder: 'e.g. Weekdays after 5pm' },
             { questionId: 'question_default_gender', text: 'Gender', type: 'radio', order: 5, required: true, isLocked: true, options: ['Male', 'Female'] },
             { questionId: 'question_default_dob', text: 'Date of Birth', type: 'date', order: 6, required: true, isLocked: true },
-            { questionId: 'question_default_chief_complaint', text: 'Chief Complaint', type: 'textarea', order: 7, required: true, isLocked: true, placeholder: 'Primary reason for the visit' },
-            { questionId: 'question_default_injury_date', text: 'Injury Date', type: 'date', order: 8, required: true, isLocked: true },
-            { questionId: 'question_default_patient_type', text: 'Patient Type', type: 'select', order: 9, required: true, isLocked: true, options: ['New Patient', 'Returning Patient', 'Post-Surgery', 'Chronic Condition'] },
+          ]
+        },
+        {
+          groupId: MEDICAL_INFO_GROUP_ID,
+          title: 'Medical Information',
+          description: 'Details about the presenting condition',
+          order: 2,
+          isLocked: true,
+          questions: [
+            { questionId: 'question_default_chief_complaint', text: 'Chief Complaint', type: 'textarea', order: 1, required: true, isLocked: true, placeholder: 'Primary reason for the visit' },
+            { questionId: 'question_default_injury_date', text: 'Injury Date', type: 'date', order: 2, required: true, isLocked: true },
+          ]
+        },
+        {
+          groupId: CLINICAL_SUMMARY_GROUP_ID,
+          title: 'Clinical Summary',
+          description: 'Classification used by clinicians',
+          order: 3,
+          hiddenFromPatient: true,
+          isLocked: true,
+          questions: [
+            { questionId: 'question_default_patient_type', text: 'Patient Type', type: 'select', order: 1, required: true, isLocked: true, options: ['Orthopedic', 'Neurological', 'Pediatric', 'GeneralOther'] },
           ]
         }
       ]
     };
+  }
+
+  // Ids of the core questions that must live in the Medical Information / Clinical Summary
+  // groups. Used to migrate schemas saved before those groups existed, so old drafts get
+  // restructured on load instead of being stuck with the legacy single-group layout.
+  private static readonly MEDICAL_INFO_QUESTION_IDS = new Set(['question_default_chief_complaint', 'question_default_injury_date']);
+  private static readonly CLINICAL_SUMMARY_QUESTION_IDS = new Set(['question_default_patient_type']);
+
+  // Ensures a loaded core section has the current three-group shape, moving any of the
+  // relocated core questions out of wherever they currently sit (e.g. the legacy
+  // "Patient Details" group) and into the correct locked group, creating that group if needed.
+  private migrateCoreSectionGroups(section: FormSectionDto): FormSectionDto {
+    if (section.sectionId !== CORE_SECTION_ID) {
+      return section;
+    }
+
+    const groups = section.groups.map(g => ({ ...g, questions: [...g.questions] }));
+
+    const pullOut = (ids: Set<string>): FormQuestionDto[] => {
+      const pulled: FormQuestionDto[] = [];
+      for (const g of groups) {
+        const removed = g.questions.filter(q => ids.has(q.questionId));
+        g.questions = g.questions.filter(q => !ids.has(q.questionId));
+        pulled.push(...removed);
+      }
+      return pulled;
+    };
+
+    const medicalQuestions = pullOut(SchemaBuilderComponent.MEDICAL_INFO_QUESTION_IDS);
+    const clinicalQuestions = pullOut(SchemaBuilderComponent.CLINICAL_SUMMARY_QUESTION_IDS);
+
+    let medicalGroup = groups.find(g => g.groupId === MEDICAL_INFO_GROUP_ID);
+    if (!medicalGroup) {
+      medicalGroup = { groupId: MEDICAL_INFO_GROUP_ID, title: 'Medical Information', description: 'Details about the presenting condition', order: groups.length + 1, isLocked: true, questions: [] };
+      groups.push(medicalGroup);
+    }
+    for (const q of medicalQuestions) {
+      if (!medicalGroup.questions.some(existing => existing.questionId === q.questionId)) {
+        medicalGroup.questions.push(q);
+      }
+    }
+
+    let clinicalGroup = groups.find(g => g.groupId === CLINICAL_SUMMARY_GROUP_ID);
+    if (!clinicalGroup) {
+      clinicalGroup = { groupId: CLINICAL_SUMMARY_GROUP_ID, title: 'Clinical Summary', description: 'Classification used by clinicians', order: groups.length + 1, isLocked: true, questions: [] };
+      groups.push(clinicalGroup);
+    }
+    for (const q of clinicalQuestions) {
+      if (!clinicalGroup.questions.some(existing => existing.questionId === q.questionId)) {
+        clinicalGroup.questions.push(q);
+      }
+    }
+
+    return { ...section, groups };
   }
 
   // CRUD operations
@@ -644,7 +723,6 @@ export class SchemaBuilderComponent implements OnInit {
   }
 
   publish(): void {
-    // Run pre-publish validation
     const issues = this.prePublishValidation();
     if (issues.length > 0) {
       this.publishValidationIssues.set(issues);
@@ -652,12 +730,7 @@ export class SchemaBuilderComponent implements OnInit {
       return;
     }
 
-    const existing = this.selectedSchema();
-    if (!existing) {
-      this.saveDraftWithCallback(() => this.doPublish());
-    } else {
-      this.doPublish();
-    }
+    this.saveDraftWithCallback(() => this.doPublish());
   }
 
   private extractError(err: any): string {
@@ -673,6 +746,7 @@ export class SchemaBuilderComponent implements OnInit {
   private saveDraftWithCallback(callback: () => void): void {
     this.saving.set(true);
     const schemaJson = this.getCurrentSchemaJson();
+    const existing = this.selectedSchema();
     const request = {
       name: this.schemaName,
       description: this.schemaDescription || undefined,
@@ -680,10 +754,14 @@ export class SchemaBuilderComponent implements OnInit {
       isDefault: this.isDefault
     };
 
-    this.apiService.createFormSchema(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (created) => {
-        this.selectedSchema.set(created);
-        this.schemaVersion.set(created.version);
+    const save$ = existing
+      ? this.apiService.updateFormSchema(existing.id, request)
+      : this.apiService.createFormSchema(request);
+
+    save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (saved) => {
+        this.selectedSchema.set(saved);
+        this.schemaVersion.set(saved.version);
         this.saving.set(false);
         callback();
       },

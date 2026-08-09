@@ -1,7 +1,4 @@
-﻿using Mapster;
-using MapsterMapper;
-using PhysioAssist.Api.Modules.Intake.Helpers;
-using PhysioAssist.Api.Modules.Intake.QueryServices;
+﻿using PhysioAssist.Api.Modules.Intake.QueryServices;
 using PhysioAssist.Api.Modules.PatientModule.DTOs;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Errors;
@@ -239,7 +236,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         }
 
         public async Task<Result<Guid>> CreatePatientFromDynamicFormAsync(
-    Guid formSchemaId, string formSubmissionData, string? painPointsData, Guid doctorId, CancellationToken ct = default)
+            Guid formSchemaId, string formSubmissionData, string? painPointsData, Guid doctorId, CancellationToken ct = default)
         {
             // Step 1 — extract fields using Patient module's own helper (no DB writes yet, no dependency on Intake's DTOs)
             using var submissionDoc = PatientIntakeExtractionHelper.ParseSubmissionJson(formSubmissionData);
@@ -248,30 +245,29 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
 
             var root = submissionDoc.RootElement;
 
-            var fullName = PatientIntakeExtractionHelper.ExtractAnswerString(root, "question_default_full_name", "text");
-            var email = PatientIntakeExtractionHelper.ExtractAnswerString(root, "question_default_email", "email");
-            var phone = PatientIntakeExtractionHelper.ExtractAnswerString(root, "question_default_phone", "phone");
-            var gender = PatientIntakeExtractionHelper.ExtractAnswerString(root, "question_default_gender", "radio");
-            DateTime? dateOfBirth = PatientIntakeExtractionHelper.ExtractAnswerDate(root, "question_default_dob", "date");
-            var job = PatientIntakeExtractionHelper.ExtractAnswerString(root, "question_default_job", "text");
-            var freeTime = PatientIntakeExtractionHelper.ExtractAnswerString(root, "question_default_free_time", "text");
-            var patientCategory = PatientIntakeExtractionHelper.ExtractPatientCategory(painPointsData);
-            var caseNotes = PatientIntakeExtractionHelper.ExtractChiefComplaint(painPointsData);
+            var fullName = PatientIntakeExtractionHelper.ExtractAnswerString(root, IntakeQuestionIds.FullName, "text");
+            var email = PatientIntakeExtractionHelper.ExtractAnswerString(root, IntakeQuestionIds.Email, "email");
+            var phone = PatientIntakeExtractionHelper.ExtractAnswerString(root, IntakeQuestionIds.Phone, "phone");
+            var gender = PatientIntakeExtractionHelper.ExtractAnswerString(root, IntakeQuestionIds.Gender, "radio");
+            DateTime? dateOfBirth = PatientIntakeExtractionHelper.ExtractAnswerDate(root, IntakeQuestionIds.DateOfBirth, "date");
+            var freeTime = PatientIntakeExtractionHelper.ExtractAnswerString(root, IntakeQuestionIds.FreeTime, "text");
+            var caseNotes = PatientIntakeExtractionHelper.ExtractAnswerString(root, IntakeQuestionIds.ChiefComplaint, "text");
+
+
+            var raw = PatientIntakeExtractionHelper.ExtractAnswerString(root, IntakeQuestionIds.PatientType, "select");
+            var patientCategory = Enum.TryParse<PatientCategory>(raw, ignoreCase: true, out var category) ? category : PatientCategory.GeneralOther;
+            
 
             if (string.IsNullOrWhiteSpace(fullName))
                 return Result.Failure<Guid>(PatientErrors.InvalidIntakeSubmission);
 
-            // Step 2 — create the patient FIRST, via the existing, already-transactional query service.
-            // If this fails (duplicate email, etc.), we return immediately — nothing has touched
-            // PreVisitIntake at all yet, so there is no orphaned intake row possible from this path.
             var createPatientResult = await _patientQueryService.CreatePatientFromIntakeAsync(
                 new PhysioAssist.Api.Shared.Dtos.Patient.CreatePatientFromIntakeRequest(
                     fullName,
                     email,
                     phone,
                     gender,
-                    dateOfBirth ?? default,
-                    job,
+                    dateOfBirth,
                     doctorId,
                     patientCategory,
                     freeTime,

@@ -26,6 +26,14 @@ public static class CoreFieldConstants
     /// </summary>
     public const string CoreGroupTitle = "Patient Details";
 
+    public const string CoreSectionId = "section_core_fields";
+    public const string CoreGroupId = "group_core_fields";
+    public const string MedicalInfoGroupId = "group_medical_information";
+    public const string ClinicalSummaryGroupId = "group_clinical_summary";
+
+    public const string MedicalInfoGroupTitle = "Medical Information";
+    public const string ClinicalSummaryGroupTitle = "Clinical Summary";
+
     /// <summary>
     /// Hard Required fields — without these the Initial Report ends up broken or empty.
     /// IDs follow the mandated "question_default_" convention (see requirements doc).
@@ -118,7 +126,7 @@ public static class CoreFieldConstants
             Required = true,
             IsLocked = true,
             Order = 9,
-            Options = new List<string> { "New Patient", "Returning Patient", "Post-Surgery", "Chronic Condition" },
+            Options = new List<string> { "Orthopedic", "Neurological", "Pediatric", "GeneralOther" },
         },
     };
 
@@ -151,17 +159,39 @@ public static class CoreFieldConstants
     /// Valid question types that are compatible with each core field.
     /// Key: core QuestionId, Value: set of allowed type strings.
     /// </summary>
+    /// 
     public static readonly IReadOnlyDictionary<string, HashSet<string>> AllowedTypesForCoreField =
-        new Dictionary<string, HashSet<string>>
-        {
-            ["question_default_full_name"] = new(StringComparer.OrdinalIgnoreCase) { "text" },
-            ["question_default_email"] = new(StringComparer.OrdinalIgnoreCase) { "email", "text" },
-            ["question_default_phone"] = new(StringComparer.OrdinalIgnoreCase) { "phone", "text" },
-            ["question_default_free_time"] = new(StringComparer.OrdinalIgnoreCase) { "text" },
-            ["question_default_gender"] = new(StringComparer.OrdinalIgnoreCase) { "radio", "select" },
-            ["question_default_dob"] = new(StringComparer.OrdinalIgnoreCase) { "date" },
-            ["question_default_chief_complaint"] = new(StringComparer.OrdinalIgnoreCase) { "textarea", "text" },
-            ["question_default_injury_date"] = new(StringComparer.OrdinalIgnoreCase) { "date" },
-            ["question_default_patient_type"] = new(StringComparer.OrdinalIgnoreCase) { "select" },
-        };
+    new Dictionary<string, HashSet<string>>
+    {
+        ["question_default_full_name"] = new(StringComparer.OrdinalIgnoreCase) { "text" },
+        ["question_default_email"] = new(StringComparer.OrdinalIgnoreCase) { "email", "text" },
+        ["question_default_phone"] = new(StringComparer.OrdinalIgnoreCase) { "phone", "text" },
+        ["question_default_free_time"] = new(StringComparer.OrdinalIgnoreCase) { "text" },
+        ["question_default_gender"] = new(StringComparer.OrdinalIgnoreCase) { "radio", "select" },
+        ["question_default_dob"] = new(StringComparer.OrdinalIgnoreCase) { "date" },
+        ["question_default_chief_complaint"] = new(StringComparer.OrdinalIgnoreCase) { "textarea", "text" },
+        ["question_default_injury_date"] = new(StringComparer.OrdinalIgnoreCase) { "date" },
+        ["question_default_patient_type"] = new(StringComparer.OrdinalIgnoreCase) { "select" },
+    };
+
+    public static readonly IReadOnlyList<FormQuestionDto> PatientDetailsFields = new List<FormQuestionDto>
+    {
+        HardRequiredFields[0], // full_name
+        HardRequiredFields[1], // email
+        HardRequiredFields[2], // phone
+        HardRequiredFields[3], // free_time
+        HardRequiredFields[4], // gender
+        HardRequiredFields[5], // dob
+    };
+
+    public static readonly IReadOnlyList<FormQuestionDto> MedicalInfoFields = new List<FormQuestionDto>
+    {
+        HardRequiredFields[6], // chief_complaint
+        HardRequiredFields[7], // injury_date
+    };
+
+    public static readonly IReadOnlyList<FormQuestionDto> ClinicalSummaryFields = new List<FormQuestionDto>
+    {
+        HardRequiredFields[8], // patient_type
+    };
 }

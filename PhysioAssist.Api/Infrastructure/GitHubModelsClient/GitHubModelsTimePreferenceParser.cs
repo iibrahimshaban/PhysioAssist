@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Options;
 using PhysioAssist.Api.Infrastructure.GitHubModelsClient.Prompts;
+using PhysioAssist.Api.Shared.Dtos.Patient;
 using PhysioAssist.Api.Shared.Interfaces.Scheduling;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -68,15 +69,7 @@ public class GitHubModelsTimePreferenceParser : IPatientTimePreferenceParser
 
             var parsed = JsonSerializer.Deserialize<RawTimePreference>(raw, JsonOptions);
 
-            // TEMP DIAGNOSTIC LOGGING — shows the deserialized raw fields before they're
-            // converted to TimeOnly/DateOnly, to isolate parsing bugs from model-output bugs.
-            _logger.LogInformation(
-                "TimePreferenceParser deserialized: DayToken={DayToken}, ExplicitDate={ExplicitDate}, TimeFrom={TimeFrom}, TimeTo={TimeTo}",
-                parsed?.DayToken,
-                parsed?.ExplicitDate,
-                parsed?.TimeFrom,
-                parsed?.TimeTo);
-
+ 
             return Result.Success(parsed is null ? new PatientTimePreferenceDto() : MapToDto(parsed));
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
@@ -90,23 +83,33 @@ public class GitHubModelsTimePreferenceParser : IPatientTimePreferenceParser
     {
         Enum.TryParse<RelativeDayToken>(raw.DayToken, ignoreCase: true, out var dayToken);
 
-        var weekdays = DaysOfWeekFlags.None;
-        if (raw.Weekdays is { Count: > 0 })
+        var groups = new List<PatientPreferredTimeGroupDto>();
+        if (raw.Groups is { Count: > 0 })
         {
-            foreach (var day in raw.Weekdays)
+            foreach (var g in raw.Groups)
             {
-                if (Enum.TryParse<DaysOfWeekFlags>(day, ignoreCase: true, out var flag))
-                    weekdays |= flag;
+                var weekdays = DaysOfWeekFlags.None;
+                if (g.Weekdays is { Count: > 0 })
+                {
+                    foreach (var day in g.Weekdays)
+                        if (Enum.TryParse<DaysOfWeekFlags>(day, ignoreCase: true, out var flag))
+                            weekdays |= flag;
+                }
+
+                groups.Add(new PatientPreferredTimeGroupDto
+                {
+                    Weekdays = weekdays,
+                    TimeFrom = TimeOnly.TryParse(g.TimeFrom, out var from) ? from : null,
+                    TimeTo = TimeOnly.TryParse(g.TimeTo, out var to) ? to : null
+                });
             }
         }
 
         return new PatientTimePreferenceDto
         {
             DayToken = dayToken,
-            PreferredWeekdays = weekdays,
             ExplicitDate = DateOnly.TryParse(raw.ExplicitDate, out var explicitDate) ? explicitDate : null,
-            PreferredTimeFrom = TimeOnly.TryParse(raw.TimeFrom, out var from) ? from : null,
-            PreferredTimeTo = TimeOnly.TryParse(raw.TimeTo, out var to) ? to : null
+            Groups = groups
         };
     }
 
@@ -115,9 +118,12 @@ public class GitHubModelsTimePreferenceParser : IPatientTimePreferenceParser
     private sealed record ChatMessage(string Content);
     private sealed record RawTimePreference(
     string? DayToken,
-    List<string>? Weekdays,
     string? ExplicitDate,
-    string? TimeFrom,
-    string? TimeTo
-        );
+    List<RawTimePreferenceGroup>? Groups
+    );
+    private sealed record RawTimePreferenceGroup(
+        List<string>? Weekdays,
+        string? TimeFrom,
+        string? TimeTo
+    );
 }

@@ -78,5 +78,8 @@ public class PatientFormSchemaConfiguration : IEntityTypeConfiguration<PatientFo
         builder.HasIndex(p => p.ShortCode)
                .HasDatabaseName("IX_PatientFormSchema_ShortCode")
                .IsUnique();
+
+        builder.Property(p => p.PublishedSchemaHash)
+              .HasMaxLength(128);
     }
 }

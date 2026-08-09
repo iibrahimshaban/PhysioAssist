@@ -222,6 +222,8 @@ public class DynamicFormValidationService : IDynamicFormValidationService
             {
                 foreach (var question in group.Questions)
                 {
+                    if (group.HiddenFromPatient) continue;
+
                     if (!question.Required) continue;
 
                     // Body-map questions (bodyselector / painpoint) are satisfied by the separate

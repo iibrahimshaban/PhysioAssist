@@ -166,10 +166,27 @@ html {
 
 /* ── PrimeNG Dialog & ConfirmDialog Overrides ────────────── */
 
-.p-component-overlay:not(.p-select-overlay):not(.p-dropdown-panel) {
+.p-component-overlay:not(.p-select-overlay):not(.p-dropdown-panel):not(.p-multiselect-overlay):not(.p-multiselect-panel) {
   background-color: rgba(15, 23, 42, 0.45) !important;
   backdrop-filter: blur(4px) !important;
   -webkit-backdrop-filter: blur(4px) !important;
+}
+
+/* Give the multiselect/select panels a clean, on-brand look instead */
+.p-multiselect-overlay,
+.p-multiselect-panel,
+.p-select-overlay,
+.p-dropdown-panel {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 0.85rem !important;
+  box-shadow: var(--shadow-lg) !important;
+  overflow: hidden !important;
+}
+
+.p-multiselect-option.p-multiselect-option-selected {
+  background: var(--color-primary-soft) !important;
+  color: var(--color-text-primary) !important;
 }
 
 .p-dialog {
@@ -330,4 +347,67 @@ html {
 
 .prose[dir="auto"] {
   unicode-bidi: plaintext;
+}
+
+/* ── Global PrimeNG Button Overrides ─────────────────────── */
+/* Brings all pButton instances (not just dialog buttons) onto
+   the brand gradient / semantic tokens instead of PrimeNG's
+   default theme colors. */
+
+.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-danger):not(.p-button-secondary) {
+  background: var(--brand-gradient) !important;
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(24, 136, 204, 0.25) !important;
+}
+
+.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-danger):not(.p-button-secondary):hover:not(:disabled) {
+  background: linear-gradient(135deg, #1a7fd4, #0b9a86) !important;
+  box-shadow: 0 4px 10px rgba(24, 136, 204, 0.3) !important;
+}
+
+/* p-button-success — used for confirm/submit actions */
+.p-button-success {
+  background: var(--brand-gradient) !important;
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(24, 136, 204, 0.25) !important;
+}
+
+.p-button-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1a7fd4, #0b9a86) !important;
+  box-shadow: 0 4px 10px rgba(24, 136, 204, 0.3) !important;
+}
+
+/* Outlined buttons — brand-colored border/text on white */
+.p-button-outlined:not(.p-button-danger) {
+  background: #ffffff !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.p-button-outlined:not(.p-button-danger):hover:not(:disabled) {
+  background: var(--color-page-bg) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--brand-gradient-start) !important;
+}
+
+/* Danger buttons stay semantic red, untouched by brand gradient */
+.p-button-danger {
+  background: var(--color-danger) !important;
+  border-color: var(--color-danger) !important;
+  color: #ffffff !important;
+}
+
+/* Radio buttons — selected state on brand color instead of default green */
+.p-radiobutton .p-radiobutton-box.p-highlight {
+  border-color: var(--brand-gradient-start) !important;
+  background: var(--brand-gradient-start) !important;
+}
+.p-radiobutton .p-radiobutton-box.p-highlight:not(.p-disabled):hover {
+  border-color: var(--color-primary-dark) !important;
+  background: var(--color-primary-dark) !important;
+}
+.p-radiobutton .p-radiobutton-box:not(.p-highlight):not(.p-disabled):hover {
+  border-color: var(--brand-gradient-start) !important;
 }

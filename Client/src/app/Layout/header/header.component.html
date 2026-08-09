@@ -175,21 +175,21 @@
  
   <!-- Mobile icon strip -- replaces the old hamburger drawer -->
   @if (auth.isAuthenticated()) {
-    <nav class="md:hidden flex gap-1 px-2 py-1.5 border-t border-gray-100 overflow-x-auto">
-      @for (item of nav.primaryItems(); track item.route) {
-        <a
-          class="flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg no-underline shrink-0 min-w-[52px]"
-          [routerLink]="item.route"
-          routerLinkActive="!bg-blue-50"
-        >
-          <i
-            class="{{ item.icon }} text-[17px] text-gray-500"
-            routerLinkActive="!text-blue-600"
-            [routerLinkActiveOptions]="{ exact: false }"
-          ></i>
-          <span class="text-[10px] text-gray-500 font-medium" routerLinkActive="!text-blue-600">{{ item.label }}</span>
-        </a>
-      }
-    </nav>
+    <nav class="md:hidden flex justify-between px-2 py-1.5 border-t border-gray-100 overflow-x-auto">
+    @for (item of nav.primaryItems(); track item.route) {
+      <a
+        class="flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg no-underline shrink-0 min-w-[52px]"
+        [routerLink]="item.route"
+        routerLinkActive="!bg-blue-50"
+      >
+        <i
+          class="{{ item.icon }} text-[17px] text-gray-500"
+          routerLinkActive="!text-blue-600"
+          [routerLinkActiveOptions]="{ exact: false }"
+        ></i>
+        <span class="text-[10px] text-gray-500 font-medium" routerLinkActive="!text-blue-600">{{ item.label }}</span>
+      </a>
+    }
+  </nav>
   }
 </header>

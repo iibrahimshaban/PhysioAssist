@@ -1,0 +1,69 @@
+/* Back link */
+.po-back-btn {
+  color: var(--color-text-muted);
+  transition: color 0.2s ease;
+}
+.po-back-btn:hover {
+  color: var(--color-text-primary);
+}
+
+/* Card container (Patient Details / Clinical Summary / empty states) */
+.po-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Primary action (Edit, Save Changes) — brand gradient */
+.po-btn-primary {
+  background: var(--brand-gradient);
+  color: #ffffff;
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 6px rgba(24, 136, 204, 0.25);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.po-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1a7fd4, #0b9a86);
+  box-shadow: 0 4px 10px rgba(24, 136, 204, 0.3);
+}
+
+/* Secondary / outlined action (Initial Report, Cancel) */
+.po-btn-outline {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.po-btn-outline:hover:not(:disabled) {
+  background: var(--color-page-bg);
+  color: var(--color-text-primary);
+  border-color: var(--brand-gradient-start);
+}
+
+/* Destructive action (Delete) */
+.po-btn-danger {
+  background: var(--color-danger-light);
+  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger);
+  border-radius: var(--radius-md);
+  transition: background 0.2s ease;
+}
+.po-btn-danger:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.14);
+}
+
+/* Floating save bar — sits above the app shell's global fixed widgets
+   (e.g. the "Ask AI" button) so nothing peeks out from behind it while
+   the patient overview is in edit mode. */
+.po-save-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  z-index: 2147483000;
+}

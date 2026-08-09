@@ -105,11 +105,15 @@ export class SubmissionRowComponent {
 
   timeAgo(isoDate: string): string {
     if (!isoDate) return '';
-    const parsed = new Date(isoDate);
+
+    // Ensure the string is parsed as UTC — backend sends DateTime.UtcNow,
+    // but if the serialized string lacks a timezone suffix, JS parses it
+    // as local time instead, throwing calculations off by the local UTC offset.
+    const utcStr = /Z$|[+-]\d{2}:\d{2}$/.test(isoDate) ? isoDate : `${isoDate}Z`;
+    const parsed = new Date(utcStr);
     if (isNaN(parsed.getTime())) return '';
 
     const diffMs = Date.now() - parsed.getTime();
-    // Guard against future-dated submissions (clock skew / bad data)
     if (diffMs < 0) return 'just now';
 
     const minutes = Math.floor(diffMs / 60000);
@@ -123,7 +127,10 @@ export class SubmissionRowComponent {
     if (days === 1) return 'Yesterday';
     if (days < 7) return `${days}d ago`;
 
-    // Older than a week: fall back to an absolute, unambiguous date
-    return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return parsed.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'Africa/Cairo'
+    });
   }
 }

@@ -1,4 +1,6 @@
-﻿namespace PhysioAssist.Api.Shared.Interfaces.Scheduling;
+﻿using PhysioAssist.Api.Shared.Dtos.Patient;
+
+namespace PhysioAssist.Api.Shared.Interfaces.Scheduling;
 
 public interface IPatientTimePreferenceParser
 {

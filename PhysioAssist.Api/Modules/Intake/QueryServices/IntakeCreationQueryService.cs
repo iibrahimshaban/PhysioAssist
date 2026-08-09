@@ -2,6 +2,8 @@
 using PhysioAssist.Api.Modules.Intake.Entities;
 using PhysioAssist.Api.Modules.Intake.Errors;
 using PhysioAssist.Api.Modules.Intake.Helpers;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace PhysioAssist.Api.Modules.Intake.QueryServices;
@@ -38,7 +40,8 @@ public class IntakeCreationQueryService(ApplicationDbContext context) : IIntakeC
             FormSubmissionData = formSubmissionData,
             PainPointsData = painPointsData,
             Status = IntakeStatus.Pending,
-            SubmittedAt = DateTime.UtcNow
+            SubmittedAt = DateTime.UtcNow,
+            ShortCode = await GenerateUniqueFormShortCodeAsync(ct),
         };
 
         _context.PreVisitIntakes.Add(intake);
@@ -66,5 +69,27 @@ public class IntakeCreationQueryService(ApplicationDbContext context) : IIntakeC
     {
         try { return JsonSerializer.Deserialize<DynamicFormSchemaDto>(schemaJson, _jsonOptions); }
         catch (JsonException) { return null; }
+    }
+    private async Task<string> GenerateUniqueFormShortCodeAsync(CancellationToken cancellationToken)
+    {
+        string? shortCode;
+        do
+        {
+            shortCode = GenerateShortCode();
+        } while (await _context.PatientFormSchemas.AnyAsync(s => s.ShortCode == shortCode, cancellationToken));
+        return shortCode;
+    }
+    private static string GenerateShortCode(int length = 8)
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        using var rng = RandomNumberGenerator.Create();
+        byte[] data = new byte[length];
+        rng.GetBytes(data);
+        StringBuilder result = new(length);
+        foreach (byte b in data)
+        {
+            result.Append(chars[b % chars.Length]);
+        }
+        return result.ToString();
     }
 }

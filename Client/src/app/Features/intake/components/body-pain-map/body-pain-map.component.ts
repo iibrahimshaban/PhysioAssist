@@ -29,19 +29,8 @@ export interface PainRegionSelection {
   severity: number; // 1-10
 }
 
-export const PATIENT_CATEGORY_OPTIONS = [
-  'Orthopedic',
-  'Neurological',
-  'Pediatric',
-  'General / Other',
-] as const;
-
-export type PatientCategory = (typeof PATIENT_CATEGORY_OPTIONS)[number];
-
 export interface BodyPainMapPayload {
   regions: PainRegionSelection[];
-  chiefComplaint: string;
-  patientCategory: PatientCategory | '';
 }
 
 const FRONT_REGIONS: BodyRegionDef[] = [
@@ -117,7 +106,6 @@ export class BodyPainMapComponent {
    *  and shown disabled while readOnly=true. */
   @Input() showDoctorFields = false;
 
-  readonly patientCategoryOptions = PATIENT_CATEGORY_OPTIONS;
 
   /** Pre-fills selections + chief complaint + category from a previously stored
    *  payload (e.g. re-hydrating from PainPointsData for the submission detail page). */
@@ -129,23 +117,17 @@ export class BodyPainMapComponent {
       map.set(region.id, region);
     }
     this.selectionsMap.set(map);
-    this.chiefComplaint.set(value.chiefComplaint ?? '');
-    this.patientCategory.set(value.patientCategory ?? '');
   }
 
   readonly frontRegions = FRONT_REGIONS;
   readonly backRegions = BACK_REGIONS;
 
   private readonly selectionsMap = signal<Map<string, PainRegionSelection>>(new Map());
-  readonly chiefComplaint = signal('');
-  readonly patientCategory = signal<PatientCategory | ''>('');
 
   readonly selectedList = computed(() => Array.from(this.selectionsMap().values()));
   readonly hasSelections = computed(() => this.selectionsMap().size > 0);
   readonly payload = computed<BodyPainMapPayload>(() => ({
     regions: this.selectedList(),
-    chiefComplaint: this.chiefComplaint(),
-    patientCategory: this.patientCategory(),
   }));
 
   isSelected(id: string): boolean {
@@ -189,22 +171,6 @@ export class BodyPainMapComponent {
     this.selectionsMap.set(next);
     this.emitChange();
   }
-
-  onChiefComplaintInput(value: string): void {
-    if (this.readOnly) return;
-
-    this.chiefComplaint.set(value);
-    this.emitChange();
-  }
-
-  onPatientCategoryChange(value: string): void {
-    if (this.readOnly) return;
-
-    this.patientCategory.set(value as PatientCategory | '');
-    this.emitChange();
-  }
-
-
 
   severityClass(v: number): string {
     if (v <= 3) return 'text-[var(--color-success-text)]';

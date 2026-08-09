@@ -177,7 +177,9 @@ public static class DependancyInjection
             ?? throw new InvalidOperationException("Default connection string is not found");
 
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(connectionString));
+            options.UseSqlServer(connectionString)
+            .EnableSensitiveDataLogging()
+            .LogTo(Console.WriteLine, LogLevel.Information));
 
         return services;
     }

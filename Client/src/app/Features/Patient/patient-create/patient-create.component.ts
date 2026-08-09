@@ -119,8 +119,8 @@ export class PatientCreateComponent implements OnInit {
     this.errorMessage = null;
 
     // Only send pain points if the doctor actually marked at least one region —
-    // an empty { regions: [], chiefComplaint: '', patientCategory: '' } is not
-    // meaningfully different from "no pain data" and shouldn't be persisted as such.
+    // an empty { regions: [] } isn't meaningfully different from "no pain data"
+    // and shouldn't be persisted as such.
     const painPointsData =
       this.pendingPainMap && this.pendingPainMap.regions.length > 0
         ? JSON.stringify(this.pendingPainMap)
@@ -137,7 +137,7 @@ export class PatientCreateComponent implements OnInit {
       .subscribe({
         next: (result) => {
           this.isSubmitting = false;
-          this.router.navigate(['/app/patients', result.patientId, 'overview']);
+          this.router.navigate(['/app/initial-report', result.patientId]);
         },
         error: (err) => {
           console.error(err);

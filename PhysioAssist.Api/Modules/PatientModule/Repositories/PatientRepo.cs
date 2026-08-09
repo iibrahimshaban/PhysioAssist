@@ -1,5 +1,6 @@
 ﻿using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Persistence;
+using static QRCoder.PayloadGenerator;
 
 namespace PhysioAssist.Api.Modules.PatientModule.Repositories
 {
@@ -34,7 +35,9 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
 
         public async Task<Patient?> GetByEmailAsync(string email)
         {
-            return await _context.Patients.FirstOrDefaultAsync(p => p.EmailAddress == email);
+            return await _context.Patients
+                .Include(p => p.PreferredTimeSlots)
+                .FirstOrDefaultAsync(p => p.EmailAddress == email);
         }
 
         public async Task<Patient?> GetByPhoneAsync(string phoneNumber)
@@ -59,6 +62,12 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
                 .Where(dp => dp.DoctorId == doctorId)
                 .Select(dp => dp.Patient)
                 .ToListAsync(cancellation);
+        }
+        public async Task<Patient?> GetByPatientWithFreeTimeSlotsAsync(Guid patientId, CancellationToken cancellation)
+        {
+            return await _context.Patients
+                .Include(p => p.PreferredTimeSlots)
+                .FirstOrDefaultAsync(p => p.Id == patientId, cancellation);
         }
     }
 }

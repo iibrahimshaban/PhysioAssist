@@ -2,7 +2,6 @@
 
 public sealed record PatientTimePreferenceInfo(
     RelativeDayToken DayToken,
-    DaysOfWeekFlags PreferredWeekdays,
-    TimeOnly? PreferredTimeFrom,
-    TimeOnly? PreferredTimeTo
+    DateOnly? ExplicitDate,
+    List<PatientPreferredTimeGroupDto> Groups
     );

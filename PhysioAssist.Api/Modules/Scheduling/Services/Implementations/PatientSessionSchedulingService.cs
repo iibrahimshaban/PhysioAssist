@@ -1,9 +1,11 @@
-﻿using PhysioAssist.Api.Modules.PatientModule.Entities;
+﻿using PhysioAssist.Api.Modules.Auth.Entities;
+using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.Scheduling.DTO;
 using PhysioAssist.Api.Modules.Scheduling.Entities;
 using PhysioAssist.Api.Modules.Scheduling.Errors;
 using PhysioAssist.Api.Modules.Scheduling.helpers;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Shared.Dtos.Patient;
 using PhysioAssist.Api.Shared.Dtos.Schedule;
 
 
@@ -172,31 +174,39 @@ public class PatientSessionSchedulingService(
         DaysOfWeekFlags preferredDays = DaysOfWeekFlags.None;
 
         var patientPreferenceResult = await _patientQueryService.ResolvePatientTimePreferenceAsync(
-            package.PatientId, patientFreeTimeOverride, persistFreeTimeOverride, cancellationToken);
+             package.PatientId, patientFreeTimeOverride, persistFreeTimeOverride, cancellationToken);
 
-        if (patientPreferenceResult.IsSuccess)
-        {
-            preferredFrom = patientPreferenceResult.Value.PreferredTimeFrom;
-            preferredTo = patientPreferenceResult.Value.PreferredTimeTo;
-            preferredDays = patientPreferenceResult.Value.PreferredWeekdays;
-        }
-
+        var groups = patientPreferenceResult is { IsSuccess: true, Value.Groups.Count: > 0 }
+            ? patientPreferenceResult.Value.Groups
+            : [new PatientPreferredTimeGroupDto()];
 
         var from = new DateTimeOffset(minDate.ToDateTime(TimeOnly.MinValue), EgyptOffset);
         var to = new DateTimeOffset(weekEnd.ToDateTime(TimeOnly.MaxValue), EgyptOffset);
 
-        var slotsResult = await _recommendationService.GetRecommendedSlotsAsync(
-            package.DoctorId, sessionDuration, from, to, preferredFrom, preferredTo, cancellationToken);
+        var merged = new Dictionary<DateTimeOffset, SlotCandidateDto>();
 
-        if (slotsResult.IsFailure)
-            return Result.Failure<SessionBookingRoundDto>(slotsResult.Error);
+        foreach (var group in groups)
+        {
+            var slotsResult = await _recommendationService.GetRecommendedSlotsAsync(
+                package.DoctorId, sessionDuration, from, to, group.TimeFrom, group.TimeTo, cancellationToken);
 
-        var candidates = slotsResult.Value.AsEnumerable();
+            if (slotsResult.IsFailure)
+                return Result.Failure<SessionBookingRoundDto>(slotsResult.Error);
 
-        if (preferredDays != DaysOfWeekFlags.None)
-            candidates = candidates.Where(c => MatchesPreferredDays(c.Start.DayOfWeek, preferredDays));
+            IEnumerable<SlotCandidateDto> groupCandidates = slotsResult.Value;
 
-        var topCandidates = candidates.Take(CandidatesPerSession).ToList();
+            if (group.Weekdays != DaysOfWeekFlags.None)
+                groupCandidates = groupCandidates.Where(c => MatchesPreferredDays(c.Start.DayOfWeek, group.Weekdays));
+
+            foreach (var candidate in groupCandidates)
+                merged.TryAdd(candidate.Start, candidate);
+        }
+
+        var topCandidates = merged.Values
+            .OrderByDescending(c => c.Score)
+            .ThenBy(c => c.Start)
+            .Take(CandidatesPerSession)
+            .ToList();
 
         return Result.Success(BuildRound(package, sessionNumber, weeklyTargetCount, scheduledThisWeek,
             weekStart, weekEnd, quotaMet: false, noRoom: topCandidates.Count == 0, candidates: topCandidates,
@@ -318,55 +328,56 @@ public class PatientSessionSchedulingService(
         string? patientFreeTimeOverride = null,
         CancellationToken cancellationToken = default)
     {
-
         var preferenceResult = await _patientQueryService.ResolvePatientTimePreferenceAsync(
-            patientId, patientFreeTimeOverride, persistOverride : false, cancellationToken);
+            patientId, patientFreeTimeOverride, persistOverride: false, cancellationToken);
 
         if (preferenceResult.IsFailure)
             return Result.Failure<IReadOnlyList<SlotCandidateDto>>(preferenceResult.Error);
 
         var preference = preferenceResult.Value;
-
         var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(EgyptOffset).Date);
 
+        // Date-range resolution only needs to know WHICH days are in play at all —
+        // not their individual time ranges — so union every group's weekdays for this call.
+        var allWeekdays = preference.Groups.Aggregate(DaysOfWeekFlags.None, (acc, g) => acc | g.Weekdays);
+
         var (rangeStart, rangeEnd) = TimePreferenceResolver.ResolveDateRange(
-            new PatientTimePreferenceDto
-            {
-                DayToken = preference.DayToken,
-                PreferredWeekdays = preference.PreferredWeekdays, // NEW — was missing
-                PreferredTimeFrom = preference.PreferredTimeFrom,
-                PreferredTimeTo = preference.PreferredTimeTo
-            },
-            today);
+            preference.DayToken, preference.ExplicitDate, allWeekdays, today);
 
         var from = new DateTimeOffset(rangeStart.ToDateTime(TimeOnly.MinValue), EgyptOffset);
         var to = new DateTimeOffset(rangeEnd.ToDateTime(TimeOnly.MaxValue), EgyptOffset);
 
-        var slotsResult = await _recommendationService.GetRecommendedSlotsAsync(
-            doctorId,
-            requestedDuration,
-            from,
-            to,
-            preference.PreferredTimeFrom,
-            preference.PreferredTimeTo,
-            cancellationToken);
+        // Each group is its own preference window (its own days + optionally its own time
+        // range) — a single preferredFrom/preferredTo pair can't represent "Saturday 2-6pm,
+        // Sunday 9am-1pm" any more, so query/filter once per group and merge the results.
+        var groupsToQuery = preference.Groups.Count > 0
+            ? preference.Groups
+            : [new PatientPreferredTimeGroupDto()]; // no preference at all — one unrestricted pass
 
-        if (slotsResult.IsFailure)
-            return Result.Failure<IReadOnlyList<SlotCandidateDto>>(slotsResult.Error);
+        var merged = new Dictionary<DateTimeOffset, SlotCandidateDto>();
 
-        IEnumerable<SlotCandidateDto> candidates = slotsResult.Value;
-
-        // Same pattern as GetNextSessionCandidatesAsync's PreferredDays filter below —
-        // narrow the already-ranked list post-fetch, since the recommendation service
-        // has no concept of weekday filtering.
-        if (preference.DayToken == RelativeDayToken.SpecificWeekdays
-            && preference.PreferredWeekdays != DaysOfWeekFlags.None)
+        foreach (var group in groupsToQuery)
         {
-            candidates = candidates.Where(c => MatchesPreferredDays(c.Start.DayOfWeek, preference.PreferredWeekdays));
+            var slotsResult = await _recommendationService.GetRecommendedSlotsAsync(
+                doctorId, requestedDuration, from, to, group.TimeFrom, group.TimeTo, cancellationToken);
+
+            if (slotsResult.IsFailure)
+                return Result.Failure<IReadOnlyList<SlotCandidateDto>>(slotsResult.Error);
+
+            IEnumerable<SlotCandidateDto> groupCandidates = slotsResult.Value;
+
+            if (group.Weekdays != DaysOfWeekFlags.None)
+                groupCandidates = groupCandidates.Where(c => MatchesPreferredDays(c.Start.DayOfWeek, group.Weekdays));
+
+            foreach (var candidate in groupCandidates)
+                merged.TryAdd(candidate.Start, candidate);
         }
 
-        // Already ranked by Score desc, Start asc — just take the top N for the frontend cards.
-        var topSlots = candidates.Take(topN).ToList();
+        var topSlots = merged.Values
+            .OrderByDescending(c => c.Score)
+            .ThenBy(c => c.Start)
+            .Take(topN)
+            .ToList();
 
         return Result.Success<IReadOnlyList<SlotCandidateDto>>(topSlots);
     }

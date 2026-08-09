@@ -183,6 +183,16 @@
           </div>
           <p class="quick-add-hint">Click a preset to add it to the selected group below, or type a custom question.</p>
 
+          @if (editingSectionIndex() !== null && editingGroupIndex() !== null) {
+            <div class="quick-add-target">
+              <i class="pi pi-arrow-right"></i>
+              <span>Adding to: <strong>{{ formSchema().sections[editingSectionIndex()!]?.groups[editingGroupIndex()!]?.title }}</strong></span>
+              <button type="button" class="quick-add-target-clear" (click)="editingSectionIndex.set(null); editingGroupIndex.set(null)">
+                Change
+              </button>
+            </div>
+          }
+
           <div class="quick-add-custom">
             <input
               type="text"
@@ -191,12 +201,12 @@
               (ngModelChange)="customQuestionText.set($event)"
               placeholder="Type a custom question..."
               class="w-full"
-              (keyup.enter)="addQuestionToFirstAvailableGroup()" />
+              (keyup.enter)="requestAddQuestion()" />
             <button
               type="button"
               class="quick-add-custom-btn"
               [disabled]="!customQuestionText().trim()"
-              (click)="addQuestionToFirstAvailableGroup()"
+              (click)="requestAddQuestion()"
               pTooltip="Add custom question">
               <i class="pi pi-plus"></i>
             </button>
@@ -219,9 +229,41 @@
           @if (selectedPreset()) {
             <div class="preset-actions">
               <span class="preset-actions-label">Selected: <strong>{{ selectedPreset()?.label }}</strong></span>
-              <button type="button" class="wizard-btn-sm" (click)="addPresetToFirstAvailableGroup()">
+              <button type="button" class="wizard-btn-sm" (click)="requestAddQuestion()">
                 <i class="pi pi-plus"></i> Add to Form
               </button>
+            </div>
+          }
+
+          @if (showGroupPicker()) {
+            <div class="group-picker">
+              <div class="group-picker-header">
+                <span>Add to which group?</span>
+                <button type="button" class="build-icon-btn" (click)="closeGroupPicker()" pTooltip="Cancel">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+              <div class="group-picker-list">
+                @for (target of groupTargets(); track target.sectionIndex + '-' + target.groupIndex) {
+                  <button
+                    type="button"
+                    class="group-picker-item"
+                    (click)="addToPickedGroup(target.sectionIndex, target.groupIndex)">
+                    @if (target.locked) {
+                      <i class="pi pi-shield text-blue-500"></i>
+                    } @else {
+                      <i class="pi pi-th-large text-blue-500"></i>
+                    }
+                    <span class="group-picker-item-text">
+                      <strong>{{ target.groupTitle }}</strong>
+                      <small>
+                        {{ target.sectionTitle }} · {{ target.questionCount }} question{{ target.questionCount !== 1 ? 's' : '' }}
+                        @if (target.hidden) { · <i class="pi pi-eye-slash"></i> hidden from patient }
+                      </small>
+                    </span>
+                  </button>
+                }
+              </div>
             </div>
           }
         </div>
@@ -308,6 +350,11 @@
                             <span class="build-group-title">{{ group.title }}</span>
                             <span class="build-section-count">{{ group.questions.length }} question{{ group.questions.length !== 1 ? 's' : '' }}</span>
                           }
+                          @if (group.hiddenFromPatient) {
+                            <span class="build-hidden-badge" pTooltip="Doctor-only group — hidden from patient" tooltipPosition="top">
+                              <i class="pi pi-eye-slash text-[10px]"></i>
+                            </span>
+                          }
                         </div>
                         @if (!group.isLocked) {
                           <div class="build-section-actions">
@@ -319,6 +366,18 @@
                             </button>
                           </div>
                         }
+                      </div>
+
+                      <div class="build-group-visibility">
+                        <p-checkbox
+                          [ngModel]="group.hiddenFromPatient ?? false"
+                          (ngModelChange)="toggleGroupVisibility(si, gi, $event)"
+                          [binary]="true"
+                          [inputId]="'hide-' + section.sectionId + '-' + group.groupId">
+                        </p-checkbox>
+                        <label [for]="'hide-' + section.sectionId + '-' + group.groupId" class="build-visibility-label">
+                          Hidden from patient (doctor/staff only)
+                        </label>
                       </div>
 
                       <!-- Questions in group -->
@@ -342,7 +401,7 @@
                           </div>
                         }
 
-                        @if (!group.isLocked) {
+                        @if (canAddQuestionInline(group)) {
                           <button type="button" class="build-add-question-btn" (click)="showQuickAddForGroup(si, gi)">
                             <i class="pi pi-plus"></i>
                             Add Question
