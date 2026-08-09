@@ -1,75 +1,361 @@
 <app-header></app-header>
-<div class="min-h-screen bg-gray-50">
 
-  <!-- Hero -->
-  <div class="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
+<div class="landing">
 
-    <div class="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-600 text-xs font-semibold px-4 py-1.5 rounded-full mb-6">
-      <i class="pi pi-star-fill text-xs"></i>
-      Built for solo physiotherapists in Egypt
-    </div>
+  <main>
 
-    <h1 class="text-5xl font-bold text-gray-900 leading-tight mb-6">
-      Run your clinic<br>
-      <span style="-webkit-background-clip: text; -webkit-text-fill-color: transparent;
-                   background-image: linear-gradient(135deg, #1a7fd4, #0eb8a0);">
-        with one hand.
-      </span>
-    </h1>
-
-    <p class="text-gray-500 text-lg max-w-xl mx-auto mb-10 leading-relaxed">
-      Voice-first session notes, AI-assisted documentation, and instant patient summaries —
-      all in one place.
-    </p>
-
-    <div class="flex items-center justify-center gap-4">
-      <a routerLink="/auth/register"
-         class="px-6 py-3 rounded-xl text-white font-semibold text-sm no-underline transition-opacity hover:opacity-90"
-         style="background: linear-gradient(135deg, #1a7fd4, #0eb8a0)">
-        Start for free
-      </a>
-      <a routerLink="/auth/login"
-         class="px-6 py-3 rounded-xl text-gray-700 font-semibold text-sm border border-gray-200 bg-white no-underline hover:bg-gray-50 transition-colors">
-        Sign in
-      </a>
-    </div>
-
-  </div>
-
-  <!-- Feature cards -->
-  <div class="max-w-4xl mx-auto px-6 pb-24 grid grid-cols-1 sm:grid-cols-3 gap-5">
-
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-      <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
-        <i class="pi pi-microphone text-blue-600"></i>
+    <!-- ============ 2 & 3 & 4. HERO ============ -->
+    <section class="hero">
+      <div class="hero__pulse-line" aria-hidden="true">
+        <svg viewBox="0 0 800 80" preserveAspectRatio="none">
+          <polyline points="0,40 140,40 165,10 190,70 215,40 800,40" />
+        </svg>
       </div>
-      <h3 class="font-semibold text-gray-900 mb-1">Voice Transcription</h3>
-      <p class="text-sm text-gray-500 leading-relaxed">
-        Dictate session notes in Egyptian Arabic or English — transcribed instantly.
-      </p>
-    </div>
 
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-      <div class="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center mb-4">
-        <i class="pi pi-bolt text-teal-600"></i>
+      <div class="hero__inner">
+        <div class="hero__copy" #revealEl>
+          <span class="eyebrow">
+            <i class="pi pi-map-marker" aria-hidden="true"></i>
+            Built for solo physiotherapists in Egypt
+          </span>
+
+          <h1 class="hero__title">
+            Run your clinic.<br />
+            <span class="text-gradient">Smarter. Simpler.</span>
+          </h1>
+
+          <p class="hero__subtitle">
+            Manage patients, appointments, treatment sessions and clinical
+            documentation from one intelligent platform &mdash; with AI that
+            listens, writes and organizes alongside you.
+          </p>
+
+          <div class="hero__actions">
+            <a routerLink="/auth/register" class="btn btn--primary btn--lg">
+              Start for free
+              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            </a>
+            <a href="#features" class="btn btn--outline btn--lg">
+              <i class="pi pi-play" aria-hidden="true"></i>
+              Explore features
+            </a>
+          </div>
+        </div>
+
+        <!-- Hero product visualization -->
+        <div class="hero__visual" #revealEl>
+          <div class="dashboard-card">
+            <div class="dashboard-card__header">
+              <span class="dashboard-card__title">Today's Schedule</span>
+              <span class="ai-orb" aria-hidden="true">
+                <i class="pi pi-sparkles"></i>
+                <span class="ai-orb__dots"><i></i><i></i><i></i></span>
+              </span>
+            </div>
+            <ul class="dashboard-card__list">
+              <li><span class="time">09:00</span><span class="who">Ahmed</span><span class="tag tag--booked">Booked</span></li>
+              <li><span class="time">10:00</span><span class="who">Sara</span><span class="tag tag--booked">Booked</span></li>
+              <li><span class="time">11:00</span><span class="who text-muted">Available</span><span class="tag tag--open">Open</span></li>
+              <li><span class="time">12:00</span><span class="who">Mohamed</span><span class="tag tag--booked">Booked</span></li>
+            </ul>
+          </div>
+
+          <div class="float-card float-card--ai" aria-hidden="true">
+            <span class="float-card__icon"><i class="pi pi-sparkles"></i></span>
+            <div>
+              <p class="float-card__label">AI Assistant</p>
+              <p class="float-card__value"><i class="pi pi-check-circle"></i> Session summary generated</p>
+            </div>
+          </div>
+
+          <div class="float-card float-card--patient" aria-hidden="true">
+            <span class="float-card__icon float-card__icon--teal"><i class="pi pi-user"></i></span>
+            <div>
+              <p class="float-card__label">Ahmed Mohamed</p>
+              <p class="float-card__value">8 sessions</p>
+            </div>
+          </div>
+
+          <div class="float-card float-card--voice" aria-hidden="true">
+            <span class="pulse-dot"></span>
+            <div>
+              <p class="float-card__label">Voice Transcription</p>
+              <p class="float-card__value">Listening&hellip;</p>
+            </div>
+          </div>
+        </div>
       </div>
-      <h3 class="font-semibold text-gray-900 mb-1">AI Autocomplete</h3>
-      <p class="text-sm text-gray-500 leading-relaxed">
-        Smart suggestions for reports and treatment plans based on patient history.
-      </p>
-    </div>
+    </section>
 
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-      <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center mb-4">
-        <i class="pi pi-users text-purple-600"></i>
+    <!-- ============ 5. TRUST STRIP ============ -->
+    <section class="trust-strip" #revealEl>
+      <p class="trust-strip__label">Built for modern physiotherapy clinics</p>
+      <ul class="trust-strip__list">
+        <li><i class="pi pi-check" aria-hidden="true"></i> Patient Management</li>
+        <li><i class="pi pi-check" aria-hidden="true"></i> AI Documentation</li>
+        <li><i class="pi pi-check" aria-hidden="true"></i> Smart Scheduling</li>
+        <li><i class="pi pi-check" aria-hidden="true"></i> Session Tracking</li>
+      </ul>
+    </section>
+
+    <!-- ============ 6. CORE FEATURES ============ -->
+    <section class="section features" id="features">
+      <div class="section__head" #revealEl>
+        <h2 class="section__title">Everything your clinic needs.<br />Nothing you don't.</h2>
       </div>
-      <h3 class="font-semibold text-gray-900 mb-1">Patient Management</h3>
-      <p class="text-sm text-gray-500 leading-relaxed">
-        Full patient profiles, session history, and instant QR code access.
-      </p>
+
+      <div class="feature-grid">
+        <article class="feature-card" *ngFor="let f of features" #revealEl>
+          <span class="feature-card__icon"><i class="pi" [class]="f.icon"></i></span>
+          <h3>{{ f.title }}</h3>
+          <p>{{ f.description }}</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ 7 & 8. AI SECTION ============ -->
+    <section class="section ai-section" id="ai-assistant">
+      <div class="section__head" #revealEl>
+        <h2 class="section__title">
+          AI that works <span class="text-gradient">with you</span>,<br />not instead of you.
+        </h2>
+        <p class="section__lead">
+          PhysioAssist uses AI to reduce repetitive work while keeping the
+          physiotherapist in full control of every clinical decision.
+        </p>
+      </div>
+
+      <div class="ai-steps" #revealEl>
+        <div class="ai-step">
+          <span class="ai-step__num">01</span>
+          <h3>Capture</h3>
+          <p>Voice, forms and patient information</p>
+        </div>
+        <div class="ai-step__connector" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="ai-step">
+          <span class="ai-step__num">02</span>
+          <h3>Understand</h3>
+          <p>AI analyzes and organizes the information</p>
+        </div>
+        <div class="ai-step__connector" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="ai-step">
+          <span class="ai-step__num">03</span>
+          <h3>Assist</h3>
+          <p>Generate summaries, suggestions and smarter workflows</p>
+        </div>
+      </div>
+
+      <!-- Voice -> AI visualization -->
+      <div class="voice-demo" #revealEl>
+        <div class="voice-demo__panel voice-demo__panel--voice">
+          <div class="voice-demo__header">
+            <i class="pi pi-microphone" aria-hidden="true"></i>
+            Doctor speaking
+          </div>
+          <p class="voice-demo__quote">
+            "Patient reports reduced pain in the right knee after the previous session..."
+          </p>
+          <div class="waveform" aria-hidden="true">
+            <span *ngFor="let bar of [1,2,3,4,5,6,7,8,9,10,11,12]"></span>
+          </div>
+        </div>
+
+        <div class="voice-demo__arrow" aria-hidden="true"><i class="pi pi-arrow-right"></i></div>
+
+        <div class="voice-demo__panel voice-demo__panel--summary">
+          <div class="voice-demo__header">
+            <i class="pi pi-sparkles" aria-hidden="true"></i>
+            AI Session Summary
+          </div>
+          <ul class="voice-demo__checklist">
+            <li><i class="pi pi-check-circle" aria-hidden="true"></i> Pain reduced</li>
+            <li><i class="pi pi-check-circle" aria-hidden="true"></i> Mobility improved</li>
+            <li><i class="pi pi-check-circle" aria-hidden="true"></i> Continue current exercises</li>
+          </ul>
+          <p class="voice-demo__next">
+            <span>Suggested next step</span>
+            Review after next session
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 9. SMART SCHEDULING ============ -->
+    <section class="section scheduling" id="scheduling">
+      <div class="section__head" #revealEl>
+        <h2 class="section__title">Scheduling that understands both sides.</h2>
+        <p class="section__lead">
+          PhysioAssist compares patient availability with doctor availability
+          to suggest the best possible appointment time.
+        </p>
+      </div>
+
+      <div class="scheduling-demo" data-match #revealEl>
+        <div class="scheduling-demo__col">
+          <h3><i class="pi pi-user" aria-hidden="true"></i> Patient availability</h3>
+          <ul class="avail-list">
+            <li><span>Saturday</span><span>3 PM &ndash; 6 PM</span></li>
+            <li><span>Sunday</span><span>4 PM &ndash; 8 PM</span></li>
+            <li><span>Monday</span><span>5 PM &ndash; 7 PM</span></li>
+          </ul>
+        </div>
+
+        <div class="scheduling-demo__col">
+          <h3><i class="pi pi-verified" aria-hidden="true"></i> Doctor availability</h3>
+          <ul class="avail-list">
+            <li><span>Sunday</span><span>5 PM &ndash; 11 PM</span></li>
+          </ul>
+        </div>
+
+        <div class="scheduling-demo__match" [class.is-revealed]="matchRevealed()">
+          <span class="scheduling-demo__match-label">
+            <i class="pi pi-sparkles" aria-hidden="true"></i> Best match
+          </span>
+          <p class="scheduling-demo__match-time">Sunday, 5:00 &ndash; 6:00 PM</p>
+          <span class="scheduling-demo__match-score">92% match</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 10. PATIENT JOURNEY ============ -->
+    <section class="section journey" id="for-physios">
+      <div class="section__head" #revealEl>
+        <h2 class="section__title">One connected patient journey.</h2>
+        <p class="section__lead">
+          From the first visit to long-term history, every step feeds the next
+          &mdash; no re-entering data, no lost context.
+        </p>
+      </div>
+
+      <ol class="journey-timeline" #revealEl>
+        <li *ngFor="let step of journey; let last = last">
+          <span class="journey-timeline__icon"><i class="pi" [class]="step.icon"></i></span>
+          <span class="journey-timeline__label">{{ step.label }}</span>
+          <span class="journey-timeline__arrow" *ngIf="!last" aria-hidden="true"><i class="pi pi-arrow-right"></i></span>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ============ 11. CLINIC MANAGEMENT ============ -->
+    <section class="section clinic-overview">
+      <div class="section__head" #revealEl>
+        <h2 class="section__title">See your whole clinic, at a glance.</h2>
+        <p class="section__lead">A live-feeling overview of patients, appointments and what's next &mdash; illustrative preview data shown below.</p>
+      </div>
+
+      <div class="overview-card" data-stats #revealEl>
+        <div class="overview-card__stats">
+          <div class="stat">
+            <span class="stat__value">{{ patientsCount() }}</span>
+            <span class="stat__label">Patients</span>
+          </div>
+          <div class="stat">
+            <span class="stat__value">{{ appointmentsCount() }}</span>
+            <span class="stat__label">Appointments</span>
+          </div>
+          <div class="stat">
+            <span class="stat__value">{{ completedCount() }}</span>
+            <span class="stat__label">Completed</span>
+          </div>
+          <div class="stat">
+            <span class="stat__value">{{ upcomingCount() }}</span>
+            <span class="stat__label">Upcoming</span>
+          </div>
+        </div>
+
+        <div class="overview-card__next">
+          <span class="overview-card__next-label">Next appointment</span>
+          <div class="overview-card__next-row">
+            <span class="overview-card__next-avatar"><i class="pi pi-user"></i></span>
+            <div>
+              <p class="overview-card__next-name">Ahmed Mohamed</p>
+              <p class="overview-card__next-meta">5:30 PM &middot; 60 min</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 12. WHY PHYSIOASSIST ============ -->
+    <section class="section why">
+      <div class="section__head" #revealEl>
+        <h2 class="section__title">Why physiotherapists choose PhysioAssist</h2>
+      </div>
+
+      <div class="why-grid" #revealEl>
+        <div class="why-card">
+          <i class="pi pi-file" aria-hidden="true"></i>
+          <h3>Less paperwork</h3>
+        </div>
+        <div class="why-card">
+          <i class="pi pi-folder-open" aria-hidden="true"></i>
+          <h3>More organized care</h3>
+        </div>
+        <div class="why-card">
+          <i class="pi pi-bolt" aria-hidden="true"></i>
+          <h3>Faster documentation</h3>
+        </div>
+        <div class="why-card">
+          <i class="pi pi-sitemap" aria-hidden="true"></i>
+          <h3>Smarter clinic workflows</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 13. CTA ============ -->
+    <section class="cta" #revealEl>
+      <h2>Spend less time managing your clinic.<br />Spend more time caring for your patients.</h2>
+      <div class="cta__actions">
+        <a routerLink="/auth/register" class="btn btn--surface btn--lg">Start for free</a>
+        <a routerLink="/auth/login" class="btn btn--ghost-inverse btn--lg">Sign in</a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ 14. FOOTER ============ -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="footer-brand">
+          <span  aria-hidden="true"> <img src="assets/icons/logo.svg" width="24" height="24" alt="PhysioAssist logo" /></span>
+          PhysioAssist
+        </span>
+        <p>AI-powered clinic management for physiotherapists.</p>
+      </div>
+
+      <div class="footer__col">
+        <h4>Product</h4>
+        <a href="#features">Features</a>
+        <a href="#ai-assistant">AI Assistant</a>
+        <a href="#scheduling">Scheduling</a>
+      </div>
+
+      <div class="footer__col">
+        <h4>Company</h4>
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+      </div>
+
+      <div class="footer__col">
+        <h4>Legal</h4>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
     </div>
 
-  </div>
+    <p class="footer__copyright">&copy; 2026 PhysioAssist. All rights reserved.</p>
+  </footer>
+
+  <button
+    type="button"
+    class="back-to-top"
+    [class.is-visible]="showBackToTop()"
+    (click)="scrollToTop()"
+    aria-label="Back to top"
+  >
+    <i class="pi pi-arrow-up" aria-hidden="true"></i>
+  </button>
 
 </div>
 
@@ -77,5 +363,3 @@
   <app-ask-asi-button></app-ask-asi-button>
   <app-ask-asi-panel></app-ask-asi-panel>
 </ng-container>
-
-
