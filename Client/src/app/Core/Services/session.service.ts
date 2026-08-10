@@ -1,8 +1,8 @@
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment.development';
 import { SessionDetailsResponse } from '../../Shared/Models/session-details-response';
 import { Suggestion } from '../../Shared/Models/suggestion';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
