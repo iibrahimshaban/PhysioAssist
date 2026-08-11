@@ -8,7 +8,11 @@
       <i class="pi pi-paperclip icon-gradient mr-2"></i>
       ATTACHMENTS
     </span>
-    <i class="pi" [class.pi-chevron-up]="isOpen()" [class.pi-chevron-down]="!isOpen()"></i>
+    <i
+      class="pi cursor-pointer"
+      [class.pi-chevron-up]="isOpen()"
+      [class.pi-chevron-down]="!isOpen()"
+    ></i>
   </button>
 
   @if (isOpen()) {
