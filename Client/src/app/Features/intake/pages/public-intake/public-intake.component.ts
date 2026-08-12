@@ -95,7 +95,7 @@ export class PublicIntakeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const token = params.get('token');
       this.loadForm(token);
     });
