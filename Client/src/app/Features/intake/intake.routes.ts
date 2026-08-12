@@ -62,12 +62,5 @@ export const intakeRoutes: Routes = [
 ];
 
 export const publicIntakeRoutes: Routes = [
-  {
-    path: 'intake/:token',
-    component: PublicIntakeComponent
-  },
-  {
-    path: ':token',
-    component: PublicIntakeComponent
-  }
+  { path: 'intake', component: PublicIntakeComponent }
 ];
