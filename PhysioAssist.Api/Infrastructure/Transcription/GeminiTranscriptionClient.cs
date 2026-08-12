@@ -92,14 +92,41 @@ public sealed class GeminiTranscriptionClient : IAudioTranscriptionService
         }
 
         var json = await response.Content.ReadAsStringAsync(cancellationToken);
-
         using var doc = JsonDocument.Parse(json);
-        var text = doc.RootElement
-            .GetProperty("candidates")[0]
-            .GetProperty("content")
-            .GetProperty("parts")[0]
-            .GetProperty("text")
-            .GetString();
+        var root = doc.RootElement;
+
+        // Check for a top-level block (safety filter, no candidates generated at all)
+        if (root.TryGetProperty("promptFeedback", out var promptFeedback)
+            && promptFeedback.TryGetProperty("blockReason", out var blockReason))
+        {
+            return Result.Failure<TranscriptionResult>(
+                new Error("Transcription.Blocked",
+                    $"Gemini blocked the request: {blockReason.GetString()}",
+                    StatusCodes.Status502BadGateway));
+        }
+
+        if (!root.TryGetProperty("candidates", out var candidates) || candidates.GetArrayLength() == 0)
+        {
+            return Result.Failure<TranscriptionResult>(
+                new Error("Transcription.NoCandidates",
+                    $"Gemini returned no candidates. Raw response: {json}",
+                    StatusCodes.Status502BadGateway));
+        }
+
+        var candidate = candidates[0];
+        var finishReason = candidate.TryGetProperty("finishReason", out var fr) ? fr.GetString() : "UNKNOWN";
+
+        if (!candidate.TryGetProperty("content", out var content)
+            || !content.TryGetProperty("parts", out var parts)
+            || parts.GetArrayLength() == 0)
+        {
+            return Result.Failure<TranscriptionResult>(
+                new Error("Transcription.NoContent",
+                    $"Gemini returned no transcribable content. finishReason: {finishReason}",
+                    StatusCodes.Status502BadGateway));
+        }
+
+        var text = parts[0].TryGetProperty("text", out var textProp) ? textProp.GetString() : null;
 
         if (string.IsNullOrWhiteSpace(text))
             return Result.Failure<TranscriptionResult>(
