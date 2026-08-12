@@ -1,9 +1,10 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment.development';
 import { GuestService } from './guest.service';
 import { PatientResponse, GuestResponse, shortId } from '../../Features/Schedule/schedule.models';
+import { environment } from '../../../environments/environment';
+import { SKIP_ERROR_SNACKBAR } from '../Interceptors/skip-error-interceptor.token';
 
 const DOCTOR_PATIENTS_BASE = `${environment.apiUrl}DoctorPatientForSchedule`;
 
@@ -62,14 +63,20 @@ export class OwnerDirectoryService {
     await Promise.all([patientsPromise, guestsPromise]);
   }
 
-  private ensurePatientsLoaded(doctorId: string): Promise<void> {
+   private ensurePatientsLoaded(doctorId: string): Promise<void> {
     if (this.patientsLoadedForDoctor === doctorId) return Promise.resolve();
     if (this.patientsLoadingPromise) return this.patientsLoadingPromise;
 
     this.patientsLoadingPromise = firstValueFrom(
-      this.http.get<PatientResponse[]>(DOCTOR_PATIENTS_BASE)
+      this.http.get<PatientResponse[]>(DOCTOR_PATIENTS_BASE, {
+        context: new HttpContext().set(SKIP_ERROR_SNACKBAR, true),
+      })
     ).then(list => {
       this._patientsById.set(new Map(list.map(p => [p.id, p])));
+      this.patientsLoadedForDoctor = doctorId;
+    }).catch(() => {
+      // 404 = doctor has no patients yet; treat as an empty roster rather than a hard failure.
+      this._patientsById.set(new Map());
       this.patientsLoadedForDoctor = doctorId;
     }).finally(() => {
       this.patientsLoadingPromise = null;
