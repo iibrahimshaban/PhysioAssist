@@ -3,7 +3,9 @@
   @for (day of days(); track day.date.getTime()) {
     <div class="header-row__day" [class.header-row__day--today]="day.isToday">
       <span class="header-row__day-label">{{ day.label }}</span>
-      <span class="header-row__day-number">{{ day.dayNumber }}</span>
+      <span class="header-row__day-number" [class.header-row__day-number--today]="day.isToday">
+        {{ day.dayNumber }}
+      </span>
     </div>
   }
 </div>

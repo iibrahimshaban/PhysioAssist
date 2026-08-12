@@ -1,35 +1,77 @@
 <section class="ws-page">
   <header class="ws-page-header">
-    <div class="ws-title-row">
-      <h1>Working Schedule</h1>
-      @if (statusLabel(); as status) {
-        <span class="ws-status-badge" [class.ws-status-badge--active]="status === 'Active'">{{ status }}</span>
-      }
+    <div class="ws-header-text">
+      <h1>Working Hours</h1>
+      <p>Configure your weekly availability and appointment schedule.</p>
     </div>
-    <p>Set the days and hours you're available in the clinic.</p>
+
+    @if (statusLabel(); as status) {
+      <p-tag
+        [value]="status"
+        [severity]="status === 'Active' ? 'success' : 'secondary'"
+        [icon]="status === 'Active' ? 'pi pi-check-circle' : 'pi pi-pause-circle'"
+        styleClass="ws-status-tag"
+      />
+    }
   </header>
 
   @if (loading()) {
-    <div class="ws-card">
+    <div class="ws-card" aria-busy="true" aria-live="polite">
       @for (i of [1, 2, 3, 4]; track i) {
         <div class="ws-skeleton-row"></div>
       }
     </div>
   } @else {
-    <form class="ws-card" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <form class="ws-card" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
       <div class="ws-section">
-        <p class="ws-section-eyebrow">Quick Setup</p>
+        <div class="ws-section-heading">
+          <span class="ws-section-icon pi pi-sliders-h" aria-hidden="true"></span>
+          <div>
+            <p class="ws-section-title">Quick setup</p>
+            <p class="ws-section-hint">Apply a common pattern, then fine-tune any day below.</p>
+          </div>
+        </div>
+
         <div class="ws-presets">
-          <button type="button" class="ws-preset-btn" (click)="applyPreset('weekdays')">Weekdays, 9–5</button>
-          <button type="button" class="ws-preset-btn" (click)="applyPreset('everyday')">Every day, 9–5</button>
-          <button type="button" class="ws-preset-btn ws-preset-btn--ghost" (click)="applyPreset('clear')">
-            Clear all
-          </button>
+          <p-button
+            label="Weekdays, 9–5"
+            icon="pi pi-briefcase"
+            size="small"
+            [outlined]="true"
+            type="button"
+            (onClick)="applyPreset('weekdays')"
+          />
+          <p-button
+            label="Every day, 9–5"
+            icon="pi pi-calendar"
+            size="small"
+            [outlined]="true"
+            type="button"
+            (onClick)="applyPreset('everyday')"
+          />
+          <p-button
+            label="Clear all"
+            icon="pi pi-refresh"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            type="button"
+            (onClick)="applyPreset('clear')"
+          />
         </div>
       </div>
 
+      <p-divider />
+
       <div class="ws-section">
-        <p class="ws-section-eyebrow">Weekly Availability</p>
+        <div class="ws-section-heading">
+          <span class="ws-section-icon pi pi-clock" aria-hidden="true"></span>
+          <div>
+            <p class="ws-section-title">Weekly schedule</p>
+            <p class="ws-section-hint">Turn a day on to set the hours you're available.</p>
+          </div>
+        </div>
+
         <app-weekly-schedule-editor
           [weekDays]="weekDays"
           [daysArray]="daysArray"
@@ -37,25 +79,54 @@
         />
       </div>
 
-      <p class="ws-summary-line">{{ summaryLabel() }}</p>
+      <div class="ws-summary" role="status">
+        <span class="pi pi-info-circle" aria-hidden="true"></span>
+        <span>{{ summaryLabel() }}</span>
+      </div>
 
       <div class="ws-actions">
-        <button type="submit" class="ws-btn ws-btn-primary" [disabled]="saving() || processingAction()">
-          {{ saving() ? 'Saving…' : submitLabel() }}
-        </button>
+        <div class="ws-actions-status">
+          @if (form.dirty && !saving()) {
+            <span class="ws-unsaved-indicator">
+              <span class="ws-unsaved-dot" aria-hidden="true"></span>
+              Unsaved changes
+            </span>
+          }
+        </div>
 
-        @if (hasSchedule()) {
-          <div class="ws-secondary-actions">
-            <button
+        <div class="ws-actions-buttons">
+          @if (form.dirty) {
+            <p-button
+              label="Cancel"
+              severity="secondary"
+              [text]="true"
               type="button"
-              class="ws-btn ws-btn-danger-ghost"
+              [disabled]="saving() || processingAction()"
+              (onClick)="cancelChanges()"
+            />
+          }
+
+          @if (hasSchedule()) {
+            <p-button
+              label="Delete schedule"
+              icon="pi pi-trash"
+              severity="danger"
+              [outlined]="true"
+              type="button"
               [disabled]="processingAction() || saving()"
-              (click)="onDelete()"
-            >
-              Delete Schedule
-            </button>
-          </div>
-        }
+              [loading]="processingAction()"
+              (onClick)="onDelete()"
+            />
+          }
+
+          <p-button
+            [label]="saving() ? 'Saving…' : submitLabel()"
+            icon="pi pi-check"
+            type="submit"
+            [loading]="saving()"
+            [disabled]="saving() || processingAction() || form.pristine"
+          />
+        </div>
       </div>
     </form>
   }

@@ -1,22 +1,157 @@
 :host { display: block; flex: 1; min-height: 0; }
+
 .calendar-grid {
-  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md);
-  overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-shadow: var(--shadow-sm);
 }
-.calendar-grid__body { display: flex; overflow-y: auto; flex: 1; scroll-behavior: smooth; position: relative; }
-.timeline { flex-shrink: 0; border-right: 1px solid var(--color-border); position: sticky; left: 0; z-index: 15; background: var(--color-surface); }
-.timeline__hour { position: relative; border-bottom: 1px solid var(--color-border); &:last-child { border-bottom: none; } }
-.timeline__label { position: absolute; top: -7px; right: 8px; font-size: 11px; color: var(--color-text-muted); }
-.day-column { flex: 1; position: relative; border-right: 1px solid var(--color-border); &:last-child { border-right: none; } }
-.day-column__hour-line { border-bottom: 1px solid var(--color-border); &:last-child { border-bottom: none; } }
+
+.calendar-grid__body {
+  display: flex;
+  overflow-y: auto;
+  flex: 1;
+  scroll-behavior: smooth;
+  position: relative;
+}
+
+// ---- Timeline (hour) column ----
+
+.timeline {
+  flex-shrink: 0;
+  border-right: 1px solid var(--color-border);
+  position: sticky;
+  left: 0;
+  z-index: 15;
+  background: var(--color-surface);
+}
+
+.timeline__hour {
+  position: relative;
+  border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
+
+  &:last-child { border-bottom: none; }
+}
+
+.timeline__label {
+  position: absolute;
+  top: -7px;
+  right: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+// ---- Day columns ----
+
+.day-column {
+  flex: 1;
+  position: relative;
+  border-right: 1px solid var(--color-border);
+  transition: background-color 0.15s;
+
+  &:last-child { border-right: none; }
+
+  &--today {
+    background: color-mix(in srgb, var(--color-primary) 4%, var(--color-surface));
+  }
+}
+
+.day-column__hour-line {
+  border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
+  transition: background-color 0.12s;
+
+  &:last-child { border-bottom: none; }
+
+  &:hover {
+    background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  }
+}
+
 .day-column__off {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  color: var(--color-text-muted); font-size: 13px;
-  background: repeating-linear-gradient(45deg, transparent, transparent 10px, var(--color-bg-page) 10px, var(--color-bg-page) 20px);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--color-text-muted);
+  background: repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 12px,
+    var(--color-bg-page) 12px,
+    var(--color-bg-page) 24px
+  );
 }
+
+.day-column__off-icon {
+  font-size: 20px;
+  opacity: 0.6;
+}
+
+.day-column__off-text {
+  font-size: 12.5px;
+  font-weight: 500;
+  text-align: center;
+  padding: 0 8px;
+}
+
+// ---- Current time indicator ----
+
 .current-time-line {
-  position: absolute; left: 0; right: 0; height: 2px; background: var(--color-danger); z-index: 10; pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-danger);
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
 }
+
 .current-time-line__dot {
-  position: absolute; left: -4px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--color-danger);
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 20%, transparent);
+}
+
+.current-time-line__label {
+  position: absolute;
+  left: 8px;
+  top: -9px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--color-danger);
+  background: var(--color-surface);
+  padding: 1px 6px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+
+// ---- Responsive: contain horizontal scroll to the calendar only ----
+
+@media (max-width: 767px) {
+  .calendar-grid { overflow-x: auto; }
+  .timeline { width: 52px !important; }
+  .day-column { min-width: 84px; }
+  .day-column__off-text { font-size: 11.5px; }
+}
+
+@media (max-width: 479px) {
+  .day-column { min-width: 72px; }
+  .timeline__label { font-size: 10px; right: 6px; }
 }

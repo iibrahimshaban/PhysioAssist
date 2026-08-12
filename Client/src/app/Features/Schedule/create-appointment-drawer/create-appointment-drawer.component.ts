@@ -8,10 +8,14 @@ import { toSignal } from '@angular/core/rxjs-interop';
 
 type PatientMode = 'existing' | 'guest';
 
+import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
+import { InputTextModule } from 'primeng/inputtext';
+
 @Component({
   selector: 'app-create-appointment-drawer',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, ButtonModule, TooltipModule, InputTextModule],
   templateUrl: './create-appointment-drawer.component.html',
   styleUrl: './create-appointment-drawer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

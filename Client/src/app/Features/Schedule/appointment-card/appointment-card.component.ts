@@ -1,4 +1,6 @@
 import { Component, ChangeDetectionStrategy, input, output, inject, computed, signal } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { TooltipModule } from 'primeng/tooltip';
 import { Appointment } from '../schedule.models';
 import { OwnerDirectoryService } from '../../../Core/Services/owner-directory.service';
 import { ConfirmDialogComponent, ConfirmDialogTone } from '../ConfirmDialogComponent/ConfirmDialogComponent';
@@ -8,7 +10,9 @@ type PendingCardAction = { kind: 'complete' | 'cancel'; title: string; message: 
 @Component({
   selector: 'app-appointment-card',
   standalone: true,
-  imports: [ConfirmDialogComponent],
+  // NgClass + TooltipModule added for the redesigned template (status icon,
+  // pTooltip on the quick-action buttons). No existing bindings changed.
+  imports: [ConfirmDialogComponent, NgClass, TooltipModule],
   templateUrl: './appointment-card.component.html',
   styleUrl: './appointment-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -29,6 +33,17 @@ export class AppointmentCardComponent {
   protected readonly owner = computed(() => this.ownerDirectory.resolveOwner(this.appointment()));
 
   protected readonly pendingAction = signal<PendingCardAction>(null);
+
+  // Purely presentational — maps status to a PrimeIcon glyph for the small
+  // accent icon; does not affect any scheduling logic.
+  protected readonly statusIcon = computed(() => {
+    switch (this.appointment().status) {
+      case 'Completed': return 'pi-check-circle';
+      case 'Cancelled': return 'pi-times-circle';
+      case 'NoShow': return 'pi-exclamation-circle';
+      default: return 'pi-calendar';
+    }
+  });
 
   protected get durationLabel(): string {
     const minutes = (this.appointment().slotEnd.getTime() - this.appointment().slotStart.getTime()) / 60000;

@@ -106,13 +106,18 @@ export class CalendarGridComponent implements AfterViewInit, OnDestroy {
   });
 
   protected readonly currentTimeTop = computed<number | null>(() => {
-    const n = this.now();
-    const start = this.timelineStartHour();
-    const end = this.timelineEndHour();
-    const fraction = n.getHours() + n.getMinutes() / 60;
-    if (fraction < start || fraction > end) return null;
-    return (fraction - start) * this.hourHeight;
-  });
+  const n = this.now();
+  const start = this.timelineStartHour();
+  const end = this.timelineEndHour();
+  const fraction = n.getHours() + n.getMinutes() / 60;
+  if (fraction < start || fraction > end) return null;
+  return (fraction - start) * this.hourHeight;
+});
+
+// add here
+protected readonly currentTimeLabel = computed(() =>
+  this.now().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+);
 
   protected isTodayColumn(date: Date): boolean {
     return date.toDateString() === new Date().toDateString();

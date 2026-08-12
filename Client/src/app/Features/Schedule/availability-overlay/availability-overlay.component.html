@@ -1,4 +1,9 @@
 <div class="availability-block" [style.top.px]="top()" [style.height.px]="height()"
-  (click)="onClick()" title="Click to book this time">
-  <span class="availability-block__label">+ Available</span>
+  (click)="onClick()" role="button" tabindex="0"
+  (keydown.enter)="onClick()" (keydown.space)="onClick()"
+  aria-label="Available time slot, click to book" title="Click to book this time">
+  <span class="availability-block__label">
+    <i class="pi pi-plus-circle" aria-hidden="true"></i>
+    Available
+  </span>
 </div>

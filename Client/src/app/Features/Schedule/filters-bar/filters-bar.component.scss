@@ -1,20 +1,120 @@
 :host { display: block; }
-.filters-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.filters-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+// ── Search ───────────────────────────────────────────────────────────
 .filters-bar__search {
-  height: 34px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);
-  font-size: 13px; min-width: 200px; background: var(--color-surface);
-  &:focus { outline: 2px solid var(--color-primary); outline-offset: -1px; }
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 220px;
+  flex: 1 1 220px;
 }
-.filters-bar__statuses { display: flex; gap: 6px; }
+.filters-bar__search-icon {
+  position: absolute;
+  left: 11px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.filters-bar__search-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 var(--space-3) 0 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  transition: border-color 0.15s, background 0.15s;
+
+  &::placeholder { color: var(--color-text-muted); }
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: var(--color-surface);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  }
+}
+
+// ── Chips ────────────────────────────────────────────────────────────
+.filters-bar__chips {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  flex: 2 1 auto;
+}
+.filters-bar__statuses {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
 .filter-chip {
-  height: 32px; padding: 0 12px; border: 1px solid var(--color-border); background: var(--color-surface);
-  border-radius: 999px; font-size: 12.5px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-page);
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+  .pi { font-size: 12px; }
   &:hover { border-color: var(--color-border-strong); }
-  &--active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+  &--active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+  }
+  &--today.filter-chip--active { background: var(--color-secondary-dark); border-color: var(--color-secondary-dark); }
 }
+
 .filters-bar__clear {
-  height: 32px; padding: 0 12px; border: none; background: transparent; color: var(--color-danger);
-  font-size: 12.5px; font-weight: 500; cursor: pointer;
-  &:hover { text-decoration: underline; }
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 var(--space-3);
+  border: 1px dashed var(--color-border-strong);
+  background: transparent;
+  color: var(--color-danger);
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: auto;
+
+  .pi { font-size: 12px; }
+  &:hover { background: color-mix(in srgb, var(--color-danger) 8%, transparent); }
+}
+
+// ── Responsive ───────────────────────────────────────────────────────
+@media (max-width: 767px) {
+  .filters-bar { flex-direction: column; align-items: stretch; padding: var(--space-3); }
+  .filters-bar__search { min-width: 0; flex: none; }
+  .filters-bar__chips { justify-content: flex-start; }
+  .filters-bar__clear { margin-left: 0; }
+}
+
+@media (max-width: 479px) {
+  .filters-bar__statuses { width: 100%; }
+  .filter-chip { flex: 1 1 auto; justify-content: center; }
+  .filters-bar__clear { width: 100%; justify-content: center; }
 }
