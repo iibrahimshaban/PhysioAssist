@@ -1,21 +1,51 @@
 <div class="filters-bar">
-  <input
-    class="filters-bar__search"
-    type="text"
-    placeholder="Search patient or guest..."
-    [value]="filters().patientSearch"
-    (input)="onSearchChange($event)"
-  />
+  <span class="filters-bar__search">
+    <i class="pi pi-search filters-bar__search-icon"></i>
+    <input
+      type="text"
+      class="filters-bar__search-input"
+      placeholder="Search patient or guest..."
+      [value]="filters().patientSearch"
+      (input)="onSearchChange($event)"
+      aria-label="Search patient or guest"
+    />
+  </span>
 
-  <div class="filters-bar__statuses">
-    @for (status of statusOptions; track status) {
-      <button type="button" class="filter-chip" [class.filter-chip--active]="isActive(status)"
-        (click)="onToggleStatus(status)">{{ status }}</button>
-    }
+  <div class="filters-bar__chips">
+    <div class="filters-bar__statuses" role="group" aria-label="Filter by status">
+      @for (status of statusOptions; track status) {
+        <button
+          type="button"
+          class="filter-chip"
+          [class.filter-chip--active]="isActive(status)"
+          [attr.aria-pressed]="isActive(status)"
+          (click)="onToggleStatus(status)"
+        >
+          {{ status }}
+        </button>
+      }
+    </div>
+
+    <button
+      type="button"
+      class="filter-chip filter-chip--today"
+      [class.filter-chip--active]="filters().showOnlyToday"
+      [attr.aria-pressed]="filters().showOnlyToday"
+      (click)="onToggleToday()"
+    >
+      <i class="pi pi-calendar-plus"></i>
+      Today Only
+    </button>
+
+    <button
+      type="button"
+      class="filters-bar__clear"
+      pTooltip="Reset all filters"
+      tooltipPosition="top"
+      (click)="clearRequested.emit()"
+    >
+      <i class="pi pi-filter-slash"></i>
+      <span>Clear</span>
+    </button>
   </div>
-
-  <button type="button" class="filter-chip" [class.filter-chip--active]="filters().showOnlyToday"
-    (click)="onToggleToday()">Today Only</button>
-
-  <button type="button" class="filters-bar__clear" (click)="clearRequested.emit()">Clear Filters</button>
 </div>

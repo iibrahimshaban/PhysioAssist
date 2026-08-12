@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, input, output, computed, inject, signal } from '@angular/core';
+import { TooltipModule } from 'primeng/tooltip';
 import { Appointment } from '../schedule.models';
 import { OwnerDirectoryService } from '../../../Core/Services/owner-directory.service';
 import { ConfirmDialogComponent, ConfirmDialogTone } from '../ConfirmDialogComponent/ConfirmDialogComponent';
@@ -9,7 +10,8 @@ type PendingAction = { kind: ActionKind; title: string; message: string; tone: C
 @Component({
   selector: 'app-appointment-drawer',
   standalone: true,
-  imports: [ConfirmDialogComponent],
+  // TooltipModule added to power the pTooltip on the close button.
+  imports: [ConfirmDialogComponent, TooltipModule],
   templateUrl: './appointment-drawer.component.html',
   styleUrl: './appointment-drawer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

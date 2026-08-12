@@ -11,9 +11,12 @@
     </div>
 
     @for (day of days(); track day.date.getTime()) {
-      <div class="day-column">
+      <div class="day-column" [class.day-column--today]="isTodayColumn(day.date)">
         @if (!isWorkingDay(day.date)) {
-          <div class="day-column__off">Doctor off this day</div>
+          <div class="day-column__off">
+            <i class="pi pi-moon day-column__off-icon" aria-hidden="true"></i>
+            <span class="day-column__off-text">Not working this day</span>
+          </div>
         } @else {
           @for (hour of hours(); track hour) {
             <div class="day-column__hour-line" [style.height.px]="hourHeight"></div>
@@ -22,6 +25,7 @@
           @if (isTodayColumn(day.date) && currentTimeTop() !== null) {
             <div class="current-time-line" [style.top.px]="currentTimeTop()">
               <span class="current-time-line__dot"></span>
+              <span class="current-time-line__label">{{ currentTimeLabel() }}</span>
             </div>
           }
 

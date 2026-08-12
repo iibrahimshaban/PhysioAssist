@@ -59,6 +59,7 @@ export class SchedulePageComponent implements OnInit{
   }
 
   ngOnInit(): void {
+     this.scheduleService.updateFilters({ patientSearch: '' });
      this.scheduleService.refresh();
   }
 
@@ -76,9 +77,21 @@ export class SchedulePageComponent implements OnInit{
   });
 
   protected readonly emptyStateKind = computed(() => {
-    return !this.scheduleService.selectedDoctorId() ? ('no-doctor' as const) : null;
-  });
+  // No doctor selected
+  if (!this.scheduleService.selectedDoctorId()) {
+    return 'no-doctor' as const;
+  }
 
+  // Doctor selected but has no working hours today
+  const workingHours = this.scheduleService.workingHoursForSelectedDate();
+
+  if (!workingHours ) {
+    return 'off-today' as const;
+  }
+
+  // Doctor has working hours, so show the calendar
+  return null;
+});
   protected onPrevious(): void {
     this.shiftDate(this.scheduleService.currentView() === 'day' ? -1 : -7);
   }

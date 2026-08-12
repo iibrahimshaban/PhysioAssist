@@ -1,6 +1,4 @@
-:host {
-  display: contents;
-}
+:host { display: contents; }
 
 .confirm-backdrop {
   position: fixed;
@@ -17,47 +15,42 @@
   width: min(360px, calc(100vw - 32px));
   background: var(--color-surface);
   border-radius: var(--radius-md);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.2);
+  box-shadow: var(--shadow-lg);
   z-index: 70;
-  padding: 20px;
+  padding: var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-2);
   animation: popIn 0.15s ease-out;
 }
 @keyframes popIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -48%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
+  from { opacity: 0; transform: translate(-50%, -48%); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
 }
 
-.confirm-dialog__title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-text-primary);
-}
-.confirm-dialog__message {
-  margin: 0;
-  font-size: 13.5px;
-  color: var(--color-text-secondary);
-  line-height: 1.4;
-}
-.confirm-dialog__actions {
+.confirm-dialog__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 4px;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: var(--space-1);
+
+  &--default { background: var(--color-accent-tint); color: var(--color-primary); }
+  &--success { background: color-mix(in srgb, var(--color-success) 15%, transparent); color: var(--color-success); }
+  &--warning { background: color-mix(in srgb, var(--color-warning) 15%, transparent); color: var(--color-warning); }
+  &--danger { background: color-mix(in srgb, var(--color-danger) 15%, transparent); color: var(--color-danger); }
 }
+
+.confirm-dialog__title { margin: 0; font-size: 16px; font-weight: 700; color: var(--color-text-primary); }
+.confirm-dialog__message { margin: 0; font-size: 13.5px; color: var(--color-text-secondary); line-height: 1.5; }
+.confirm-dialog__actions { display: flex; gap: var(--space-2); justify-content: flex-end; margin-top: var(--space-2); }
 
 .confirm-btn {
   height: 38px;
-  padding: 0 16px;
+  padding: 0 var(--space-4);
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
@@ -65,52 +58,19 @@
   font-weight: 600;
   cursor: pointer;
   color: var(--color-text-primary);
-  &:hover {
-    background: color-mix(in srgb, var(--color-bg-page) 100%, black 6%);
-  }
+  transition: background 0.15s;
 
-  &--success {
-    background: var(--color-success);
-    color: #fff;
-    border-color: var(--color-success);
-    &:hover {
-      background: color-mix(in srgb, var(--color-success) 100%, black 15%);
-    }
-  }
-  &--warning {
-    background: var(--color-warning);
-    color: #fff;
-    border-color: var(--color-warning);
-    &:hover {
-      background: color-mix(in srgb, var(--color-warning) 100%, black 15%);
-    }
-  }
-  &--danger {
-    background: var(--color-danger);
-    color: #fff;
-    border-color: var(--color-danger);
-    &:hover {
-      background: color-mix(in srgb, var(--color-danger) 100%, black 15%);
-    }
-  }
-  &--outline-danger {
-    color: var(--color-danger);
-    border-color: var(--color-danger);
-    background: transparent;
-    &:hover {
-      background: color-mix(in srgb, var(--color-danger) 10%, transparent);
-    }
-  }
+  &:hover { background: color-mix(in srgb, var(--color-bg-page) 100%, black 6%); }
+  &:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+  &--success { background: var(--color-success); color: #fff; border-color: var(--color-success); &:hover { background: color-mix(in srgb, var(--color-success) 100%, black 15%); } }
+  &--warning { background: var(--color-warning); color: #fff; border-color: var(--color-warning); &:hover { background: color-mix(in srgb, var(--color-warning) 100%, black 15%); } }
+  &--danger { background: var(--color-danger); color: #fff; border-color: var(--color-danger); &:hover { background: color-mix(in srgb, var(--color-danger) 100%, black 15%); } }
+  &--outline-danger { color: var(--color-danger); border-color: var(--color-danger); background: transparent; &:hover { background: color-mix(in srgb, var(--color-danger) 10%, transparent); } }
 }
 
 @media (max-width: 420px) {
-  .confirm-dialog {
-    padding: 16px;
-  }
-  .confirm-dialog__actions {
-    flex-direction: column-reverse;
-  }
-  .confirm-btn {
-    width: 100%;
-  }
+  .confirm-dialog { padding: var(--space-4); }
+  .confirm-dialog__actions { flex-direction: column-reverse; }
+  .confirm-btn { width: 100%; }
 }

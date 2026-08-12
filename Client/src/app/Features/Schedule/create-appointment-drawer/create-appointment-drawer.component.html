@@ -1,63 +1,97 @@
 @if (isOpen()) {
   <div class="drawer-backdrop" (click)="onCancel()"></div>
-  <div class="drawer">
+  <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="create-appt-title">
     <div class="drawer__header">
-      <h2 class="drawer__title">New Appointment</h2>
-      <button type="button" class="drawer__close" (click)="onCancel()">✕</button>
+      <h2 class="drawer__title" id="create-appt-title">
+        <i class="pi pi-calendar-plus drawer__title-icon" aria-hidden="true"></i>
+        New Appointment
+      </h2>
+      <button
+        type="button"
+        pButton
+        icon="pi pi-times"
+        class="p-button-text p-button-rounded drawer__close"
+        pTooltip="Close"
+        tooltipPosition="left"
+        aria-label="Close"
+        (click)="onCancel()"
+      ></button>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="drawer__form">
       <div class="form-field">
         <span class="form-field__label">Patient</span>
 
-        <div class="patient-mode-toggle">
+        <div class="patient-mode-toggle" role="tablist" aria-label="Patient type">
           <button
             type="button"
+            role="tab"
             class="mode-btn"
+            [attr.aria-selected]="patientMode() === 'existing'"
             [class.mode-btn--active]="patientMode() === 'existing'"
             (click)="setMode('existing')"
           >
+            <i class="pi pi-user" aria-hidden="true"></i>
             Existing Patient
           </button>
           <button
             type="button"
+            role="tab"
             class="mode-btn"
+            [attr.aria-selected]="patientMode() === 'guest'"
             [class.mode-btn--active]="patientMode() === 'guest'"
             (click)="setMode('guest')"
           >
+            <i class="pi pi-user-plus" aria-hidden="true"></i>
             Guest
           </button>
         </div>
 
         @if (patientMode() === 'existing') {
           <div class="patient-search">
+            <span class="patient-search__icon" aria-hidden="true">
+              <i class="pi pi-search"></i>
+            </span>
             <input
               type="text"
-              class="form-field__input"
+              pInputText
+              class="form-field__input patient-search__input"
               placeholder="Search patient by name..."
               [value]="patientSearchTerm()"
               (input)="onSearchInput($any($event.target).value)"
               (focus)="openPatientList()"
               (blur)="closePatientList()"
+              aria-label="Search patient by name"
+              [attr.aria-expanded]="isPatientListOpen()"
+              role="combobox"
             />
 
             @if (isPatientListOpen()) {
-              <div class="patient-dropdown">
+              <div class="patient-dropdown" role="listbox">
                 @if (patientsLoading()) {
-                  <div class="patient-dropdown__status">Loading patients...</div>
+                  <div class="patient-dropdown__status">
+                    <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+                    Loading patients...
+                  </div>
                 } @else if (patientsError()) {
                   <div class="patient-dropdown__status patient-dropdown__status--error">
+                    <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
                     {{ patientsError() }}
                   </div>
                 } @else if (filteredPatients().length === 0) {
-                  <div class="patient-dropdown__status">No patients found</div>
+                  <div class="patient-dropdown__status">
+                    <i class="pi pi-info-circle" aria-hidden="true"></i>
+                    No patients found
+                  </div>
                 } @else {
                   @for (patient of filteredPatients(); track patient.id) {
                     <button
                       type="button"
+                      role="option"
                       class="patient-option"
                       (mousedown)="selectPatient(patient)"
                     >
+                      <i class="pi pi-user patient-option__icon" aria-hidden="true"></i>
                       {{ patient.name }}
                     </button>
                   }
@@ -66,7 +100,10 @@
             }
 
             @if (selectedPatient()) {
-              <div class="patient-selected">Selected: {{ selectedPatient()!.name }}</div>
+              <div class="patient-selected">
+                <i class="pi pi-check-circle" aria-hidden="true"></i>
+                Selected: {{ selectedPatient()!.name }}
+              </div>
             }
           </div>
         } @else {
@@ -75,6 +112,7 @@
               <span class="form-field__label">Full Name</span>
               <input
                 type="text"
+                pInputText
                 formControlName="fullName"
                 class="form-field__input"
                 placeholder="Guest's full name"
@@ -85,6 +123,7 @@
               <span class="form-field__label">Phone Number</span>
               <input
                 type="tel"
+                pInputText
                 formControlName="phoneNumber"
                 class="form-field__input"
                 placeholder="Phone number"
@@ -92,7 +131,10 @@
             </label>
 
             @if (guestError()) {
-              <div class="guest-fields__error">{{ guestError() }}</div>
+              <div class="guest-fields__error">
+                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                {{ guestError() }}
+              </div>
             }
           </div>
         }
@@ -105,12 +147,13 @@
 
       <div class="form-field">
         <span class="form-field__label">Duration</span>
-        <div class="duration-buttons">
+        <div class="duration-buttons" role="group" aria-label="Appointment duration">
           @for (option of durationOptions; track option) {
             <button
               type="button"
               class="duration-btn"
               [class.duration-btn--active]="form.value.durationMinutes === option"
+              [attr.aria-pressed]="form.value.durationMinutes === option"
               (click)="selectDuration(option)"
             >
               {{ option }}m
@@ -120,10 +163,22 @@
       </div>
 
       <div class="drawer__actions">
-        <button type="submit" class="drawer-btn drawer-btn--primary" [disabled]="!canSubmit()">
-          {{ isCreatingGuest() ? 'Creating guest...' : 'Create' }}
-        </button>
-        <button type="button" class="drawer-btn" (click)="onCancel()">Cancel</button>
+        <button
+          type="submit"
+          pButton
+          class="drawer-btn drawer-btn--primary"
+          [disabled]="!canSubmit()"
+          [icon]="isCreatingGuest() ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+          [label]="isCreatingGuest() ? 'Creating guest...' : 'Create'"
+        ></button>
+        <button
+          type="button"
+          pButton
+          class="p-button-outlined drawer-btn"
+          icon="pi pi-times"
+          label="Cancel"
+          (click)="onCancel()"
+        ></button>
       </div>
     </form>
   </div>

@@ -7,7 +7,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class PatientController(IPatientService patientService, IScheduleSlotQueryService _scheduleSlotQueryService, ApplicationDbContext _dbContext) : ControllerBase
     {
         private readonly IPatientService _patientService = patientService;

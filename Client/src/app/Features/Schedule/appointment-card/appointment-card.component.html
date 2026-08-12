@@ -7,25 +7,61 @@
   [class.appointment-card--patient]="owner().kind === 'patient'"
   [class.appointment-card--guest]="owner().kind === 'guest'"
   [class.appointment-card--dragging]="dragging()"
+  [class.appointment-card--compact]="height() < 40"
   [style.top.px]="top()"
   [style.height.px]="height()"
-  [title]="owner().name"
+  [attr.aria-label]="owner().name + ', ' + timeLabel + ', ' + appointment().status"
+  tabindex="0"
   (click)="onCardClick()"
+  (keydown.enter)="onCardClick()"
   (pointerdown)="onDragHandlePointerDown($event)"
 >
+  <div class="appointment-card__accent-icon" aria-hidden="true">
+    <i class="pi" [ngClass]="statusIcon"></i>
+  </div>
+
   <div class="appointment-card__body">
     <span class="appointment-card__name">{{ owner().name }}</span>
-    <span class="appointment-card__meta">{{ timeLabel }} · {{ durationLabel }} · {{ appointment().status }}</span>
+    <span class="appointment-card__meta">
+      <i class="pi pi-clock" aria-hidden="true"></i>
+      {{ timeLabel }} · {{ durationLabel }}
+    </span>
   </div>
 
-  <div class="appointment-card__hover-actions">
-    @if (appointment().status === 'Booked') {
-      <button type="button" class="hover-action hover-action--success" (click)="onQuickComplete($event)" title="Complete">✓</button>
-      <button type="button" class="hover-action hover-action--danger" (click)="onQuickCancel($event)" title="Cancel">✕</button>
-    }
-  </div>
+  <span class="appointment-card__status-tag" [class]="'appointment-card__status-tag--' + appointment().status.toLowerCase()">
+    {{ appointment().status }}
+  </span>
 
-  <div class="appointment-card__resize-handle" (pointerdown)="onResizeHandlePointerDown($event)"></div>
+  @if (appointment().status === 'Booked') {
+    <div class="appointment-card__hover-actions">
+      <button
+        type="button"
+        class="hover-action hover-action--success"
+        (click)="onQuickComplete($event)"
+        pTooltip="Mark completed"
+        tooltipPosition="top"
+        aria-label="Mark appointment completed"
+      >
+        <i class="pi pi-check" aria-hidden="true"></i>
+      </button>
+      <button
+        type="button"
+        class="hover-action hover-action--danger"
+        (click)="onQuickCancel($event)"
+        pTooltip="Cancel appointment"
+        tooltipPosition="top"
+        aria-label="Cancel appointment"
+      >
+        <i class="pi pi-times" aria-hidden="true"></i>
+      </button>
+    </div>
+  }
+
+  <div
+    class="appointment-card__resize-handle"
+    (pointerdown)="onResizeHandlePointerDown($event)"
+    aria-hidden="true"
+  ></div>
 </div>
 
 <app-confirm-dialog

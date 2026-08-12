@@ -1,9 +1,31 @@
 :host { display: contents; }
+
 .availability-block {
   position: absolute; left: 4px; right: 4px; background: var(--status-available-bg);
   border: 1px dashed var(--status-available-border); border-radius: var(--radius-sm); cursor: pointer;
-  transition: background 0.15s; display: flex; align-items: center; justify-content: center;
-  &:hover { background: #D1FAE5; }
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover, &:focus-visible {
+    background: color-mix(in srgb, var(--status-available-border) 12%, var(--status-available-bg));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--status-available-border) 25%, transparent);
+  }
+  &:focus-visible { outline: none; }
 }
-.availability-block__label { font-size: 11px; color: var(--status-available-border); font-weight: 500; opacity: 0; transition: opacity 0.15s; }
-.availability-block:hover .availability-block__label { opacity: 1; }
+
+.availability-block__label {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--status-available-border); font-weight: 600;
+  opacity: 0; transition: opacity 0.15s ease;
+  i { font-size: 11px; }
+}
+.availability-block:hover .availability-block__label,
+.availability-block:focus-visible .availability-block__label {
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  // On touch, hover never fires — always show the label so the slot reads as tappable
+  .availability-block__label { opacity: 0.85; }
+  .availability-block { min-height: 32px; }
+}
