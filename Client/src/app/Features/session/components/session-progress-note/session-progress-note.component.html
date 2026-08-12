@@ -10,7 +10,7 @@
     </span>
 
     <i
-      class="pi transition-transform duration-200"
+      class="pi transition-transform duration-200 cursor-pointer"
       [class.pi-chevron-up]="isOpen()"
       [class.pi-chevron-down]="!isOpen()"
     ></i>
@@ -34,7 +34,8 @@
             size="small"
             [loading]="generating()"
             styleClass="w-full sm:w-auto"
-            (onClick)="generateAiSummary()">
+            (onClick)="generateAiSummary()"
+          >
           </p-button>
         </div>
 
@@ -102,7 +103,9 @@
                           @for (item of group.items; track $index; let last = $last) {
                             <tr [class.border-t]="!last" class="border-slate-200">
                               @for (col of group.columns; track col) {
-                                <td class="break-words px-3 py-2 text-slate-800">{{ item[col] }}</td>
+                                <td class="break-words px-3 py-2 text-slate-800">
+                                  {{ item[col] }}
+                                </td>
                               }
                             </tr>
                           }
@@ -128,7 +131,8 @@
               rows="1"
               [ngModel]="subjective()"
               (ngModelChange)="subjective.set($event)"
-              (input)="autoGrow($event)">
+              (input)="autoGrow($event)"
+            >
             </textarea>
           </div>
 
@@ -141,7 +145,8 @@
               rows="1"
               [ngModel]="assessment()"
               (ngModelChange)="assessment.set($event)"
-              (input)="autoGrow($event)">
+              (input)="autoGrow($event)"
+            >
             </textarea>
           </div>
 
@@ -154,11 +159,14 @@
               rows="1"
               [ngModel]="plan()"
               (ngModelChange)="plan.set($event)"
-              (input)="autoGrow($event)">
+              (input)="autoGrow($event)"
+            >
             </textarea>
           </div>
 
-          <div class="mt-4 flex flex-col-reverse gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            class="mt-4 flex flex-col-reverse gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between"
+          >
             <button
               type="button"
               class="text-left text-sm text-[var(--brand-gradient-start)] underline"
@@ -173,7 +181,8 @@
               size="small"
               [loading]="saving()"
               styleClass="w-full sm:w-auto"
-              (onClick)="submit()">
+              (onClick)="submit()"
+            >
             </p-button>
           </div>
         }

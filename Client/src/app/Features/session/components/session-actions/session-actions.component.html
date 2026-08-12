@@ -1,12 +1,15 @@
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
   <button
     type="button"
+    role="button"
     (click)="onSave()"
     [disabled]="isSaving() || isCompleting()"
-    class="rounded-xl border border-slate-200 bg-white py-4 font-semibold shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+    class="rounded-xl border border-slate-200 bg-white py-4 font-semibold shadow-sm transition cursor-pointer hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
   >
     @if (isSaving()) {
-      <i class="fa-solid fa-spinner mr-2 animate-spin"></i>
+      <span
+        class="mr-2 inline-block h-5 w-5 animate-spin rounded-full border-2 border-[#0B8EEA] border-t-transparent"
+      ></span>
       Saving...
     } @else {
       Save draft
@@ -17,10 +20,12 @@
     type="button"
     (click)="onComplete()"
     [disabled]="isCompleting() || isSaving()"
-    class="rounded-xl bg-[#0B8EEA] py-4 font-semibold text-white shadow-sm transition hover:bg-[#278f43] disabled:cursor-not-allowed disabled:opacity-60"
+    class="rounded-xl bg-[#0B8EEA] py-4 font-semibold text-white shadow-sm transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
   >
     @if (isCompleting()) {
-      <i class="fa-solid fa-spinner mr-2 animate-spin"></i>
+      <span
+        class="mr-2 inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"
+      ></span>
       Completing...
     } @else {
       Complete session

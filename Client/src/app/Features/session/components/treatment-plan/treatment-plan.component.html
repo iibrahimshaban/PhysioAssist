@@ -1,20 +1,18 @@
-<div
-  class="w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
->
+<div class="w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
   <button
     type="button"
     (click)="onToggle()"
     class="flex w-full items-center justify-between px-5 py-5"
   >
     <span class="flex items-center text-sm font-bold uppercase text-slate-700">
-      <i class="fa-solid fa-clipboard-list icon-gradient mr-2"></i>
+      <i class="pi pi-clipboard icon-gradient mr-2"></i>
       TREATMENT PLAN
     </span>
 
     <i
-      class="fa-solid transition-transform duration-200"
-      [class.fa-chevron-up]="isOpen()"
-      [class.fa-chevron-down]="!isOpen()"
+      class="pi transition-transform duration-200 cursor-pointer"
+      [class.pi-chevron-up]="isOpen()"
+      [class.pi-chevron-down]="!isOpen()"
     ></i>
   </button>
 
