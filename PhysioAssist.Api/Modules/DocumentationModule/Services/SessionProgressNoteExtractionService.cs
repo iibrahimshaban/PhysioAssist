@@ -18,6 +18,7 @@ public class SessionProgressNoteExtractionService(
     public async Task<Result<GenerateAiSummaryResponse>> GenerateAiSummaryAsync(Guid sessionId, CancellationToken ct = default)
     {
         var objectiveResult = await GenerateObjectiveFindingsAsync(sessionId, ct);
+
         if (objectiveResult.IsFailure)
             return Result.Failure<GenerateAiSummaryResponse>(objectiveResult.Error);
 
@@ -62,6 +63,7 @@ public class SessionProgressNoteExtractionService(
             return Result.Failure<SessionProgressNoteResponse>(DocumentationErrors.TemplateNotFound);
 
         var effectiveFieldsResult = await templateResolver.GetEffectiveFieldsAsync(transcriptContext.DoctorId, template.Id);
+
         if (effectiveFieldsResult.IsFailure)
             return Result.Failure<SessionProgressNoteResponse>(effectiveFieldsResult.Error);
 
