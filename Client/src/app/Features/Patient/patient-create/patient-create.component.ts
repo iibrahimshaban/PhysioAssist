@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SelectModule } from 'primeng/select';
@@ -45,7 +45,8 @@ export class PatientCreateComponent implements OnInit {
   constructor(
     private patientService: PatientService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private location: Location
   ) {}
 
   ngOnInit() {
@@ -149,6 +150,10 @@ export class PatientCreateComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/app/patients']);
+    this.location.back();
+  }
+
+  goForward() {
+    this.location.forward();
   }
 }

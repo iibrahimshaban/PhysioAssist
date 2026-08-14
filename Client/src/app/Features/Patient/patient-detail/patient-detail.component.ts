@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PatientService } from '../services/patient.service';
 import { GenderPipe } from '../../../Shared/Pipes/gender-pipe';
@@ -19,7 +19,8 @@ export class PatientDetailComponent implements OnInit {
     private patientService: PatientService,
     private route: ActivatedRoute,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private location: Location
   ) {}
 
   ngOnInit() {
@@ -43,7 +44,11 @@ export class PatientDetailComponent implements OnInit {
 
 
   goBack() {
-    this.router.navigate(['app/patients']);
+    this.location.back();
+  }
+
+  goForward() {
+    this.location.forward();
   }
 
   goToEdit() {
