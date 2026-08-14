@@ -1,0 +1,61 @@
+.legal-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  color: #1f2937;
+  line-height: 1.6;
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 0.9rem;
+
+    &:hover { text-decoration: underline; }
+  }
+
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .updated {
+    color: #6b7280;
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  section {
+    margin-bottom: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  p, li {
+    font-size: 0.95rem;
+  }
+
+  ul {
+    padding-left: 1.25rem;
+    margin: 0.5rem 0;
+  }
+
+  a {
+    color: #2563eb;
+  }
+
+  .disclaimer {
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+    font-size: 0.8rem;
+    color: #9ca3af;
+    font-style: italic;
+  }
+}
