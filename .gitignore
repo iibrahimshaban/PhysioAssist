@@ -369,4 +369,4 @@ FodyWeavers.xsd
 appsettings.Development.json
 
 # Agent/tool workspace files
-.hermes/
+.hermes/PhysioAssist.Api/appsettings.Development.json

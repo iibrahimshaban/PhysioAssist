@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SessionService } from '../../Core/Services/session.service';
 import { SelectedAttachment } from '../../Shared/Models/selected-attachment';
 import { SessionDetailsResponse } from '../../Shared/Models/session-details-response';
@@ -13,7 +13,6 @@ import { TreatmentPlanComponent } from './components/treatment-plan/treatment-pl
 import { NextSessionBookingComponent } from './components/next-session-booking/next-session-booking.component';
 import { SnackbarService } from '../../Core/Services/snackbar.service';
 import { catchError, concatMap, from, map, of, toArray } from 'rxjs';
-import { SessionProgressNoteComponent } from "./components/session-progress-note/session-progress-note.component";
 
 @Component({
   selector: 'app-session',
@@ -26,14 +25,14 @@ import { SessionProgressNoteComponent } from "./components/session-progress-note
     RecordingModalComponent,
     NextSessionBookingComponent,
     TreatmentPlanComponent,
-    SessionProgressNoteComponent
-],
+  ],
   templateUrl: './session.component.html',
   styleUrl: './session.component.css',
 })
 export class SessionComponent implements OnInit {
   private sessionService = inject(SessionService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private snackbar = inject(SnackbarService);
 
   sessionDetails = signal<SessionDetailsResponse | null>(null);
@@ -46,7 +45,6 @@ export class SessionComponent implements OnInit {
 
   sessionInfoOpen = signal(true);
   treatmentPlanOpen = signal(true);
-  progressNoteOpen = signal(true);
 
   isRecordingModalOpen = signal(false);
 
@@ -67,11 +65,11 @@ export class SessionComponent implements OnInit {
     const session = this.sessionDetails();
     if (!session) return [];
     const hidden = new Set(this.pendingAttachmentDeletions());
-    return session.attachments.filter(a => !hidden.has(a.id));
+    return session.attachments.filter((a) => !hidden.has(a.id));
   });
 
   stageAttachmentForDeletion(attachmentId: string) {
-    this.pendingAttachmentDeletions.update(ids => [...ids, attachmentId]);
+    this.pendingAttachmentDeletions.update((ids) => [...ids, attachmentId]);
   }
 
   ngOnInit(): void {
@@ -114,12 +112,9 @@ export class SessionComponent implements OnInit {
   toggleTreatmentPlan() {
     this.treatmentPlanOpen.update((value) => !value);
   }
-    toggleNotes() { // NEW
+  toggleNotes() {
+    // NEW
     this.notesOpen.update((value) => !value);
-  }
-
-  toggleProgressNote() {
-    this.progressNoteOpen.update((value) => !value);
   }
 
   async startRecording() {
@@ -141,18 +136,20 @@ export class SessionComponent implements OnInit {
       this.startTimer();
     } catch (error) {
       console.error('Microphone permission denied or unavailable', error);
-      this.snackbar.warning('Microphone unavailable', ['Please allow microphone access to record.']);
+      this.snackbar.warning('Microphone unavailable', [
+        'Please allow microphone access to record.',
+      ]);
     }
   }
 
-pauseRecording() {
+  pauseRecording() {
     if (!this.mediaRecorder || this.mediaRecorder.state !== 'recording') return;
     this.mediaRecorder.pause();
     this.isPaused.set(true);
     this.stopTimer(); // don't count paused time
   }
 
-resumeRecording() {
+  resumeRecording() {
     if (!this.mediaRecorder || this.mediaRecorder.state !== 'paused') return;
     this.mediaRecorder.resume();
     this.isPaused.set(false);
@@ -178,7 +175,9 @@ resumeRecording() {
           next: (transcript) => {
             // Append, don't overwrite — same reasoning as the initial-report fix:
             // multiple short recordings shouldn't destroy each other.
-            this.notes.update(current => current?.trim() ? `${current.trim()}\n${transcript}` : transcript);
+            this.notes.update((current) =>
+              current?.trim() ? `${current.trim()}\n${transcript}` : transcript,
+            );
             this.isUploadingAudio.set(false);
           },
           error: (error) => {
@@ -205,68 +204,80 @@ resumeRecording() {
   }
 
   saveDraft() {
-  const currentSession = this.sessionDetails();
-  if (!currentSession) return;
+    const currentSession = this.sessionDetails();
+    if (!currentSession) return;
 
-  this.isSavingDraft.set(true);
+    this.isSavingDraft.set(true);
 
-  this.flushPendingDeletions(currentSession.id, () => {
-    const files = this.selectedAttachmentFiles().map((attachment) => attachment.file);
+    this.flushPendingDeletions(currentSession.id, () => {
+      const files = this.selectedAttachmentFiles().map((attachment) => attachment.file);
 
-    this.sessionService
-      .saveDraft(currentSession.id, this.notes(), files, this.treatmentPlan())
-      .subscribe({
-        next: () => {
-          this.clearSelectedAttachments();
-          this.pendingAttachmentDeletions.set([]);
+      this.sessionService
+        .saveDraft(currentSession.id, this.notes(), files, this.treatmentPlan())
+        .subscribe({
+          next: () => {
+            this.clearSelectedAttachments();
+            this.pendingAttachmentDeletions.set([]);
 
-          this.sessionDetails.update((current) =>
-            current ? { ...current, status: 1, treatmentPlan: this.treatmentPlan() } : current,
-          );
+            this.sessionDetails.update((current) =>
+              current ? { ...current, status: 1, treatmentPlan: this.treatmentPlan() } : current,
+            );
 
-          this.isSavingDraft.set(false);
-          this.snackbar.success('Draft saved');
-        },
-        error: (error) => {
-          console.error(error);
-          this.isSavingDraft.set(false);
-          this.snackbar.error('Unable to save draft', ['Please try again.']);
-        },
-      });
-  });
-}
+            this.isSavingDraft.set(false);
+            this.snackbar.success('Draft saved');
+          },
+          error: (error) => {
+            console.error(error);
+            this.isSavingDraft.set(false);
+            this.snackbar.error('Unable to save draft', ['Please try again.']);
+          },
+        });
+    });
+  }
 
-completeSession() {
-  const currentSession = this.sessionDetails();
-  if (!currentSession) return;
+  completeSession() {
+    const currentSession = this.sessionDetails();
+    if (!currentSession) return;
 
-  this.isCompletingSession.set(true);
+    this.isCompletingSession.set(true);
 
-  this.flushPendingDeletions(currentSession.id, () => {
-    const files = this.selectedAttachmentFiles().map((attachment) => attachment.file);
+    this.flushPendingDeletions(currentSession.id, () => {
+      const files = this.selectedAttachmentFiles().map((attachment) => attachment.file);
 
-    this.sessionService
-      .completeSession(currentSession.id, this.notes(), files, this.treatmentPlan())
-      .subscribe({
-        next: () => {
-          this.clearSelectedAttachments();
-          this.pendingAttachmentDeletions.set([]);
+      this.sessionService
+        .completeSession(currentSession.id, this.notes(), files, this.treatmentPlan())
+        .subscribe({
+          next: () => {
+            this.clearSelectedAttachments();
+            this.pendingAttachmentDeletions.set([]);
 
-          this.sessionDetails.update((current) =>
-            current ? { ...current, status: 2, treatmentPlan: this.treatmentPlan() } : current,
-          );
+            this.sessionDetails.update((current) =>
+              current
+                ? {
+                    ...current,
+                    status: 2,
+                    treatmentPlan: this.treatmentPlan(),
+                  }
+                : current,
+            );
 
-          this.isCompletingSession.set(false);
-          this.snackbar.success('Session completed', ['Notes, treatment plan, and attachments saved.']);
-        },
-        error: (error) => {
-          console.error(error);
-          this.isCompletingSession.set(false);
-          this.snackbar.error('Unable to complete session', ['Please try again.']);
-        },
-      });
-  });
-}
+            this.isCompletingSession.set(false);
+
+            this.snackbar.success('Session completed', ['Opening AI summary...']);
+
+            this.router.navigate(['/app/session', currentSession.id, 'summary']);
+          },
+
+          error: (error) => {
+            console.error(error);
+
+            this.isCompletingSession.set(false);
+
+            this.snackbar.error('Unable to complete session', ['Please try again.']);
+          },
+        });
+    });
+  }
 
   deleteAttachment(attachmentId: string) {
     this.sessionService.deleteAttachment(attachmentId).subscribe({
@@ -297,7 +308,7 @@ completeSession() {
   }
 
   private startTimer() {
-    this.recordingTimer = setInterval(() => this.recordingSeconds.update(v => v + 1), 1000);
+    this.recordingTimer = setInterval(() => this.recordingSeconds.update((v) => v + 1), 1000);
   }
 
   private stopTimer() {
@@ -308,47 +319,47 @@ completeSession() {
   }
 
   private stopMicrophone() {
-    this.audioStream?.getTracks().forEach(track => track.stop());
+    this.audioStream?.getTracks().forEach((track) => track.stop());
     this.audioStream = undefined;
   }
 
   private flushPendingDeletions(sessionId: string, onDone: () => void) {
-  const ids = this.pendingAttachmentDeletions();
-  if (ids.length === 0) {
-    onDone();
-    return;
-  }
-
-  from(ids)
-    .pipe(
-      concatMap(id =>
-        this.sessionService.deleteAttachment(id).pipe(
-          map(() => ({ id, error: null as any })),
-          catchError(error => of({ id, error })),
-        ),
-      ),
-      toArray(),
-    )
-    .subscribe(results => {
-      const failed = results.filter(r => r.error);
-      if (failed.length > 0) {
-        this.isSavingDraft.set(false);
-        this.isCompletingSession.set(false);
-        this.snackbar.error('Some attachments failed to remove', [
-          `${failed.length} file(s) could not be deleted — try again.`,
-        ]);
-        return; // don't proceed to save/complete until deletions succeed
-      }
-
-      // Remove the now-actually-deleted attachments from local state
-      // so a later save doesn't try to delete them again.
-      this.sessionDetails.update(current =>
-        current
-          ? { ...current, attachments: current.attachments.filter(a => !ids.includes(a.id)) }
-          : current,
-      );
-
+    const ids = this.pendingAttachmentDeletions();
+    if (ids.length === 0) {
       onDone();
-    });
-}
+      return;
+    }
+
+    from(ids)
+      .pipe(
+        concatMap((id) =>
+          this.sessionService.deleteAttachment(id).pipe(
+            map(() => ({ id, error: null as any })),
+            catchError((error) => of({ id, error })),
+          ),
+        ),
+        toArray(),
+      )
+      .subscribe((results) => {
+        const failed = results.filter((r) => r.error);
+        if (failed.length > 0) {
+          this.isSavingDraft.set(false);
+          this.isCompletingSession.set(false);
+          this.snackbar.error('Some attachments failed to remove', [
+            `${failed.length} file(s) could not be deleted — try again.`,
+          ]);
+          return; // don't proceed to save/complete until deletions succeed
+        }
+
+        // Remove the now-actually-deleted attachments from local state
+        // so a later save doesn't try to delete them again.
+        this.sessionDetails.update((current) =>
+          current
+            ? { ...current, attachments: current.attachments.filter((a) => !ids.includes(a.id)) }
+            : current,
+        );
+
+        onDone();
+      });
+  }
 }
