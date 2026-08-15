@@ -23,13 +23,14 @@ public class DoctorScheduleRecommendationService(
     private readonly record struct BookedRange(DateTimeOffset Start, DateTimeOffset End);
 
     public async Task<Result<IReadOnlyList<SlotCandidateDto>>> GetRecommendedSlotsAsync(
-        Guid doctorId,
-        TimeSpan requestedDuration,
-        DateTimeOffset? from = null,
-        DateTimeOffset? to = null,
-        TimeOnly? preferredTimeFrom = null,
-        TimeOnly? preferredTimeTo = null,
-        CancellationToken cancellationToken = default)
+    Guid doctorId,
+    TimeSpan requestedDuration,
+    DateTimeOffset? from = null,
+    DateTimeOffset? to = null,
+    TimeOnly? preferredTimeFrom = null,
+    TimeOnly? preferredTimeTo = null,
+    bool allowSameDayBooking = false,
+    CancellationToken cancellationToken = default)
     {
         var availabilityResult = await _appointmentService.GetAvailabilityRangeAsync(doctorId, from, to, cancellationToken);
         if (availabilityResult.IsFailure)
@@ -42,7 +43,9 @@ public class DoctorScheduleRecommendationService(
         var maxDaysOutForExactMatch = preference?.MaxDaysOutForExactMatch ?? DefaultMaxDaysOutForExactMatch;
         var allowShorterSlots = preference?.AllowShorterSlots ?? DefaultAllowShorterSlots;
 
-        var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(EgyptOffset).Date);
+        var nowInEgypt = DateTimeOffset.UtcNow.ToOffset(EgyptOffset);
+        var today = DateOnly.FromDateTime(nowInEgypt.Date);
+        var nowTimeOfDay = TimeOnly.FromDateTime(nowInEgypt.DateTime);
 
         var rangeStart = from ?? DateTimeOffset.UtcNow;
         var rangeEnd = to ?? rangeStart.AddDays(DefaultMaxDaysOutForExactMatch);
@@ -59,7 +62,11 @@ public class DoctorScheduleRecommendationService(
 
         foreach (var day in availabilityResult.Value)
         {
-            if (day.Date <= today)
+            var isToday = day.Date == today;
+
+            if (day.Date < today)
+                continue;
+            if (isToday && !allowSameDayBooking)
                 continue;
 
             var daysOut = day.Date.DayNumber - today.DayNumber;
@@ -70,6 +77,10 @@ public class DoctorScheduleRecommendationService(
                 var effectiveStart = preferredTimeFrom.HasValue && preferredTimeFrom.Value > interval.Start
                     ? preferredTimeFrom.Value
                     : interval.Start;
+
+                // Same-day: don't offer a slot that's already in the past.
+                if (isToday && nowTimeOfDay > effectiveStart)
+                    effectiveStart = nowTimeOfDay;
 
                 var effectiveEnd = preferredTimeTo.HasValue && preferredTimeTo.Value < interval.End
                     ? preferredTimeTo.Value

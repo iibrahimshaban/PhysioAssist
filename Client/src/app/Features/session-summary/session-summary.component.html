@@ -1,0 +1,140 @@
+<div class="min-h-screen bg-[#f7fafc]">
+  <main class="mx-auto max-w-[1180px] px-4 py-7 sm:px-6 lg:py-9">
+    <!-- Back -->
+    <button
+      type="button"
+      (click)="goBack()"
+      class="group mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900"
+    >
+      <span
+        class="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition group-hover:border-slate-300"
+      >
+        <i class="pi pi-arrow-left text-xs transition-transform group-hover:-translate-x-0.5"></i>
+      </span>
+
+      Back to session
+    </button>
+
+    <!-- Main header -->
+    <section
+      class="mb-6 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.04)]"
+    >
+      <div
+        class="flex flex-col gap-6 px-6 py-6 sm:px-8 lg:flex-row lg:items-center lg:justify-between"
+      >
+        <!-- Title -->
+        <div class="flex items-start gap-4">
+          <div
+            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-50 to-cyan-50 ring-1 ring-sky-100"
+          >
+            <i class="pi pi-sparkles text-xl text-[#078DCC]"></i>
+          </div>
+
+          <div>
+            <div class="flex flex-wrap items-center gap-3">
+              <h1 class="text-2xl font-bold tracking-tight text-slate-950 sm:text-[28px]">
+                AI Progress Note
+              </h1>
+
+              <span
+                class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-100"
+              >
+                <i class="pi pi-check-circle text-[11px]"></i>
+                Session completed
+              </span>
+            </div>
+
+            <p class="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500">
+              Review the generated clinical documentation, make any required edits, then submit the
+              final progress note.
+            </p>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div
+          class="flex shrink-0 items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"
+        >
+          <!-- Step 1 -->
+          <div class="flex items-center gap-2">
+            <span
+              class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-white"
+            >
+              <i class="pi pi-check text-[10px]"></i>
+            </span>
+
+            <div class="hidden sm:block">
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                Step 1
+              </p>
+              <p class="text-xs font-semibold text-slate-700">Session</p>
+            </div>
+          </div>
+
+          <!-- connector -->
+          <div class="mx-3 h-px w-8 bg-slate-300"></div>
+
+          <!-- Step 2 -->
+          <div class="flex items-center gap-2">
+            <span
+              class="flex h-7 w-7 items-center justify-center rounded-full bg-[#078DCC] text-white shadow-sm"
+            >
+              <i class="pi pi-sparkles text-[10px]"></i>
+            </span>
+
+            <div class="hidden sm:block">
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-[#078DCC]">
+                Step 2
+              </p>
+              <p class="text-xs font-semibold text-slate-900">AI Review</p>
+            </div>
+          </div>
+
+          <!-- connector -->
+          <div class="mx-3 h-px w-8 bg-slate-200"></div>
+
+          <!-- Step 3 -->
+          <div class="flex items-center gap-2">
+            <span
+              class="flex h-7 w-7 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-400"
+            >
+              <i class="pi pi-check text-[9px]"></i>
+            </span>
+
+            <div class="hidden sm:block">
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                Step 3
+              </p>
+              <p class="text-xs font-semibold text-slate-400">Submit</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI notice -->
+    <div
+      class="mb-4 flex items-start gap-3 rounded-2xl border border-sky-100 bg-sky-50/60 px-4 py-3.5"
+    >
+      <div
+        class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-[#078DCC] shadow-sm"
+      >
+        <i class="pi pi-info-circle text-sm"></i>
+      </div>
+
+      <div>
+        <p class="text-sm font-semibold text-slate-800">AI-assisted documentation</p>
+
+        <p class="mt-0.5 text-xs leading-5 text-slate-500">
+          Review all generated findings before submitting the final clinical note.
+        </p>
+      </div>
+    </div>
+
+    <!-- Progress Note -->
+    <section>
+      <app-session-progress-note [sessionId]="sessionId" [isOpen]="true">
+      </app-session-progress-note>
+    </section>
+  </main>
+</div>

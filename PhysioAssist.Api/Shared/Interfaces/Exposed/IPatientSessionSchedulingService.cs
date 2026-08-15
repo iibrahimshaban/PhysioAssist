@@ -51,6 +51,7 @@ public interface IPatientSessionSchedulingService
         Guid patientId,
         int topN = 5,
         string? patientFreeTimeOverride = null,
+        bool allowSameDayBooking = false,
         CancellationToken cancellationToken = default);
 
     Task<Guid?> GetPackageDoctorIdAsync(Guid packageId, CancellationToken cancellationToken = default);

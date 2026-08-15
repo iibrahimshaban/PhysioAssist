@@ -1,0 +1,21 @@
+
+/* Circular icon-only back/forward buttons — matches the Initial Report page's back button style */
+.nav-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--neutral-100);
+  color: var(--color-text-secondary);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.nav-circle:hover {
+  background: var(--neutral-200);
+  color: var(--color-text-primary);
+}
