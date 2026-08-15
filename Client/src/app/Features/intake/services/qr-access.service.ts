@@ -27,6 +27,12 @@ export class QrAccessService {
     });
   }
 
+  checkPatientEmail(email: string): Observable<{ isRegistered: boolean }> {
+    return this.http.get<{ isRegistered: boolean }>(`${this.baseUrl}/intake/check-email`, {
+      params: { email }
+    });
+  }
+
   extractTokenFromUrl(url: string): string | null {
     try {
       const parsed = new URL(url);

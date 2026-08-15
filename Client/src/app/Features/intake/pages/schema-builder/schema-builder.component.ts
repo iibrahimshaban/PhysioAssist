@@ -31,6 +31,13 @@ import {
 
 type BuilderMode = 'schema' | 'section' | 'group' | 'question' | null;
 
+/**
+ * Panel identifier used by the mobile (< 640px) tabbed interface.
+ * Declared at module scope because TypeScript does not allow `type`
+ * aliases inside class bodies.
+ */
+type MobilePanel = 'structure' | 'preview' | 'properties';
+
 interface QuestionTypeOption {
   label: string;
   value: string;
@@ -108,6 +115,20 @@ export class SchemaBuilderComponent implements OnInit {
   // schema list "Preview" action (?preview=true). Shows the live form
   // preview without any editing chrome (tree, properties, save/publish).
   readonly previewMode = signal(false);
+
+  // Mobile panel navigation — which panel is currently active in the
+  // mobile tabbed interface. Only used when viewport < 640px; on desktop
+  // all three panels are always visible side-by-side.
+  readonly activeMobilePanel = signal<MobilePanel>('preview');
+
+  // Mobile panel collapse state — when true, the panel is fully collapsed
+  // to just its header bar, giving more vertical space to the other panels.
+  readonly structureCollapsed = signal(false);
+  readonly previewCollapsed = signal(false);
+  readonly propertiesCollapsed = signal(false);
+
+  // Quick-add FAB action sheet visibility
+  readonly showQuickAddSheet = signal(false);
 
   // Signals
   selectedSchema = signal<FormSchemaResponse | null>(null);
@@ -288,34 +309,6 @@ export class SchemaBuilderComponent implements OnInit {
         this.snackbar.error('Failed to load schema', [this.extractError(err)]);
       }
     });
-  }
-
-  selectItem(type: BuilderMode, item: any): void {
-    this.selectedMode.set(type);
-
-    if (type === 'schema') {
-      this.selectedItem.set('schema');
-      this.selectedSection.set(null);
-      this.selectedGroup.set(null);
-      this.selectedQuestion.set(null);
-    } else if (type === 'section') {
-      this.selectedItem.set(item.sectionId);
-      this.selectedSection.set(item);
-      this.selectedGroup.set(null);
-      this.selectedQuestion.set(null);
-      this.toggleSection(item.sectionId);
-    } else if (type === 'group') {
-      this.selectedItem.set(item.groupId);
-      this.selectedSection.set(null);
-      this.selectedGroup.set(item);
-      this.selectedQuestion.set(null);
-      this.toggleGroup(item.groupId);
-    } else if (type === 'question') {
-      this.selectedItem.set(item.questionId);
-      this.selectedSection.set(null);
-      this.selectedGroup.set(null);
-      this.selectedQuestion.set(item);
-    }
   }
 
   // Expansion management
@@ -794,5 +787,125 @@ export class SchemaBuilderComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/app/intake/schemas']);
+  }
+
+  // ── Mobile Panel Navigation ──────────────────────────────────────────────
+  setActiveMobilePanel(panel: MobilePanel): void {
+    this.activeMobilePanel.set(panel);
+    // Smoothly scroll into view after switching
+    setTimeout(() => {
+      const el = document.querySelector(`[data-panel="${panel}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 10);
+  }
+
+  toggleStructureCollapsed(): void {
+    this.structureCollapsed.update(v => !v);
+  }
+
+  togglePreviewCollapsed(): void {
+    this.previewCollapsed.update(v => !v);
+  }
+
+  togglePropertiesCollapsed(): void {
+    this.propertiesCollapsed.update(v => !v);
+  }
+
+  // When a user selects an item from the Structure tab on mobile,
+  // auto-switch to the Properties tab so they can start editing immediately.
+  selectItem(type: BuilderMode, item: any): void {
+    this.selectedMode.set(type);
+
+    if (type === 'schema') {
+      this.selectedItem.set('schema');
+      this.selectedSection.set(null);
+      this.selectedGroup.set(null);
+      this.selectedQuestion.set(null);
+    } else if (type === 'section') {
+      this.selectedItem.set(item.sectionId);
+      this.selectedSection.set(item);
+      this.selectedGroup.set(null);
+      this.selectedQuestion.set(null);
+      this.toggleSection(item.sectionId);
+    } else if (type === 'group') {
+      this.selectedItem.set(item.groupId);
+      this.selectedSection.set(null);
+      this.selectedGroup.set(item);
+      this.selectedQuestion.set(null);
+      this.toggleGroup(item.groupId);
+    } else if (type === 'question') {
+      this.selectedItem.set(item.questionId);
+      this.selectedSection.set(null);
+      this.selectedGroup.set(null);
+      this.selectedQuestion.set(item);
+    }
+
+    // Mobile UX: auto-jump to Properties after selection so user starts editing
+    if (type !== null && type !== 'schema') {
+      const mql = window.matchMedia('(max-width: 639px)');
+      if (mql.matches) {
+        this.activeMobilePanel.set('properties');
+      }
+    }
+  }
+
+  // ── Quick-Add FAB Action Sheet ───────────────────────────────────────────
+  toggleQuickAddSheet(): void {
+    this.showQuickAddSheet.update(v => !v);
+  }
+
+  closeQuickAddSheet(): void {
+    this.showQuickAddSheet.set(false);
+  }
+
+  // Smart quick-add: add to the currently selected container.
+  // Falls back to the last section/group if nothing is explicitly selected.
+  quickAdd(what: 'section' | 'group' | 'question'): void {
+    this.closeQuickAddSheet();
+
+    if (what === 'section') {
+      this.addSection();
+      const mql = window.matchMedia('(max-width: 639px)');
+      if (mql.matches) this.activeMobilePanel.set('structure');
+      return;
+    }
+
+    const schema = this.formSchema();
+    let targetSection: FormSectionDto | undefined;
+    let targetGroup: FormGroupDto | undefined;
+
+    if (this.selectedSection()) {
+      targetSection = this.selectedSection()!;
+    } else if (this.selectedGroup()) {
+      targetSection = schema.sections.find(s => s.groups.some(g => g.groupId === this.selectedGroup()!.groupId));
+      targetGroup = this.selectedGroup()!;
+    } else if (this.selectedQuestion()) {
+      const q = this.selectedQuestion()!;
+      for (const s of schema.sections) {
+        for (const g of s.groups) {
+          if (g.questions.some(qq => qq.questionId === q.questionId)) {
+            targetSection = s;
+            targetGroup = g;
+            break;
+          }
+        }
+        if (targetSection) break;
+      }
+    }
+
+    // Fallbacks: last section / last group
+    if (!targetSection) targetSection = schema.sections[schema.sections.length - 1];
+    if (what === 'group' && targetSection) {
+      this.addGroup(targetSection.sectionId);
+      const mql = window.matchMedia('(max-width: 639px)');
+      if (mql.matches) this.activeMobilePanel.set('structure');
+      return;
+    }
+    if (!targetGroup && targetSection) {
+      targetGroup = targetSection.groups[targetSection.groups.length - 1];
+    }
+    if (what === 'question' && targetSection && targetGroup) {
+      this.addQuestion(targetSection.sectionId, targetGroup.groupId);
+    }
   }
 }

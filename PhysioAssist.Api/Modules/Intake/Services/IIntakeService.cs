@@ -27,6 +27,14 @@ public interface IIntakeService
     Task<Result<PublicIntakeFormResponse>> GetPublicFormAsync(string token, CancellationToken cancellationToken = default);
     Task<Result<PublicIntakeSubmissionResponse>> SubmitPublicIntakeAsync(string token, SubmitPreVisitIntakeRequest request, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Returns <c>true</c> when a patient record with the given (trimmed,
+    /// lowercased) email already exists in the system.  Used by the public
+    /// anonymous intake form to warn the patient BEFORE they submit (so
+    /// duplicate patients / broken conversion flows are avoided).
+    /// </summary>
+    Task<Result<bool>> IsPatientEmailRegisteredAsync(string email, CancellationToken cancellationToken = default);
+
     // Intake Review
     Task<Result<IReadOnlyList<PreVisitIntakeResponse>>> GetSubmissionsAsync(Guid doctorId, IntakeStatus? status, CancellationToken cancellationToken = default);
     Task<Result<PreVisitIntakeDetailsResponse>> GetSubmissionDetailsAsync(Guid id, Guid doctorId, CancellationToken cancellationToken = default);
