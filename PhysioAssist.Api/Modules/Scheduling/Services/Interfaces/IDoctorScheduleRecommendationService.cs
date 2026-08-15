@@ -11,5 +11,6 @@ public interface IDoctorScheduleRecommendationService
             DateTimeOffset? to = null,
             TimeOnly? preferredTimeFrom = null,
             TimeOnly? preferredTimeTo = null,
+            bool allowSameDayBooking = false,
             CancellationToken cancellationToken = default);
 }

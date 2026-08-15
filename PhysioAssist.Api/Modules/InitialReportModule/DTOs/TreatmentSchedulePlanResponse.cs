@@ -13,5 +13,6 @@ public record TreatmentSchedulePlanResponse(
         SchedulingPriority Priority,
         TreatmentSchedulePlanStatus Status,
         Guid? PackageId,
+        bool AllowSameDayBooking,
         IReadOnlyList<SlotCandidateDto> CandidateSlots
     );
