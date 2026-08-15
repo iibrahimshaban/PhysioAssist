@@ -209,4 +209,102 @@ export class DynamicFormEngineService {
   deserializeSchema(json: string): DynamicFormSchemaDto {
     return JSON.parse(json) as DynamicFormSchemaDto;
   }
+
+  // ── Patient-identifying field helpers ──────────────────────────────────
+  // Per project requirements, the canonical email question has locked
+  // questionId `question_default_email` and/or user-visible label "Email
+  // Address".  A real form may have either (or both) depending on whether
+  // the schema was built before or after the locking convention was
+  // introduced, so we match both.
+
+  /** Well-known locked question IDs that map to patient email. */
+  private readonly EMAIL_QUESTION_IDS = new Set([
+    'question_default_email',
+    'question_default_email_address',
+  ]);
+
+  /** User-visible labels that identify the email field when the questionId
+   *  does not use the canonical locked prefix. */
+  private readonly EMAIL_QUESTION_TEXTS = new Set([
+    'Email',
+    'Email Address',
+    'Email address',
+    'email',
+    'email address',
+    'E-mail',
+    'E-mail Address',
+  ]);
+
+  /**
+   * Look up the answer value for the email question inside a submission
+   * payload.  Returns the trimmed string value (lowercased), or `null` if
+   * no email question exists or the answer is still blank/invalid.
+   *
+   * Matching strategy (robust against schema versions):
+   *   1. Try canonical locked question IDs first (O(1), definitive).
+   *   2. Fall back to user-visible label matching on the schema metadata
+   *      (handles older schemas created before the lock convention).
+   */
+  extractEmailAnswer(
+    schema: DynamicFormSchemaDto,
+    submission: { sections: { sectionId: string; groups: { groupId: string; answers: { questionId: string; value?: any }[] }[] }[] } | null,
+  ): string | null {
+    if (!schema || !submission || !submission.sections) return null;
+
+    // Phase 1 — collect candidate question IDs from the schema.
+    let emailQuestionId: string | null = null;
+
+    for (const section of schema.sections) {
+      for (const group of section.groups) {
+        for (const question of group.questions) {
+          const matchesId = this.EMAIL_QUESTION_IDS.has(question.questionId);
+          const matchesText = question.text && this.EMAIL_QUESTION_TEXTS.has(question.text.trim());
+          if (matchesId || matchesText) {
+            emailQuestionId = question.questionId;
+            // The locked ID match is strongest, stop immediately when found.
+            if (matchesId) break;
+          }
+        }
+        if (emailQuestionId && this.EMAIL_QUESTION_IDS.has(emailQuestionId)) break;
+      }
+      if (emailQuestionId && this.EMAIL_QUESTION_IDS.has(emailQuestionId)) break;
+    }
+
+    if (!emailQuestionId) return null;
+
+    // Phase 2 — extract the answer value from the submission payload.
+    for (const section of submission.sections) {
+      for (const group of section.groups) {
+        for (const answer of group.answers) {
+          if (answer.questionId === emailQuestionId && answer.value != null) {
+            const trimmed = String(answer.value).trim();
+            if (trimmed.length === 0) return null;
+            // Per RFC 5321, the local-part is case-sensitive in theory, but
+            // real patient systems treat the whole address case-insensitive.
+            return trimmed.toLowerCase();
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Find a question in a schema by matching the user-visible text.
+   * Mirrors the server-side `ExtractInputValuesHelper.FindQuestionIdByText`
+   * convention (see project memory).  Returns the question object, or
+   * `null` when no match is found.
+   */
+  findQuestionByText(schema: DynamicFormSchemaDto, text: string): FormQuestionDto | null {
+    const target = text.trim().toLowerCase();
+    for (const section of schema.sections) {
+      for (const group of section.groups) {
+        for (const question of group.questions) {
+          if (question.text?.trim().toLowerCase() === target) return question;
+        }
+      }
+    }
+    return null;
+  }
 }
