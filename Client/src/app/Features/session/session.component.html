@@ -56,7 +56,7 @@
           [isOpen]="progressNoteOpen()"
           (toggle)="toggleProgressNote()">
         </app-session-progress-note>
-      }
+      } -->
 
       <!-- Actions -->
       <app-session-actions
@@ -69,12 +69,12 @@
     </section>
 
     @if (sessionDetails(); as session) {
-    <app-next-session-booking
-      class="mt-4 block lg:sticky lg:top-5 lg:col-span-4 lg:mt-0 lg:self-start"
-      [sessionId]="session.id"
-      [patientId]="session.PatientId"
-    />
-  }
+      <app-next-session-booking
+        class="mt-4 block lg:sticky lg:top-5 lg:col-span-4 lg:mt-0 lg:self-start"
+        [sessionId]="session.id"
+        [patientId]="session.PatientId"
+      />
+    }
   </main>
 
   <!-- Recording modal -->
