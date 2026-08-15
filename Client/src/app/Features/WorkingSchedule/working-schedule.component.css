@@ -1,72 +1,99 @@
 .ws-page {
-  max-width: 900px;
+  /* Local tokens mapped to the app's existing design variables, with safe
+     fallbacks matching the previous hardcoded palette so nothing shifts if a
+     given variable isn't defined globally. */
+  --ws-primary: var(--color-primary, #2563eb);
+  --ws-primary-soft: var(--color-primary-soft, rgb(37 99 235 / 0.08));
+  --ws-text-primary: var(--color-text-primary, #0f172a);
+  --ws-text-secondary: var(--color-text-secondary, #475569);
+  --ws-border: var(--color-border, #e2e8f0);
+  --ws-surface: var(--color-surface, #ffffff);
+  --ws-bg: var(--color-bg, #f8fafc);
+  --ws-warning: var(--color-warning, #f59e0b);
+
+  max-width: 920px;
   margin: 0 auto;
-  padding: 48px 24px 80px;
+  padding: 40px 24px 96px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  background: #f8fafc;
+  gap: 24px;
 }
+
+/* Header */
 
 .ws-page-header {
-  text-align: center;
-}
-
-.ws-title-row {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.ws-page-header h1 {
+.ws-header-text h1 {
   margin: 0;
   font-size: 1.75rem;
+  line-height: 1.2;
   font-weight: 700;
-  color: #0f172a;
+  letter-spacing: -0.01em;
+  color: var(--ws-text-primary);
 }
 
-.ws-page-header p {
-  margin: 8px 0 0;
-  font-size: 1rem;
-  color: #475569;
+.ws-header-text p {
+  margin: 6px 0 0;
+  font-size: 0.95rem;
+  color: var(--ws-text-secondary);
 }
 
-.ws-status-badge {
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: rgb(15 23 42 / 0.06);
-  color: #475569;
-}
-
-.ws-status-badge--active {
-  background: rgb(34 197 94 / 0.12);
-  color: #22c55e;
-}
+/* Card + sections */
 
 .ws-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border);
   border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 4px 16px rgb(15 23 42 / 0.06),
-              0 1px 3px rgb(15 23 42 / 0.08);
+  padding: 28px;
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 8px 24px rgb(15 23 42 / 0.05);
 }
 
 .ws-section + .ws-section {
-  margin-top: 28px;
+  margin-top: 24px;
 }
 
-.ws-section-eyebrow {
-  margin: 0 0 12px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #475569;
+.ws-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
 }
+
+.ws-section-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--ws-primary-soft);
+  color: var(--ws-primary);
+  font-size: 1rem;
+}
+
+.ws-section-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ws-text-primary);
+}
+
+.ws-section-hint {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: var(--ws-text-secondary);
+}
+
+/* Quick setup presets */
 
 .ws-presets {
   display: flex;
@@ -74,46 +101,31 @@
   gap: 10px;
 }
 
-.ws-preset-btn {
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #0f172a;
-  border-radius: 999px;
-  padding: 8px 16px;
-  font-size: 0.85rem;
+/* Summary strip */
+
+.ws-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--ws-bg);
+  color: var(--ws-text-secondary);
+  font-size: 0.88rem;
   font-weight: 500;
-  cursor: pointer;
-  transition: border-color 0.15s ease,
-              color 0.15s ease,
-              background-color 0.15s ease;
 }
 
-.ws-preset-btn:hover {
-  border-color: #2563eb;
-  color: #2563eb;
+.ws-summary .pi {
+  color: var(--ws-primary);
 }
 
-.ws-preset-btn--ghost {
-  color: #475569;
-}
-
-.ws-preset-btn--ghost:hover {
-  border-color: #475569;
-  color: #0f172a;
-}
-
-.ws-summary-line {
-  margin: 24px 0 0;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #475569;
-  text-align: center;
-}
+/* Actions */
 
 .ws-actions {
-  margin-top: 16px;
-  padding-top: 24px;
-  border-top: 1px solid #e2e8f0;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--ws-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -121,71 +133,40 @@
   flex-wrap: wrap;
 }
 
-.ws-secondary-actions {
+.ws-actions-status {
+  min-height: 20px;
+}
+
+.ws-unsaved-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ws-text-secondary);
+}
+
+.ws-unsaved-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ws-warning);
+  flex-shrink: 0;
+}
+
+.ws-actions-buttons {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.ws-btn {
-  border: none;
-  border-radius: 10px;
-  padding: 12px 24px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s ease,
-              border-color 0.15s ease,
-              opacity 0.15s ease;
-}
-
-.ws-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.ws-btn-primary {
-  background: #2563eb;
-  color: #ffffff;
-  min-width: 200px;
-  box-shadow: 0 2px 8px rgb(37 99 235 / 0.25);
-}
-
-.ws-btn-primary:hover:not(:disabled) {
-  background: #1d4ed8;
-}
-
-.ws-btn-ghost {
-  background: transparent;
-  border: 1px solid #e2e8f0;
-  color: #475569;
-}
-
-.ws-btn-ghost:hover:not(:disabled) {
-  border-color: #f59e0b;
-  color: #f59e0b;
-}
-
-.ws-btn-danger-ghost {
-  background: transparent;
-  border: 1px solid #e2e8f0;
-  color: #ef4444;
-}
-
-.ws-btn-danger-ghost:hover:not(:disabled) {
-  background: #ef4444;
-  border-color: #ef4444;
-  color: #ffffff;
-}
+/* Loading skeleton */
 
 .ws-skeleton-row {
-  height: 64px;
+  height: 68px;
   border-radius: 14px;
-  background: linear-gradient(
-    90deg,
-    #f8fafc 25%,
-    #eef2f7 37%,
-    #f8fafc 63%
-  );
+  background: linear-gradient(90deg, var(--ws-bg) 25%, #eef2f7 37%, var(--ws-bg) 63%);
   background-size: 400% 100%;
   animation: ws-skeleton-shimmer 1.4s ease infinite;
 }
@@ -210,19 +191,28 @@
   }
 }
 
+/* Responsive */
+
+@media (max-width: 768px) {
+  .ws-page {
+    padding: 32px 20px 88px;
+  }
+}
+
 @media (max-width: 640px) {
   .ws-page {
-    padding: 32px 16px 64px;
-    gap: 24px;
+    padding: 24px 16px 88px;
+    gap: 20px;
   }
 
   .ws-card {
-    padding: 20px;
+    padding: 18px;
+    border-radius: 14px;
   }
 
-  .ws-title-row {
+  .ws-page-header {
     flex-direction: column;
-    gap: 8px;
+    align-items: flex-start;
   }
 
   .ws-actions {
@@ -230,19 +220,27 @@
     align-items: stretch;
   }
 
-  .ws-btn {
-    width: 100%;
+  .ws-actions-status {
+    order: 2;
+    text-align: center;
   }
 
-  .ws-secondary-actions {
-    flex-direction: column;
+  .ws-actions-buttons {
+    order: 1;
+    flex-direction: column-reverse;
   }
 
   .ws-presets {
     flex-direction: column;
   }
 
-  .ws-preset-btn {
-    text-align: center;
+  /* PrimeNG buttons render their native <button> inside their own
+     encapsulated template, so ::ng-deep is required to stretch them to
+     full width on small screens. Scope is still limited to these two
+     containers, both of which live in this component's own template. */
+  .ws-actions-buttons ::ng-deep .p-button,
+  .ws-presets ::ng-deep .p-button {
+    width: 100%;
+    justify-content: center;
   }
 }

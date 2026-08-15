@@ -1,4 +1,5 @@
 <div class="schedule-page">
+  <!-- Toolbar is always visible, even while loading, so the page never feels "blank" -->
   <div class="schedule-page__toolbar-row">
     <app-calendar-toolbar
       [dateRangeLabel]="dateRangeLabel()"
@@ -7,48 +8,58 @@
       (nextClicked)="onNext()"
       (todayClicked)="onToday()"
       (viewModeChanged)="scheduleService.setView($event)"
-      
     />
-   
   </div>
 
-  @if (scheduleService.selectedDoctorId()) {
-    <app-statistics-panel
-      [statistics]="scheduleService.statistics()"
-      [upcomingAppointment]="scheduleService.upcomingAppointment()"
-      [nextAvailableSlot]="scheduleService.nextAvailableSlot()"
-      [workingHours]="scheduleService.workingHoursForSelectedDate()"
-    />
-
-    <app-filters-bar
-      [filters]="scheduleService.filters()"
-      (filtersChanged)="onFiltersChanged($event)"
-      (clearRequested)="scheduleService.clearFilters()"
-    />
-  }
-
   @if (scheduleService.errorMessage(); as error) {
-    <div class="schedule-page__error">{{ error }}</div>
+    <div class="schedule-page__error" role="alert">
+      <i class="pi pi-exclamation-circle"></i>
+      <span>{{ error }}</span>
+    </div>
   }
 
-  @if (scheduleService.loading()) {
-    <app-loading-skeleton />
-  } @else if (emptyStateKind(); as kind) {
-    <app-empty-state [kind]="kind" />
+  @if (scheduleService.selectedDoctorId()) {
+    <!-- Each section renders its own skeleton while loading instead of hiding the
+         whole page, so the toolbar/filters/stats stay put and only their content swaps in. -->
+    @if (scheduleService.loading()) {
+      <app-loading-skeleton variant="stats" />
+      <app-loading-skeleton variant="filters" />
+    } @else {
+      <app-statistics-panel
+        [statistics]="scheduleService.statistics()"
+        [upcomingAppointment]="scheduleService.upcomingAppointment()"
+        [nextAvailableSlot]="scheduleService.nextAvailableSlot()"
+        [workingHours]="scheduleService.workingHoursForSelectedDate()"
+      />
+
+      <app-filters-bar
+        [filters]="scheduleService.filters()"
+        (filtersChanged)="onFiltersChanged($event)"
+        (clearRequested)="scheduleService.clearFilters()"
+      />
+    }
+
+    @if (scheduleService.loading()) {
+      <app-loading-skeleton variant="calendar" />
+    } @else if (emptyStateKind(); as kind) {
+      <app-empty-state [kind]="kind" />
+    } @else {
+      <app-calendar-grid
+        [selectedDate]="scheduleService.selectedDate()"
+        [viewMode]="scheduleService.currentView()"
+        [appointments]="scheduleService.filteredAppointments()"
+        [availability]="scheduleService.availability()"
+        [workingDays]="scheduleService.workingDays()"
+        (appointmentClicked)="onAppointmentClicked($event)"
+        (intervalClicked)="onIntervalClicked($event)"
+        (rescheduleRequested)="onReschedule($event)"
+        (invalidDropAttempted)="scheduleService.showToast('Doctor doesn\'t work that day.', 'error')"
+        (quickComplete)="onQuickComplete($event)"
+        (quickCancel)="onQuickCancel($event)"
+      />
+    }
   } @else {
-    <app-calendar-grid
-      [selectedDate]="scheduleService.selectedDate()"
-      [viewMode]="scheduleService.currentView()"
-      [appointments]="scheduleService.filteredAppointments()"
-      [availability]="scheduleService.availability()"
-      [workingDays]="scheduleService.workingDays()"
-      (appointmentClicked)="onAppointmentClicked($event)"
-      (intervalClicked)="onIntervalClicked($event)"
-      (rescheduleRequested)="onReschedule($event)"
-      (invalidDropAttempted)="scheduleService.showToast('Doctor doesn\'t work that day.', 'error')"
-      (quickComplete)="onQuickComplete($event)"
-      (quickCancel)="onQuickCancel($event)"
-    />
+    <app-empty-state kind="no-doctor" />
   }
 
   <app-appointment-drawer
@@ -62,13 +73,12 @@
     (rescheduleRequested)="onDrawerReschedule($event)"
   />
 
-  <!-- schedule-page.component.html — fix -->
-<app-reschedule-dialog
-  [isOpen]="isRescheduleDialogOpen()"
-  [appointment]="reschedulingAppointment()"
-  (closeRequested)="isRescheduleDialogOpen.set(false)"
-  (confirmRequested)="onRescheduleConfirm($event)"
-/>
+  <app-reschedule-dialog
+    [isOpen]="isRescheduleDialogOpen()"
+    [appointment]="reschedulingAppointment()"
+    (closeRequested)="isRescheduleDialogOpen.set(false)"
+    (confirmRequested)="onRescheduleConfirm($event)"
+  />
 
   <app-create-appointment-drawer
     [isOpen]="scheduleService.isCreateDrawerOpen()"
@@ -78,11 +88,14 @@
     [prefillPatientId]="patientId()"
     (closeRequested)="scheduleService.closeCreateDrawer()"
     (createRequested)="onCreateSubmit($event)"
-/>
+  />
 
-  <div class="toast-stack">
+  <div class="toast-stack" aria-live="polite">
     @for (toast of scheduleService.toasts(); track toast.id) {
-      <div class="toast" [class.toast--error]="toast.kind === 'error'">{{ toast.text }}</div>
+      <div class="toast" [class.toast--error]="toast.kind === 'error'">
+        <i class="pi" [class.pi-check-circle]="toast.kind !== 'error'" [class.pi-times-circle]="toast.kind === 'error'"></i>
+        <span>{{ toast.text }}</span>
+      </div>
     }
   </div>
 </div>

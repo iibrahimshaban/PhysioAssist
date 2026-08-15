@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { TagModule } from 'primeng/tag';
 import { DayOption } from '../WorkingSchedule.models';
 
 export interface DayViewModel {
@@ -15,7 +17,7 @@ export interface DayViewModel {
 @Component({
   selector: 'app-weekly-schedule-editor',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, ToggleSwitchModule, TagModule],
   templateUrl: './weekly-schedule-editor.component.html',
   styleUrl: './weekly-schedule-editor.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

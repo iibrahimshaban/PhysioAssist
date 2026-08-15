@@ -1,22 +1,35 @@
 .ws-weekly-editor {
+  /* Reuse the same tokens as the parent page (falls back gracefully if
+     ws-page's tokens aren't in scope, since :host doesn't inherit custom
+     properties across component style encapsulation the same way). */
+  --ws-primary: var(--color-primary, #2563eb);
+  --ws-primary-soft: var(--color-primary-soft, rgb(37 99 235 / 0.08));
+  --ws-text-primary: var(--color-text-primary, #0f172a);
+  --ws-text-secondary: var(--color-text-secondary, #475569);
+  --ws-border: var(--color-border, #e2e8f0);
+  --ws-surface: var(--color-surface, #ffffff);
+  --ws-bg: var(--color-bg, #f8fafc);
+  --ws-danger: var(--color-danger, #ef4444);
+  --ws-success: var(--color-success, #14b8a6);
+
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
 .ws-day-row {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-border);
   border-radius: 14px;
   padding: 16px 20px;
-  background: #f8fafc;
+  background: var(--ws-bg);
   transition: border-color 0.15s ease,
               background-color 0.15s ease,
               box-shadow 0.15s ease;
 }
 
 .ws-day-row--enabled {
-  border-color: #2563eb;
-  background: #ffffff;
+  border-color: var(--ws-primary);
+  background: var(--ws-surface);
   box-shadow: 0 1px 3px rgb(37 99 235 / 0.08);
 }
 
@@ -24,86 +37,36 @@
   display: flex;
   align-items: center;
   gap: 14px;
-}
-
-/* Toggle switch */
-.ws-switch {
-  position: relative;
-  width: 44px;
-  height: 26px;
-  flex-shrink: 0;
-}
-
-.ws-switch input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-  z-index: 2;
-}
-
-.ws-switch-track {
-  position: absolute;
-  inset: 0;
-  background: #cbd5e1;
-  border: 1px solid #e2e8f0;
-  border-radius: 999px;
-  transition: background-color 0.15s ease;
-}
-
-.ws-switch-thumb {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.25);
-  transition: transform 0.15s ease;
-}
-
-.ws-switch input:checked ~ .ws-switch-track {
-  background: #2563eb;
-  border-color: #2563eb;
-}
-
-.ws-switch input:checked ~ .ws-switch-thumb {
-  transform: translateX(18px);
-}
-
-.ws-switch input:focus-visible ~ .ws-switch-track {
-  box-shadow: 0 0 0 3px rgb(37 99 235 / 0.25);
+  flex-wrap: wrap;
 }
 
 .ws-day-name {
   font-size: 1rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--ws-text-primary);
   flex: 1;
+  min-width: 0;
+  cursor: pointer;
 }
 
-.ws-duration-chip {
-  font-size: 0.78rem;
+/* Chip overrides — PrimeNG's p-tag renders its own inner markup, so
+   ::ng-deep is required to reach it from this component's encapsulated
+   styles. Scope is limited to these two chip classes only. */
+::ng-deep .ws-duration-chip.p-tag {
+  background: var(--ws-primary-soft);
+  color: var(--ws-primary);
   font-weight: 600;
-  color: #2563eb;
-  background: rgb(37 99 235 / 0.08);
-  border-radius: 999px;
+  font-size: 0.78rem;
   padding: 4px 12px;
-  white-space: nowrap;
+  border-radius: 999px;
 }
 
-.ws-off-chip {
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: #475569;
+::ng-deep .ws-off-chip.p-tag {
   background: rgb(15 23 42 / 0.04);
-  border-radius: 999px;
+  color: var(--ws-text-secondary);
+  font-weight: 500;
+  font-size: 0.78rem;
   padding: 4px 12px;
-  white-space: nowrap;
 }
 
 .ws-day-row-details {
@@ -115,6 +78,7 @@
   display: flex;
   align-items: flex-end;
   gap: 14px;
+  flex-wrap: wrap;
 }
 
 .ws-time-field {
@@ -122,41 +86,56 @@
   flex-direction: column;
   gap: 6px;
   flex: 1;
+  min-width: 140px;
   max-width: 200px;
 }
 
 .ws-time-label {
   font-size: 0.78rem;
   font-weight: 500;
-  color: #475569;
+  color: var(--ws-text-secondary);
 }
 
-.ws-time-field input[type="time"] {
-  border: 1px solid #e2e8f0;
+/* Styled to visually match PrimeNG's InputText look, without switching the
+   control away from a native input[type=time] (which would change the form
+   value from a "HH:mm" string to a Date object and ripple through the rest
+   of the feature). */
+.ws-time-input {
+  border: 1px solid var(--ws-border);
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 1rem;
-  color: #0f172a;
-  background: #ffffff;
+  font-family: inherit;
+  color: var(--ws-text-primary);
+  background: var(--ws-surface);
   transition: border-color 0.15s ease,
               box-shadow 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.ws-time-field input[type="time"]:focus-visible {
+.ws-time-input:hover {
+  border-color: color-mix(in srgb, var(--ws-primary) 40%, var(--ws-border));
+}
+
+.ws-time-input:focus-visible {
   outline: none;
-  border-color: #2563eb;
+  border-color: var(--ws-primary);
   box-shadow: 0 0 0 3px rgb(37 99 235 / 0.15);
 }
 
 .ws-time-separator {
-  color: #475569;
+  color: var(--ws-text-secondary);
   padding-bottom: 12px;
   font-size: 0.9rem;
 }
 
 .ws-field-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: 0.78rem;
-  color: #ef4444;
+  color: var(--ws-danger);
 }
 
 .ws-field-error--row {
@@ -173,7 +152,7 @@
 .ws-timeline-track {
   position: absolute;
   inset: 0;
-  background: #e2e8f0;
+  background: var(--ws-border);
   border-radius: 999px;
 }
 
@@ -181,7 +160,7 @@
   position: absolute;
   top: 0;
   height: 100%;
-  background: #14b8a6;
+  background: var(--ws-success);
   border-radius: 999px;
   transition: left 0.15s ease,
               width 0.15s ease;
@@ -192,10 +171,17 @@
   justify-content: space-between;
   margin-top: 6px;
   font-size: 0.7rem;
-  color: #475569;
+  color: var(--ws-text-secondary);
 }
 
+/* Responsive */
+
 @media (max-width: 640px) {
+  .ws-day-row {
+    padding: 14px 16px;
+    border-radius: 12px;
+  }
+
   .ws-day-row-details {
     padding-left: 0;
   }
@@ -208,6 +194,7 @@
 
   .ws-time-field {
     max-width: none;
+    min-width: 0;
   }
 
   .ws-time-separator {
@@ -215,10 +202,18 @@
   }
 }
 
+@media (max-width: 400px) {
+  .ws-day-row-main {
+    gap: 10px;
+  }
+
+  .ws-day-name {
+    font-size: 0.92rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ws-day-row,
-  .ws-switch-track,
-  .ws-switch-thumb,
   .ws-timeline-range {
     transition: none;
   }

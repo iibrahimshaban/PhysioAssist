@@ -9,6 +9,12 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+
+// 👇 PrimeNG standalone imports — these were missing
+import { TagModule } from 'primeng/tag';
+import { ButtonModule } from 'primeng/button';
+import { DividerModule } from 'primeng/divider';
+
 import { WorkingScheduleService } from '../../Core/Services/working-schedule.service';
 import { SnackbarService } from '../../Core/Services/snackbar.service';
 import {
@@ -42,7 +48,13 @@ function dayRangeValidator(group: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'app-working-schedule',
   standalone: true,
-  imports: [ReactiveFormsModule, WeeklyScheduleEditorComponent],
+  imports: [
+    ReactiveFormsModule,
+    WeeklyScheduleEditorComponent,
+    TagModule,      // 👈 enables <p-tag>
+    ButtonModule,    // 👈 enables <p-button>
+    DividerModule,   // 👈 enables <p-divider>
+  ],
   templateUrl: './working-schedule.component.html',
   styleUrl: './working-schedule.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -75,8 +87,6 @@ export class WorkingScheduleComponent implements OnInit {
     return this.form.get('days') as FormArray;
   }
 
-  // Live snapshot of the form, used to drive duration chips, the mini timeline
-  // bars, and the weekly summary — recomputed automatically on every edit.
   private readonly formValue = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
 
   readonly dayViewModels = computed<DayViewModel[]>(() => {
@@ -133,10 +143,9 @@ export class WorkingScheduleComponent implements OnInit {
       { validators: dayRangeValidator },
     );
 
-    // Reacts to both user clicks and programmatic patches (e.g. loading an
-    // existing schedule or applying a preset), so the enable/disable +
-    // required-validator logic lives in exactly one place.
-group.get('enabled')?.valueChanges.subscribe(enabled => {this.syncDayControls(group, !!enabled);});
+    group.get('enabled')?.valueChanges.subscribe((enabled) => {
+      this.syncDayControls(group, !!enabled);
+    });
 
     return group;
   }
@@ -201,7 +210,6 @@ group.get('enabled')?.valueChanges.subscribe(enabled => {this.syncDayControls(gr
       }));
   }
 
-  /** Quick-setup shortcuts so a doctor can configure a typical week in one click. */
   applyPreset(preset: Preset): void {
     const defaultStart = '09:00';
     const defaultEnd = '17:00';
@@ -214,7 +222,7 @@ group.get('enabled')?.valueChanges.subscribe(enabled => {this.syncDayControls(gr
         return;
       }
 
-      const isWeekday = day.value >= 1 && day.value <= 5; // Monday(1) - Friday(5)
+      const isWeekday = day.value >= 1 && day.value <= 5;
       const shouldEnable = preset === 'everyday' || isWeekday;
 
       if (!shouldEnable) {
@@ -287,4 +295,19 @@ group.get('enabled')?.valueChanges.subscribe(enabled => {this.syncDayControls(gr
     this.form.markAsPristine();
     this.form.markAsUntouched();
   }
+
+  cancelChanges(): void {
+  const current = this.schedule();
+
+  if (current) {
+    this.patchFormFromSchedule(current);
+  } else {
+    this.weekDays.forEach((_, index) => {
+      this.daysArray.at(index).patchValue({ enabled: false, startTime: '', endTime: '' });
+    });
+  }
+
+  this.form.markAsPristine();
+  this.form.markAsUntouched();
+}
 }

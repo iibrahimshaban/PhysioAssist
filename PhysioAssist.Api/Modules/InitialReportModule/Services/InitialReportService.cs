@@ -96,7 +96,7 @@ public class InitialReportService(
         var transcriptionResult = await _audioTranscriptionService.TranscribeAsync(transcriptionRequest);
 
         if (transcriptionResult.IsFailure)
-            return Result.Failure<TranscriptionResponse>(InitialReportErrors.TranscriptionFailed);
+            return Result.Failure<TranscriptionResponse>(transcriptionResult.Error);
 
         // Not persisted — the frontend merges this into the field being recorded
         // and saves it via the existing UpdateReportText endpoint on Save Draft/Submit.

@@ -146,6 +146,7 @@ public class TreatmentSchedulePlanService(
             patientId,
             DefaultCandidateCount,
             freeTimeOverride,
+            plan.AllowSameDayBooking,
             cancellationToken);
 
         return slotsResult.IsSuccess ? slotsResult.Value : [];
@@ -261,5 +262,6 @@ public class TreatmentSchedulePlanService(
         plan.Priority,
         plan.Status,
         plan.PackageId,
+        plan.AllowSameDayBooking,
         candidates);
 }

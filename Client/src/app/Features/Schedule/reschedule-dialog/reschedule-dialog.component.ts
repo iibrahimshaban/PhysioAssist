@@ -6,13 +6,15 @@ import { DatePipe } from '@angular/common';
 
 
 const LOOKAHEAD_DAYS = 30;
-
+import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
+// ...
 @Component({
   selector: 'app-reschedule-dialog',
   standalone: true,
+  imports: [DatePipe, ButtonModule, TooltipModule],
   templateUrl: './reschedule-dialog.component.html',
   styleUrl: './reschedule-dialog.component.scss',
-  imports:[DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RescheduleDialogComponent {

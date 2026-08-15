@@ -1,10 +1,12 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { CalendarViewMode } from '../schedule.models';
 
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-calendar-toolbar',
   standalone: true,
+  imports: [TooltipModule], // added
   templateUrl: './calendar-toolbar.component.html',
   styleUrl: './calendar-toolbar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

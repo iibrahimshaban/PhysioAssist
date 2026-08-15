@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -10,7 +10,7 @@ import { DynamicFormSubmissionDto } from '../../intake/models';
 import { AgePipe } from '../../../Shared/Pipes/age-pipe';
 import { PatientScheduleOverviewDto } from '../../../Shared/Models/Patient.model';
 import { PatientScheduleOverviewComponent } from '../patient-schedule-overview/patient-schedule-overview.component';
-
+import { GenderPipe } from '../../../Shared/Pipes/gender-pipe'; // adjust path if different
 @Component({
   selector: 'app-patient-overview',
   standalone: true,
@@ -22,6 +22,7 @@ import { PatientScheduleOverviewComponent } from '../patient-schedule-overview/p
     DynamicFormRendererComponent,
     AgePipe,
     PatientScheduleOverviewComponent,
+    GenderPipe,
   ],
   templateUrl: './patient-overview.component.html',
   styleUrl: './patient-overview.component.css',
@@ -31,6 +32,7 @@ export class PatientOverviewComponent implements OnInit {
   private readonly patientService = inject(PatientService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
 
   scheduleOverview = signal<PatientScheduleOverviewDto | null>(null);
 
@@ -254,7 +256,11 @@ export class PatientOverviewComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/app/patients']);
+    this.location.back();
+  }
+
+  goForward(): void {
+    this.location.forward();
   }
 
   // NOTE: assumed route — this is the receptionist-scheduling route you built

@@ -188,7 +188,7 @@ public class PatientSessionSchedulingService(
         foreach (var group in groups)
         {
             var slotsResult = await _recommendationService.GetRecommendedSlotsAsync(
-                package.DoctorId, sessionDuration, from, to, group.TimeFrom, group.TimeTo, cancellationToken);
+                package.DoctorId, sessionDuration, from, to, group.TimeFrom, group.TimeTo, false, cancellationToken);
 
             if (slotsResult.IsFailure)
                 return Result.Failure<SessionBookingRoundDto>(slotsResult.Error);
@@ -326,6 +326,7 @@ public class PatientSessionSchedulingService(
         Guid patientId,
         int topN = 5,
         string? patientFreeTimeOverride = null,
+        bool allowSameDayBooking = false,
         CancellationToken cancellationToken = default)
     {
         var preferenceResult = await _patientQueryService.ResolvePatientTimePreferenceAsync(
@@ -359,7 +360,8 @@ public class PatientSessionSchedulingService(
         foreach (var group in groupsToQuery)
         {
             var slotsResult = await _recommendationService.GetRecommendedSlotsAsync(
-                doctorId, requestedDuration, from, to, group.TimeFrom, group.TimeTo, cancellationToken);
+                doctorId, requestedDuration, from, to, group.TimeFrom, group.TimeTo,
+                allowSameDayBooking, cancellationToken);
 
             if (slotsResult.IsFailure)
                 return Result.Failure<IReadOnlyList<SlotCandidateDto>>(slotsResult.Error);

@@ -2,6 +2,7 @@
   display: block;
   height: 100%;
 
+  // ── Existing palette (unchanged) ─────────────────────────────────
   --color-primary: #2563EB;
   --color-primary-light: #3B82F6;
   --color-primary-dark: #1D4ED8;
@@ -23,31 +24,109 @@
   --status-completed-bg: #DCFCE7; --status-completed-border: #22C55E; --status-completed-text: #15803D;
   --status-cancelled-bg: #FEE2E2; --status-cancelled-border: #EF4444; --status-cancelled-text: #B91C1C;
   --status-noshow-bg: #FEF3C7; --status-noshow-border: #F59E0B; --status-noshow-text: #92400E;
-  --status-available-bg: #ECFDF5; --status-available-border: #10B981;
+  --status-available-bg: #ECFDF5; --status-available-border: #10B981; --status-available-text: #047857;
+
+  --owner-patient-accent: #2563EB;
+  --owner-guest-accent: #9333EA;
 
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 18px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
   --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.16);
+
+  // ── New: consistent spacing scale, reused by every child component ──
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
 
   background: var(--color-bg-page);
 }
 
 .schedule-page {
-  display: flex; flex-direction: column; height: 100%; padding: 24px 32px; gap: 16px; box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--space-6) var(--space-8);
+  gap: var(--space-5);
+  box-sizing: border-box;
+  overflow-x: hidden; // page itself never scrolls horizontally
+  min-height: 0;
 }
-.schedule-page__toolbar-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+
+// .schedule-page__toolbar-row {
+//   display: flex;
+//   align-items: center;
+//   justify-content: space-between;
+//   gap: var(--space-4);
+// }
+
 .schedule-page__error {
-  background: var(--status-cancelled-bg); color: var(--status-cancelled-text); border: 1px solid var(--status-cancelled-border);
-  border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--status-cancelled-bg);
+  color: var(--status-cancelled-text);
+  border: 1px solid var(--status-cancelled-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  font-size: 13px;
+
+  .pi { font-size: 14px; }
 }
+
 .toast-stack {
-  position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 100;
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 100;
+  max-width: min(360px, calc(100vw - 32px));
 }
+
 .toast {
-  background: var(--color-text-primary); color: #fff; padding: 10px 16px; border-radius: var(--radius-sm);
-  font-size: 13.5px; box-shadow: var(--shadow-md); animation: slideUp 0.2s ease-out;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-text-primary);
+  color: #fff;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.2s ease-out;
+
   &--error { background: var(--color-danger); }
+  .pi { font-size: 14px; flex-shrink: 0; }
 }
-@keyframes slideUp { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+@keyframes toastIn {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+// ── Responsive page shell ────────────────────────────────────────────
+@media (max-width: 1199px) {
+  .schedule-page { padding: var(--space-5) var(--space-6); gap: var(--space-4); }
+}
+
+@media (max-width: 767px) {
+  .schedule-page { padding: var(--space-4) var(--space-4) var(--space-3); gap: var(--space-3); }
+  .toast-stack {
+    left: var(--space-4);
+    right: var(--space-4);
+    bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+    max-width: none;
+  }
+}
+
+@media (max-width: 479px) {
+  .schedule-page { padding: var(--space-3) var(--space-3) var(--space-2); }
+}

@@ -8,5 +8,6 @@ public record UpsertTreatmentSchedulePlanRequest(
         int SessionDurationMinutes,
         int SessionsPerWeek,
         int MinimumGapBetweenSessionsDays,
-        SchedulingPriority Priority
+        SchedulingPriority Priority,
+        bool AllowSameDayBooking = false
     );

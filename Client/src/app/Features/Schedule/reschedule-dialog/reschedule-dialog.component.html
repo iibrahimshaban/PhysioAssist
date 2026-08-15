@@ -1,15 +1,28 @@
 <!-- components/reschedule-dialog/reschedule-dialog.component.html -->
 @if (isOpen() && appointment(); as a) {
   <div class="drawer-backdrop" (click)="onClose()"></div>
-  <div class="drawer">
+  <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="reschedule-title">
     <div class="drawer__header">
-      <h2 class="drawer__title">Reschedule Appointment</h2>
-      <button type="button" class="drawer__close" (click)="onClose()">✕</button>
+      <h2 class="drawer__title" id="reschedule-title">
+        <i class="pi pi-history drawer__title-icon" aria-hidden="true"></i>
+        Reschedule Appointment
+      </h2>
+      <button
+        type="button"
+        pButton
+        icon="pi pi-times"
+        class="p-button-text p-button-rounded drawer__close"
+        pTooltip="Close"
+        tooltipPosition="left"
+        aria-label="Close"
+        (click)="onClose()"
+      ></button>
     </div>
 
     <div class="drawer__section">
       <span class="drawer__label">Current Time</span>
       <span class="drawer__value">
+        <i class="pi pi-clock" aria-hidden="true"></i>
         {{ a.slotStart | date:'EEE, MMM d · h:mm a' }} – {{ a.slotEnd | date:'h:mm a' }}
       </span>
     </div>
@@ -17,15 +30,23 @@
     <div class="form-field">
       <span class="form-field__label">Choose a Working Day</span>
       @if (loading()) {
-        <span class="drawer__value">Loading availability...</span>
+        <span class="drawer__value drawer__value--muted">
+          <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+          Loading availability...
+        </span>
       } @else if (workingDays().length === 0) {
-        <span class="drawer__value">No availability in the next 30 days.</span>
+        <div class="empty-note">
+          <i class="pi pi-calendar-times" aria-hidden="true"></i>
+          No availability in the next 30 days.
+        </div>
       } @else {
-        <div class="day-chip-row">
+        <div class="day-chip-row" role="listbox" aria-label="Available working days">
           @for (day of workingDays(); track day.date.getTime()) {
-            <button type="button" class="day-chip"
+            <button type="button" role="option" class="day-chip"
               [class.day-chip--active]="selectedDay()?.date?.getTime() === day.date.getTime()"
+              [attr.aria-selected]="selectedDay()?.date?.getTime() === day.date.getTime()"
               (click)="selectDay(day)">
+              <i class="pi pi-calendar" aria-hidden="true"></i>
               {{ day.date | date:'EEE, MMM d' }}
             </button>
           }
@@ -36,11 +57,13 @@
     @if (selectedDay(); as day) {
       <div class="form-field">
         <span class="form-field__label">Choose an Available Window</span>
-        <div class="interval-grid">
+        <div class="interval-grid" role="listbox" aria-label="Available time windows">
           @for (interval of day.intervals; track interval.start.getTime()) {
-            <button type="button" class="interval-btn"
+            <button type="button" role="option" class="interval-btn"
               [class.interval-btn--active]="selectedInterval()?.start?.getTime() === interval.start.getTime()"
+              [attr.aria-selected]="selectedInterval()?.start?.getTime() === interval.start.getTime()"
               (click)="selectInterval(interval)">
+              <i class="pi pi-clock" aria-hidden="true"></i>
               {{ interval.start | date:'h:mm a' }} – {{ interval.end | date:'h:mm a' }}
             </button>
           }
@@ -58,20 +81,40 @@
           [max]="timeInputMax()"
           [value]="selectedTime()"
           (input)="onTimeInput($event)"
+          [attr.aria-invalid]="!isTimeValid()"
         />
         @if (!isTimeValid()) {
           <span class="form-field__hint form-field__hint--error">
+            <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
             Must fit within {{ timeInputMin() }} – {{ timeInputMax() }} to preserve the original duration.
           </span>
         } @else {
-          <span class="form-field__hint">Duration stays {{ originalDurationMinutes() }} min, same as the original appointment.</span>
+          <span class="form-field__hint">
+            <i class="pi pi-check-circle" aria-hidden="true"></i>
+            Duration stays {{ originalDurationMinutes() }} min, same as the original appointment.
+          </span>
         }
       </div>
     }
 
     <div class="drawer__actions">
-      <button type="button" class="drawer-btn drawer-btn--primary" [disabled]="!isTimeValid()" (click)="onConfirm()">Confirm</button>
-      <button type="button" class="drawer-btn" (click)="onClose()">Cancel</button>
+      <button
+        type="button"
+        pButton
+        class="drawer-btn drawer-btn--primary"
+        icon="pi pi-check"
+        label="Confirm"
+        [disabled]="!isTimeValid()"
+        (click)="onConfirm()"
+      ></button>
+      <button
+        type="button"
+        pButton
+        class="p-button-outlined drawer-btn"
+        icon="pi pi-times"
+        label="Cancel"
+        (click)="onClose()"
+      ></button>
     </div>
   </div>
 }

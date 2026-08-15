@@ -16,16 +16,24 @@ export class QrAccessService {
   private readonly baseUrl = `${environment.apiUrl}public`;
 
   getPublicForm(token: string): Observable<PublicIntakeFormResponse> {
-    return this.http.get<PublicIntakeFormResponse>(`${this.baseUrl}/intake/${token}`);
+    return this.http.get<PublicIntakeFormResponse>(`${this.baseUrl}/intake`, {
+      params: { token }
+    });
   }
 
   submitPublicIntake(token: string, request: SubmitPreVisitIntakeRequest): Observable<PublicIntakeSubmissionResponse> {
-    return this.http.post<PublicIntakeSubmissionResponse>(`${this.baseUrl}/intake/${token}/submit`, request);
+    return this.http.post<PublicIntakeSubmissionResponse>(`${this.baseUrl}/intake/submit`, request, {
+      params: { token }
+    });
   }
 
   extractTokenFromUrl(url: string): string | null {
-    const match = url.match(/\/intake\/([^\/\?]+)/);
-    return match ? match[1] : null;
+    try {
+      const parsed = new URL(url);
+      return parsed.searchParams.get('token');
+    } catch {
+      return null;
+    }
   }
 
   isTokenExpired(expiresAt: string): boolean {
@@ -39,7 +47,8 @@ export class QrAccessService {
     }
 
     const baseUrl = new URL(window.location.href);
-    baseUrl.pathname = `/public/intake/${normalizedToken}`;
+    baseUrl.pathname = `/public/intake`;
+    baseUrl.searchParams.set('token', normalizedToken);
     return baseUrl.toString();
   }
 }

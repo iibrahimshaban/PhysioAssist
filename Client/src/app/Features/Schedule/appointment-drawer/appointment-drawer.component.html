@@ -1,9 +1,18 @@
 @if (isOpen() && appointment(); as a) {
   <div class="drawer-backdrop" (click)="closeRequested.emit()"></div>
-  <div class="drawer">
+  <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
     <div class="drawer__header">
-      <h2 class="drawer__title">Appointment Details</h2>
-      <button type="button" class="drawer__close" (click)="closeRequested.emit()">✕</button>
+      <h2 class="drawer__title" id="drawer-title">Appointment Details</h2>
+      <button
+        type="button"
+        class="drawer__close"
+        (click)="closeRequested.emit()"
+        pTooltip="Close"
+        tooltipPosition="left"
+        aria-label="Close appointment details"
+      >
+        <i class="pi pi-times" aria-hidden="true"></i>
+      </button>
     </div>
 
     <div class="owner-section"
@@ -18,10 +27,10 @@
       @if (owner()?.phoneNumber || owner()?.emailAddress) {
         <div class="owner-contact">
           @if (owner()?.phoneNumber) {
-            <span class="owner-detail">📞 {{ owner()!.phoneNumber }}</span>
+            <span class="owner-detail"><i class="pi pi-phone" aria-hidden="true"></i> {{ owner()!.phoneNumber }}</span>
           }
           @if (owner()?.emailAddress) {
-            <span class="owner-detail">✉️ {{ owner()!.emailAddress }}</span>
+            <span class="owner-detail"><i class="pi pi-envelope" aria-hidden="true"></i> {{ owner()!.emailAddress }}</span>
           }
         </div>
       }
@@ -51,12 +60,22 @@
 
     <div class="drawer__actions">
       @if (a.status === 'Booked') {
-        <button type="button" class="drawer-btn drawer-btn--success" (click)="requestComplete()">Complete</button>
-        <button type="button" class="drawer-btn" (click)="rescheduleRequested.emit(a)">Reschedule</button>
-        <button type="button" class="drawer-btn drawer-btn--warning" (click)="requestNoShow()">Mark No Show</button>
-        <button type="button" class="drawer-btn drawer-btn--danger" (click)="requestCancel()">Cancel</button>
+        <button type="button" class="drawer-btn drawer-btn--success" (click)="requestComplete()">
+          <i class="pi pi-check-circle" aria-hidden="true"></i> Complete
+        </button>
+        <button type="button" class="drawer-btn" (click)="rescheduleRequested.emit(a)">
+          <i class="pi pi-calendar" aria-hidden="true"></i> Reschedule
+        </button>
+        <button type="button" class="drawer-btn drawer-btn--warning" (click)="requestNoShow()">
+          <i class="pi pi-exclamation-triangle" aria-hidden="true"></i> Mark No Show
+        </button>
+        <button type="button" class="drawer-btn drawer-btn--danger" (click)="requestCancel()">
+          <i class="pi pi-ban" aria-hidden="true"></i> Cancel
+        </button>
       }
-      <button type="button" class="drawer-btn drawer-btn--outline-danger" (click)="requestDelete()">Delete</button>
+      <button type="button" class="drawer-btn drawer-btn--outline-danger" (click)="requestDelete()">
+        <i class="pi pi-trash" aria-hidden="true"></i> Delete
+      </button>
     </div>
   </div>
 

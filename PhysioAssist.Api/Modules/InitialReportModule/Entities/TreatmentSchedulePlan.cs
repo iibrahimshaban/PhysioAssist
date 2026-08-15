@@ -20,6 +20,7 @@ public class TreatmentSchedulePlan : AuditableEntity
 
     // --- Lifecycle ---
     public TreatmentSchedulePlanStatus Status { get; set; } = TreatmentSchedulePlanStatus.Pending;
+    public bool AllowSameDayBooking { get; set; } = false;
 
     /// <summary>Set only once Status is Booked — links back to Scheduling's PatientSessionPackage.</summary>
     public Guid? PackageId { get; set; }
