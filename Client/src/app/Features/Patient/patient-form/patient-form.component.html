@@ -3,9 +3,11 @@
 
     <!-- Header -->
     <div class="mb-6 flex items-center gap-4">
-      <button (click)="goBack()"
-        class="inline-flex items-center gap-1 text-slate-400 hover:text-slate-600 transition-colors text-sm">
-        <i class="pi pi-arrow-left"></i> Back
+      <button (click)="goBack()" class="nav-circle" aria-label="Back" title="Back">
+        <i class="pi pi-arrow-left"></i>
+      </button>
+      <button (click)="goForward()" class="nav-circle" aria-label="Forward" title="Forward">
+        <i class="pi pi-arrow-right"></i>
       </button>
       <div>
         <h1 class="text-3xl font-bold text-slate-900">{{ isEditMode ? 'Edit Patient' : 'Add Patient' }}</h1>

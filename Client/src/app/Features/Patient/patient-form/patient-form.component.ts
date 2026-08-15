@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PatientService } from '../services/patient.service';
@@ -20,7 +20,8 @@ export class PatientFormComponent implements OnInit {
     private fb: FormBuilder,
     private patientService: PatientService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private location: Location
   ) {
     this.form = this.fb.group({
       fullName: ['', Validators.required],
@@ -67,6 +68,10 @@ export class PatientFormComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['app/patients']);
+    this.location.back();
+  }
+
+  goForward() {
+    this.location.forward();
   }
 }
