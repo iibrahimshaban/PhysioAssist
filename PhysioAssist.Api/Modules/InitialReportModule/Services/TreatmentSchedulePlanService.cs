@@ -50,6 +50,7 @@ public class TreatmentSchedulePlanService(
         plan.SessionDurationMinutes = request.SessionDurationMinutes;
         plan.SessionsPerWeek = request.SessionsPerWeek;
         plan.MinimumGapBetweenSessionsDays = request.MinimumGapBetweenSessionsDays;
+        plan.AllowSameDayBooking = request.AllowSameDayBooking;
         plan.Priority = request.Priority;
 
         await _unitOfWork.SaveAsync(cancellationToken);

@@ -55,6 +55,11 @@ export class ScheduleRequirementsComponent implements OnInit {
     { label: 'High', value: SchedulingPriority.High },
     { label: 'Urgent', value: SchedulingPriority.Urgent },
   ];
+
+  readonly allowSameDayBookingOptions = [
+    { label: 'No', value: false },
+    { label: 'Yes', value: true },
+  ];
  
   ngOnInit(): void {
     this.loadExistingPlan();
