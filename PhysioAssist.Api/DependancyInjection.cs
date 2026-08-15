@@ -26,6 +26,7 @@ using PhysioAssist.Api.Modules.Scheduling;
 using PhysioAssist.Api.Modules.SessionModule;
 using PhysioAssist.Api.Modules.SessionModule.Services;
 using PhysioAssist.Api.Shared.Email;
+using PhysioAssist.Api.Shared.Email.Brevo;
 using PhysioAssist.Api.Shared.Interfaces.Documentation;
 using PhysioAssist.Api.Shared.Interfaces.Ingestion;
 using PhysioAssist.Api.Shared.Interfaces.Scheduling;
@@ -263,7 +264,14 @@ public static class DependancyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddTransient<ICustomEmailService, EmailService>();
+        services
+            .AddOptions<BrevoOptions>()
+            .BindConfiguration(BrevoOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        //services.AddTransient<ICustomEmailService, EmailService>();
+        services.AddTransient<ICustomEmailService, BrevoEmailService>();
 
         return services;
     }

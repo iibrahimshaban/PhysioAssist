@@ -89,6 +89,7 @@ export interface UpsertTreatmentSchedulePlanRequest {
   sessionsPerWeek: number;
   minimumGapBetweenSessionsDays: number;
   priority: SchedulingPriority;
+  allowSameDayBooking: boolean;
 }
  
 export interface BookTreatmentSlotRequest {
@@ -105,6 +106,7 @@ export interface TreatmentSchedulePlanResponse {
   minimumGapBetweenSessionsDays: number;
   priority: SchedulingPriority;
   status: TreatmentSchedulePlanStatus;
+  allowSameDayBooking: boolean;
   packageId?: string;
   candidateSlots: SlotCandidateDto[];
 }
