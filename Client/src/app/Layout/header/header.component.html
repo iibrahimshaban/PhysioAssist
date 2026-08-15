@@ -57,10 +57,10 @@
 
           @if (accountMenuOpen()) {
             <!-- backdrop to close on outside click -->
-            <div class="fixed inset-0 z-40" (click)="closeAccountMenu()"></div>
+            <div class="fixed inset-0 account-dropdown-backdrop" (click)="closeAccountMenu()"></div>
 
             <div
-                class="absolute right-0 top-full mt-2 w-max max-w-xs min-w-[11rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1.5 z-50"
+                class="absolute right-0 top-full mt-2 w-max max-w-xs min-w-[11rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1.5 account-dropdown-panel"
               >
               <a
                 routerLink="/app/account"
@@ -148,7 +148,7 @@
         </button>
 
         @if (accountMenuOpen()) {
-          <div class="absolute right-0 top-full mt-2 w-max max-w-[85vw] min-w-[10rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50">
+          <div class="absolute right-0 top-full mt-2 w-max max-w-[85vw] min-w-[10rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1 account-dropdown-panel">
           <a routerLink="/app/account" (click)="closeAccountMenu()" class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline whitespace-nowrap">
             <i class="pi pi-user text-gray-400 text-xs"></i>
             Account settings

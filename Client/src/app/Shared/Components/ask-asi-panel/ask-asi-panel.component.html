@@ -1,7 +1,7 @@
 @if (panelStateService.isOpen()) {
   <!-- Backdrop -->
   <div
-      class="fixed inset-0 z-40 bg-black/40"
+      class="fixed inset-0 ask-ai-backdrop bg-black/40"
       (click)="close()"
       animate.enter="fade-in"
       animate.leave="fade-out">
@@ -11,7 +11,7 @@
   <aside
     animate.enter="slide-in"
     animate.leave="slide-out"
-    class="fixed inset-y-0 right-0 z-50 flex w-full sm:max-w-md flex-col bg-white shadow-[0_10px_30px_rgba(0,0,0,0.1)] border-l border-gray-200">
+    class="fixed inset-y-0 right-0 ask-ai-panel flex w-full sm:max-w-md flex-col bg-white shadow-[0_10px_30px_rgba(0,0,0,0.1)] border-l border-gray-200">
     <!-- Header -->
     <header class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
       <div class="flex items-center gap-2">
