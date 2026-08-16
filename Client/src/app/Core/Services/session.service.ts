@@ -1,8 +1,8 @@
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment.development';
 import { SessionDetailsResponse } from '../../Shared/Models/session-details-response';
 import { Suggestion } from '../../Shared/Models/suggestion';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -35,19 +35,22 @@ export class SessionService {
     formData.append('durationSeconds', durationSeconds.toString());
 
     return this.http.post(`${this.api}/${sessionId}/transcription/audio`, formData, {
-      responseType: 'text'
+      responseType: 'text',
     });
   }
 
   uploadAttachments(sessionId: string, files: File[]) {
     const formData = new FormData();
     for (const file of files) formData.append('Files', file);
-    return this.http.post<void>(`${this.api}/${sessionId}/attachments`, 
-      formData
-    );
+    return this.http.post<void>(`${this.api}/${sessionId}/attachments`, formData);
   }
 
-  completeSession(sessionId: string, editedTranscript: string, files: File[], treatmentPlan: string) {
+  completeSession(
+    sessionId: string,
+    editedTranscript: string,
+    files: File[],
+    treatmentPlan: string,
+  ) {
     const formData = new FormData();
     formData.append('EditedTranscript', editedTranscript);
     formData.append('TreatmentPlanUpdated', treatmentPlan);
@@ -60,9 +63,7 @@ export class SessionService {
     formData.append('EditedTranscript', editedTranscript);
     formData.append('TreatmentPlanUpdated', treatmentPlan);
     for (const file of files) formData.append('Files', file);
-    return this.http.put<void>(`${this.api}/${sessionId}/draft`, formData
-
-    );
+    return this.http.put<void>(`${this.api}/${sessionId}/draft`, formData);
   }
 
   deleteAttachment(attachmentId: string) {
