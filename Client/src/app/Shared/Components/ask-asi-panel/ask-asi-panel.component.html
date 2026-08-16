@@ -55,7 +55,8 @@
             [ngModel]="queryText()"
             (ngModelChange)="queryText.set($event)"
             (keydown.enter)="onEnter($any($event))"
-            placeholder="Ask a question..."
+            [disabled]="mode() === 'exact'"
+            [placeholder]="mode() === 'exact' ? 'Exact Search is coming soon' : 'Ask a question...'"
             class="flex w-full rounded-xl border border-gray-300 bg-transparent px-3 py-1 shadow-sm transition-colors
             placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[oklch(58%_.16_240)] disabled:cursor-not-allowed disabled:opacity-50
             h-12 pr-12 text-base"/>
@@ -121,6 +122,15 @@
             Exact Search
           </button>
         </div>
+
+        <p class="mt-2 px-0.5 text-xs text-gray-500">
+          @if (modeInfo[mode()].comingSoon) {
+            <span class="mr-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+              Coming soon
+            </span>
+          }
+          {{ modeInfo[mode()].description }}
+        </p>
 
         <div class="flex-1 overflow-auto border-t border-gray-200 py-6 mt-10">
           <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Recent searches</p>
