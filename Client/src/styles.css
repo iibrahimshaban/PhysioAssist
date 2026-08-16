@@ -134,11 +134,6 @@ html {
   padding: var(--space-6);
 }
 
-header {
-  isolation: isolate;
-  z-index: var(--z-app-chrome);
-}
-
 .page-title {
   font-size: var(--text-display);
   font-weight: var(--font-weight-extrabold);
