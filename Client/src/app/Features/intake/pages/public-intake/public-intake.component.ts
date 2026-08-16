@@ -51,6 +51,7 @@ export class PublicIntakeComponent implements OnInit {
   readonly submitted = signal(false);
   readonly submissionResult = signal<PublicIntakeSubmissionResponse | null>(null);
   readonly submitError = signal<string | null>(null);
+  private readonly submission$ = toObservable(this.submission);
 
   readonly showConfirmDialog = signal(false);
   readonly isDirty = signal(false);
@@ -107,7 +108,7 @@ export class PublicIntakeComponent implements OnInit {
       this.loadForm(token);
     });
 
-    toObservable(this.submission).pipe(
+    this.submission$.pipe(
       takeUntilDestroyed(this.destroyRef),
       debounceTime(600),
       distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
