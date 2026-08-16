@@ -15,12 +15,17 @@
         <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></span>
         <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400"></span>
       </span>
-    } @else {
-    <div class="prose prose-sm max-w-none [&_p]:my-1 [&_ul]:my-1.5 [&_h3]:mt-2 [&_h3]:mb-1"
+    } @else
+    {
+      <div
+        class="prose prose-sm max-w-none [&_p]:my-1 [&_ul]:my-1.5 [&_h3]:mt-2 [&_h3]:mb-1"
+        [style]="m.role === 'user'
+          ? '--tw-prose-body:#fff;--tw-prose-headings:#fff;--tw-prose-bold:#fff;--tw-prose-links:#fff;--tw-prose-bullets:#fff;--tw-prose-counters:#fff;--tw-prose-code:#fff;--tw-prose-quotes:#fff;--tw-prose-th-borders:#ffffff66;--tw-prose-td-borders:#ffffff33'
+          : ''"
         dir="auto"
         [innerHTML]="m.content | markdown">
-    </div>
-}
+      </div>
+    }
 
     @if (m.status === 'error') {
       <p class="mt-1 text-xs font-medium text-red-200">Couldn't send. Tap to retry.</p>
