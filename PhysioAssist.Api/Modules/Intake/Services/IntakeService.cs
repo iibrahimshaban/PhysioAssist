@@ -750,6 +750,20 @@ public class IntakeService(
         return Result.Success(response);
     }
 
+    public async Task<Result<bool>> IsPatientEmailRegisteredAsync(string email, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return Result.Success(false);
+
+        var normalized = email.Trim().ToLowerInvariant();
+
+        var exists = await _context.Patients
+            .AsNoTracking()
+            .AnyAsync(p => !string.IsNullOrEmpty(p.EmailAddress) && p.EmailAddress.ToLower() == normalized, cancellationToken);
+
+        return Result.Success(exists);
+    }
+
     public async Task<Result<IReadOnlyList<PreVisitIntakeResponse>>> GetSubmissionsAsync(
     Guid doctorId, IntakeStatus? status, CancellationToken cancellationToken = default)
     {

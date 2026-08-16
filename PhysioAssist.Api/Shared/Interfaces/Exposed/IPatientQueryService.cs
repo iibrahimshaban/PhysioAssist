@@ -16,4 +16,6 @@ public interface IPatientQueryService
     Task<Dictionary<Guid, PatientLookupResult>> GetPatientsByIdsAsync(
         IEnumerable<Guid> patientIds,
         CancellationToken cancellationToken = default);
+
+    Task<Result<List<PatientLookupResult>>> GetPatientsByDiagnosisAsync(string? diagnosis, int topN, CancellationToken ct = default);
 }

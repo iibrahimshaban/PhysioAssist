@@ -4,7 +4,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { debounceTime, distinctUntilChanged, switchMap, catchError, of, map } from 'rxjs';
 import { QrAccessService } from '../../services/qr-access.service';
 import { DynamicFormEngineService } from '../../services/dynamic-form-engine.service';
 import { DynamicFormRendererComponent } from '../../components/dynamic-form-renderer/dynamic-form-renderer.component';
@@ -50,12 +51,17 @@ export class PublicIntakeComponent implements OnInit {
   readonly submitted = signal(false);
   readonly submissionResult = signal<PublicIntakeSubmissionResponse | null>(null);
   readonly submitError = signal<string | null>(null);
+  private readonly submission$ = toObservable(this.submission);
 
   readonly showConfirmDialog = signal(false);
   readonly isDirty = signal(false);
 
   readonly requiredTotal = signal(0);
   readonly requiredCompleted = signal(0);
+
+  readonly emailChecking = signal(false);
+  readonly emailDuplicate = signal(false);
+  readonly duplicateEmailAddress = signal<string | null>(null);
 
   readonly progressPercent = computed(() => {
     const total = this.requiredTotal();
@@ -67,6 +73,8 @@ export class PublicIntakeComponent implements OnInit {
     this.isFormValid()
     && !this.submitting()
     && !this.submitted()
+    && !this.emailChecking()
+    && !this.emailDuplicate()
   );
 
   @HostListener('window:beforeunload', ['$event'])
@@ -98,6 +106,44 @@ export class PublicIntakeComponent implements OnInit {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const token = params.get('token');
       this.loadForm(token);
+    });
+
+    this.submission$.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      debounceTime(600),
+      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+      switchMap(submission => {
+        const schema = this.schema();
+        if (!schema) {
+          this.emailDuplicate.set(false);
+          this.duplicateEmailAddress.set(null);
+          this.emailChecking.set(false);
+          return of(null);
+        }
+        const email = this.dynamicFormEngine.extractEmailAnswer(schema, submission);
+        if (!email) {
+          this.emailDuplicate.set(false);
+          this.duplicateEmailAddress.set(null);
+          this.emailChecking.set(false);
+          return of(null);
+        }
+        this.emailChecking.set(true);
+        return this.qrAccessService.checkPatientEmail(email).pipe(
+          catchError(() => of({ isRegistered: false })),
+          map(result => ({ email, result }))
+        );
+      })
+    ).subscribe(checkResult => {
+      if (checkResult === null) return;
+      const { email, result } = checkResult;
+      this.emailChecking.set(false);
+      if (result.isRegistered) {
+        this.emailDuplicate.set(true);
+        this.duplicateEmailAddress.set(email);
+      } else {
+        this.emailDuplicate.set(false);
+        this.duplicateEmailAddress.set(null);
+      }
     });
   }
 
@@ -159,6 +205,45 @@ export class PublicIntakeComponent implements OnInit {
     const currentSchema = this.schema();
     if (!currentSubmission || !currentSchema) return;
 
+    const email = this.dynamicFormEngine.extractEmailAnswer(currentSchema, currentSubmission);
+    if (email && this.emailDuplicate()) {
+      this.submitError.set(
+        `The email address ${email} is already associated with an existing patient record. ` +
+        `Please contact your healthcare provider or use a different email address.`
+      );
+      return;
+    }
+
+    if (email && !this.emailDuplicate() && !this.emailChecking()) {
+      this.emailChecking.set(true);
+      this.qrAccessService.checkPatientEmail(email).pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => of({ isRegistered: false }))
+      ).subscribe({
+        next: (result) => {
+          this.emailChecking.set(false);
+          if (result.isRegistered) {
+            this.emailDuplicate.set(true);
+            this.duplicateEmailAddress.set(email);
+            this.submitError.set(
+              `The email address ${email} is already associated with an existing patient record. ` +
+              `Please contact your healthcare provider or use a different email address.`
+            );
+          } else {
+            this.doSubmit(currentSubmission, currentSchema);
+          }
+        },
+        error: () => {
+          this.emailChecking.set(false);
+          this.doSubmit(currentSubmission, currentSchema);
+        }
+      });
+    } else {
+      this.doSubmit(currentSubmission, currentSchema);
+    }
+  }
+
+  private doSubmit(currentSubmission: DynamicFormSubmissionDto, currentSchema: DynamicFormSchemaDto): void {
     this.submitting.set(true);
     this.submitError.set(null);
 

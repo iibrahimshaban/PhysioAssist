@@ -30,6 +30,18 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'terms',
+    loadComponent: () =>
+      import('./Features/Legal/terms/terms.component').then((m) => m.TermsComponent),
+  },
+  {
+    path: 'privacy-policy',
+    loadComponent: () =>
+      import('./Features/Legal/privacy-policy/privacy-policy.component').then(
+        (m) => m.PrivacyPolicyComponent,
+      ),
+  },
+  {
     path: 'auth',
     canActivate: [noAuthGuard],
     loadChildren: () => import('./Features/Auth/auth.routes').then((m) => m.authRoutes),

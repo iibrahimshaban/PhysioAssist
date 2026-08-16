@@ -35,6 +35,7 @@ export class ScheduleRequirementsComponent implements OnInit {
   booking = signal(false);
   sendingToReceptionist = signal(false);
   selectedCandidateIndex = signal<number | null>(null);
+  allowSameDayBooking = signal(false);
  
   totalSessions = signal<number | null>(null);
   sessionDurationMinutes = signal<number | null>(null);
@@ -53,6 +54,11 @@ export class ScheduleRequirementsComponent implements OnInit {
     { label: 'Low', value: SchedulingPriority.Low },
     { label: 'High', value: SchedulingPriority.High },
     { label: 'Urgent', value: SchedulingPriority.Urgent },
+  ];
+
+  readonly allowSameDayBookingOptions = [
+    { label: 'No', value: false },
+    { label: 'Yes', value: true },
   ];
  
   ngOnInit(): void {
@@ -83,6 +89,7 @@ export class ScheduleRequirementsComponent implements OnInit {
     this.sessionsPerWeek.set(plan.sessionsPerWeek);
     this.minimumGapBetweenSessionsDays.set(plan.minimumGapBetweenSessionsDays);
     this.priority.set(plan.priority);
+    this.allowSameDayBooking.set(plan.allowSameDayBooking ?? false);
     this.selectedCandidateIndex.set(null);
     this.planChanged.emit(plan);
   }
@@ -105,6 +112,7 @@ export class ScheduleRequirementsComponent implements OnInit {
       sessionsPerWeek: this.sessionsPerWeek(),
       minimumGapBetweenSessionsDays: this.minimumGapBetweenSessionsDays(),
       priority: this.priority(),
+      allowSameDayBooking: this.allowSameDayBooking(),   // <-- new
     };
  
     this.initialReportService.upsertSchedulePlan(this.reportId, request).subscribe({

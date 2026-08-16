@@ -323,5 +323,44 @@ public class PatientQueryService(
             patient.ParsedPreferredExplicitDate,
             groups));
     }
+
+    public async Task<Result<List<PatientLookupResult>>> GetPatientsByDiagnosisAsync(string? diagnosis, int topN, CancellationToken ct = default)
+    {
+        var doctorId = DoctorId;
+
+        if (string.IsNullOrWhiteSpace(diagnosis))
+        {
+            // no filter -> same as "all my patients"
+            var patientIds = await _dbContext.DoctorPatients.Where(dp => dp.DoctorId == doctorId)
+                                                            .Select(dp => dp.PatientId)
+                                                            .Take(topN)
+                                                            .ToListAsync(ct);
+
+            var all = await _dbContext.Patients.Where(p => patientIds.Contains(p.Id))
+                                               .Select(p => new PatientLookupResult(p.Id, p.FullName, p.PatientCaseNotes))
+                                               .ToListAsync(ct);
+
+            return all.Count == 0
+                ? Result.Failure<List<PatientLookupResult>>(PatientErrors.NotFound)
+                : Result.Success(all);
+        }
+
+        var matchingPatientIds = await _dbContext.SessionTranscriptionChunks.Where(c => c.Transcription.Session.DoctorId == doctorId)
+                                                                            .Where(c => EF.Functions.Like(c.Diagnosis, $"%{diagnosis}%"))
+                                                                            .Select(c => c.Transcription.Session.PatientId)
+                                                                            .Distinct()
+                                                                            .Take(topN)
+                                                                            .ToListAsync(ct);
+
+        if (matchingPatientIds.Count == 0)
+            return Result.Failure<List<PatientLookupResult>>(PatientErrors.NotFound);
+
+
+        var matches = await _dbContext.Patients.Where(p => matchingPatientIds.Contains(p.Id))
+                                               .Select(p => new PatientLookupResult(p.Id, p.FullName, p.PatientCaseNotes))
+                                               .ToListAsync(ct);
+
+        return Result.Success(matches);
+    }
 }
 

@@ -30,6 +30,18 @@ export class AskAsiPanelComponent {
   readonly loading = signal(false);
   readonly activeSessionId = signal<string | null>(null);
 
+  readonly modeInfo: Record<SearchMode, { description: string; comingSoon: boolean }> =
+  {
+    smart: {
+      description: 'AI-powered search that understands intent, not just exact words.',
+      comingSoon: false,
+    },
+    exact: {
+      description: 'Literal keyword matching against your records.',
+      comingSoon: true,
+    },
+  };
+
   readonly sessions = this.sessionStore.sessions;
 
   readonly recentSessions = computed(() => {

@@ -134,10 +134,39 @@
         }
 
         <!-- Unsaved Changes Warning -->
-        @if (isDirty() && !submitting()) {
+        @if (isDirty() && !submitting() && !emailDuplicate()) {
           <div class="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--color-warning-light)] border border-[var(--color-warning-border)] text-[var(--color-warning-text)] text-xs font-medium animate-fade-in-up" role="status">
             <i class="pi pi-info-circle text-sm shrink-0"></i>
             <span>You have unsaved changes. Please submit the form or your progress may be lost.</span>
+          </div>
+        }
+
+        <!-- Email Checking Spinner -->
+        @if (emailChecking()) {
+          <div class="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--color-primary-soft)] border border-[var(--color-primary)]/20 text-[var(--color-primary)] text-xs font-medium animate-fade-in-up" role="status" aria-live="polite">
+            <svg class="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Verifying email address&hellip;</span>
+          </div>
+        }
+
+        <!-- Duplicate Email Warning -->
+        @if (emailDuplicate() && duplicateEmailAddress()) {
+          <div class="mb-4 px-4 py-3.5 rounded-xl bg-[var(--color-danger-light)] border border-[var(--color-danger-border)] text-[var(--color-danger)] animate-fade-in-up" role="alert" aria-live="assertive">
+            <div class="flex items-start gap-2.5">
+              <i class="pi pi-exclamation-triangle text-base shrink-0 mt-0.5"></i>
+              <div class="flex flex-col gap-1 min-w-0">
+                <p class="text-sm font-semibold m-0">
+                  Email already registered
+                </p>
+                <p class="text-xs m-0 leading-relaxed">
+                  The email address <span class="font-mono font-semibold break-all">{{ duplicateEmailAddress() }}</span> is already associated with an existing patient record.
+                  Please contact your healthcare provider directly to update your information, or use a different email address.
+                </p>
+              </div>
+            </div>
           </div>
         }
 
@@ -179,10 +208,25 @@
             <span>Your data is encrypted and secure</span>
           </div>
           @if (!canSubmit()) {
-            <span class="text-[11px] text-[var(--color-danger)] font-medium opacity-90">
-              <i class="pi pi-exclamation-triangle text-[10px]"></i>
-              Please complete all required fields before submitting.
-            </span>
+            @if (emailDuplicate()) {
+              <span class="text-[11px] text-[var(--color-danger)] font-medium opacity-90">
+                <i class="pi pi-exclamation-triangle text-[10px]"></i>
+                This email address is already registered. Please use a different email or contact your provider.
+              </span>
+            } @else if (emailChecking()) {
+              <span class="text-[11px] text-[var(--color-primary)] font-medium opacity-90">
+                <svg class="animate-spin h-3 w-3 inline-block align-[-0.1em] mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Verifying email, please wait&hellip;
+              </span>
+            } @else {
+              <span class="text-[11px] text-[var(--color-danger)] font-medium opacity-90">
+                <i class="pi pi-exclamation-triangle text-[10px]"></i>
+                Please complete all required fields before submitting.
+              </span>
+            }
           }
         </div>
         <p-button

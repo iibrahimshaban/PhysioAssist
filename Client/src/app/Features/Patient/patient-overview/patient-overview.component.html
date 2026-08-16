@@ -10,46 +10,31 @@
 
       <!-- Header -->
       <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-4">
-          <button (click)="goBack()"
-            class="po-back-btn inline-flex items-center gap-1 text-sm">
-            <i class="pi pi-arrow-left"></i> Back
+        <div class="flex items-center gap-3">
+          <button (click)="goBack()" class="po-nav-circle" aria-label="Back" title="Back">
+            <i class="pi pi-arrow-left"></i>
+          </button>
+          <button (click)="goForward()" class="po-nav-circle" aria-label="Forward" title="Forward">
+            <i class="pi pi-arrow-right"></i>
           </button>
           <div>
             <h1 class="text-3xl font-bold" style="color: var(--color-text-primary); letter-spacing: -0.025em;">{{ patient().fullName }}</h1>
-            <p class="mt-1 text-sm" style="color: var(--color-text-secondary);">{{ patient().phoneNumber }}</p>
-            <p class="mt-1 text-sm" style="color: var(--color-text-secondary);">{{ patient().dateOfBirth | age }} years old</p>
+            <p class="mt-1 text-sm" style="color: var(--color-text-secondary);">
+              {{ patient().dateOfBirth | age }} years old · {{ patient().gender | gender }}
+            </p>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto sm:flex-wrap" *ngIf="!isEditMode()">
-          <button (click)="enterEditMode()"
-            class="po-btn-primary inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold w-full sm:w-auto">
-            <i class="pi pi-pencil"></i> Edit
-          </button>
-          <button (click)="delete()"
-            class="po-btn-danger inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold w-full sm:w-auto">
-            <i class="pi pi-trash"></i> Delete
-          </button>
-          <button (click)="goToInitialReport()"
-            class="po-btn-outline inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold w-full sm:w-auto">
-            <i class="pi pi-file"></i> Initial Report
-          </button>
-          <p-button
-            label="Continue scheduling"
-            icon="pi pi-calendar"
-            size="small"
-            styleClass="w-full sm:w-auto justify-center"
-            (onClick)="continueScheduling()"
-          />
-          <p-button
-            label="Documentation"
-            icon="pi pi-book"
-            severity="secondary"
-            size="small"
-            styleClass="w-full sm:w-auto justify-center"
-            (onClick)="goToDocumentation()"
-          />
+        <div class="flex flex-col items-stretch sm:items-end gap-2 w-full sm:w-auto" *ngIf="!isEditMode()">
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <p-button label="Edit" icon="pi pi-pencil" (onClick)="enterEditMode()" styleClass="flex-1 sm:flex-none justify-center" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="delete()" aria-label="Delete patient" />
+          </div>
+          <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+            <p-button label="Initial Report" icon="pi pi-file" [outlined]="true" size="small" (onClick)="goToInitialReport()" />
+            <p-button label="Continue Scheduling" icon="pi pi-calendar" [outlined]="true" size="small" (onClick)="continueScheduling()" />
+            <p-button label="Documentation" icon="pi pi-book" [outlined]="true" size="small" (onClick)="goToDocumentation()" />
+          </div>
         </div>
       </div>
 
@@ -119,9 +104,10 @@
             *ngIf="isEditMode() || painMapPayload()"
             [readOnly]="!isEditMode()"
             [showDoctorFields]="false"
-            [initialValue]="isEditMode() ? { regions: pendingPainMap()?.regions ?? [] } : painMapPayload()"
-            (mapChange)="onPainMapChange($event)">
-          </app-body-pain-map>
+            [initialValue]="isEditMode() ? $any({ regions: pendingPainMap()?.regions ?? [] }) : painMapPayload()"
+                  (mapChange)="onPainMapChange($event)">
+          
+        </app-body-pain-map>
 
           <div *ngIf="!isEditMode() && !painMapPayload()"
             class="po-card flex items-center justify-center p-5"

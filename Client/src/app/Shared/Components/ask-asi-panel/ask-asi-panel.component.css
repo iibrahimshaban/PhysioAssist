@@ -1,3 +1,11 @@
+.ask-ai-backdrop {
+  z-index: var(--z-ask-ai, 1100);
+}
+
+.ask-ai-panel {
+  z-index: calc(var(--z-ask-ai, 1100) + 1);
+}
+
 .slide-in {
   animation: slideIn 300ms ease-out;
 }

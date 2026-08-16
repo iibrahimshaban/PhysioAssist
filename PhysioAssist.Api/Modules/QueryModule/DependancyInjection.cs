@@ -59,6 +59,7 @@ public static class DependancyInjection
         services.AddScoped<PatientLookupPlugin>();
         services.AddScoped<SessionSearchPlugin>();
         services.AddScoped<AnswerTranslationPlugin>();
+        services.AddScoped<PatientQueryPlugin>();
 
         services.AddScoped<ChatCompletionAgent>(sp =>
         {
@@ -68,6 +69,7 @@ public static class DependancyInjection
             var tavilyClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(WebSearchPlugin));
             var summarizationService = sp.GetRequiredKeyedService<IChatCompletionService>("summarizationAI");
             var TranslationPlugin = sp.GetRequiredService<AnswerTranslationPlugin>();
+            var patientQueryPlugin = sp.GetRequiredService<PatientQueryPlugin>();
 
             var kernel = BuildSbgKernel(sp);
             // var kernel = BuildNvidiaKernel(sp);
@@ -78,6 +80,7 @@ public static class DependancyInjection
             kernel.Plugins.AddFromObject(searchPlugin, "SessionSearch");
             kernel.Plugins.AddFromObject(webSearchPlugin, "WebSearch");
             kernel.Plugins.AddFromObject(TranslationPlugin, "AnswerTranslation");
+            kernel.Plugins.AddFromObject(patientQueryPlugin, "PatientQuery");
 
             #pragma warning disable SKEXP0110
             return new ChatCompletionAgent

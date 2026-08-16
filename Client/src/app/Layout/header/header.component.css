@@ -3,6 +3,16 @@
   display: block;
 }
 
+.account-dropdown-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-app-chrome);
+}
+
+.account-dropdown-panel {
+  z-index: calc(var(--z-app-chrome) + 1);
+}
+
 /* Smooth entrance for the mobile marketing menu (guest hamburger panel) */
 #mobile-marketing-menu {
   animation: header-slide-down 0.2s ease-out;

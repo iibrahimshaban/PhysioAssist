@@ -50,6 +50,7 @@ public class TreatmentSchedulePlanService(
         plan.SessionDurationMinutes = request.SessionDurationMinutes;
         plan.SessionsPerWeek = request.SessionsPerWeek;
         plan.MinimumGapBetweenSessionsDays = request.MinimumGapBetweenSessionsDays;
+        plan.AllowSameDayBooking = request.AllowSameDayBooking;
         plan.Priority = request.Priority;
 
         await _unitOfWork.SaveAsync(cancellationToken);
@@ -146,6 +147,7 @@ public class TreatmentSchedulePlanService(
             patientId,
             DefaultCandidateCount,
             freeTimeOverride,
+            plan.AllowSameDayBooking,
             cancellationToken);
 
         return slotsResult.IsSuccess ? slotsResult.Value : [];
@@ -261,5 +263,6 @@ public class TreatmentSchedulePlanService(
         plan.Priority,
         plan.Status,
         plan.PackageId,
+        plan.AllowSameDayBooking,
         candidates);
 }

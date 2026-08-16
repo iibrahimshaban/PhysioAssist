@@ -115,6 +115,16 @@ html {
 
   --touch-target-min: 2.75rem;
   --intake-mobile-max: 639px;
+
+  /* ── Z-Index Scale ─────────────────────────────────────── */
+  --z-sticky-low: 10;      /* in-panel sticky labels/headers */
+  --z-sticky: 30;          /* feature tab bars, sticky banners */
+  --z-feature-overlay: 50; /* local decorative overlays (pointer-events:none) */
+  --z-feature-modal: 400;  /* in-feature drawers/sheets (quick-add, popovers) */
+  --z-app-backdrop: 999;
+  --z-app-chrome: 1000;    /* header, account dropdown, global search — always wins */
+  --z-ask-ai: 1100; 
+  --z-onboarding: 5000;    /* full-screen walkthrough — must beat literally everything */
 }
 
 /* ── Page Layout ──────────────────────────────────────────── */

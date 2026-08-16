@@ -64,12 +64,67 @@
     </div>
   </div>
 
+  <!-- ── Mobile Bottom Tab Bar ───────────────────────────── -->
+  @if (!previewMode()) {
+    <nav class="mobile-tab-bar" role="tablist" aria-label="Builder sections">
+      <button
+        role="tab"
+        [attr.aria-selected]="activeMobilePanel() === 'structure'"
+        class="mobile-tab"
+        [class.mobile-tab--active]="activeMobilePanel() === 'structure'"
+        (click)="setActiveMobilePanel('structure')">
+        <i class="pi pi-sitemap"></i>
+        <span>Structure</span>
+      </button>
+      <button
+        role="tab"
+        [attr.aria-selected]="activeMobilePanel() === 'preview'"
+        class="mobile-tab"
+        [class.mobile-tab--active]="activeMobilePanel() === 'preview'"
+        (click)="setActiveMobilePanel('preview')">
+        <i class="pi pi-eye"></i>
+        <span>Preview</span>
+        @if (selectedMode() === 'section' || selectedMode() === 'group' || selectedMode() === 'question') {
+          <span class="mobile-tab-dot"></span>
+        }
+      </button>
+      <button
+        role="tab"
+        [attr.aria-selected]="activeMobilePanel() === 'properties'"
+        class="mobile-tab"
+        [class.mobile-tab--active]="activeMobilePanel() === 'properties'"
+        (click)="setActiveMobilePanel('properties')">
+        <i class="pi pi-sliders-h"></i>
+        <span>Properties</span>
+      </button>
+    </nav>
+  }
+
   <!-- ── Main 3-Column Layout ───────────────────────────── -->
   <div class="flex-1 flex flex-col sm:flex-row overflow-hidden sm:overflow-hidden overflow-y-auto">
 
     <!-- Left Sidebar: Schema Tree -->
-    <div class="builder-sidebar-left" [class.hidden]="previewMode()">
-      <div class="sidebar-section-header">
+    <div
+      class="builder-sidebar-left"
+      [class.hidden]="previewMode()"
+      [class.mobile-panel]="!previewMode()"
+      [class.mobile-panel--active]="activeMobilePanel() === 'structure'"
+      [class.mobile-panel--collapsed]="structureCollapsed()"
+      data-panel="structure">
+      <!-- Collapsible panel header (mobile + stacked views) -->
+      <button
+        class="panel-toggle-header"
+        type="button"
+        (click)="toggleStructureCollapsed()">
+        <i class="pi pi-sitemap text-xs text-[var(--color-text-secondary)]"></i>
+        <span class="sidebar-section-header-title">Structure</span>
+        <span class="panel-toggle-badge">{{ formSchema().sections.length }} section{{ formSchema().sections.length !== 1 ? 's' : '' }}</span>
+        <i class="pi"
+           [class.pi-chevron-up]="!structureCollapsed()"
+           [class.pi-chevron-down]="structureCollapsed()"></i>
+      </button>
+      <div class="panel-content" [class.panel-content--collapsed]="structureCollapsed()">
+      <div class="sidebar-section-header sidebar-section-header--desktop-only">
         <i class="pi pi-sitemap text-xs text-[var(--color-text-secondary)]"></i>
         <span>Structure</span>
       </div>
@@ -230,10 +285,30 @@
           <span>Add Section</span>
         </button>
       </div>
+      </div><!-- /.panel-content -->
     </div>
 
     <!-- Center Canvas: Live Preview -->
-    <div class="builder-canvas">
+    <div
+      class="builder-canvas"
+      [class.mobile-panel]="!previewMode()"
+      [class.mobile-panel--active]="activeMobilePanel() === 'preview'"
+      [class.mobile-panel--collapsed]="previewCollapsed()"
+      data-panel="preview">
+      @if (!previewMode()) {
+        <button
+          class="panel-toggle-header"
+          type="button"
+          (click)="togglePreviewCollapsed()">
+          <i class="pi pi-eye text-xs text-[var(--color-text-secondary)]"></i>
+          <span class="sidebar-section-header-title">Preview</span>
+          <span class="panel-toggle-badge" *ngIf="selectedMode() === 'section' || selectedMode() === 'group' || selectedMode() === 'question'">{{ selectedMode() }}</span>
+          <i class="pi"
+             [class.pi-chevron-up]="!previewCollapsed()"
+             [class.pi-chevron-down]="previewCollapsed()"></i>
+        </button>
+      }
+      <div class="panel-content" [class.panel-content--collapsed]="previewCollapsed()">
       @if (previewMode()) {
         <div class="preview-banner">
           <div class="preview-banner-content">
@@ -526,11 +601,33 @@
           </div>
         }
       </div>
+      </div><!-- /.panel-content -->
     </div>
 
     <!-- Right Property Panel -->
-    <div class="builder-sidebar-right" [class.hidden]="previewMode()">
-      <div class="sidebar-section-header">
+    <div
+      class="builder-sidebar-right"
+      [class.hidden]="previewMode()"
+      [class.mobile-panel]="!previewMode()"
+      [class.mobile-panel--active]="activeMobilePanel() === 'properties'"
+      [class.mobile-panel--collapsed]="propertiesCollapsed()"
+      data-panel="properties">
+      <!-- Collapsible panel header (mobile + stacked views) -->
+      <button
+        class="panel-toggle-header"
+        type="button"
+        (click)="togglePropertiesCollapsed()">
+        <i class="pi pi-sliders-h text-xs text-[var(--color-text-secondary)]"></i>
+        <span class="sidebar-section-header-title">Properties</span>
+        <span class="panel-toggle-badge" *ngIf="selectedMode()">
+          {{ selectedMode() }}
+        </span>
+        <i class="pi"
+           [class.pi-chevron-up]="!propertiesCollapsed()"
+           [class.pi-chevron-down]="propertiesCollapsed()"></i>
+      </button>
+      <div class="panel-content" [class.panel-content--collapsed]="propertiesCollapsed()">
+      <div class="sidebar-section-header sidebar-section-header--desktop-only">
         <i class="pi pi-sliders-h text-xs text-[var(--color-text-secondary)]"></i>
         <span>Properties</span>
       </div>
@@ -963,8 +1060,68 @@
           </div>
         }
       </div>
+      </div><!-- /.panel-content -->
     </div>
   </div>
+
+  <!-- ── Quick-Add FAB (mobile + tablet) ───────────────────────────────── -->
+  @if (!previewMode()) {
+    <button
+      class="quick-add-fab"
+      type="button"
+      (click)="toggleQuickAddSheet()"
+      pTooltip="Quick Add"
+      tooltipPosition="top-left"
+      aria-label="Quick add section, group, or question">
+      <i class="pi" [class.pi-plus]="!showQuickAddSheet()" [class.pi-times]="showQuickAddSheet()"></i>
+    </button>
+
+    <!-- Quick Add Backdrop -->
+    <div
+      class="quick-add-backdrop"
+      [class.quick-add-backdrop--visible]="showQuickAddSheet()"
+      (click)="closeQuickAddSheet()"></div>
+
+    <!-- Quick Add Bottom Sheet -->
+    <div
+      class="quick-add-sheet"
+      role="dialog"
+      aria-label="Quick add menu"
+      [class.quick-add-sheet--visible]="showQuickAddSheet()">
+      <div class="quick-add-sheet-handle"></div>
+      <h3 class="quick-add-sheet-title">Quick Add</h3>
+      <p class="quick-add-sheet-subtitle">Add a new element to your form</p>
+      <div class="quick-add-grid">
+        <button class="quick-add-tile" type="button" (click)="quickAdd('section')">
+          <div class="quick-add-tile-icon quick-add-tile-icon--section">
+            <i class="pi pi-folder"></i>
+          </div>
+          <span class="quick-add-tile-label">New Section</span>
+          <span class="quick-add-tile-desc">Top-level container</span>
+        </button>
+        <button class="quick-add-tile" type="button" (click)="quickAdd('group')">
+          <div class="quick-add-tile-icon quick-add-tile-icon--group">
+            <i class="pi pi-th-large"></i>
+          </div>
+          <span class="quick-add-tile-label">New Group</span>
+          <span class="quick-add-tile-desc">Inside active section</span>
+        </button>
+        <button class="quick-add-tile" type="button" (click)="quickAdd('question')">
+          <div class="quick-add-tile-icon quick-add-tile-icon--question">
+            <i class="pi pi-question"></i>
+          </div>
+          <span class="quick-add-tile-label">New Question</span>
+          <span class="quick-add-tile-desc">Inside active group</span>
+        </button>
+      </div>
+      <button
+        class="quick-add-cancel"
+        type="button"
+        (click)="closeQuickAddSheet()">
+        Cancel
+      </button>
+    </div>
+  }
 
   <!-- Publish Validation Dialog -->
   <p-dialog
