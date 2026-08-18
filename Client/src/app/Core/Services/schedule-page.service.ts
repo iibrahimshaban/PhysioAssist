@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { OwnerDirectoryService } from './owner-directory.service';
 import { catchError, throwError, firstValueFrom, Observable, MonoTypeOperatorFunction } from 'rxjs';
 import {
@@ -10,6 +10,7 @@ import {
   DailyAvailability
 } from '../../Features/Schedule/schedule.models';
 import { environment } from '../../../environments/environment';
+import { SKIP_ERROR_SNACKBAR } from '../Interceptors/skip-error-interceptor.token';
 
 const APPOINTMENTS_BASE = `${environment.apiUrl}appointments`;
 const WORKING_SCHEDULES_BASE = `${environment.apiUrl}workingschedules`;
@@ -168,7 +169,8 @@ export class SchedulePageService {
 async fetchAvailabilityRange(doctorId: string, from: Date, to: Date): Promise<DailyAvailability[]> {
   const dtos = await firstValueFrom(
     this.http.get<DailyAvailabilityDto[]>(`${APPOINTMENTS_BASE}/doctor/${doctorId}/availability-range`, {
-      params: { from: toIsoWithOffset(from), to: toIsoWithOffset(to) }
+      params: { from: toIsoWithOffset(from), to: toIsoWithOffset(to) },
+      context: new HttpContext().set(SKIP_ERROR_SNACKBAR, true)
     }).pipe(this.catchAsProblem())
   );
 
@@ -312,7 +314,9 @@ private async refreshAvailability(): Promise<void> {
   private async loadWorkingSchedule(doctorId: string): Promise<void> {
     try {
       const dto = await firstValueFrom(
-        this.http.get<WorkingScheduleDto>(`${WORKING_SCHEDULES_BASE}/doctor/${doctorId}`).pipe(this.catchAsProblem())
+        this.http.get<WorkingScheduleDto>(`${WORKING_SCHEDULES_BASE}/doctor/${doctorId}`, {
+          context: new HttpContext().set(SKIP_ERROR_SNACKBAR, true)
+        }).pipe(this.catchAsProblem())
       );
       this.workingDays.set(dto.days.map(d => ({ day: d.day, startTime: d.startTime, endTime: d.endTime })));
     } catch (err) {
