@@ -4,19 +4,30 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  overflow: hidden;
+  overflow: hidden; // just clips corners now — no longer a scroll container
   display: flex;
   flex-direction: column;
   height: 100%;
   box-shadow: var(--shadow-sm);
 }
 
+// This is now the ONE scroll container for both axes, and both the sticky
+// header and the day-columns/timeline live inside it — so they always move
+// together horizontally, and the header stays pinned vertically via its own
+// `position: sticky; top: 0` since its scrolling ancestor is this element.
 .calendar-grid__body {
-  display: flex;
-  overflow-y: auto;
   flex: 1;
+  overflow: auto;
   scroll-behavior: smooth;
   position: relative;
+}
+
+// Everything below the sticky header row: timeline + day columns, laid out
+// horizontally. min-width: fit-content stops it from being squeezed narrower
+// than its children's min-widths, which is what makes overflow-x kick in.
+.calendar-grid__content {
+  display: flex;
+  min-width: fit-content;
 }
 
 // ---- Timeline (hour) column ----
@@ -142,10 +153,11 @@
   white-space: nowrap;
 }
 
-// ---- Responsive: contain horizontal scroll to the calendar only ----
+// ---- Responsive ----
+// No overflow-x here anymore — .calendar-grid__body handles scrolling for
+// both axes as a single unit, so header and columns always stay in sync.
 
 @media (max-width: 767px) {
-  .calendar-grid { overflow-x: auto; }
   .timeline { width: 52px !important; }
   .day-column { min-width: 84px; }
   .day-column__off-text { font-size: 11.5px; }
