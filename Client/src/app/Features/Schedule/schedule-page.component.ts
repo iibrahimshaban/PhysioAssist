@@ -186,5 +186,4 @@ export class SchedulePageComponent implements OnInit{
     this.scheduleService.selectDate(next);
   }
 
-
 }
