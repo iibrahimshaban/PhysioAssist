@@ -110,17 +110,14 @@ export class PublicIntakeComponent implements OnInit {
 
     this.submission$.pipe(
       takeUntilDestroyed(this.destroyRef),
-      debounceTime(600),
-      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-      switchMap(submission => {
+      map(submission => {
         const schema = this.schema();
-        if (!schema) {
-          this.emailDuplicate.set(false);
-          this.duplicateEmailAddress.set(null);
-          this.emailChecking.set(false);
-          return of(null);
-        }
-        const email = this.dynamicFormEngine.extractEmailAnswer(schema, submission);
+        if (!schema || !submission) return null;
+        return this.dynamicFormEngine.extractEmailAnswer(schema, submission);
+      }),
+      debounceTime(600),
+      distinctUntilChanged(),
+      switchMap(email => {
         if (!email) {
           this.emailDuplicate.set(false);
           this.duplicateEmailAddress.set(null);

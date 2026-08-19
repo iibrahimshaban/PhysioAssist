@@ -28,9 +28,10 @@ export class QrAccessService {
   }
 
   checkPatientEmail(email: string): Observable<{ isRegistered: boolean }> {
-    return this.http.get<{ isRegistered: boolean }>(`${this.baseUrl}/intake/check-email`, {
-      params: { email }
-    });
+    const encoded = encodeURIComponent(email.trim());
+    return this.http.get<{ isRegistered: boolean }>(
+      `${this.baseUrl}/intake/check-email?email=${encoded}`
+    );
   }
 
   extractTokenFromUrl(url: string): string | null {
