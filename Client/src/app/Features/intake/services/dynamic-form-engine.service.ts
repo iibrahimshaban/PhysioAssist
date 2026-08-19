@@ -277,10 +277,20 @@ export class DynamicFormEngineService {
       for (const group of section.groups) {
         for (const answer of group.answers) {
           if (answer.questionId === emailQuestionId && answer.value != null) {
-            const trimmed = String(answer.value).trim();
+            const raw = answer.value;
+
+            // The renderer wraps "wrapTypes" answers as { [questionType]: value },
+            // e.g. { email: "someone@example.com" }. Unwrap that shape here;
+            // fall back to the raw value for older/unwrapped submissions.
+            const unwrapped =
+              raw && typeof raw === 'object' && 'email' in raw
+                ? (raw as { email: unknown }).email
+                : raw;
+
+            if (unwrapped == null) return null;
+
+            const trimmed = String(unwrapped).trim();
             if (trimmed.length === 0) return null;
-            // Per RFC 5321, the local-part is case-sensitive in theory, but
-            // real patient systems treat the whole address case-insensitive.
             return trimmed.toLowerCase();
           }
         }

@@ -27,7 +27,7 @@
             <div class="text-sm text-gray-500 flex gap-3 flex-wrap">
               <span><i class="pi pi-envelope mr-1"></i>{{ r.email }}</span>
               <span><i class="pi pi-phone mr-1"></i>{{ r.phone }}</span>
-              <span class="text-xs text-gray-400">{{ currentShiftLabel }}</span>
+              <span class="text-xs text-gray-400">{{ shiftLabel(r) }}</span>
             </div>
             <div class="flex gap-2 flex-wrap mt-2">
               @for (permValue of r.permissions; track permValue) {
