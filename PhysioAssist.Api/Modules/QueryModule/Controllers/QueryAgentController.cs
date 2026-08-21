@@ -13,11 +13,13 @@ namespace PhysioAssist.Api.Modules.QueryModule.Controllers
     {
         private readonly ChatCompletionAgent _agent;
         private readonly IChatHistoryStore _historyStore;
+        private readonly ILogger<QueryAgentController> _logger;
 
-        public QueryAgentController(ChatCompletionAgent chatCompletionAgent, IChatHistoryStore historyStore)
+        public QueryAgentController(ChatCompletionAgent chatCompletionAgent, IChatHistoryStore historyStore, ILogger<QueryAgentController> logger)
         {
             _agent = chatCompletionAgent;
             _historyStore = historyStore;
+            _logger = logger;
         }
 
         [HttpGet("ask")]
@@ -93,6 +95,21 @@ namespace PhysioAssist.Api.Modules.QueryModule.Controllers
             }
             catch (OperationCanceledException)
             {
+            }
+            catch (Microsoft.SemanticKernel.HttpOperationException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Gemini (native connector) rejected request for conversation {ConversationId}. StatusCode: {StatusCode}\nHistory:\n{History}\nResponseContent:\n{Body}",
+                    conversationId,
+                    ex.StatusCode,
+                    JsonSerializer.Serialize(history.Select(m => new { Role = m.Role.ToString(), m.Content })),
+                    ex.ResponseContent);
+
+                await WriteSseEventAsync(
+                    JsonSerializer.Serialize(new { error = "The assistant is temporarily unavailable. Please try again." }),
+                    ct,
+                    eventName: "error");
             }
 
             return new EmptyResult();

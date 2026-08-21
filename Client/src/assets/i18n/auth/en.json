@@ -1,0 +1,140 @@
+{
+  "marketing": {
+    "login": {
+      "title": "Run your clinic with one hand.",
+      "sub": "Voice-first session notes, AI-assisted documentation, and instant patient summaries."
+    },
+    "register": {
+      "title": "Built for solo physiotherapists.",
+      "sub": "Onboard patients faster, document sessions with your voice, and keep everything in one place."
+    },
+    "forgot": {
+      "title": "We'll get you back in.",
+      "sub": "Reset your password securely and continue managing your clinic."
+    },
+    "otp": {
+      "title": "Check your inbox.",
+      "sub": "We sent a reset code to your email. It expires in 15 minutes."
+    },
+    "confirm": {
+      "title": "One last step.",
+      "sub": "Confirming your email keeps your patients' records secure."
+    },
+    "reset": {
+      "title": "Almost done.",
+      "sub": "Pick a new password and you're back in your clinic."
+    },
+    "onboarding": {
+      "title": "One more step and you're in.",
+      "sub": "Just a few clinic details and we'll get your account set up."
+    }
+  },
+  "login": {
+    "title": "Welcome back",
+    "subtitle": "Sign in to your clinic.",
+    "email": "Email",
+    "password": "Password",
+    "passwordRequired": "Password is required.",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign in",
+    "or": "or",
+    "newClinic": "New clinic?",
+    "createAccount": "Create an account",
+    "googleAccountExists": "An account with this email already exists. Please sign in with your password.",
+    "googleFailed": "Google sign-in failed. Please try again."
+  },
+  "register": {
+    "title": "Create your account",
+    "subtitle": "Set up your clinic in under a minute.",
+    "changePhoto": "Change photo",
+    "uploadPhoto": "Upload photo",
+    "photoHint": "Optional · JPG or PNG",
+    "agreePrefix": "I agree to the",
+    "termsLink": "Terms",
+    "andWord": "and",
+    "privacyLink": "Privacy Policy",
+    "createAccount": "Create account",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "removePhoto": "Remove photo"
+  },
+  "forgot": {
+    "title": "Forgot your password?",
+    "subtitle": "Enter your email and we'll send you a reset code.",
+    "sendCode": "Send reset code",
+    "rememberIt": "Remember it?",
+    "signIn": "Sign in"
+  },
+  "otp": {
+    "title": "Enter reset code",
+    "sentCodeTo": "We sent a 6-digit code to",
+    "infoBox": "Enter the code below to verify your identity. It may take a minute to arrive.",
+    "fullCodeRequired": "Please enter the full 6-digit code.",
+    "verifyCode": "Verify code",
+    "resendCode": "Resend code",
+    "wrongAddress": "Wrong address?",
+    "goBack": "Go back"
+  },
+  "confirm": {
+    "title": "Check your inbox",
+    "sentCodeTo": "We sent a 6-digit code to",
+    "infoBox": "Enter the code below to activate your account. It may take a minute to arrive.",
+    "fullCodeRequired": "Please enter the full 6-digit code.",
+    "verifyEmail": "Verify email",
+    "resendEmail": "Resend confirmation email",
+    "wrongAddress": "Wrong address?",
+    "goBack": "Go back"
+  },
+  "reset": {
+    "title": "Set a new password",
+    "subtitle": "Choose a strong password you haven't used before.",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "confirmRequired": "Please confirm your password.",
+    "mismatch": "Passwords do not match.",
+    "updatePassword": "Update password",
+    "backTo": "Back to",
+    "signIn": "sign in"
+  },
+  "onboarding": {
+    "title": "Create your account",
+    "subtitle": "Set up your clinic in under a minute.",
+    "uploadPhoto": "Upload photo",
+    "photoHint": "Optional · JPG or PNG",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "clinicName": "Clinic name",
+    "email": "Email",
+    "firstNameRequired": "First name is required.",
+    "lastNameRequired": "Last name is required.",
+    "clinicNameRequired": "Clinic name is required.",
+    "createAccount": "Create account"
+  },
+  "fields": {
+    "firstName": "First name",
+    "lastName": "Last name",
+    "clinicName": "Clinic name",
+    "email": "Email",
+    "password": "Password",
+    "terms": "Terms"
+  },
+  "placeholder": {
+    "firstName": "Sarah",
+    "lastName": "Ahmed",
+    "clinicName": "Cairo Physio Center",
+    "email": "you@clinic.eg",
+    "drEmail": "dr.sarah@clinic.eg",
+    "passwordMin": "At least 8 characters",
+    "confirmPassword": "Repeat your new password"
+  },
+  "validation": {
+    "required": "{{field}} is required.",
+    "email": "Enter a valid email address.",
+    "minLength": "At least {{n}} characters required.",
+    "requiredTrue": "You must agree to the Terms and Privacy Policy."
+  },
+  "common": {
+    "photoAlt": "Profile photo"
+  }
+}

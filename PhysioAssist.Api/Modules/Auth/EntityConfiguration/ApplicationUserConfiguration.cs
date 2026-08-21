@@ -13,5 +13,14 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(x => x.LastName).HasMaxLength(100);
 
         builder.Property(x => x.ProfilePictureUrl).HasMaxLength(300);
+
+        builder.HasOne(x => x.Clinic)
+            .WithMany(c => c.Users)
+            .HasForeignKey(x => x.ClinicId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired();
+
+        builder.HasIndex(x => x.ClinicId)
+            .HasDatabaseName("IX_ApplicationUser_ClinicId");
     }
 }

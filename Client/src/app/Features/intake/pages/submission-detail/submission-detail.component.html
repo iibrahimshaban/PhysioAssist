@@ -19,7 +19,7 @@
   @if (loading()) {
     <div class="flex flex-col items-center justify-center py-24 animate-fade-in" role="status">
       <div class="premium-spinner mb-4"></div>
-      <p class="text-sm text-[var(--color-text-secondary)]">Loading submission details...</p>
+      <p class="text-sm text-[var(--color-text-secondary)]">{{ 'intake.detail.loading' | transloco }}</p>
     </div>
   }
 
@@ -30,14 +30,14 @@
         <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--color-danger-light,#fef2f2)] flex items-center justify-center mx-auto mb-4">
           <i class="pi pi-exclamation-triangle text-xl sm:text-2xl text-[var(--color-danger)]"></i>
         </div>
-        <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-2">Failed to Load</h2>
+        <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-2">{{ 'intake.detail.errorTitle' | transloco }}</h2>
         <p class="text-[var(--color-text-secondary)] text-sm mb-6">{{ error() }}</p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
           <button type="button" (click)="goBack()" class="btn-action-secondary btn-action-mobile">
-            <i class="pi pi-arrow-left text-xs"></i> Go Back
+            <i class="pi pi-arrow-left text-xs"></i> {{ 'intake.common.goBack' | transloco }}
           </button>
           <button type="button" (click)="loadDetails()" class="btn-action-primary btn-action-mobile">
-            <i class="pi pi-refresh text-xs"></i> Retry
+            <i class="pi pi-refresh text-xs"></i> {{ 'intake.common.retry' | transloco }}
           </button>
         </div>
       </div>
@@ -55,10 +55,10 @@
           (click)="goBack()"
           class="text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] flex items-center gap-1.5 shrink-0 transition-colors">
           <i class="pi pi-arrow-left text-xs"></i>
-          Submissions
+          {{ 'intake.detail.breadcrumb' | transloco }}
         </button>
         <i class="pi pi-chevron-right text-[var(--color-border)] text-xs shrink-0"></i>
-        <span class="text-sm text-[var(--color-text-secondary)] truncate capitalize min-w-0">{{ patientNameDisplay() || 'Unnamed patient' }}</span>
+        <span class="text-sm text-[var(--color-text-secondary)] truncate capitalize min-w-0">{{ patientNameDisplay() || ('intake.common.unnamedPatient' | transloco) }}</span>
       </div>
 
       <!-- Header Summary Card -->
@@ -90,7 +90,7 @@
       <!-- Actions -->
       @if (!d.convertedToPatientId && canEditPermission()) {
         <div class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-4 sm:p-5 mt-4">
-          <h3 class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">Actions</h3>
+          <h3 class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">{{ 'intake.detail.actions' | transloco }}</h3>
 
           @if (!isEditing()) {
             <div class="flex flex-wrap gap-2">
@@ -101,10 +101,10 @@
                   [disabled]="updating()"
                   class="btn-action-mobile"
                   [ngClass]="getActionButtonClass(action.severity)"
-                  [attr.aria-label]="action.label"
-                  [title]="action.label">
+                  [attr.aria-label]="action.labelKey | transloco"
+                  [title]="action.labelKey | transloco">
                   <i class="pi text-xs" [ngClass]="updating() ? 'pi-spin pi-spinner' : action.icon"></i>
-                  {{ action.label }}
+                  {{ action.labelKey | transloco }}
                 </button>
               }
               @if (canEdit()) {
@@ -112,9 +112,9 @@
                   type="button"
                   (click)="startEditing()"
                   class="btn-action-secondary btn-action-mobile"
-                  aria-label="Edit submission">
+                  [attr.aria-label]="'intake.detail.viewer.editSubmissionAria' | transloco">
                   <i class="pi pi-pencil text-xs"></i>
-                  Edit
+                  {{ 'intake.common.edit' | transloco }}
                 </button>
               }
             </div>
@@ -124,17 +124,17 @@
                 type="button"
                 (click)="cancelEditing()"
                 class="btn-action-secondary btn-action-mobile"
-                aria-label="Cancel editing">
-                Cancel
+                [attr.aria-label]="'intake.detail.viewer.cancelEditingAria' | transloco">
+                {{ 'intake.common.cancel' | transloco }}
               </button>
               <button
                 type="button"
                 (click)="attemptConvert()"
                 [disabled]="updating()"
                 class="btn-action-primary btn-action-mobile"
-                aria-label="Convert to patient">
+                [attr.aria-label]="'intake.action.convertToPatient' | transloco">
                 <i class="pi text-xs" [ngClass]="updating() ? 'pi-spin pi-spinner' : 'pi-user-plus'"></i>
-                Convert to Patient
+                {{ 'intake.action.convertToPatient' | transloco }}
               </button>
             </div>
           }

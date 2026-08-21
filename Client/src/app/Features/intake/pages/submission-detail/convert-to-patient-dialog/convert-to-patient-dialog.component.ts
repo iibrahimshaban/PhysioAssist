@@ -1,11 +1,12 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-convert-to-patient-dialog',
   standalone: true,
-  imports: [CommonModule, DialogModule],
+  imports: [CommonModule, DialogModule, TranslocoModule],
   templateUrl: './convert-to-patient-dialog.component.html',
   styleUrl: './convert-to-patient-dialog.component.css'
 })

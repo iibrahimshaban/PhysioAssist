@@ -7,14 +7,14 @@
       <div>
         <div class="flex items-center gap-3">
           <h1 class="text-2xl sm:text-3xl font-extrabold text-[var(--color-text-primary,#0f172a)] tracking-tight">
-            Reception Queue
+            {{ 'intake.reception.header.title' | transloco }}
           </h1>
           <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-primary-soft)] text-[var(--color-primary)] border border-[var(--color-border,#e2e8f0)]">
-            {{ submissions().length }} Active
+            {{ 'intake.reception.header.activeCount' | transloco: { n: submissions().length } }}
           </span>
         </div>
         <p class="text-sm text-[var(--color-text-secondary,#64748b)] mt-1">
-          Patients waiting for check-in or currently in review (auto-refreshes every 30s)
+          {{ 'intake.reception.header.subtitle' | transloco }}
         </p>
       </div>
     </div>
@@ -42,14 +42,14 @@
         <div class="w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4 text-2xl">
           <i class="pi pi-exclamation-triangle"></i>
         </div>
-        <h3 class="text-base font-bold text-[var(--color-text-primary,#0f172a)] mb-1">Failed to load queue</h3>
+        <h3 class="text-base font-bold text-[var(--color-text-primary,#0f172a)] mb-1">{{ 'intake.reception.error.title' | transloco }}</h3>
         <p class="text-sm text-[var(--color-text-secondary,#64748b)] mb-4">{{ error() }}</p>
         <button
           type="button"
           (click)="loadReception()"
           class="btn-action-primary">
           <i class="pi pi-refresh text-xs"></i>
-          Try Again
+          {{ 'intake.common.tryAgain' | transloco }}
         </button>
       </div>
     }
@@ -85,13 +85,13 @@
               </div>
             </div>
             <h2 class="reception-empty-title">
-              @if (searchTerm()) { No matching waiting patients } @else { All caught up! }
+              @if (searchTerm()) { {{ 'intake.reception.empty.noMatchTitle' | transloco }} } @else { {{ 'intake.reception.empty.allCaughtUp' | transloco }} }
             </h2>
             <p class="reception-empty-desc">
               @if (searchTerm()) {
-                We couldn't find any active patient submissions matching your search criteria.
+                {{ 'intake.reception.empty.noMatchDesc' | transloco }}
               } @else {
-                There are no active patients waiting in the reception queue at this moment. New submissions will appear here automatically.
+                {{ 'intake.reception.empty.emptyDesc' | transloco }}
               }
             </p>
             @if (searchTerm()) {
@@ -100,7 +100,7 @@
                   (click)="clearFilters()"
                   class="empty-state-cta">
                   <i class="pi pi-filter-slash text-xs"></i>
-                  Clear Search
+                  {{ 'intake.reception.empty.clearSearch' | transloco }}
                 </button>
             }
           </div>
@@ -118,11 +118,7 @@
           @if (totalPages() > 1) {
             <div class="submission-pagination">
               <div class="submission-pagination-info">
-                <span>Showing </span>
-                <span class="font-semibold text-[var(--color-text-primary,#0f172a)]">
-                  {{ ((currentPage() - 1) * pageSize()) + 1 }}–{{ pageEndIndex() }}
-                </span>
-                <span> of {{ filteredSubmissions().length }} in queue</span>
+                {{ 'intake.reception.pagination.showing' | transloco: { from: ((currentPage() - 1) * pageSize()) + 1, to: pageEndIndex(), total: filteredSubmissions().length } }}
               </div>
 
               <div class="submission-pagination-controls">
@@ -131,7 +127,7 @@
                   class="submission-page-btn"
                   (click)="goToPage(currentPage() - 1)"
                   [disabled]="currentPage() === 1"
-                  aria-label="Previous page">
+                  [attr.aria-label]="'intake.reception.pagination.prevPage' | transloco">
                   <i class="pi pi-chevron-left text-xs"></i>
                 </button>
 
@@ -150,7 +146,7 @@
                   class="submission-page-btn"
                   (click)="goToPage(currentPage() + 1)"
                   [disabled]="currentPage() === totalPages()"
-                  aria-label="Next page">
+                  [attr.aria-label]="'intake.reception.pagination.nextPage' | transloco">
                   <i class="pi pi-chevron-right text-xs"></i>
                 </button>
               </div>

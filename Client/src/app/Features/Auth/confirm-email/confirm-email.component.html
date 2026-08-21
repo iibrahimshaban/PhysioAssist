@@ -10,9 +10,9 @@
     </div>
 
     <div class="text-white">
-      <h1 class="text-4xl font-bold leading-tight mb-4">One last step.</h1>
+      <h1 class="text-4xl font-bold leading-tight mb-4">{{ 'auth.marketing.confirm.title' | transloco }}</h1>
       <p class="text-white/75 text-base max-w-sm leading-relaxed">
-        Confirming your email keeps your patients' records secure.
+        {{ 'auth.marketing.confirm.sub' | transloco }}
       </p>
     </div>
 
@@ -26,9 +26,9 @@
 
       <!-- Heading -->
       <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-1">Check your inbox</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ 'auth.confirm.title' | transloco }}</h2>
         <p class="text-gray-500 text-sm">
-          We sent a 6-digit code to
+          {{ 'auth.confirm.sentCodeTo' | transloco }}
           <span class="font-medium text-gray-700">{{ email() }}</span>
         </p>
       </div>
@@ -39,7 +39,7 @@
           <i class="pi pi-envelope text-blue-600 text-sm"></i>
         </div>
         <p class="text-sm text-gray-600 leading-relaxed">
-          Enter the code below to activate your account. It may take a minute to arrive.
+          {{ 'auth.confirm.infoBox' | transloco }}
         </p>
       </div>
 
@@ -50,14 +50,14 @@
         <div class="flex flex-col items-center gap-2">
           <p-inputotp formControlName="code" [length]="6" [integerOnly]="true" />
           @if (form.get('code')?.invalid && form.get('code')?.touched) {
-            <span class="text-xs text-red-500">Please enter the full 6-digit code.</span>
+            <span class="text-xs text-red-500">{{ 'auth.confirm.fullCodeRequired' | transloco }}</span>
           }
         </div>
 
         <!-- Confirm -->
         <p-button
           type="submit"
-          label="Verify email"
+          label="{{ 'auth.confirm.verifyEmail' | transloco }}"
           styleClass="w-full"
           [loading]="loading()"
           [disabled]="loading()"
@@ -66,7 +66,7 @@
         <!-- Resend -->
         <p-button
           type="button"
-          label="Resend confirmation email"
+          label="{{ 'auth.confirm.resendEmail' | transloco }}"
           [outlined]="true"
           styleClass="w-full"
           [loading]="resending()"
@@ -78,10 +78,10 @@
 
       <!-- Wrong address -->
       <p class="text-center text-sm text-gray-500 mt-6">
-        Wrong address?
+        {{ 'auth.confirm.wrongAddress' | transloco }}
         <a routerLink="/auth/register"
            class="font-medium text-blue-600 hover:text-blue-700 transition-colors">
-          Go back
+          {{ 'auth.confirm.goBack' | transloco }}
         </a>
       </p>
 

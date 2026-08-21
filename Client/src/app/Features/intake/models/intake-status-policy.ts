@@ -3,21 +3,26 @@ import { IntakeStatus } from './intake-submission.model';
 export type IntakeAction = {
   type: 'status' | 'convert';
   status: IntakeStatus;
-  label: string;
+  /** Translation key under `intake.action.*` — translate at render time. */
+  labelKey: string;
   icon: string;
   severity: 'info' | 'warn' | 'success' | 'danger' | 'secondary' | 'contrast';
-  message: string;
+  /** Translation key for the confirmation message, or '' when none. */
+  messageKey: string;
 };
 
-const statusLabels: Record<IntakeStatus, string> = {
-  [IntakeStatus.Pending]: 'Pending',
-  [IntakeStatus.Submitted]: 'Submitted',
-  [IntakeStatus.InReview]: 'In Review',
-  [IntakeStatus.Approved]: 'Approved',
-  [IntakeStatus.Rejected]: 'Rejected',
-  [IntakeStatus.Converted]: 'Converted',
-  [IntakeStatus.Expired]: 'Expired',
+/** Single source of truth mapping IntakeStatus → translation key. */
+export const INTAKE_STATUS_KEYS: Record<IntakeStatus, string> = {
+  [IntakeStatus.Pending]: 'intake.status.pending',
+  [IntakeStatus.Submitted]: 'intake.status.submitted',
+  [IntakeStatus.InReview]: 'intake.status.inReview',
+  [IntakeStatus.Approved]: 'intake.status.approved',
+  [IntakeStatus.Rejected]: 'intake.status.rejected',
+  [IntakeStatus.Converted]: 'intake.status.converted',
+  [IntakeStatus.Expired]: 'intake.status.expired',
 };
+
+export const INTAKE_STATUS_UNKNOWN_KEY = 'intake.status.unknown';
 
 const statusPillClasses: Record<IntakeStatus, string> = {
   [IntakeStatus.Pending]: 'status-badge-warning',
@@ -32,23 +37,23 @@ const statusPillClasses: Record<IntakeStatus, string> = {
 const approveAction: IntakeAction = {
   type: 'status',
   status: IntakeStatus.Approved,
-  label: 'Approve',
+  labelKey: 'intake.action.approve',
   icon: 'pi pi-check-circle',
   severity: 'success',
-  message: 'Approve this submission for patient conversion?'
+  messageKey: 'intake.action.msgApprove'
 };
 
 const rejectAction: IntakeAction = {
   type: 'status',
   status: IntakeStatus.Rejected,
-  label: 'Reject',
+  labelKey: 'intake.action.reject',
   icon: 'pi pi-times-circle',
   severity: 'danger',
-  message: 'Reject this submission? This will mark the intake as rejected.'
+  messageKey: 'intake.action.msgReject'
 };
 
-export function getIntakeStatusLabel(status: IntakeStatus): string {
-  return statusLabels[status] ?? 'Unknown';
+export function getIntakeStatusKey(status: IntakeStatus | null | undefined): string {
+  return (status != null && INTAKE_STATUS_KEYS[status]) || INTAKE_STATUS_UNKNOWN_KEY;
 }
 
 export function getIntakeStatusPillClass(status: IntakeStatus): string {
@@ -60,7 +65,7 @@ export function getAvailableIntakeActions(status: IntakeStatus): IntakeAction[] 
     case IntakeStatus.Pending:
     case IntakeStatus.Submitted:
       return [
-        { type: 'status', status: IntakeStatus.InReview, label: 'Mark In Review', icon: 'pi pi-eye', severity: 'info', message: 'Mark this submission as in review?' },
+        { type: 'status', status: IntakeStatus.InReview, labelKey: 'intake.action.markInReview', icon: 'pi pi-eye', severity: 'info', messageKey: 'intake.action.msgMarkInReview' },
         approveAction,
         rejectAction,
       ];
@@ -68,12 +73,12 @@ export function getAvailableIntakeActions(status: IntakeStatus): IntakeAction[] 
       return [approveAction, rejectAction];
     case IntakeStatus.Approved:
       return [
-        { type: 'convert', status: IntakeStatus.Converted, label: 'Convert to Patient', icon: 'pi pi-user-plus', severity: 'success', message: '' },
+        { type: 'convert', status: IntakeStatus.Converted, labelKey: 'intake.action.convertToPatient', icon: 'pi pi-user-plus', severity: 'success', messageKey: '' },
         rejectAction,
       ];
     case IntakeStatus.Rejected:
       return [
-        { type: 'status', status: IntakeStatus.InReview, label: 'Re-open Review', icon: 'pi pi-undo', severity: 'info', message: 'Re-open this submission for review?' },
+        { type: 'status', status: IntakeStatus.InReview, labelKey: 'intake.action.reopenReview', icon: 'pi pi-undo', severity: 'info', messageKey: 'intake.action.msgReopenReview' },
         approveAction
       ];
     default:

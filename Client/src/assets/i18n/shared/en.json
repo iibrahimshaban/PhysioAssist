@@ -1,0 +1,26 @@
+{
+  "nav": {
+    "home": "Home",
+    "todaySessions": "Today sessions",
+    "patients": "Patients",
+    "schedule": "Schedule",
+    "reception": "Reception",
+    "workingSchedule": "Working Schedule",
+    "schedulePreferences": "schedule-preferences",
+    "submissions": "Submissions",
+    "staff": "Staff",
+    "intakeSchemas": "Intake Schemas",
+    "documentationTemplates": "Documentation Templates",
+    "accountSettings": "Account settings",
+    "logout": "Logout",
+    "marketingFeatures": "Features",
+    "marketingAiAssistant": "AI Assistant",
+    "marketingScheduling": "Scheduling",
+    "marketingForPhysios": "For Physiotherapists"
+  },
+  "errors": {
+    "cantReachServer": "Can't reach the server. Please try again in a moment.",
+    "noInternet": "No internet connection. Please check your network.",
+    "unexpectedError": "Unexpected error"
+  }
+}

@@ -264,7 +264,7 @@
 .template-card-check {
   position: absolute;
   top: 0.75rem;
-  right: 0.75rem;
+  inset-inline-end: 0.75rem;
   color: var(--template-color, var(--color-primary));
   font-size: 1.25rem;
 }
@@ -699,8 +699,8 @@
   color: var(--color-text-secondary);
   margin: 0 0 1rem;
   max-width: 300px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline-start: auto;
+  margin-inline-end: auto;
 }
 
 .build-sections {
@@ -752,7 +752,7 @@
   background: rgba(59, 130, 246, 0.1);
   padding: 0.125rem 0.5rem;
   border-radius: 9999px;
-  margin-left: 0.25rem;
+  margin-inline-start: 0.25rem;
 }
 
 .build-group--locked {
@@ -1136,7 +1136,7 @@
 }
 
 .review-preview-group {
-  margin-left: 1.5rem;
+  margin-inline-start: 1.5rem;
   margin-bottom: 0.5rem;
 }
 
@@ -1152,7 +1152,7 @@
 }
 
 .review-preview-questions {
-  margin-left: 1.5rem;
+  margin-inline-start: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -1291,7 +1291,7 @@
 }
 
 .quick-add-target-clear {
-  margin-left: auto;
+  margin-inline-start: auto;
   background: none;
   border: none;
   color: var(--color-primary);

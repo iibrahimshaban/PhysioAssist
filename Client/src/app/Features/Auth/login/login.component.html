@@ -13,11 +13,10 @@
         <!-- Headline -->
         <div class="text-white">
           <h1 class="text-4xl font-bold leading-tight mb-4">
-            Run your clinic<br>with one hand.
+            {{ 'auth.marketing.login.title' | transloco }}
           </h1>
           <p class="text-white/75 text-base max-w-sm leading-relaxed">
-            Voice-first session notes, AI-assisted documentation,<br>
-            and instant patient summaries.
+            {{ 'auth.marketing.login.sub' | transloco }}
           </p>
         </div>
  
@@ -32,21 +31,21 @@
  
           <!-- Heading -->
           <div class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-1">Welcome back</h2>
-            <p class="text-gray-500 text-sm">Sign in to your clinic.</p>
+            <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ 'auth.login.title' | transloco }}</h2>
+            <p class="text-gray-500 text-sm">{{ 'auth.login.subtitle' | transloco }}</p>
           </div>
- 
+
           <!-- Form -->
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5" novalidate>
- 
+
             <!-- Email -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-gray-700">Email</label>
+              <label class="text-sm font-medium text-gray-700">{{ 'auth.login.email' | transloco }}</label>
               <input
                 pInputText
                 type="email"
                 formControlName="email"
-                placeholder="dr.sarah@clinic.eg"
+                placeholder="{{ 'auth.placeholder.drEmail' | transloco }}"
                 class="w-full"
                 [class.ng-invalid]="isInvalid('email')"
                 [class.ng-dirty]="isInvalid('email')"
@@ -57,10 +56,10 @@
                 </span>
               }
             </div>
- 
+
             <!-- Password -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-gray-700">Password</label>
+              <label class="text-sm font-medium text-gray-700">{{ 'auth.login.password' | transloco }}</label>
               <p-password
                 formControlName="password"
                 [feedback]="false"
@@ -72,10 +71,10 @@
                 [class.ng-dirty]="isInvalid('password')"
               />
               @if (isInvalid('password')) {
-                <span class="text-xs text-red-500">Password is required.</span>
+                <span class="text-xs text-red-500">{{ 'auth.login.passwordRequired' | transloco }}</span>
               }
             </div>
- 
+
             <!-- Remember me + Forgot password -->
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
@@ -85,30 +84,30 @@
                   inputId="rememberMe"
                 />
                 <label for="rememberMe" class="text-sm text-gray-600 cursor-pointer select-none">
-                  Remember me
+                  {{ 'auth.login.rememberMe' | transloco }}
                 </label>
               </div>
               <a routerLink="/auth/forgot-password"
                  class="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
-                Forgot password?
+                {{ 'auth.login.forgotPassword' | transloco }}
               </a>
             </div>
- 
+
             <!-- Submit -->
             <p-button
               type="submit"
-              label="Sign in"
+              label="{{ 'auth.login.signIn' | transloco }}"
               styleClass="w-full"
               [loading]="loading()"
               [disabled]="loading()"
             />
- 
+
           </form>
 
           <!-- Divider -->
           <div class="flex items-center gap-3 my-6">
             <div class="flex-1 h-px bg-gray-200"></div>
-            <span class="text-xs text-gray-400 uppercase tracking-wide">or</span>
+            <span class="text-xs text-gray-400 uppercase tracking-wide">{{ 'auth.login.or' | transloco }}</span>
             <div class="flex-1 h-px bg-gray-200"></div>
           </div>
 
@@ -130,10 +129,10 @@
  
           <!-- Register link -->
           <p class="text-center text-sm text-gray-500 mt-6">
-            New clinic?
+            {{ 'auth.login.newClinic' | transloco }}
             <a routerLink="/auth/register"
                class="font-medium text-blue-600 hover:text-blue-700 transition-colors">
-              Create an account
+              {{ 'auth.login.createAccount' | transloco }}
             </a>
           </p>
  

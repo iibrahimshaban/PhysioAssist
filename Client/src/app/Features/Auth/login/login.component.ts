@@ -5,6 +5,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { GoogleSigninButtonModule, SocialAuthService, GoogleLoginProvider } from '@abacritt/angularx-social-login';
 import { AuthService } from '../../../Core/Services/auth.service';
 import { requiresOnboarding } from '../../../Shared/Models/Auth.Modules';
@@ -14,6 +15,7 @@ import { requiresOnboarding } from '../../../Shared/Models/Auth.Modules';
   imports: [
     ReactiveFormsModule,
     RouterLink,
+    TranslocoModule,
     InputTextModule,
     PasswordModule,
     ButtonModule,
@@ -28,6 +30,7 @@ export class LoginComponent {
   private readonly auth        = inject(AuthService);
   private readonly router      = inject(Router);
   private readonly socialAuth  = inject(SocialAuthService);
+  private readonly transloco   = inject(TranslocoService);
 
   loading = signal(false);
   googleError = signal('');
@@ -86,8 +89,8 @@ export class LoginComponent {
         this.loading.set(false);
         this.googleError.set(
           err.error?.code === 'User.AccountExistsWithPassword'
-            ? 'An account with this email already exists. Please sign in with your password.'
-            : 'Google sign-in failed. Please try again.'
+            ? this.transloco.translate('auth.login.googleAccountExists')
+            : this.transloco.translate('auth.login.googleFailed')
         );
       },
     });
@@ -100,8 +103,8 @@ export class LoginComponent {
 
   getEmailError(): string {
     const ctrl = this.form.get('email');
-    if (ctrl?.hasError('required')) return 'Email is required.';
-    if (ctrl?.hasError('email'))    return 'Enter a valid email address.';
+    if (ctrl?.hasError('required')) return this.transloco.translate('auth.validation.required', { field: this.transloco.translate('auth.fields.email') });
+    if (ctrl?.hasError('email'))    return this.transloco.translate('auth.validation.email');
     return '';
   }
 }

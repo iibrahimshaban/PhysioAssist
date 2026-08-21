@@ -32,7 +32,7 @@
 
 .filters-search-icon {
   position: absolute;
-  left: 1rem;
+  inset-inline-start: 1rem;
   top: 50%;
   transform: translateY(-50%);
   font-size: 0.875rem;
@@ -68,7 +68,7 @@
 
 .filters-clear-btn {
   position: absolute;
-  right: 0.75rem;
+  inset-inline-end: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   width: 1.5rem;
@@ -106,7 +106,7 @@
 
 .filters-sort-icon {
   position: absolute;
-  left: 0.875rem;
+  inset-inline-start: 0.875rem;
   font-size: 0.75rem;
   color: var(--color-text-secondary, #64748b);
   pointer-events: none;

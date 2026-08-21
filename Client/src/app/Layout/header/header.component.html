@@ -24,7 +24,7 @@
             [routerLink]="item.route"
             routerLinkActive="!text-blue-600 !bg-blue-50 font-semibold"
           >
-            {{ item.label }}
+            {{ item.labelKey | transloco }}
           </a>
         }
 
@@ -35,7 +35,7 @@
         <div class="relative">
           <button
             (click)="toggleAccountMenu()"
-            class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer bg-transparent"
+            class="flex items-center gap-2 ps-2 pe-3 py-1.5 rounded-full border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer bg-transparent"
           >
             @if (auth.currentUser()?.profilePictureUrl) {
               <img
@@ -60,7 +60,7 @@
             <div class="fixed inset-0 account-dropdown-backdrop" (click)="closeAccountMenu()"></div>
 
             <div
-                class="absolute right-0 top-full mt-2 w-max max-w-xs min-w-[11rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1.5 account-dropdown-panel"
+                class="absolute end-0 top-full mt-2 w-max max-w-xs min-w-[11rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1.5 account-dropdown-panel"
               >
               <a
                 routerLink="/app/account"
@@ -68,7 +68,7 @@
                 class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors no-underline"
               >
                 <i class="pi pi-user text-gray-400"></i>
-                Account settings
+                {{ 'shared.nav.accountSettings' | transloco }}
               </a>
 
               @if (nav.settingsItems().length) {
@@ -81,7 +81,7 @@
                     class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors no-underline whitespace-nowrap"
                   >
                     <i class="{{ item.icon }} text-gray-400 shrink-0"></i>
-                    <span class="whitespace-nowrap">{{ item.label }}</span>
+                    <span class="whitespace-nowrap">{{ item.labelKey | transloco }}</span>
                   </a>
                 }
               }
@@ -90,10 +90,10 @@
 
               <button
                 (click)="auth.logout(); closeAccountMenu()"
-                class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-left whitespace-nowrap"
+                class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-start whitespace-nowrap"
               >
                 <i class="pi pi-sign-out"></i>
-                Logout
+                {{ 'shared.nav.logout' | transloco }}
               </button>
             </div>
           }
@@ -108,7 +108,7 @@
             [routerLink]="['/']"
             [fragment]="item.fragment"
           >
-            {{ item.label }}
+            {{ item.labelKey | transloco }}
           </a>
         }
 
@@ -122,7 +122,7 @@
         >
 
         <a
-          class="ml-2 px-4 py-2 rounded-xl text-sm font-medium text-white no-underline hover:opacity-90 transition-opacity"
+          class="ms-2 px-4 py-2 rounded-xl text-sm font-medium text-white no-underline hover:opacity-90 transition-opacity"
           style="background: var(--brand-gradient, linear-gradient(135deg, #1A7FD4, #0EB8A0))"
           routerLink="/auth/register"
           >Start for free</a
@@ -135,7 +135,7 @@
       <div class="md:hidden relative">
         <button
           (click)="toggleAccountMenu()"
-          class="flex items-center gap-1 pl-0.5 pr-1 py-0.5 rounded-full cursor-pointer bg-transparent border-none"
+          class="flex items-center gap-1 ps-0.5 pe-1 py-0.5 rounded-full cursor-pointer bg-transparent border-none"
         >
           @if (auth.currentUser()?.profilePictureUrl) {
             <img [src]="auth.currentUser()!.profilePictureUrl" class="w-7 h-7 rounded-full object-cover ring-1 ring-gray-200" alt="" />
@@ -148,24 +148,24 @@
         </button>
 
         @if (accountMenuOpen()) {
-          <div class="absolute right-0 top-full mt-2 w-max max-w-[85vw] min-w-[10rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1 account-dropdown-panel">
+          <div class="absolute end-0 top-full mt-2 w-max max-w-[85vw] min-w-[10rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1 account-dropdown-panel">
           <a routerLink="/app/account" (click)="closeAccountMenu()" class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline whitespace-nowrap">
             <i class="pi pi-user text-gray-400 text-xs"></i>
-            Account settings
+            {{ 'shared.nav.accountSettings' | transloco }}
           </a>
 
           @for (item of nav.settingsItems(); track item.route) {
             <a [routerLink]="item.route" (click)="closeAccountMenu()" class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline whitespace-nowrap">
               <i class="{{ item.icon }} text-gray-400 shrink-0"></i>
-              <span class="whitespace-nowrap">{{ item.label }}</span>
+              <span class="whitespace-nowrap">{{ item.labelKey | transloco }}</span>
             </a>
           }
 
           <div class="h-px bg-gray-100 my-1"></div>
 
-          <button (click)="auth.logout(); closeAccountMenu()" class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-left whitespace-nowrap">
+          <button (click)="auth.logout(); closeAccountMenu()" class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-start whitespace-nowrap">
             <i class="pi pi-sign-out text-xs"></i>
-            Logout
+            {{ 'shared.nav.logout' | transloco }}
           </button>
         </div>
         }
@@ -213,7 +213,7 @@
           routerLinkActive="!text-blue-600"
           [routerLinkActiveOptions]="{ exact: false }"
         ></i>
-        <span class="text-[10px] text-gray-500 font-medium" routerLinkActive="!text-blue-600">{{ item.label }}</span>
+        <span class="text-[10px] text-gray-500 font-medium" routerLinkActive="!text-blue-600">{{ item.labelKey | transloco }}</span>
       </a>
     }
   </nav>
@@ -229,7 +229,7 @@
           [fragment]="item.fragment"
           (click)="closeMenu()"
         >
-          {{ item.label }}
+          {{ item.labelKey | transloco }}
         </a>
       }
       <div class="flex gap-2 mt-3">

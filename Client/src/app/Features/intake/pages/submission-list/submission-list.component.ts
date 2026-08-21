@@ -4,9 +4,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
-import { PreVisitIntakeResponse, IntakeStatus, getIntakeStatusLabel, getIntakeStatusPillClass } from '../../models';
+import { PreVisitIntakeResponse, IntakeStatus, getIntakeStatusKey, getIntakeStatusPillClass, INTAKE_STATUS_KEYS } from '../../models';
 
 import { SubmissionFiltersBarComponent } from './submission-filters-bar/submission-filters-bar.component';
 import { SubmissionSummaryStatsComponent } from './submission-summary-stats/submission-summary-stats.component';
@@ -20,6 +21,7 @@ import { IntakePageContainerComponent } from '../../shared/intake-page-container
     CommonModule,
     FormsModule,
     ButtonModule,
+    TranslocoModule,
     SubmissionFiltersBarComponent,
     SubmissionSummaryStatsComponent,
     IntakePageContainerComponent,
@@ -32,6 +34,7 @@ export class SubmissionListComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly intakeApi = inject(IntakeApiService);
   private readonly snackbar = inject(SnackbarService);
+  private readonly transloco = inject(TranslocoService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(false);
@@ -71,14 +74,14 @@ export class SubmissionListComponent implements OnInit {
   readonly statusOptions = computed(() => {
     const counts = this.statusCounts();
     return [
-      { label: 'All Statuses', value: null, count: counts['all'] },
-      { label: 'Pending', value: IntakeStatus.Pending, count: counts[IntakeStatus.Pending] },
-      { label: 'Submitted', value: IntakeStatus.Submitted, count: counts[IntakeStatus.Submitted] },
-      { label: 'In Review', value: IntakeStatus.InReview, count: counts[IntakeStatus.InReview] },
-      { label: 'Approved', value: IntakeStatus.Approved, count: counts[IntakeStatus.Approved] },
-      { label: 'Rejected', value: IntakeStatus.Rejected, count: counts[IntakeStatus.Rejected] },
-      { label: 'Converted', value: IntakeStatus.Converted, count: counts[IntakeStatus.Converted] },
-      { label: 'Expired', value: IntakeStatus.Expired, count: counts[IntakeStatus.Expired] },
+      { label: 'intake.filters.allStatuses', value: null, count: counts['all'] },
+      { label: INTAKE_STATUS_KEYS[IntakeStatus.Pending], value: IntakeStatus.Pending, count: counts[IntakeStatus.Pending] },
+      { label: INTAKE_STATUS_KEYS[IntakeStatus.Submitted], value: IntakeStatus.Submitted, count: counts[IntakeStatus.Submitted] },
+      { label: INTAKE_STATUS_KEYS[IntakeStatus.InReview], value: IntakeStatus.InReview, count: counts[IntakeStatus.InReview] },
+      { label: INTAKE_STATUS_KEYS[IntakeStatus.Approved], value: IntakeStatus.Approved, count: counts[IntakeStatus.Approved] },
+      { label: INTAKE_STATUS_KEYS[IntakeStatus.Rejected], value: IntakeStatus.Rejected, count: counts[IntakeStatus.Rejected] },
+      { label: INTAKE_STATUS_KEYS[IntakeStatus.Converted], value: IntakeStatus.Converted, count: counts[IntakeStatus.Converted] },
+      { label: INTAKE_STATUS_KEYS[IntakeStatus.Expired], value: IntakeStatus.Expired, count: counts[IntakeStatus.Expired] },
     ];
   });
 
@@ -182,9 +185,11 @@ export class SubmissionListComponent implements OnInit {
       },
       error: () => {
         if (requestId !== this.loadRequestId) return;
-        this.error.set('Failed to load submissions. Please try again.');
+        this.error.set(this.transloco.translate('intake.submissions.error.message'));
         this.loading.set(false);
-        this.snackbar.error('Error', ['Could not load intake submissions.']);
+        this.snackbar.error(this.transloco.translate('intake.snackbar.error'), [
+          this.transloco.translate('intake.snackbar.couldNotLoadSubmissions')
+        ]);
       }
     });
   }
@@ -256,7 +261,7 @@ export class SubmissionListComponent implements OnInit {
   }
 
   getQueueStatusLabel(status: IntakeStatus): string {
-    return getIntakeStatusLabel(status);
+    return this.transloco.translate(getIntakeStatusKey(status));
   }
 
   getStatusPillClass(status: IntakeStatus): string {
@@ -270,9 +275,9 @@ export class SubmissionListComponent implements OnInit {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    if (minutes < 1) return 'just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
+    if (minutes < 1) return this.transloco.translate('intake.common.time.justNow');
+    if (minutes < 60) return this.transloco.translate('intake.common.time.mAgo', { n: minutes });
+    if (hours < 24) return this.transloco.translate('intake.common.time.hAgo', { n: hours });
+    return this.transloco.translate('intake.common.time.dAgo', { n: days });
   }
 }

@@ -3,18 +3,20 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../../Core/Services/auth.service';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ButtonModule, InputTextModule],
+  imports: [ReactiveFormsModule, RouterLink, TranslocoModule, ButtonModule, InputTextModule],
   templateUrl: './forget-password.component.html',
 })
 export class ForgotPasswordComponent {
-  private readonly fb     = inject(FormBuilder);
-  private readonly auth   = inject(AuthService);
-  private readonly router = inject(Router);
+  private readonly fb        = inject(FormBuilder);
+  private readonly auth      = inject(AuthService);
+  private readonly router    = inject(Router);
+  private readonly transloco = inject(TranslocoService);
 
   loading = signal(false);
 
@@ -45,8 +47,8 @@ export class ForgotPasswordComponent {
 
   getEmailError(): string {
     const ctrl = this.form.get('email');
-    if (ctrl?.hasError('required')) return 'Email is required.';
-    if (ctrl?.hasError('email'))    return 'Enter a valid email address.';
+    if (ctrl?.hasError('required')) return this.transloco.translate('auth.validation.required', { field: this.transloco.translate('auth.fields.email') });
+    if (ctrl?.hasError('email'))    return this.transloco.translate('auth.validation.email');
     return '';
   }
 }

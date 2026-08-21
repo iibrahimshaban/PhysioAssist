@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 import {
   DynamicFormSchemaDto,
   FormSectionDto,
@@ -26,6 +27,8 @@ export interface ValidationRuleType {
   providedIn: 'root'
 })
 export class DynamicFormEngineService {
+  private readonly transloco = inject(TranslocoService);
+
   readonly conditionOperators: ConditionOperator[] = [
     { label: 'Equals', value: 'equals' },
     { label: 'Not Equals', value: 'notEquals' },
@@ -128,28 +131,28 @@ export class DynamicFormEngineService {
   validateSchema(schema: DynamicFormSchemaDto): ValidationError[] {
     const errors: ValidationError[] = [];
     if (!schema.schemaVersion || schema.schemaVersion < 1) {
-      errors.push({ path: 'schemaVersion', message: 'Schema version must be at least 1' });
+      errors.push({ path: 'schemaVersion', message: this.transloco.translate('intake.engine.validation.versionMin') });
     }
     if (!schema.sections || schema.sections.length === 0) {
-      errors.push({ path: 'sections', message: 'Schema must have at least one section' });
+      errors.push({ path: 'sections', message: this.transloco.translate('intake.engine.validation.sectionRequired') });
     }
 
     const allIds = new Set<string>();
     for (const section of schema.sections) {
       if (allIds.has(section.sectionId)) {
-        errors.push({ path: `sections`, message: `Duplicate section ID: ${section.sectionId}` });
+        errors.push({ path: `sections`, message: this.transloco.translate('intake.engine.validation.duplicateSection', { id: section.sectionId }) });
       }
       allIds.add(section.sectionId);
 
       for (const group of section.groups) {
         if (allIds.has(group.groupId)) {
-          errors.push({ path: `groups`, message: `Duplicate group ID: ${group.groupId}` });
+          errors.push({ path: `groups`, message: this.transloco.translate('intake.engine.validation.duplicateGroup', { id: group.groupId }) });
         }
         allIds.add(group.groupId);
 
         for (const question of group.questions) {
           if (allIds.has(question.questionId)) {
-            errors.push({ path: `questions`, message: `Duplicate question ID: ${question.questionId}` });
+            errors.push({ path: `questions`, message: this.transloco.translate('intake.engine.validation.duplicateQuestion', { id: question.questionId }) });
           }
           allIds.add(question.questionId);
 
@@ -159,7 +162,7 @@ export class DynamicFormEngineService {
               if (!allQ.find(q => q.questionId === condition.targetQuestionId)) {
                 errors.push({
                   path: `questions.${question.questionId}.conditions`,
-                  message: `Condition references non-existent question: ${condition.targetQuestionId}`
+                  message: this.transloco.translate('intake.engine.validation.conditionMissingTarget', { id: condition.targetQuestionId })
                 });
               }
             }

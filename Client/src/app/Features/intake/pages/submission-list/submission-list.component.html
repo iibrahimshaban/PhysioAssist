@@ -7,14 +7,14 @@
       <div>
         <div class="flex items-center gap-3">
           <h1 class="text-2xl sm:text-3xl font-extrabold text-[var(--color-text-primary,#0f172a)] tracking-tight">
-            Submissions
+            {{ 'intake.submissions.header.title' | transloco }}
           </h1>
           <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-page-bg,#f1f5f9)] text-[var(--color-text-secondary,#64748b)] border border-[var(--color-border,#e2e8f0)]">
-            {{ submissions().length }} Total
+            {{ 'intake.submissions.header.totalCount' | transloco: { n: submissions().length } }}
           </span>
         </div>
         <p class="text-sm text-[var(--color-text-secondary,#64748b)] mt-1">
-          Manage pre-visit intake questionnaires submitted by patients
+          {{ 'intake.submissions.header.subtitle' | transloco }}
         </p>
       </div>
     </div>
@@ -40,14 +40,14 @@
         <div class="w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4 text-2xl">
           <i class="pi pi-exclamation-triangle"></i>
         </div>
-        <h3 class="text-base font-bold text-[var(--color-text-primary,#0f172a)] mb-1">Failed to load submissions</h3>
+        <h3 class="text-base font-bold text-[var(--color-text-primary,#0f172a)] mb-1">{{ 'intake.submissions.error.title' | transloco }}</h3>
         <p class="text-sm text-[var(--color-text-secondary,#64748b)] mb-4">{{ error() }}</p>
         <button
           type="button"
           (click)="loadSubmissions()"
           class="btn-action-primary">
           <i class="pi pi-refresh text-xs"></i>
-          Try Again
+          {{ 'intake.common.tryAgain' | transloco }}
         </button>
       </div>
     }
@@ -86,13 +86,13 @@
               </div>
             </div>
             <h2 class="empty-title">
-              @if (searchTerm() || selectedStatus() !== null) { No matching submissions } @else { No submissions yet }
+              @if (searchTerm() || selectedStatus() !== null) { {{ 'intake.submissions.empty.noMatchTitle' | transloco }} } @else { {{ 'intake.submissions.empty.emptyTitle' | transloco }} }
             </h2>
             <p class="empty-desc">
               @if (searchTerm() || selectedStatus() !== null) {
-                We couldn't find any patient submissions matching your active search or filter criteria.
+                {{ 'intake.submissions.empty.noMatchDesc' | transloco }}
               } @else {
-                Patient intake submissions will automatically appear here once patients complete the form. Share your intake form link with patients to get started.
+                {{ 'intake.submissions.empty.emptyDesc' | transloco }}
               }
             </p>
             @if (searchTerm() || selectedStatus() !== null) {
@@ -101,7 +101,7 @@
                   (click)="clearFilters()"
                   class="empty-state-cta">
                   <i class="pi pi-filter-slash text-xs"></i>
-                  Clear All Filters
+                  {{ 'intake.submissions.empty.clearAllFilters' | transloco }}
                 </button>
             }
           </div>
@@ -121,15 +121,15 @@
           <!-- View Mode 2: Table View -->
           @if (viewMode() === 'table') {
             <div class="overflow-x-auto rounded-xl border border-[var(--color-border,#e2e8f0)] mt-4">
-              <table class="w-full text-left border-collapse">
+              <table class="w-full text-start border-collapse">
                 <thead>
                   <tr class="bg-[var(--color-page-bg,#f8fafc)] border-b border-[var(--color-border,#e2e8f0)] text-xs font-bold text-[var(--color-text-secondary,#64748b)] uppercase tracking-wider">
-                    <th class="py-3 px-4">Patient</th>
-                    <th class="py-3 px-4">Intake Code</th>
-                    <th class="py-3 px-4">Status</th>
-                    <th class="py-3 px-4">Pain Regions</th>
-                    <th class="py-3 px-4">Submitted</th>
-                    <th class="py-3 px-4 text-right">Action</th>
+                    <th class="py-3 px-4">{{ 'intake.submissions.table.patient' | transloco }}</th>
+                    <th class="py-3 px-4">{{ 'intake.submissions.table.intakeCode' | transloco }}</th>
+                    <th class="py-3 px-4">{{ 'intake.submissions.table.status' | transloco }}</th>
+                    <th class="py-3 px-4">{{ 'intake.submissions.table.painRegions' | transloco }}</th>
+                    <th class="py-3 px-4">{{ 'intake.submissions.table.submitted' | transloco }}</th>
+                    <th class="py-3 px-4 text-end">{{ 'intake.submissions.table.action' | transloco }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-[var(--color-border,#e2e8f0)]">
@@ -145,7 +145,7 @@
                             {{ getInitials(row.patientName) }}
                           </div>
                           <span class="font-semibold text-[var(--color-text-primary,#0f172a)]">
-                            {{ row.patientName || 'Unnamed Patient' }}
+                            {{ row.patientName || ('intake.common.unnamedPatient' | transloco) }}
                           </span>
                         </div>
                       </td>
@@ -160,16 +160,16 @@
                         </span>
                       </td>
                       <td class="py-3 px-4 text-[var(--color-text-secondary,#64748b)]">
-                        {{ row.painRegionCount }} region(s)
+                        {{ row.painRegionCount === 1 ? ('intake.submissions.row.painRegion' | transloco: { n: row.painRegionCount }) : ('intake.submissions.row.painRegions' | transloco: { n: row.painRegionCount }) }}
                       </td>
                       <td class="py-3 px-4 text-xs text-[var(--color-text-secondary,#64748b)]">
                         {{ timeAgo(row.submittedAt) }}
                       </td>
-                      <td class="py-3 px-4 text-right">
+                      <td class="py-3 px-4 text-end">
                         <button
                           type="button"
                           class="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-primary,#0b8eea)] hover:underline">
-                          View <i class="pi pi-chevron-right text-[10px]"></i>
+                          {{ 'intake.common.view' | transloco }} <i class="pi pi-chevron-right text-[10px]"></i>
                         </button>
                       </td>
                     </tr>
@@ -183,11 +183,7 @@
           @if (totalPages() > 1) {
             <div class="submission-pagination">
               <div class="submission-pagination-info">
-                <span class="hidden sm:inline">Showing </span>
-                <span class="font-semibold text-[var(--color-text-primary,#0f172a)]">
-                  {{ ((currentPage() - 1) * pageSize()) + 1 }}–{{ pageEndIndex() }}
-                </span>
-                <span> of {{ filteredSubmissions().length }} submissions</span>
+                {{ 'intake.submissions.pagination.showing' | transloco: { from: ((currentPage() - 1) * pageSize()) + 1, to: pageEndIndex(), total: filteredSubmissions().length } }}
               </div>
 
               <div class="submission-pagination-controls">
@@ -196,7 +192,7 @@
                   class="submission-page-btn"
                   (click)="goToPage(currentPage() - 1)"
                   [disabled]="currentPage() === 1"
-                  aria-label="Previous page">
+                  [attr.aria-label]="'intake.submissions.pagination.prevPage' | transloco">
                   <i class="pi pi-chevron-left text-xs"></i>
                 </button>
 
@@ -215,7 +211,7 @@
                   class="submission-page-btn"
                   (click)="goToPage(currentPage() + 1)"
                   [disabled]="currentPage() === totalPages()"
-                  aria-label="Next page">
+                  [attr.aria-label]="'intake.submissions.pagination.nextPage' | transloco">
                   <i class="pi pi-chevron-right text-xs"></i>
                 </button>
               </div>
@@ -225,13 +221,13 @@
                   [ngModel]="pageSize()"
                   (ngModelChange)="onPageSizeChange($event)"
                   class="submission-page-size-select"
-                  aria-label="Items per page">
+                  [attr.aria-label]="'intake.submissions.pagination.perPageAria' | transloco">
                   <option [value]="5">5</option>
                   <option [value]="10">10</option>
                   <option [value]="20">20</option>
                   <option [value]="50">50</option>
                 </select>
-                <span class="hidden sm:inline text-xs text-[var(--color-text-secondary,#64748b)]">per page</span>
+                <span class="hidden sm:inline text-xs text-[var(--color-text-secondary,#64748b)]">{{ 'intake.submissions.pagination.perPage' | transloco }}</span>
               </div>
             </div>
           }

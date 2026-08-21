@@ -12,10 +12,18 @@ public class SessionSearchPlugin(ISessionChunkSearchService searchService)
     [KernelFunction, Description("Searches physiotherapy session records using semantic search. Always pass the query in clear clinical English, regardless of what language the doctor used. If searching within one patient's history, provide their patientId (from FindPatientsByName). Omit patientId to search across all patients.")]
     public async Task<string> SearchSessionChunks(
     [Description("The clinical question or topic to search for, in English")] string englishQuery,
-    [Description("Optional patient ID to restrict the search to one patient's sessions")] Guid? patientId = null,
+    [Description("Optional patient ID (GUID string) to restrict the search to one patient's sessions. Omit to search all patients.")] string? patientId = null,
     [Description("Number of results to return")] int topN = 5)
     {
-        var result = await _searchService.SearchAsync(englishQuery, patientId, topN);
+        Guid? parsedPatientId = null;
+        if (!string.IsNullOrWhiteSpace(patientId))
+        {
+            if (!Guid.TryParse(patientId, out var parsed))
+                return $"'{patientId}' is not a valid patient ID. Use FindPatientsByName to get a valid ID first.";
+            parsedPatientId = parsed;
+        }
+
+        var result = await _searchService.SearchAsync(englishQuery, parsedPatientId, topN);
 
         if (!result.IsSuccess || result.Value.Count == 0)
             return "No matching session records found.";

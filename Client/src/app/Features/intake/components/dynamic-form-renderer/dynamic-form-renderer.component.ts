@@ -5,6 +5,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { MultiSelect } from 'primeng/multiselect';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { Subscription } from 'rxjs';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import {
   DynamicFormSchemaDto,
   DynamicFormSubmissionDto,
@@ -15,6 +16,7 @@ import {
   SubmissionAnswerDto
 } from '../../models';
 import { BodyPainMapComponent, BodyPainMapPayload } from '../../components/body-pain-map/body-pain-map.component';
+import { SchemaTextI18nService } from '../../shared/schema-text-i18n';
 
 @Component({
   selector: 'app-dynamic-form-renderer',
@@ -25,6 +27,7 @@ import { BodyPainMapComponent, BodyPainMapPayload } from '../../components/body-
     InputNumberModule,
     MultiSelect,
     SelectButtonModule,
+    TranslocoModule,
     BodyPainMapComponent
   ],
   templateUrl: './dynamic-form-renderer.component.html',
@@ -32,6 +35,8 @@ import { BodyPainMapComponent, BodyPainMapPayload } from '../../components/body-
 })
 export class DynamicFormRendererComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
+  private readonly transloco = inject(TranslocoService);
+  protected readonly schemaText = inject(SchemaTextI18nService);
 
   readonly schema = input<DynamicFormSchemaDto | null>(null);
   readonly formSchemaId = input<string>('');
@@ -48,6 +53,10 @@ export class DynamicFormRendererComponent implements OnDestroy {
   readonly requiredStatsChange = output<{ completed: number; total: number }>();
 
   protected readonly painScaleOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(v => ({ label: v.toString(), value: v }));
+
+  protected multiSelectOptions(question: FormQuestionDto): { label: string; value: string }[] {
+    return (question.options ?? []).map(opt => ({ label: this.schemaText.labelFor(opt), value: opt }));
+  }
 
   readonly form = new FormGroup({});
   private valueChangesSub?: Subscription;
@@ -144,35 +153,35 @@ export class DynamicFormRendererComponent implements OnDestroy {
 
     if (errs['required']) {
       const rule = question.validationRules?.find(r => r.ruleType === 'required');
-      errors.push(rule?.message || 'This field is required.');
+      errors.push(rule?.message || this.transloco.translate('intake.renderer.validation.required'));
     }
     if (errs['email']) {
       const rule = question.validationRules?.find(r => r.ruleType === 'email');
-      errors.push(rule?.message || 'Please enter a valid email address.');
+      errors.push(rule?.message || this.transloco.translate('intake.renderer.validation.email'));
     }
     if (errs['pattern']) {
       const rule = question.validationRules?.find(r => r.ruleType === 'pattern');
-      errors.push(rule?.message || 'Value does not match the required format.');
+      errors.push(rule?.message || this.transloco.translate('intake.renderer.validation.pattern'));
     }
     if (errs['min']) {
       const rule = question.validationRules?.find(r => r.ruleType === 'min');
-      errors.push(rule?.message || `Minimum value is ${rule?.value}.`);
+      errors.push(rule?.message || this.transloco.translate('intake.renderer.validation.min', { min: rule?.value }));
     }
     if (errs['max']) {
       const rule = question.validationRules?.find(r => r.ruleType === 'max');
-      errors.push(rule?.message || `Maximum value is ${rule?.value}.`);
+      errors.push(rule?.message || this.transloco.translate('intake.renderer.validation.max', { max: rule?.value }));
     }
     if (errs['minlength']) {
       const rule = question.validationRules?.find(r => r.ruleType === 'minLength');
-      errors.push(rule?.message || `Minimum length is ${rule?.value} characters.`);
+      errors.push(rule?.message || this.transloco.translate('intake.renderer.validation.minLength', { requiredLength: rule?.value }));
     }
     if (errs['maxlength']) {
       const rule = question.validationRules?.find(r => r.ruleType === 'maxLength');
-      errors.push(rule?.message || `Maximum length is ${rule?.value} characters.`);
+      errors.push(rule?.message || this.transloco.translate('intake.renderer.validation.maxLength', { requiredLength: rule?.value }));
     }
     if (errs['url']) {
       const rule = question.validationRules?.find(r => r.ruleType === 'url');
-      errors.push(rule?.message || 'Please enter a valid URL.');
+      errors.push(rule?.message || this.transloco.translate('intake.renderer.validation.url'));
     }
     if (errs['custom']) {
       errors.push(errs['custom']);

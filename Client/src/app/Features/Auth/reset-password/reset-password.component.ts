@@ -3,19 +3,21 @@ import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, Validati
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { PasswordModule } from 'primeng/password';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../../Core/Services/auth.service';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ButtonModule, PasswordModule],
+  imports: [ReactiveFormsModule, RouterLink, TranslocoModule, ButtonModule, PasswordModule],
   templateUrl: './reset-password.component.html',
 })
 export class ResetPasswordComponent implements OnInit {
-  private readonly fb     = inject(FormBuilder);
-  private readonly auth   = inject(AuthService);
-  private readonly router = inject(Router);
-  private readonly route  = inject(ActivatedRoute);
+  private readonly fb        = inject(FormBuilder);
+  private readonly auth      = inject(AuthService);
+  private readonly router    = inject(Router);
+  private readonly route     = inject(ActivatedRoute);
+  private readonly transloco = inject(TranslocoService);
 
   email = signal('');
   loading = signal(false);
@@ -78,8 +80,8 @@ export class ResetPasswordComponent implements OnInit {
 
   getPasswordError(): string {
     const ctrl = this.form.get('newPassword');
-    if (ctrl?.hasError('required'))  return 'Password is required.';
-    if (ctrl?.hasError('minlength')) return 'At least 8 characters required.';
+    if (ctrl?.hasError('required'))  return this.transloco.translate('auth.validation.required', { field: this.transloco.translate('auth.fields.password') });
+    if (ctrl?.hasError('minlength')) return this.transloco.translate('auth.validation.minLength', { n: 8 });
     return '';
   }
 }

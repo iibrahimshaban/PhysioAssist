@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslocoModule } from '@jsverse/transloco';
 
 export type BodyRegionShape = 'ellipse' | 'rect';
 
@@ -88,7 +89,7 @@ const BACK_REGIONS: BodyRegionDef[] = [
 @Component({
   selector: 'app-body-pain-map',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslocoModule],
   templateUrl: './body-pain-map.component.html',
   styleUrl: './body-pain-map.component.css',
 })

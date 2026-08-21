@@ -1,0 +1,26 @@
+{
+  "nav": {
+    "home": "الرئيسية",
+    "todaySessions": "جلسات اليوم",
+    "patients": "المرضى",
+    "schedule": "الجدول",
+    "reception": "الاستقبال",
+    "workingSchedule": "جدول العمل",
+    "schedulePreferences": "تفضيلات الجدول",
+    "submissions": "الاستمارات المرسلة",
+    "staff": "الطاقم",
+    "intakeSchemas": "نماذج الاستقبال",
+    "documentationTemplates": "قوالب التوثيق",
+    "accountSettings": "إعدادات الحساب",
+    "logout": "تسجيل الخروج",
+    "marketingFeatures": "المزايا",
+    "marketingAiAssistant": "المساعد الذكي",
+    "marketingScheduling": "الجدولة",
+    "marketingForPhysios": "لأخصائيي العلاج الطبيعي"
+  },
+  "errors": {
+    "cantReachServer": "لا يمكن الوصول إلى الخادم. يرجى المحاولة بعد قليل.",
+    "noInternet": "لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.",
+    "unexpectedError": "خطأ غير متوقع"
+  }
+}

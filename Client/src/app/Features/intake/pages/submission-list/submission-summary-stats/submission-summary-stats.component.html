@@ -10,7 +10,7 @@
         <i class="pi pi-inbox stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ totalCount }}</span>
-          <span class="stat-label">Total Submissions</span>
+          <span class="stat-label">{{ 'intake.submissions.stats.totalSubmissions' | transloco }}</span>
         </div>
         <i class="pi pi-inbox stat-bg-icon"></i>
       </button>
@@ -24,7 +24,7 @@
         <i class="pi pi-clock stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ pendingCount }}</span>
-          <span class="stat-label">Pending</span>
+          <span class="stat-label">{{ 'intake.submissions.stats.pending' | transloco }}</span>
         </div>
         <i class="pi pi-clock stat-bg-icon"></i>
         @if (pendingCount > 0) {
@@ -41,7 +41,7 @@
         <i class="pi pi-eye stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ inReviewCount }}</span>
-          <span class="stat-label">In Review</span>
+          <span class="stat-label">{{ 'intake.submissions.stats.inReview' | transloco }}</span>
         </div>
         <i class="pi pi-eye stat-bg-icon"></i>
       </button>
@@ -55,7 +55,7 @@
         <i class="pi pi-check-circle stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ approvedCount }}</span>
-          <span class="stat-label">Approved</span>
+          <span class="stat-label">{{ 'intake.submissions.stats.approved' | transloco }}</span>
         </div>
         <i class="pi pi-check-circle stat-bg-icon"></i>
       </button>
@@ -69,7 +69,7 @@
         <i class="pi pi-clock stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ pendingCount }}</span>
-          <span class="stat-label">Waiting</span>
+          <span class="stat-label">{{ 'intake.submissions.stats.waiting' | transloco }}</span>
         </div>
         <i class="pi pi-clock stat-bg-icon"></i>
         @if (pendingCount > 0) {
@@ -86,7 +86,7 @@
         <i class="pi pi-eye stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ inReviewCount }}</span>
-          <span class="stat-label">In Review</span>
+          <span class="stat-label">{{ 'intake.submissions.stats.inReview' | transloco }}</span>
         </div>
         <i class="pi pi-eye stat-bg-icon"></i>
       </button>
@@ -96,7 +96,7 @@
         <i class="pi pi-calendar stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ todayCount }}</span>
-          <span class="stat-label">Today's Arrivals</span>
+          <span class="stat-label">{{ 'intake.submissions.stats.todaysArrivals' | transloco }}</span>
         </div>
         <i class="pi pi-calendar stat-bg-icon"></i>
       </div>

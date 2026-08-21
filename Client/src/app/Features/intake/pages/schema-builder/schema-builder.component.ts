@@ -15,7 +15,8 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { AccordionModule } from 'primeng/accordion';
 import { DividerModule } from 'primeng/divider';
 import { DialogModule } from 'primeng/dialog';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { DynamicFormEngineService } from '../../services/dynamic-form-engine.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
@@ -39,7 +40,7 @@ type BuilderMode = 'schema' | 'section' | 'group' | 'question' | null;
 type MobilePanel = 'structure' | 'preview' | 'properties';
 
 interface QuestionTypeOption {
-  label: string;
+  labelKey: string;
   value: string;
   icon: string;
 }
@@ -86,6 +87,7 @@ interface PublishValidationIssue {
   imports: [
     CommonModule,
     FormsModule,
+    TranslocoModule,
     ButtonModule,
     ToolbarModule,
     CardModule,
@@ -110,6 +112,7 @@ export class SchemaBuilderComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly transloco = inject(TranslocoService);
 
   // Preview mode (read-only) — activated when navigated to from the
   // schema list "Preview" action (?preview=true). Shows the live form
@@ -175,15 +178,15 @@ export class SchemaBuilderComponent implements OnInit {
         // Try matching by text
         const byText = allQuestions.find(q => CORE_FIELD_TEXTS.has(q.text));
         if (!byText) {
-          issues.push({ fieldName: coreId.replace('question_default_', '').replace('_', ' '), issue: 'Missing from schema' });
+          issues.push({ fieldName: coreId.replace('question_default_', '').replace('_', ' '), issue: this.transloco.translate('intake.builder.publishValidation.missingFromSchema') });
           continue;
         }
         if (!byText.required) {
-          issues.push({ fieldName: byText.text, issue: 'Required flag is disabled' });
+          issues.push({ fieldName: byText.text, issue: this.transloco.translate('intake.builder.publishValidation.requiredFlagDisabled') });
         }
       } else {
         if (!found.required) {
-          issues.push({ fieldName: found.text, issue: 'Required flag is disabled' });
+          issues.push({ fieldName: found.text, issue: this.transloco.translate('intake.builder.publishValidation.requiredFlagDisabled') });
         }
       }
     }
@@ -205,29 +208,47 @@ export class SchemaBuilderComponent implements OnInit {
   // Condition logic
   conditionLogic: 'and' | 'or' = 'and';
   readonly conditionLogicOptions = [
-    { label: 'All (AND)', value: 'and' },
-    { label: 'Any (OR)', value: 'or' }
+    { labelKey: 'intake.builder.conditionLogic.all', value: 'and' },
+    { labelKey: 'intake.builder.conditionLogic.any', value: 'or' }
   ];
 
   // Question types
   questionTypes: QuestionTypeOption[] = [
-    { label: 'Text', value: 'text', icon: 'pi pi-pencil' },
-    { label: 'Number', value: 'number', icon: 'pi pi-hashtag' },
-    { label: 'Email', value: 'email', icon: 'pi pi-at' },
-    { label: 'Phone', value: 'phone', icon: 'pi pi-phone' },
-    { label: 'Date', value: 'date', icon: 'pi pi-calendar' },
-    { label: 'Date Time', value: 'datetime', icon: 'pi pi-clock' },
-    { label: 'Textarea', value: 'textarea', icon: 'pi pi-align-left' },
-    { label: 'Dropdown', value: 'select', icon: 'pi pi-list' },
-    { label: 'Multi Select', value: 'multiselect', icon: 'pi pi-list' },
-    { label: 'Checkbox', value: 'checkbox', icon: 'pi pi-check-square' },
-    { label: 'Radio', value: 'radio', icon: 'pi pi-circle' },
-    { label: 'Boolean', value: 'boolean', icon: 'pi pi-check' },
-    { label: 'File Upload', value: 'file', icon: 'pi pi-upload' },
-    { label: 'File Upload (Legacy)', value: 'fileupload', icon: 'pi pi-upload' },
-    { label: 'Pain Scale', value: 'painscale', icon: 'pi pi-chart-bar' },
-    { label: 'Clinical Summary', value: 'summary', icon: 'pi pi-file-edit' }
+    { labelKey: 'intake.builder.questionType.text', value: 'text', icon: 'pi pi-pencil' },
+    { labelKey: 'intake.builder.questionType.number', value: 'number', icon: 'pi pi-hashtag' },
+    { labelKey: 'intake.builder.questionType.email', value: 'email', icon: 'pi pi-at' },
+    { labelKey: 'intake.builder.questionType.phone', value: 'phone', icon: 'pi pi-phone' },
+    { labelKey: 'intake.builder.questionType.date', value: 'date', icon: 'pi pi-calendar' },
+    { labelKey: 'intake.builder.questionType.datetime', value: 'datetime', icon: 'pi pi-clock' },
+    { labelKey: 'intake.builder.questionType.textarea', value: 'textarea', icon: 'pi pi-align-left' },
+    { labelKey: 'intake.builder.questionType.select', value: 'select', icon: 'pi pi-list' },
+    { labelKey: 'intake.builder.questionType.multiselect', value: 'multiselect', icon: 'pi pi-list' },
+    { labelKey: 'intake.builder.questionType.checkbox', value: 'checkbox', icon: 'pi pi-check-square' },
+    { labelKey: 'intake.builder.questionType.radio', value: 'radio', icon: 'pi pi-circle' },
+    { labelKey: 'intake.builder.questionType.boolean', value: 'boolean', icon: 'pi pi-check' },
+    { labelKey: 'intake.builder.questionType.file', value: 'file', icon: 'pi pi-upload' },
+    { labelKey: 'intake.builder.questionType.fileupload', value: 'fileupload', icon: 'pi pi-upload' },
+    { labelKey: 'intake.builder.questionType.painscale', value: 'painscale', icon: 'pi pi-chart-bar' },
+    { labelKey: 'intake.builder.questionType.summary', value: 'summary', icon: 'pi pi-file-edit' }
   ];
+
+  private readonly lang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
+
+  readonly questionTypeOptions = computed(() =>
+    this.questionTypes.map(t => ({ ...t, label: this.transloco.translate(t.labelKey) }))
+  );
+
+  readonly conditionLogicOpts = computed(() =>
+    this.conditionLogicOptions.map(c => ({ ...c, label: this.transloco.translate(c.labelKey) }))
+  );
+
+  readonly operatorOptions = computed(() =>
+    this.engine.conditionOperators.map(o => ({ ...o, label: this.transloco.translate('intake.engine.operators.' + o.value) }))
+  );
+
+  readonly ruleTypeOptions = computed(() =>
+    this.engine.validationRuleTypes.map(r => ({ ...r, label: this.transloco.translate('intake.engine.rules.' + r.value) }))
+  );
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
@@ -306,7 +327,7 @@ export class SchemaBuilderComponent implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.snackbar.error('Failed to load schema', [this.extractError(err)]);
+        this.snackbar.error(...this.msg('intake.builder.snackbar.loadFailed'));
       }
     });
   }
@@ -488,13 +509,15 @@ export class SchemaBuilderComponent implements OnInit {
     if (section) {
       // Check if section is locked
       if (this.isSectionLocked(section)) {
-        this.snackbar.warning('Cannot delete', ['This is a required section and cannot be removed.']);
+        const [t, m] = this.msg('intake.builder.snackbar.cannotDelete');
+        this.snackbar.warning(t, [...m, this.transloco.translate('intake.builder.snackbar.sectionLocked')]);
         return;
       }
       // Check if section contains locked questions
       const hasLocked = section.groups.some(g => g.questions.some(q => this.isQuestionLocked(q)));
       if (hasLocked) {
-        this.snackbar.warning('Cannot delete', ['This section contains locked required fields and cannot be removed.']);
+        const [t, m] = this.msg('intake.builder.snackbar.cannotDelete');
+        this.snackbar.warning(t, [...m, this.transloco.translate('intake.builder.snackbar.sectionHasLocked')]);
         return;
       }
     }
@@ -540,7 +563,8 @@ export class SchemaBuilderComponent implements OnInit {
         // Check if group contains locked questions
         const hasLocked = group.questions.some(q => this.isQuestionLocked(q));
         if (hasLocked) {
-          this.snackbar.warning('Cannot delete', ['This group contains locked required fields and cannot be removed.']);
+          const [t, m] = this.msg('intake.builder.snackbar.cannotDelete');
+          this.snackbar.warning(t, [...m, this.transloco.translate('intake.builder.snackbar.groupHasLocked')]);
           return;
         }
       }
@@ -584,7 +608,8 @@ export class SchemaBuilderComponent implements OnInit {
     const question = group?.questions.find(q => q.questionId === questionId);
 
     if (question && this.isQuestionLocked(question)) {
-      this.snackbar.warning('Cannot delete', ['This field is locked and cannot be removed.']);
+      const [t, m] = this.msg('intake.builder.snackbar.cannotDelete');
+      this.snackbar.warning(t, [...m, this.transloco.translate('intake.builder.snackbar.questionLocked')]);
       return;
     }
 
@@ -691,11 +716,11 @@ export class SchemaBuilderComponent implements OnInit {
           this.selectedSchema.set(updated);
           this.schemaVersion.set(updated.version);
           this.saving.set(false);
-          this.snackbar.success('Schema saved', ['Draft updated successfully']);
+          this.snackbar.success(...this.msg('intake.builder.snackbar.savedUpdated'));
         },
         error: (err: any) => {
           this.saving.set(false);
-          this.snackbar.error('Save failed', [this.extractError(err)]);
+          this.snackbar.error(...this.msg('intake.builder.snackbar.saveFailed'));
         }
       });
     } else {
@@ -704,12 +729,12 @@ export class SchemaBuilderComponent implements OnInit {
           this.selectedSchema.set(created);
           this.schemaVersion.set(created.version);
           this.saving.set(false);
-          this.snackbar.success('Schema saved', ['Draft created successfully']);
+          this.snackbar.success(...this.msg('intake.builder.snackbar.savedCreated'));
           this.router.navigate(['/app/intake/schemas/edit', created.id], { replaceUrl: true });
         },
         error: (err: any) => {
           this.saving.set(false);
-          this.snackbar.error('Save failed', [this.extractError(err)]);
+          this.snackbar.error(...this.msg('intake.builder.snackbar.saveFailed'));
         }
       });
     }
@@ -733,7 +758,13 @@ export class SchemaBuilderComponent implements OnInit {
       const msgs = Object.values(body.errors as Record<string, string[]>).flat();
       return msgs.join('; ');
     }
-    return body?.title || 'Unexpected error';
+    return body?.title || this.transloco.translate('intake.schemaList.errors.unexpected');
+  }
+
+  private msg(key: string): [string, string[]] {
+    const value = this.transloco.translate(key);
+    const parts: string[] = Array.isArray(value) ? value.map(String) : [String(value)];
+    return [parts[0], parts.slice(1)];
   }
 
   private saveDraftWithCallback(callback: () => void): void {
@@ -760,7 +791,7 @@ export class SchemaBuilderComponent implements OnInit {
       },
       error: (err: any) => {
         this.saving.set(false);
-        this.snackbar.error('Save failed', [this.extractError(err)]);
+        this.snackbar.error(...this.msg('intake.builder.snackbar.saveFailed'));
       }
     });
   }
@@ -775,12 +806,12 @@ export class SchemaBuilderComponent implements OnInit {
         this.selectedSchema.set(published);
         this.schemaVersion.set(published.version);
         this.publishing.set(false);
-        this.snackbar.success('Schema published', ['Form schema is now live']);
+        this.snackbar.success(...this.msg('intake.builder.snackbar.published'));
         this.router.navigate(['/app/intake/schemas']);
       },
       error: (err: any) => {
         this.publishing.set(false);
-        this.snackbar.error('Publish failed', [this.extractError(err)]);
+        this.snackbar.error(...this.msg('intake.builder.snackbar.publishFailed'));
       }
     });
   }

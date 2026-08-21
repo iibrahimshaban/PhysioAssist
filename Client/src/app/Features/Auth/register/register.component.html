@@ -1,6 +1,6 @@
-<div class="flex h-screen">
+﻿<div class="flex h-screen">
 
-  <!-- ─── Left panel ──────────────────────────────────────────────────────── -->
+  <!-- Left panel -->
   <div class="hidden lg:flex w-[52%] flex-col justify-between p-10"
        style="background: linear-gradient(145deg, #1a7fd4 0%, #0eb8a0 100%)">
 
@@ -11,25 +11,24 @@
 
     <div class="text-white">
       <h1 class="text-4xl font-bold leading-tight mb-4">
-        Built for solo<br>physiotherapists.
+        {{ 'auth.marketing.register.title' | transloco }}
       </h1>
       <p class="text-white/75 text-base max-w-sm leading-relaxed">
-        Onboard patients faster, document sessions with your<br>
-        voice, and keep everything in one place.
+        {{ 'auth.marketing.register.sub' | transloco }}
       </p>
     </div>
 
     <p class="text-white/50 text-sm">© PhysioAssist · v1</p>
   </div>
 
-  <!-- ─── Right panel ─────────────────────────────────────────────────────── -->
+  <!-- Right panel -->
   <div class="flex-1 flex items-center justify-center bg-gray-50 px-6 py-10 overflow-y-auto">
 
     <div class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-100 p-10">
 
       <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-1">Create your account</h2>
-        <p class="text-gray-500 text-sm">Set up your clinic in under a minute.</p>
+        <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ 'auth.register.title' | transloco }}</h2>
+        <p class="text-gray-500 text-sm">{{ 'auth.register.subtitle' | transloco }}</p>
       </div>
 
       <!-- Hidden file input -->
@@ -44,14 +43,13 @@
       <!-- Avatar upload -->
       <div class="flex items-center gap-4 mb-6">
         <div class="relative">
-          <!-- Preview or placeholder -->
           @if (photoPreview()) {
-            <img [src]="photoPreview()" alt="Profile photo"
+            <img [src]="photoPreview()" alt="{{ 'auth.common.photoAlt' | transloco }}"
                  class="w-16 h-16 rounded-full object-cover border-2 border-blue-200"/>
-            <!-- Remove button -->
             <button type="button"
                     (click)="removePhoto()"
-                    class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center cursor-pointer">
+                    [attr.aria-label]="'auth.register.removePhoto' | transloco"
+                    class="absolute -top-1 -end-1 w-5 h-5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center cursor-pointer">
               <i class="pi pi-times text-white" style="font-size: 8px"></i>
             </button>
           } @else {
@@ -65,9 +63,9 @@
           <button type="button"
                   (click)="fileInput.click()"
                   class="text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer">
-            {{ photoPreview() ? 'Change photo' : 'Upload photo' }}
+            {{ photoPreview() ? ('auth.register.changePhoto' | transloco) : ('auth.register.uploadPhoto' | transloco) }}
           </button>
-          <p class="text-xs text-gray-400 mt-1">Optional · JPG or PNG</p>
+          <p class="text-xs text-gray-400 mt-1">{{ 'auth.register.photoHint' | transloco }}</p>
         </div>
       </div>
 
@@ -76,9 +74,9 @@
 
         <div class="flex gap-3">
           <div class="flex flex-col gap-1.5 flex-1">
-            <label class="text-sm font-medium text-gray-700">First name</label>
+            <label class="text-sm font-medium text-gray-700">{{ 'auth.fields.firstName' | transloco }}</label>
             <input pInputText type="text" formControlName="firstName"
-                  placeholder="Sarah" class="w-full"
+                  placeholder="{{ 'auth.placeholder.firstName' | transloco }}" class="w-full"
                   [class.ng-invalid]="isInvalid('firstName')"
                   [class.ng-dirty]="isInvalid('firstName')"/>
             @if (isInvalid('firstName')) {
@@ -87,9 +85,9 @@
           </div>
 
           <div class="flex flex-col gap-1.5 flex-1">
-            <label class="text-sm font-medium text-gray-700">Last name</label>
+            <label class="text-sm font-medium text-gray-700">{{ 'auth.fields.lastName' | transloco }}</label>
             <input pInputText type="text" formControlName="lastName"
-                  placeholder="Ahmed" class="w-full"
+                  placeholder="{{ 'auth.placeholder.lastName' | transloco }}" class="w-full"
                   [class.ng-invalid]="isInvalid('lastName')"
                   [class.ng-dirty]="isInvalid('lastName')"/>
             @if (isInvalid('lastName')) {
@@ -99,9 +97,9 @@
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-gray-700">Clinic name</label>
+          <label class="text-sm font-medium text-gray-700">{{ 'auth.fields.clinicName' | transloco }}</label>
           <input pInputText type="text" formControlName="clinicName"
-                 placeholder="Cairo Physio Center" class="w-full"
+                 placeholder="{{ 'auth.placeholder.clinicName' | transloco }}" class="w-full"
                  [class.ng-invalid]="isInvalid('clinicName')"
                  [class.ng-dirty]="isInvalid('clinicName')"/>
           @if (isInvalid('clinicName')) {
@@ -110,9 +108,9 @@
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-gray-700">Email</label>
+          <label class="text-sm font-medium text-gray-700">{{ 'auth.fields.email' | transloco }}</label>
           <input pInputText type="email" formControlName="email"
-                 placeholder="you@clinic.eg" class="w-full"
+                 placeholder="{{ 'auth.placeholder.email' | transloco }}" class="w-full"
                  [class.ng-invalid]="isInvalid('email')"
                  [class.ng-dirty]="isInvalid('email')"/>
           @if (isInvalid('email')) {
@@ -121,10 +119,10 @@
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-gray-700">Password</label>
+          <label class="text-sm font-medium text-gray-700">{{ 'auth.fields.password' | transloco }}</label>
           <p-password formControlName="password" [feedback]="false" [toggleMask]="true"
                       styleClass="w-full" inputStyleClass="w-full"
-                      placeholder="At least 8 characters"
+                      placeholder="{{ 'auth.placeholder.passwordMin' | transloco }}"
                       [class.ng-invalid]="isInvalid('password')"
                       [class.ng-dirty]="isInvalid('password')"/>
           @if (isInvalid('password')) {
@@ -136,27 +134,27 @@
           <div class="flex items-center gap-2">
             <p-checkbox formControlName="agreed" [binary]="true" inputId="agreed"/>
             <label for="agreed" class="text-sm text-gray-600 cursor-pointer select-none">
-              I agree to the
-              <a routerLink="/terms" target="_blank" class="text-blue-600 hover:text-blue-700 font-medium">Terms</a>
-              and
-              <a routerLink="/privacy-policy" target="_blank" class="text-blue-600 hover:text-blue-700 font-medium">Privacy Policy</a>.
+              {{ 'auth.register.agreePrefix' | transloco }}
+              <a routerLink="/terms" target="_blank" class="text-blue-600 hover:text-blue-700 font-medium">{{ 'auth.register.termsLink' | transloco }}</a>
+              {{ 'auth.register.andWord' | transloco }}
+              <a routerLink="/privacy-policy" target="_blank" class="text-blue-600 hover:text-blue-700 font-medium">{{ 'auth.register.privacyLink' | transloco }}</a>.
             </label>
           </div>
           @if (isInvalid('agreed')) {
-            <span class="text-xs text-red-500 ml-6">{{ getFieldError('agreed') }}</span>
+            <span class="text-xs text-red-500 ms-6">{{ getFieldError('agreed') }}</span>
           }
         </div>
 
-        <p-button type="submit" label="Create account" styleClass="w-full"
+        <p-button type="submit" label="{{ 'auth.register.createAccount' | transloco }}" styleClass="w-full"
                   [loading]="loading()" [disabled]="loading()"/>
 
       </form>
 
       <p class="text-center text-sm text-gray-500 mt-6">
-        Already have an account?
+        {{ 'auth.register.haveAccount' | transloco }}
         <a routerLink="/auth/login"
            class="font-medium text-blue-600 hover:text-blue-700 transition-colors">
-          Sign in
+          {{ 'auth.register.signIn' | transloco }}
         </a>
       </p>
 

@@ -4,8 +4,9 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged, switchMap, catchError, of, map } from 'rxjs';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { QrAccessService } from '../../services/qr-access.service';
 import { DynamicFormEngineService } from '../../services/dynamic-form-engine.service';
 import { DynamicFormRendererComponent } from '../../components/dynamic-form-renderer/dynamic-form-renderer.component';
@@ -27,7 +28,8 @@ import { BodyPainMapPayload, BodyPainMapComponent } from '../../components/body-
     ButtonModule,
     InputTextModule,
     DynamicFormRendererComponent,
-    BodyPainMapComponent
+    BodyPainMapComponent,
+    TranslocoModule
   ],
   templateUrl: './public-intake.component.html',
   styleUrl: './public-intake.component.css'
@@ -37,6 +39,9 @@ export class PublicIntakeComponent implements OnInit {
   private readonly qrAccessService = inject(QrAccessService);
   private readonly dynamicFormEngine = inject(DynamicFormEngineService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly transloco = inject(TranslocoService);
+
+  readonly currentLang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
 
   private token: string | null = null;
 
@@ -204,10 +209,7 @@ export class PublicIntakeComponent implements OnInit {
 
     const email = this.dynamicFormEngine.extractEmailAnswer(currentSchema, currentSubmission);
     if (email && this.emailDuplicate()) {
-      this.submitError.set(
-        `The email address ${email} is already associated with an existing patient record. ` +
-        `Please contact your healthcare provider or use a different email address.`
-      );
+      this.submitError.set(this.transloco.translate('intake.public.submitErrorAlreadyRegistered', { email }));
       return;
     }
 
@@ -222,10 +224,7 @@ export class PublicIntakeComponent implements OnInit {
           if (result.isRegistered) {
             this.emailDuplicate.set(true);
             this.duplicateEmailAddress.set(email);
-            this.submitError.set(
-              `The email address ${email} is already associated with an existing patient record. ` +
-              `Please contact your healthcare provider or use a different email address.`
-            );
+            this.submitError.set(this.transloco.translate('intake.public.submitErrorAlreadyRegistered', { email }));
           } else {
             this.doSubmit(currentSubmission, currentSchema);
           }
@@ -262,7 +261,7 @@ export class PublicIntakeComponent implements OnInit {
       },
       error: (err) => {
         const detail = err?.error?.detail || err?.error?.title || err?.error?.message;
-        this.submitError.set(detail || 'Failed to submit the form. Please try again.');
+        this.submitError.set(detail || this.transloco.translate('intake.public.submitErrorGeneric'));
         this.submitting.set(false);
       }
     });
@@ -273,7 +272,7 @@ export class PublicIntakeComponent implements OnInit {
     this.token = token;
 
     if (!this.token) {
-      this.error.set('Invalid URL: No form token found. Please check that you have the correct link.');
+      this.error.set(this.transloco.translate('intake.public.error.invalidUrl'));
       this.loading.set(false);
       return;
     }
@@ -287,7 +286,7 @@ export class PublicIntakeComponent implements OnInit {
           const parsedSchema = this.dynamicFormEngine.deserializeSchema(response.schemaJson);
 
           if (!parsedSchema?.sections) {
-            this.error.set('The form schema appears to be empty or corrupted. Please contact your healthcare provider.');
+            this.error.set(this.transloco.translate('intake.public.error.emptySchema'));
             this.loading.set(false);
             return;
           }
@@ -295,17 +294,17 @@ export class PublicIntakeComponent implements OnInit {
           this.formData.set(response);
           this.schema.set(parsedSchema);
         } catch {
-          this.error.set('Failed to parse the form schema. The form may be corrupted. Please request a new link.');
+          this.error.set(this.transloco.translate('intake.public.error.parseFailed'));
         }
         this.loading.set(false);
       },
       error: (err) => {
         if (err.status === 404) {
-          this.error.set('This form link is invalid or has expired. Please request a new link from your healthcare provider.');
+          this.error.set(this.transloco.translate('intake.public.error.linkInvalid'));
         } else if (err.status === 410) {
-          this.error.set('This form has expired and is no longer available. Please request a new link.');
+          this.error.set(this.transloco.translate('intake.public.error.linkExpired'));
         } else {
-          this.error.set('Failed to load the form. Please check your internet connection and try again.');
+          this.error.set(this.transloco.translate('intake.public.error.loadFailed'));
         }
         this.loading.set(false);
       }

@@ -4,6 +4,8 @@ namespace PhysioAssist.Api.Modules.Auth.Entities;
 
 public class ApplicationUser : IdentityUser
 {
+    public Guid ClinicId { get; set; }
+    public Clinic Clinic { get; set; } = default!;
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string ProfilePictureUrl { get; set; } = string.Empty;

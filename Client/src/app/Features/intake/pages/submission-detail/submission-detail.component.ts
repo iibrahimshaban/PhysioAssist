@@ -5,6 +5,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmationService } from 'primeng/api';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { DynamicFormEngineService } from '../../services/dynamic-form-engine.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
@@ -20,11 +21,21 @@ import {
   FormQuestionDto,
   UpdateIntakeStatusRequest,
   ConvertIntakeToPatientRequest,
+  getIntakeStatusKey,
 } from '../../models';
 
 import { ConvertToPatientDialogComponent } from './convert-to-patient-dialog/convert-to-patient-dialog.component';
 import { SubmissionSummaryCardComponent } from './submission-summary-card/submission-summary-card.component';
 import { SubmittedAnswersViewerComponent } from './submitted-answers-viewer/submitted-answers-viewer.component';
+
+interface DetailAction {
+  type: 'status' | 'convert';
+  status: IntakeStatus;
+  labelKey: string;
+  icon: string;
+  severity: 'info' | 'warn' | 'success' | 'danger' | 'secondary' | 'contrast';
+  messageKey: string;
+}
 
 @Component({
   selector: 'app-submission-detail',
@@ -33,6 +44,7 @@ import { SubmittedAnswersViewerComponent } from './submitted-answers-viewer/subm
     CommonModule,
     ConfirmDialogModule,
     DialogModule,
+    TranslocoModule,
     BodyPainMapComponent,
     ConvertToPatientDialogComponent,
     SubmissionSummaryCardComponent,
@@ -50,6 +62,7 @@ export class SubmissionDetailComponent implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly snackbar = inject(SnackbarService);
   private readonly auth = inject(AuthService);
+  private readonly transloco = inject(TranslocoService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly submissionId = signal<string | null>(null);
 
@@ -228,7 +241,7 @@ export class SubmissionDetailComponent implements OnInit {
     return map;
   });
 
-  readonly availableActions = computed<{ type: 'status' | 'convert'; status: IntakeStatus; label: string; icon: string; severity: 'info' | 'warn' | 'success' | 'danger' | 'secondary' | 'contrast'; message: string }[]>(() => {
+  readonly availableActions = computed<DetailAction[]>(() => {
     const current = this.details()?.status;
     if (current == null) return [];
     const canConvert = this.canEditPermission();
@@ -239,55 +252,55 @@ export class SubmissionDetailComponent implements OnInit {
         return [{
           type: 'status',
           status: IntakeStatus.InReview,
-          label: 'Mark In Review',
+          labelKey: 'intake.action.markInReview',
           icon: 'pi pi-eye',
           severity: 'info' as const,
-          message: 'Mark this submission as in review?'
+          messageKey: 'intake.action.msgMarkInReview'
         },
         {
           type: 'status',
           status: IntakeStatus.Rejected,
-          label: 'Reject',
+          labelKey: 'intake.action.reject',
           icon: 'pi pi-times-circle',
           severity: 'danger' as const,
-          message: 'Reject this submission?'
+          messageKey: 'intake.action.msgRejectShort'
         }];
       case IntakeStatus.InReview:
         return [{
           type: 'status',
           status: IntakeStatus.Rejected,
-          label: 'Reject',
+          labelKey: 'intake.action.reject',
           icon: 'pi pi-times-circle',
           severity: 'danger' as const,
-          message: 'Reject this submission?'
+          messageKey: 'intake.action.msgRejectShort'
         }];
       case IntakeStatus.Approved:
         return [
           ...(canConvert ? [{
             type: 'convert' as const,
             status: IntakeStatus.Converted,
-            label: 'Convert to Patient',
+            labelKey: 'intake.action.convertToPatient',
             icon: 'pi pi-user-plus',
             severity: 'success' as const,
-            message: ''
+            messageKey: ''
           }] : []),
           {
             type: 'status' as const,
             status: IntakeStatus.Rejected,
-            label: 'Reject',
+            labelKey: 'intake.action.reject',
             icon: 'pi pi-times-circle',
             severity: 'danger' as const,
-            message: 'Reject this submission? This will mark the intake as rejected.'
+            messageKey: 'intake.action.msgReject'
           }
         ];
       case IntakeStatus.Rejected:
         return [{
           type: 'status',
           status: IntakeStatus.InReview,
-          label: 'Re-open Review',
+          labelKey: 'intake.action.reopenReview',
           icon: 'pi pi-undo',
           severity: 'info' as const,
-          message: 'Re-open this submission for review?'
+          messageKey: 'intake.action.msgReopenReview'
         }];
       default:
         return [];
@@ -304,7 +317,7 @@ export class SubmissionDetailComponent implements OnInit {
   loadDetails(): void {
     const id = this.submissionId();
     if (!id) {
-      this.error.set('Invalid submission ID.');
+      this.error.set(this.transloco.translate('intake.detail.invalidId'));
       this.loading.set(false);
       return;
     }
@@ -349,7 +362,7 @@ export class SubmissionDetailComponent implements OnInit {
         });
       },
       error: () => {
-        this.error.set('Failed to load submission details. Please try again.');
+        this.error.set(this.transloco.translate('intake.detail.errorMessage'));
         this.loading.set(false);
       }
     });
@@ -359,7 +372,10 @@ export class SubmissionDetailComponent implements OnInit {
 
   startEditing(): void {
     if (!this.canEditPermission()) {
-      this.snackbar.error('Not permitted', ['You do not have permission to edit this submission.']);
+      this.snackbar.error(
+        this.transloco.translate('intake.detail.errors.notPermitted'),
+        [this.transloco.translate('intake.detail.errors.notPermittedBody')],
+      );
       return;
     }
     this.editedSubmission.set(this.submissionData());
@@ -384,7 +400,9 @@ export class SubmissionDetailComponent implements OnInit {
 
   attemptConvert(): void {
     if (!this.canEditPermission()) {
-      this.snackbar.error('Not permitted', ['You do not have permission to convert this submission.']);
+      this.snackbar.error(this.transloco.translate('intake.snackbar.notPermitted'), [
+        this.transloco.translate('intake.snackbar.noPermissionConvert')
+      ]);
       return;
     }
 
@@ -393,8 +411,8 @@ export class SubmissionDetailComponent implements OnInit {
       if (this.isEditing()) {
         this.answersViewer?.markAllTouched();
       }
-      this.snackbar.error('Missing required fields', [
-        `Please complete: ${validation.missing.join(', ')}.`
+      this.snackbar.error(this.transloco.translate('intake.snackbar.missingRequiredFields'), [
+        this.transloco.translate('intake.snackbar.pleaseComplete', { fields: validation.missing.join(', ') })
       ]);
       return;
     }
@@ -402,17 +420,17 @@ export class SubmissionDetailComponent implements OnInit {
     this.showConvertDialog.set(true);
   }
 
-  confirmUpdate(action: { type: 'status' | 'convert'; status: IntakeStatus; label: string; icon: string; severity: string; message: string }): void {
+  confirmUpdate(action: DetailAction): void {
     if (action.type === 'convert') {
       this.attemptConvert();
       return;
     }
     this.confirmationService.confirm({
-      message: action.message,
-      header: 'Confirm Action',
+      message: action.messageKey ? this.transloco.translate(action.messageKey) : '',
+      header: this.transloco.translate('intake.confirm.confirmAction'),
       icon: 'pi pi-info-circle',
-      acceptLabel: 'Yes, Proceed',
-      rejectLabel: 'Cancel',
+      acceptLabel: this.transloco.translate('intake.confirm.yesProceed'),
+      rejectLabel: this.transloco.translate('intake.common.cancel'),
       acceptButtonStyleClass: 'p-button-primary',
       rejectButtonStyleClass: 'p-button-secondary',
       accept: () => this.updateStatus(action.status),
@@ -429,7 +447,9 @@ export class SubmissionDetailComponent implements OnInit {
 
     this.intakeApi.updateIntakeStatus(id, request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
-        this.snackbar.success('Status Updated', [`Submission moved to ${this.getStatusLabel(newStatus)}.`]);
+        this.snackbar.success(this.transloco.translate('intake.snackbar.statusUpdated'), [
+          this.transloco.translate('intake.snackbar.submissionMovedTo', { status: this.getStatusLabel(newStatus) })
+        ]);
         this.updating.set(false);
         this.isEditing.set(false);
         this.editedSubmission.set(null);
@@ -438,8 +458,8 @@ export class SubmissionDetailComponent implements OnInit {
       },
       error: (err: any) => {
         this.updating.set(false);
-        const msg = err?.error?.detail || err?.error?.title || 'Could not update submission status.';
-        this.snackbar.error('Update Failed', [msg]);
+        const msg = err?.error?.detail || err?.error?.title || this.transloco.translate('intake.snackbar.unexpectedError');
+        this.snackbar.error(this.transloco.translate('intake.snackbar.updateFailed'), [msg]);
       }
     });
   }
@@ -449,7 +469,9 @@ export class SubmissionDetailComponent implements OnInit {
     if (!id) return;
 
     if (!this.canEditPermission()) {
-      this.snackbar.error('Not permitted', ['You do not have permission to convert this submission.']);
+      this.snackbar.error(this.transloco.translate('intake.snackbar.notPermitted'), [
+        this.transloco.translate('intake.snackbar.noPermissionConvert')
+      ]);
       return;
     }
 
@@ -459,8 +481,8 @@ export class SubmissionDetailComponent implements OnInit {
     // request silently failed against the backend with no visible feedback.
     const validation = this.conversionValidation();
     if (!validation.isValid) {
-      this.snackbar.error('Missing required fields', [
-        `Please complete: ${validation.missing.join(', ')}.`
+      this.snackbar.error(this.transloco.translate('intake.snackbar.missingRequiredFields'), [
+        this.transloco.translate('intake.snackbar.pleaseComplete', { fields: validation.missing.join(', ') })
       ]);
       return;
     }
@@ -478,7 +500,9 @@ export class SubmissionDetailComponent implements OnInit {
 
     this.intakeApi.convertToPatient(id, request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res: PreVisitIntakeResponse) => {
-        this.snackbar.success('Conversion Successful', ['Submission has been converted to a patient record.']);
+        this.snackbar.success(this.transloco.translate('intake.snackbar.conversionSuccessful'), [
+          this.transloco.translate('intake.snackbar.convertedToPatientRecord')
+        ]);
         this.updating.set(false);
         this.showConvertDialog.set(false);
         this.isEditing.set(false);
@@ -501,8 +525,8 @@ export class SubmissionDetailComponent implements OnInit {
       },
       error: (err: any) => {
         this.updating.set(false);
-        const msg = err?.error?.detail || err?.error?.title || err?.error?.message || 'Could not convert submission to patient.';
-        this.snackbar.error('Conversion Failed', [msg]);
+        const msg = err?.error?.detail || err?.error?.title || err?.error?.message || this.transloco.translate('intake.snackbar.unexpectedError');
+        this.snackbar.error(this.transloco.translate('intake.snackbar.conversionFailed'), [msg]);
       }
     });
   }
@@ -578,16 +602,7 @@ export class SubmissionDetailComponent implements OnInit {
   }
 
   getStatusLabel(status: IntakeStatus): string {
-    switch (status) {
-      case IntakeStatus.Pending: return 'Pending';
-      case IntakeStatus.Submitted: return 'Submitted';
-      case IntakeStatus.InReview: return 'In Review';
-      case IntakeStatus.Approved: return 'Approved';
-      case IntakeStatus.Rejected: return 'Rejected';
-      case IntakeStatus.Converted: return 'Converted';
-      case IntakeStatus.Expired: return 'Expired';
-      default: return 'Unknown';
-    }
+    return this.transloco.translate(getIntakeStatusKey(status));
   }
 
   getStatusPillClass(status: IntakeStatus): string {

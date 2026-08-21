@@ -45,6 +45,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         return await base.SaveChangesAsync(cancellationToken);
     }
     //Auth
+    public DbSet<Clinic> Clinics { get; set; }
     public DbSet<OtpEntry> OtpEntries { get; set; }
     public DbSet<Doctor> Doctors { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }

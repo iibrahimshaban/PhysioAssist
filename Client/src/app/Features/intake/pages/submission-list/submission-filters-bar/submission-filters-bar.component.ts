@@ -1,9 +1,11 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslocoModule } from '@jsverse/transloco';
 import { IntakeStatus } from '../../../models';
 
 export interface StatusOption {
+  /** Translation key under `intake.*` — translated in the template. */
   label: string;
   value: IntakeStatus | null;
   count?: number;
@@ -12,7 +14,7 @@ export interface StatusOption {
 @Component({
   selector: 'app-submission-filters-bar',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslocoModule],
   templateUrl: './submission-filters-bar.component.html',
   styleUrl: './submission-filters-bar.component.css'
 })

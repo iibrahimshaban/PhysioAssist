@@ -1,13 +1,13 @@
-<div class="dynamic-form-renderer" role="form" aria-label="Dynamic intake form" [formGroup]="form">
+<div class="dynamic-form-renderer" role="form" [attr.aria-label]="'intake.renderer.aria.dynamicIntakeForm' | transloco" [formGroup]="form">
   @if (!schema()) {
     <div class="text-center py-12" style="color: var(--color-text-muted)" role="status">
       <i class="pi pi-inbox text-4xl block mb-3"></i>
-      <p>No form schema provided.</p>
+      <p>{{ 'intake.renderer.noSchema' | transloco }}</p>
     </div>
   } @else if ((schema()?.sections?.length ?? 0) === 0) {
     <div class="text-center py-12" style="color: var(--color-text-muted)" role="status">
       <i class="pi pi-file text-4xl block mb-3"></i>
-      <p>This form has no sections defined yet.</p>
+      <p>{{ 'intake.renderer.noSections' | transloco }}</p>
     </div>
   } @else {
     @for (section of schema()!.sections; track section.sectionId) {
@@ -15,10 +15,10 @@
         @if (section.title || section.description) {
           <div class="mb-4">
             @if (section.title) {
-              <h2 [id]="'section-' + section.sectionId" class="text-2xl font-extrabold" style="color: var(--color-text-primary); letter-spacing: -0.025em;">{{ section.title }}</h2>
+              <h2 [id]="'section-' + section.sectionId" class="text-2xl font-extrabold" style="color: var(--color-text-primary); letter-spacing: -0.025em;">{{ schemaText.labelFor(section.title) }}</h2>
             }
             @if (section.description) {
-              <p class="text-sm mt-2 leading-relaxed" style="color: var(--color-text-secondary);">{{ section.description }}</p>
+              <p class="text-sm mt-2 leading-relaxed" style="color: var(--color-text-secondary);">{{ schemaText.labelFor(section.description) }}</p>
             }
           </div>
         }
@@ -27,18 +27,18 @@
           @if (isGroupVisible(group)) {
           <fieldset class="mb-6 rounded-2xl shadow-sm p-4 sm:p-6 intake-group-card">
             @if (group.title) {
-              <legend class="sr-only">{{ group.title }}</legend>
+              <legend class="sr-only">{{ schemaText.labelFor(group.title) }}</legend>
               <div class="intake-group-header" aria-hidden="true">
                 <span class="intake-group-icon"><i class="pi pi-list"></i></span>
-                <span class="intake-group-title">{{ group.title }}</span>
+                <span class="intake-group-title">{{ schemaText.labelFor(group.title) }}</span>
               </div>
             }
             @if (group.description) {
-              <p class="text-xs mb-4" style="color: var(--color-text-secondary);">{{ group.description }}</p>
+              <p class="text-xs mb-4" style="color: var(--color-text-secondary);">{{ schemaText.labelFor(group.description) }}</p>
             }
 
             @if (group.questions.length === 0) {
-              <p class="text-xs italic py-2 text-center" style="color: var(--color-text-muted);" role="status">No questions in this group</p>
+              <p class="text-xs italic py-2 text-center" style="color: var(--color-text-muted);" role="status">{{ 'intake.renderer.noQuestionsInGroup' | transloco }}</p>
             }
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
@@ -50,13 +50,13 @@
                              [attr.for]="'q-' + question.questionId"
                              [id]="'label-' + question.questionId"
                              style="color: var(--color-text-secondary);">
-                        {{ question.text }}
+                        {{ schemaText.labelFor(question.text) }}
                         @if (question.required) {
-                          <span class="ml-0.5" style="color: var(--color-danger);" aria-label="required">*</span>
+                          <span class="ms-0.5" style="color: var(--color-danger);" [attr.aria-label]="'intake.renderer.aria.required' | transloco">*</span>
                         }
                       </label>
                       @if (question.conditions?.length) {
-                        <span class="text-xs shrink-0" style="color: var(--color-warning-text);" title="Conditional question">
+                        <span class="text-xs shrink-0" style="color: var(--color-warning-text);" [title]="'intake.renderer.aria.conditionalQuestion' | transloco">
                           <i class="pi pi-sliders-h" aria-hidden="true"></i>
                         </span>
                       }
@@ -78,7 +78,7 @@
                             class="w-full text-sm px-3 py-2 rounded-xl"
                             [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);"
-                            [attr.placeholder]="question.placeholder || 'Enter your answer'" />
+                            [attr.placeholder]="schemaText.labelFor(question.placeholder) || ('intake.renderer.enterAnswer' | transloco)" />
                         }
                         @case ('email') {
                           <input
@@ -91,7 +91,7 @@
                             class="w-full text-sm px-3 py-2 rounded-xl"
                             [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);"
-                            [attr.placeholder]="question.placeholder || 'email@example.com'" />
+                            [attr.placeholder]="schemaText.labelFor(question.placeholder) || ('intake.renderer.emailPlaceholder' | transloco)" />
                         }
                         @case ('phone') {
                           <input
@@ -104,7 +104,7 @@
                             class="w-full text-sm px-3 py-2 rounded-xl"
                             [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);"
-                            [attr.placeholder]="question.placeholder || '(555) 123-4567'" />
+                            [attr.placeholder]="schemaText.labelFor(question.placeholder) || ('intake.renderer.phonePlaceholder' | transloco)" />
                         }
                         @case ('number') {
                           <p-inputNumber
@@ -127,7 +127,7 @@
                             class="w-full text-sm px-3 py-2 rounded-xl"
                             [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);"
-                            [attr.placeholder]="question.placeholder || 'Enter your answer'"></textarea>
+                            [attr.placeholder]="schemaText.labelFor(question.placeholder) || ('intake.renderer.enterAnswer' | transloco)"></textarea>
                         }
                         @case ('date') {
                           <input
@@ -160,18 +160,20 @@
                             class="w-full text-sm px-3 py-2 rounded-xl"
                             [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);">
-                            <option [ngValue]="null">{{ question.placeholder || 'Select an option' }}</option>
+                            <option [ngValue]="null">{{ schemaText.labelFor(question.placeholder) || ('intake.renderer.selectOption' | transloco) }}</option>
                             @for (opt of (question.options || []); track opt) {
-                              <option [ngValue]="opt">{{ opt }}</option>
+                              <option [ngValue]="opt">{{ schemaText.labelFor(opt) }}</option>
                             }
                           </select>
                         }
                         @case ('multiselect') {
                           <p-multiSelect
-                            [options]="question.options || []"
+                            [options]="multiSelectOptions(question)"
+                            optionLabel="label"
+                            optionValue="value"
                             [formControlName]="question.questionId"
                             [inputId]="'q-' + question.questionId"
-                            [placeholder]="question.placeholder || 'Select options'"
+                            [placeholder]="schemaText.labelFor(question.placeholder) || ('intake.renderer.selectOptions' | transloco)"
                             styleClass="w-full !rounded-xl" />
                         }
                         @case ('checkbox') {
@@ -185,7 +187,7 @@
                                   (change)="toggleCheckboxOption(question.questionId, opt, $any($event.target).checked)"
                                   class="w-4 h-4 rounded"
                                   style="accent-color: var(--color-primary); border-color: var(--color-border);" />
-                                {{ opt }}
+                                {{ schemaText.labelFor(opt) }}
                               </label>
                             }
                           </div>
@@ -203,7 +205,7 @@
                                   class="w-4 h-4"
                                   style="accent-color: var(--color-primary); border-color: var(--color-border);"
                                   [attr.aria-label]="opt" />
-                                {{ opt }}
+                                {{ schemaText.labelFor(opt) }}
                               </label>
                             }
                           </div>
@@ -222,30 +224,30 @@
                         }
                         @case ('file') {
                           <div class="flex items-center gap-3 px-4 py-6 border-2 border-dashed rounded-xl cursor-not-allowed"
-                               role="status" aria-label="File upload placeholder"
+                               role="status" [attr.aria-label]="'intake.renderer.aria.fileUploadPlaceholder' | transloco"
                                style="border-color: var(--color-border); background: var(--color-page-bg);">
                             <i class="pi pi-upload text-xl" style="color: var(--color-text-muted);" aria-hidden="true"></i>
                             <div>
-                              <p class="text-sm font-medium m-0" style="color: var(--color-text-muted);">File upload is not available</p>
-                              <p class="text-xs m-0" style="color: var(--color-text-muted); opacity: 0.7;">This feature will be available in a future update</p>
+                              <p class="text-sm font-medium m-0" style="color: var(--color-text-muted);">{{ 'intake.renderer.fileUnavailable' | transloco }}</p>
+                              <p class="text-xs m-0" style="color: var(--color-text-muted); opacity: 0.7;">{{ 'intake.renderer.fileUnavailableDesc' | transloco }}</p>
                             </div>
                           </div>
                         }
                         @case ('fileupload') {
                           <div class="flex items-center gap-3 px-4 py-6 border-2 border-dashed rounded-xl cursor-not-allowed"
-                               role="status" aria-label="File upload placeholder"
+                               role="status" [attr.aria-label]="'intake.renderer.aria.fileUploadPlaceholder' | transloco"
                                style="border-color: var(--color-border); background: var(--color-page-bg);">
                             <i class="pi pi-upload text-xl" style="color: var(--color-text-muted);" aria-hidden="true"></i>
                             <div>
-                              <p class="text-sm font-medium m-0" style="color: var(--color-text-muted);">File upload is not available</p>
-                              <p class="text-xs m-0" style="color: var(--color-text-muted); opacity: 0.7;">This feature will be available in a future update</p>
+                              <p class="text-sm font-medium m-0" style="color: var(--color-text-muted);">{{ 'intake.renderer.fileUnavailable' | transloco }}</p>
+                              <p class="text-xs m-0" style="color: var(--color-text-muted); opacity: 0.7;">{{ 'intake.renderer.fileUnavailableDesc' | transloco }}</p>
                             </div>
                           </div>
                         }
                         @case ('painpoint') {
                           <div class="flex flex-col gap-3 rounded-xl p-3" style="border: 1px solid var(--color-border); background: var(--color-page-bg);" [formGroupName]="question.questionId">
                             <div class="flex flex-wrap items-center gap-2">
-                              <label class="text-xs font-semibold w-20 shrink-0" style="color: var(--color-text-secondary);">Intensity</label>
+                              <label class="text-xs font-semibold w-20 shrink-0" style="color: var(--color-text-secondary);">{{ 'intake.renderer.painPoint.intensity' | transloco }}</label>
                               <div class="flex-1 min-w-0 overflow-x-auto">
                                 <p-selectButton
                                   [options]="painScaleOptions"
@@ -254,29 +256,29 @@
                               </div>
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
-                              <label class="text-xs font-semibold w-20 shrink-0" style="color: var(--color-text-secondary);">Region</label>
+                              <label class="text-xs font-semibold w-20 shrink-0" style="color: var(--color-text-secondary);">{{ 'intake.renderer.painPoint.region' | transloco }}</label>
                               <input
                                 type="text"
                                 formControlName="anatomicalRegion"
-                                placeholder="e.g. lumbar spine, shoulder, knee"
+                                [placeholder]="'intake.renderer.painPoint.regionPlaceholder' | transloco"
                                 class="flex-1 min-w-0 text-sm px-3 py-1.5 rounded-lg"
                                 style="border: 1px solid var(--color-border);" />
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
-                              <label class="text-xs font-semibold w-20 shrink-0" style="color: var(--color-text-secondary);">Side</label>
+                              <label class="text-xs font-semibold w-20 shrink-0" style="color: var(--color-text-secondary);">{{ 'intake.renderer.painPoint.side' | transloco }}</label>
                               <input
                                 type="text"
                                 formControlName="side"
-                                [attr.placeholder]="question.placeholder || 'left, right, bilateral'"
+                                [attr.placeholder]="schemaText.labelFor(question.placeholder) || ('intake.renderer.painPoint.sidePlaceholder' | transloco)"
                                 class="flex-1 min-w-0 text-sm px-3 py-1.5 rounded-lg"
                                 style="border: 1px solid var(--color-border);" />
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
-                              <label class="text-xs font-semibold w-20 shrink-0" style="color: var(--color-text-secondary);">Description</label>
+                              <label class="text-xs font-semibold w-20 shrink-0" style="color: var(--color-text-secondary);">{{ 'intake.renderer.painPoint.description' | transloco }}</label>
                               <input
                                 type="text"
                                 formControlName="description"
-                                [attr.placeholder]="question.placeholder || 'Describe the pain'"
+                                [attr.placeholder]="schemaText.labelFor(question.placeholder) || ('intake.renderer.painPoint.descriptionPlaceholder' | transloco)"
                                 class="flex-1 min-w-0 text-sm px-3 py-1.5 rounded-lg"
                                 style="border: 1px solid var(--color-border);" />
                             </div>
@@ -295,13 +297,13 @@
                             class="w-full text-sm px-3 py-3 rounded-xl"
                             [attr.id]="'q-' + question.questionId"
                             role="note"
-                            aria-label="{{ question.text }}"
+                            aria-label="{{ schemaText.labelFor(question.text) }}"
                             style="border: 1px dashed var(--color-border); background: var(--color-page-bg); color: var(--color-text-secondary);">
                             @if (getControl(question.questionId).value) {
                               <div class="whitespace-pre-wrap">{{ getControl(question.questionId).value }}</div>
                             } @else {
                               <span class="italic" style="color: var(--color-text-muted);">
-                                {{ question.placeholder || 'Auto-generated clinical summary will appear here once the intake is submitted.' }}
+                                {{ schemaText.labelFor(question.placeholder) || ('intake.renderer.summaryFallback' | transloco) }}
                               </span>
                             }
                           </div>
@@ -315,7 +317,7 @@
                             class="w-full text-sm px-3 py-2 rounded-xl"
                             [class.is-invalid]="getControl(question.questionId).invalid && getControl(question.questionId).touched"
                             style="border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary);"
-                            [attr.placeholder]="question.placeholder || 'Enter your answer'" />
+                            [attr.placeholder]="schemaText.labelFor(question.placeholder) || ('intake.renderer.enterAnswer' | transloco)" />
                         }
                       }
                     </div>

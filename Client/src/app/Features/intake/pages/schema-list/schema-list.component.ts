@@ -10,6 +10,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { QrAccessService } from '../../services/qr-access.service';
 import { IntakePageContainerComponent } from '../../shared/intake-page-container.component';
@@ -31,7 +32,8 @@ type SortField = 'name' | 'updated' | 'submissions';
     DialogModule,
     ConfirmDialogModule,
     TooltipModule,
-    IntakePageContainerComponent
+    IntakePageContainerComponent,
+    TranslocoModule
   ],
   providers: [ConfirmationService],
   templateUrl: './schema-list.component.html',
@@ -44,6 +46,7 @@ export class SchemaListComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly qrAccessService = inject(QrAccessService);
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly transloco = inject(TranslocoService);
 
 
   schemas = signal<FormSchemaSummaryResponse[]>([]);
@@ -64,9 +67,9 @@ export class SchemaListComponent implements OnInit {
   sortBy = signal<SortField>('name');
 
   readonly sortOptions = [
-    { value: 'name' as SortField, label: 'Name' },
-    { value: 'updated' as SortField, label: 'Last Updated' },
-    { value: 'submissions' as SortField, label: 'Submissions' }
+    { value: 'name' as SortField, labelKey: 'intake.schemaList.toolbar.sortName' },
+    { value: 'updated' as SortField, labelKey: 'intake.schemaList.toolbar.sortUpdated' },
+    { value: 'submissions' as SortField, labelKey: 'intake.schemaList.toolbar.sortSubmissions' }
   ];
 
   // Pagination
@@ -139,13 +142,13 @@ export class SchemaListComponent implements OnInit {
     this.defaultFormLoading.set(true);
     this.apiService.generateDefaultFormSchema().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
-        this.snackbar.success('Default template created', ['The default intake form has been generated']);
+        this.snackbar.success(...this.msg('intake.schemaList.snackbar.defaultCreated'));
         this.loadSchemas();
         this.loadDefaultForm();
       },
       error: (err: any) => {
         this.defaultFormLoading.set(false);
-        this.snackbar.error('Failed to create default', [this.extractError(err)]);
+        this.snackbar.error(...this.msg('intake.schemaList.snackbar.defaultFailed'));
       }
     });
   }
@@ -176,7 +179,7 @@ export class SchemaListComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.loadError.set(err?.error?.detail || err?.error?.title || 'Could not load schemas. Please try again.');
+        this.loadError.set(err?.error?.detail || err?.error?.title || this.transloco.translate('intake.schemaList.snackbar.loadFailedFallback'));
         this.loading.set(false);
       }
     });
@@ -257,7 +260,7 @@ export class SchemaListComponent implements OnInit {
 
   getFriendlyFormId(schema: FormSchemaSummaryResponse | FormSchemaResponse): string {
     const code = schema.shortCode?.trim();
-    return `Form ID: ${code || schema.id}`;
+    return this.transloco.translate('intake.schemaList.formId', { id: code || schema.id });
   }
 
   duplicateSchema(schema: FormSchemaSummaryResponse | FormSchemaResponse): void {
@@ -265,12 +268,12 @@ export class SchemaListComponent implements OnInit {
     this.apiService.duplicateFormSchema(schema.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.clearLoading(schema.id);
-        this.snackbar.success('Schema duplicated', ['A copy has been created']);
+        this.snackbar.success(...this.msg('intake.schemaList.snackbar.duplicated'));
         this.loadSchemas();
       },
       error: (err: any) => {
         this.clearLoading(schema.id);
-        this.snackbar.error('Duplicate failed', [this.extractError(err)]);
+        this.snackbar.error(...this.msg('intake.schemaList.snackbar.duplicateFailed'));
       }
     });
   }
@@ -280,12 +283,16 @@ export class SchemaListComponent implements OnInit {
   }
 
   confirmDelete(schema: FormSchemaSummaryResponse): void {
+    const count = schema.submissionCount ?? 0;
     this.confirmationService.confirm({
-      message: `Delete "${schema.name}"?${(schema.submissionCount ?? 0) > 0 ? ` It has ${schema.submissionCount} submission${(schema.submissionCount ?? 0) !== 1 ? 's' : ''} that will be orphaned.` : ''} This action cannot be undone.`,
-      header: 'Delete Schema',
+      message: this.transloco.translate('intake.schemaList.confirm.deleteMessage', {
+        name: schema.name,
+        submissions: count > 0 ? this.transloco.translate('intake.schemaList.confirm.deleteSubmissions', { count }) : ''
+      }),
+      header: this.transloco.translate('intake.schemaList.confirm.deleteHeader'),
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      acceptLabel: this.transloco.translate('intake.schemaList.confirm.acceptDelete'),
+      rejectLabel: this.transloco.translate('intake.common.cancel'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => this.deleteSchema(schema.id)
     });
@@ -296,7 +303,7 @@ export class SchemaListComponent implements OnInit {
     this.apiService.deleteFormSchema(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.clearLoading(id);
-        this.snackbar.success('Schema deleted', ['The form template has been removed']);
+        this.snackbar.success(...this.msg('intake.schemaList.snackbar.deleted'));
         if (this.paginatedSchemas().length <= 1 && this.currentPage() > 1) {
           this.goToPage(this.currentPage() - 1);
         }
@@ -304,18 +311,18 @@ export class SchemaListComponent implements OnInit {
       },
       error: (err: any) => {
         this.clearLoading(id);
-        this.snackbar.error('Delete failed', [this.extractError(err)]);
+        this.snackbar.error(...this.msg('intake.schemaList.snackbar.deleteFailed'));
       }
     });
   }
 
   confirmArchive(schema: FormSchemaSummaryResponse): void {
     this.confirmationService.confirm({
-      message: `Archive "${schema.name}"? It will be hidden from active views but can be unarchived later.`,
-      header: 'Archive Schema',
+      message: this.transloco.translate('intake.schemaList.confirm.archiveMessage', { name: schema.name }),
+      header: this.transloco.translate('intake.schemaList.confirm.archiveHeader'),
       icon: 'pi pi-archive',
-      acceptLabel: 'Archive',
-      rejectLabel: 'Cancel',
+      acceptLabel: this.transloco.translate('intake.schemaList.confirm.acceptArchive'),
+      rejectLabel: this.transloco.translate('intake.common.cancel'),
       acceptButtonStyleClass: 'p-button-primary',
       rejectButtonStyleClass: 'p-button-secondary',
       accept: () => this.archiveSchema(schema.id)
@@ -327,23 +334,23 @@ export class SchemaListComponent implements OnInit {
     this.apiService.archiveFormSchema(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.clearLoading(id);
-        this.snackbar.success('Schema archived', ['The form template has been archived']);
+        this.snackbar.success(...this.msg('intake.schemaList.snackbar.archived'));
         this.loadSchemas();
       },
       error: (err: any) => {
         this.clearLoading(id);
-        this.snackbar.error('Archive failed', [this.extractError(err)]);
+        this.snackbar.error(...this.msg('intake.schemaList.snackbar.archiveFailed'));
       }
     });
   }
 
   confirmUnarchive(schema: FormSchemaSummaryResponse): void {
     this.confirmationService.confirm({
-      message: `Unarchive "${schema.name}"? It will be published and available again.`,
-      header: 'Unarchive Schema',
+      message: this.transloco.translate('intake.schemaList.confirm.unarchiveMessage', { name: schema.name }),
+      header: this.transloco.translate('intake.schemaList.confirm.unarchiveHeader'),
       icon: 'pi pi-archive',
-      acceptLabel: 'Unarchive',
-      rejectLabel: 'Cancel',
+      acceptLabel: this.transloco.translate('intake.schemaList.confirm.acceptUnarchive'),
+      rejectLabel: this.transloco.translate('intake.common.cancel'),
       acceptButtonStyleClass: 'p-button-primary',
       rejectButtonStyleClass: 'p-button-secondary',
       accept: () => this.unarchiveSchema(schema.id)
@@ -355,12 +362,12 @@ export class SchemaListComponent implements OnInit {
     this.apiService.unarchiveFormSchema(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.clearLoading(id);
-        this.snackbar.success('Schema unarchived', ['The form template has been published again']);
+        this.snackbar.success(...this.msg('intake.schemaList.snackbar.unarchived'));
         this.loadSchemas();
       },
       error: (err: any) => {
         this.clearLoading(id);
-        this.snackbar.error('Unarchive failed', [this.extractError(err)]);
+        this.snackbar.error(...this.msg('intake.schemaList.snackbar.unarchiveFailed'));
       }
     });
   }
@@ -378,18 +385,19 @@ export class SchemaListComponent implements OnInit {
         a.download = `${schema.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        this.snackbar.success('Exported', ['Schema JSON downloaded']);
+        this.snackbar.success(...this.msg('intake.schemaList.snackbar.exported'));
       },
       error: (err: any) => {
         this.clearLoading(schema.id);
-        this.snackbar.error('Export failed', [this.extractError(err)]);
+        this.snackbar.error(...this.msg('intake.schemaList.snackbar.exportFailed'));
       }
     });
   }
 
   quickShare(schema: FormSchemaSummaryResponse): void {
     if (schema.status !== FormSchemaStatus.Published) {
-      this.snackbar.warning('Not published', ['Publish the schema first to generate a shareable link.']);
+      const [t, m] = this.msg('intake.schemaList.snackbar.notPublished');
+      this.snackbar.warning(t, [...m, this.transloco.translate('intake.schemaList.snackbar.notPublishedShare')]);
       return;
     }
     this.setLoading(schema.id, 'share');
@@ -398,14 +406,15 @@ export class SchemaListComponent implements OnInit {
         this.clearLoading(schema.id);
         const publicUrl = this.normalizePublicUrl(result.publicUrl || result.token);
         navigator.clipboard.writeText(publicUrl).then(() => {
-          this.snackbar.success('Link copied', ['Public URL copied to clipboard']);
+          this.snackbar.success(...this.msg('intake.schemaList.snackbar.linkCopied'));
         }).catch(() => {
-          this.snackbar.success('Link ready', [publicUrl]);
+          const [t, m] = this.msg('intake.schemaList.snackbar.linkReady');
+          this.snackbar.success(t, [...m, publicUrl]);
         });
       },
       error: (err: any) => {
         this.clearLoading(schema.id);
-        this.snackbar.error('Share failed', [this.extractError(err)]);
+        this.snackbar.error(...this.msg('intake.schemaList.snackbar.shareFailed'));
       }
     });
   }
@@ -415,19 +424,20 @@ export class SchemaListComponent implements OnInit {
     this.apiService.publishFormSchema(schema.id, { version: schema.version }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.clearLoading(schema.id);
-        this.snackbar.success('Schema published', ['Form schema is now live']);
+        this.snackbar.success(...this.msg('intake.schemaList.snackbar.published'));
         this.loadSchemas();
       },
       error: (err: any) => {
         this.clearLoading(schema.id);
-        this.snackbar.error('Publish failed', [this.extractError(err)]);
+        this.snackbar.error(...this.msg('intake.schemaList.snackbar.publishFailed'));
       }
     });
   }
 
   openQrDialog(schema: FormSchemaSummaryResponse | FormSchemaResponse): void {
     if (schema.status !== FormSchemaStatus.Published) {
-      this.snackbar.warning('Not published', ['Only published schemas can generate QR codes.']);
+      const [t, m] = this.msg('intake.schemaList.snackbar.notPublished');
+      this.snackbar.warning(t, [...m, this.transloco.translate('intake.schemaList.snackbar.notPublishedQr')]);
       return;
     }
     this.qrSchemaId = schema.id;
@@ -462,7 +472,7 @@ export class SchemaListComponent implements OnInit {
           this.qrLoading.set(false);
           this.qrPublicUrl.set('');
           this.qrImageUrl.set(null);
-          this.snackbar.error('QR generation failed', [this.extractError(err)]);
+          this.snackbar.error(...this.msg('intake.schemaList.snackbar.qrFailed'));
         }, 0);
       }
     });
@@ -475,13 +485,13 @@ export class SchemaListComponent implements OnInit {
 
     const printWindow = window.open('', '_blank', 'width=500,height=650');
     if (!printWindow) {
-      this.snackbar.error('Print blocked', ['Allow pop-ups for this site to print the QR code.']);
+      this.snackbar.error(...this.msg('intake.schemaList.snackbar.printBlocked'));
       return;
     }
 
     const html = `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"/><title>Patient Intake QR Code</title><style>
+<head><meta charset="UTF-8"/><title>${this.transloco.translate('intake.schemaList.print.title')}</title><style>
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 32px; box-sizing: border-box; background: #fff; color: #0f172a; }
   h1 { font-size: 1.25rem; font-weight: 700; margin: 0 0 4px; text-align: center; }
   p.subtitle { font-size: 0.8rem; color: #64748b; margin: 0 0 24px; text-align: center; }
@@ -490,7 +500,7 @@ export class SchemaListComponent implements OnInit {
   .url-box { margin-top: 6px; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; font-family: 'Courier New', monospace; font-size: 0.75rem; color: #334155; word-break: break-all; max-width: 320px; text-align: center; }
   @media print { body { padding: 16px; } }
 </style></head>
-<body><h1>Patient Intake Form</h1><p class="subtitle">Scan or visit the URL below to complete the pre-visit intake</p><img src="${imageUrl}" alt="QR Code" /><p class="url-label">Public URL</p><div class="url-box">${publicUrl}</div><script>window.onload = function() { window.print(); window.close(); };<\/script></body></html>`;
+<body><h1>${this.transloco.translate('intake.schemaList.print.formName')}</h1><p class="subtitle">${this.transloco.translate('intake.schemaList.print.instructions')}</p><img src="${imageUrl}" alt="QR Code" /><p class="url-label">${this.transloco.translate('intake.schemaList.print.publicUrl')}</p><div class="url-box">${publicUrl}</div><script>window.onload = function() { window.print(); window.close(); };<\/script></body></html>`;
 
     printWindow.document.write(html);
     printWindow.document.close();
@@ -515,8 +525,14 @@ export class SchemaListComponent implements OnInit {
   }
 
   copyToClipboard(url: string): void {
-    navigator.clipboard.writeText(url).then(() => this.snackbar.success('Copied', ['URL copied to clipboard']))
-      .catch(() => this.snackbar.error('Copy failed', ['Could not copy URL']));
+    navigator.clipboard.writeText(url).then(() => this.snackbar.success(...this.msg('intake.schemaList.snackbar.copied')))
+      .catch(() => this.snackbar.error(...this.msg('intake.schemaList.snackbar.copyFailed')));
+  }
+
+  private msg(key: string): [string, string[]] {
+    const value = this.transloco.translate(key);
+    const parts: string[] = Array.isArray(value) ? value.map(String) : [String(value)];
+    return [parts[0], parts.slice(1)];
   }
 
   relativeTime(dateStr: string | undefined | null): string {
@@ -530,19 +546,19 @@ export class SchemaListComponent implements OnInit {
     if (isNaN(parsed.getTime())) return '';
 
     const diffMs = Date.now() - parsed.getTime();
-    if (diffMs < 0) return 'Just now';
+    if (diffMs < 0) return this.transloco.translate('intake.schemaList.relativeTime.justNow');
 
     const diffSec = Math.floor(diffMs / 1000);
-    if (diffSec < 60) return 'Just now';
+    if (diffSec < 60) return this.transloco.translate('intake.schemaList.relativeTime.justNow');
     const diffMin = Math.floor(diffSec / 60);
-    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffMin < 60) return this.transloco.translate('intake.schemaList.relativeTime.minAgo', { n: diffMin });
     const diffHrs = Math.floor(diffMin / 60);
-    if (diffHrs < 24) return `${diffHrs}h ago`;
+    if (diffHrs < 24) return this.transloco.translate('intake.schemaList.relativeTime.hourAgo', { n: diffHrs });
     const diffDays = Math.floor(diffHrs / 24);
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffDays === 1) return this.transloco.translate('intake.schemaList.relativeTime.yesterday');
+    if (diffDays < 7) return this.transloco.translate('intake.schemaList.relativeTime.dayAgo', { n: diffDays });
 
-    return parsed.toLocaleDateString(undefined, {
+    return parsed.toLocaleDateString(this.transloco.getActiveLang() === 'ar' ? 'ar-EG' : undefined, {
       month: 'short',
       day: 'numeric',
       timeZone: 'Africa/Cairo' // for the absolute-date fallback, display in Cairo local time
@@ -551,10 +567,10 @@ export class SchemaListComponent implements OnInit {
 
   getStatusLabel(status: FormSchemaStatus): string {
     switch (status) {
-      case FormSchemaStatus.Draft: return 'Draft';
-      case FormSchemaStatus.Published: return 'Published';
-      case FormSchemaStatus.Archived: return 'Archived';
-      default: return 'Unknown';
+      case FormSchemaStatus.Draft: return this.transloco.translate('intake.schemaList.schemaStatus.draft');
+      case FormSchemaStatus.Published: return this.transloco.translate('intake.schemaList.schemaStatus.published');
+      case FormSchemaStatus.Archived: return this.transloco.translate('intake.schemaList.schemaStatus.archived');
+      default: return this.transloco.translate('intake.schemaList.schemaStatus.unknown');
     }
   }
 
@@ -570,7 +586,7 @@ export class SchemaListComponent implements OnInit {
     const body = err?.error;
     if (body?.detail) return body.detail;
     if (body?.errors) return Object.values(body.errors as Record<string, string[]>).flat().join('; ');
-    return body?.title || 'Unexpected error';
+    return body?.title || this.transloco.translate('intake.schemaList.errors.unexpected');
   }
 
   trackById(_index: number, item: FormSchemaSummaryResponse): string {

@@ -1,0 +1,982 @@
+{
+  "common": {
+    "tryAgain": "Try Again",
+    "cancel": "Cancel",
+    "back": "Back",
+    "edit": "Edit",
+    "preview": "Preview",
+    "delete": "Delete",
+    "publish": "Publish",
+    "duplicate": "Duplicate",
+    "archive": "Archive",
+    "unarchive": "Unarchive",
+    "retry": "Retry",
+    "goBack": "Go Back",
+    "view": "View",
+    "change": "Change",
+    "done": "Done",
+    "reset": "Reset",
+    "required": "Required",
+    "unnamedPatient": "Unnamed Patient",
+    "yes": "Yes",
+    "no": "No",
+    "dash": "—",
+    "physioAssist": "PhysioAssist",
+    "time": {
+      "justNow": "Just now",
+      "mAgo": "{{n}}m ago",
+      "hAgo": "{{n}}h ago",
+      "yesterday": "Yesterday",
+      "dAgo": "{{n}}d ago"
+    },
+    "default": "Default"
+  },
+  "status": {
+    "pending": "Pending",
+    "submitted": "Submitted",
+    "inReview": "In Review",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "converted": "Converted",
+    "expired": "Expired",
+    "unknown": "Unknown"
+  },
+  "filters": {
+    "allStatuses": "All Statuses",
+    "allWaiting": "All Waiting"
+  },
+  "action": {
+    "approve": "Approve",
+    "reject": "Reject",
+    "markInReview": "Mark In Review",
+    "convertToPatient": "Convert to Patient",
+    "reopenReview": "Re-open Review",
+    "msgApprove": "Approve this submission for patient conversion?",
+    "msgReject": "Reject this submission? This will mark the intake as rejected.",
+    "msgRejectShort": "Reject this submission?",
+    "msgMarkInReview": "Mark this submission as in review?",
+    "msgReopenReview": "Re-open this submission for review?"
+  },
+  "snackbar": {
+    "error": "Error",
+    "unexpectedError": "Unexpected error",
+    "couldNotLoadPending": "Could not load pending intake submissions.",
+    "couldNotLoadSubmissions": "Could not load intake submissions.",
+    "schemaSaved": "Schema saved",
+    "draftUpdatedSuccessfully": "Draft updated successfully",
+    "draftCreatedSuccessfully": "Draft created successfully",
+    "saveFailed": "Save failed",
+    "schemaPublished": "Schema published",
+    "formSchemaIsNowLive": "Form schema is now live",
+    "publishFailed": "Publish failed",
+    "failedToLoadSchema": "Failed to load schema",
+    "cannotDelete": "Cannot delete",
+    "sectionRequiredCannotRemove": "This is a required section and cannot be removed.",
+    "sectionLockedFieldsCannotRemove": "This section contains locked required fields and cannot be removed.",
+    "groupLockedFieldsCannotRemove": "This group contains locked required fields and cannot be removed.",
+    "fieldLockedCannotRemove": "This field is locked and cannot be removed.",
+    "defaultTemplateCreated": "Default template created",
+    "defaultFormGenerated": "The default intake form has been generated",
+    "failedToCreateDefault": "Failed to create default",
+    "schemaDuplicated": "Schema duplicated",
+    "copyCreated": "A copy has been created",
+    "duplicateFailed": "Duplicate failed",
+    "schemaDeleted": "Schema deleted",
+    "templateRemoved": "The form template has been removed",
+    "deleteFailed": "Delete failed",
+    "schemaArchived": "Schema archived",
+    "templateArchived": "The form template has been archived",
+    "archiveFailed": "Archive failed",
+    "schemaUnarchived": "Schema unarchived",
+    "templatePublishedAgain": "The form template has been published again",
+    "unarchiveFailed": "Unarchive failed",
+    "exported": "Exported",
+    "schemaJsonDownloaded": "Schema JSON downloaded",
+    "exportFailed": "Export failed",
+    "notPublished": "Not published",
+    "publishFirstForLink": "Publish the schema first to generate a shareable link.",
+    "onlyPublishedForQr": "Only published schemas can generate QR codes.",
+    "linkCopied": "Link copied",
+    "publicUrlCopied": "Public URL copied to clipboard",
+    "linkReady": "Link ready",
+    "copied": "Copied",
+    "urlCopiedToClipboard": "URL copied to clipboard",
+    "copyFailed": "Copy failed",
+    "couldNotCopyUrl": "Could not copy URL",
+    "shareFailed": "Share failed",
+    "qrGenerationFailed": "QR generation failed",
+    "printBlocked": "Print blocked",
+    "allowPopupsToPrint": "Allow pop-ups for this site to print the QR code.",
+    "notPermitted": "Not permitted",
+    "noPermissionEdit": "You do not have permission to edit this submission.",
+    "noPermissionConvert": "You do not have permission to convert this submission.",
+    "missingRequiredFields": "Missing required fields",
+    "pleaseComplete": "Please complete: {{fields}}",
+    "statusUpdated": "Status Updated",
+    "submissionMovedTo": "Submission moved to {{status}}.",
+    "updateFailed": "Update Failed",
+    "conversionSuccessful": "Conversion Successful",
+    "convertedToPatientRecord": "Submission has been converted to a patient record.",
+    "conversionFailed": "Conversion Failed"
+  },
+  "confirm": {
+    "confirmAction": "Confirm Action",
+    "yesProceed": "Yes, Proceed",
+    "yes": "Yes",
+    "no": "No",
+    "deleteHeader": "Delete Schema",
+    "deleteMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "archiveHeader": "Archive Schema",
+    "archiveMessage": "Archive \"{{name}}\"? It will be hidden from the main list but can be restored later.",
+    "unarchiveHeader": "Unarchive Schema",
+    "unarchiveMessage": "Restore \"{{name}}\" back to published?"
+  },
+  "public": {
+    "portalTitle": "Patient Portal",
+    "loading": {
+      "title": "Loading your intake form",
+      "desc": "Please wait while we prepare your secure intake form."
+    },
+    "error": {
+      "title": "We couldn't load this form",
+      "goHome": "Go Home",
+      "invalidUrl": "Invalid URL: No form token found. Please check that you have the correct link.",
+      "emptySchema": "The form schema appears to be empty or corrupted. Please contact your healthcare provider.",
+      "parseFailed": "Failed to parse the form schema. The form may be corrupted. Please request a new link.",
+      "linkInvalid": "This form link is invalid or has expired. Please request a new link from your healthcare provider.",
+      "linkExpired": "This form has expired and is no longer available. Please request a new link.",
+      "loadFailed": "Failed to load the form. Please check your internet connection and try again."
+    },
+    "success": {
+      "aria": "Form submitted successfully",
+      "thanks": "Thank You — Intake Submitted",
+      "receiptId": "Receipt ID",
+      "submittedAt": "Submitted at {{date}}"
+    },
+    "form": {
+      "fallbackName": "Patient Intake Form"
+    },
+    "progress": {
+      "aria": "Form completion: {{percent}}%",
+      "label": "Form progress",
+      "allCompleted": "All required sections completed",
+      "completedOf": "{{completed}} of {{total}} completed"
+    },
+    "unsavedWarning": "You have unsaved changes. Please submit the form or your progress may be lost.",
+    "email": {
+      "verifying": "Verifying email address…",
+      "alreadyRegisteredTitle": "Email already registered",
+      "alreadyRegisteredBody": "The email address {{email}} is already associated with an existing patient record. Please contact your healthcare provider directly to update your information, or use a different email address.",
+      "alreadyRegisteredShort": "This email address is already registered. Please use a different email or contact your provider.",
+      "verifyingWait": "Verifying email, please wait…"
+    },
+    "securityNote": "Your data is encrypted and secure",
+    "painPointDiagram": "Pain point diagram",
+    "validation": {
+      "incomplete": "Please complete all required fields before submitting."
+    },
+    "submit": {
+      "button": "Submit Form",
+      "submitting": "Submitting…"
+    },
+    "confirm": {
+      "title": "Submit Intake Form?",
+      "body": "Please review your answers before submitting. Once submitted, you won't be able to edit your responses.",
+      "painRegionsMarked": "{{n}} pain region(s) marked",
+      "goBackEdit": "Go Back & Edit",
+      "yesSubmit": "Yes, Submit"
+    },
+    "submitErrorAlreadyRegistered": "The email address {{email}} is already associated with an existing patient record. Please contact your healthcare provider or use a different email address.",
+    "submitErrorGeneric": "Failed to submit the form. Please try again.",
+    "aria": {
+      "page": "Intake form page"
+    },
+    "poweredBy": "Powered by PhysioAssist"
+  },
+  "reception": {
+    "header": {
+      "title": "Reception Queue",
+      "activeCount": "{{n}} Active",
+      "subtitle": "Patients waiting for check-in or currently in review (auto-refreshes every 30s)"
+    },
+    "error": {
+      "title": "Failed to load queue",
+      "message": "Failed to load reception queue. Please try again."
+    },
+    "empty": {
+      "noMatchTitle": "No matching waiting patients",
+      "allCaughtUp": "All caught up!",
+      "noMatchDesc": "We couldn't find any active patient submissions matching your search criteria.",
+      "emptyDesc": "There are no active patients waiting in the reception queue at this moment. New submissions will appear here automatically.",
+      "clearSearch": "Clear Search"
+    },
+    "pagination": {
+      "showing": "Showing {{from}}–{{to}} of {{total}} in queue",
+      "prevPage": "Previous page",
+      "nextPage": "Next page"
+    }
+  },
+  "schemaList": {
+    "header": {
+      "title": "Form templates",
+      "subtitle": "All schemas you've built for patient intake",
+      "guidedWizard": "Guided Wizard",
+      "newForm": "New form"
+    },
+    "loadingDefault": {
+      "title": "Loading default template",
+      "desc": "Loading your default intake form...",
+      "subDesc": "Please wait while we load the default template for the schema page."
+    },
+    "default": {
+      "badge": "Default Template",
+      "fallbackDesc": "This default intake form is used when new patients begin their intake process.",
+      "noDefaultTitle": "No Default Template",
+      "setDefault": "Set a default intake form",
+      "generateHint": "Click to auto-generate a default template with all question types, or mark an existing form as default.",
+      "generate": "Generate Default",
+      "editTooltip": "Edit default form",
+      "previewTooltip": "Preview default form",
+      "duplicateTooltip": "Duplicate default form",
+      "qrTooltip": "QR Code",
+      "publishTooltip": "Publish default form",
+      "edit": "Edit",
+      "preview": "Preview",
+      "duplicate": "Duplicate",
+      "publish": "Publish"
+    },
+    "stats": {
+      "fields": "Fields",
+      "submissions": "Submissions",
+      "updated": "Updated"
+    },
+    "meta": {
+      "version": "Version {{v}}"
+    },
+    "tooltips": {
+      "editSchema": "Edit schema",
+      "previewSchema": "Preview schema",
+      "createCopy": "Create a copy",
+      "quickShare": "Quick Share",
+      "delete": "Delete",
+      "archive": "Archive",
+      "unarchive": "Unarchive"
+    },
+    "actions": {
+      "qr": "QR",
+      "edit": "Edit",
+      "delete": "Delete",
+      "preview": "Preview",
+      "duplicate": "Duplicate",
+      "archive": "Archive",
+      "unarchive": "Unarchive"
+    },
+    "toolbar": {
+      "searchPlaceholder": "Search form templates",
+      "sortName": "Name",
+      "sortUpdated": "Last Updated",
+      "sortSubmissions": "Submissions",
+      "tabAll": "All",
+      "tabPublished": "Published",
+      "tabDrafts": "Drafts",
+      "tabArchived": "Archived"
+    },
+    "states": {
+      "errorTitle": "Failed to load schemas",
+      "noMatchDesc": "No schemas match your filters. Try a different term or tab.",
+      "emptyTitle": "No form templates yet.",
+      "createFirst": "Create Your First Template",
+      "tryAgain": "Try Again"
+    },
+    "card": {
+      "copiedBadge": "Copied",
+      "original": "Original: {{name}}",
+      "noDescription": "No description"
+    },
+    "pagination": {
+      "showing": "Showing {{from}} to {{to}} of {{total}} schemas"
+    },
+    "qrDialog": {
+      "title": "Generate QR Link",
+      "subtitle": "Create a public intake URL",
+      "expiryLabel": "Expiry (months)",
+      "expiryHint": "Link will expire after this period. Max: 24 months.",
+      "generatedTitle": "Link generated successfully",
+      "generatedDesc": "Share this URL or print the QR code",
+      "scanHint": "Scan to open the intake form on a phone.",
+      "publicUrlLabel": "Public URL",
+      "copyUrlTooltip": "Copy URL",
+      "openNewTabTooltip": "Open in new tab",
+      "expiresLabel": "Expires",
+      "generate": "Generate Link",
+      "printQr": "Print QR",
+      "cancel": "Cancel",
+      "done": "Done",
+      "qrCodeTooltip": "QR Code"
+    },
+    "print": {
+      "title": "Patient Intake QR Code",
+      "formName": "Patient Intake Form",
+      "instructions": "Scan or visit the URL below to complete the pre-visit intake",
+      "publicUrl": "Public URL"
+    },
+    "schemaStatus": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived",
+      "unknown": "Unknown"
+    },
+    "formId": "Form ID: {{id}}",
+    "relativeTime": {
+      "justNow": "Just now",
+      "minAgo": "{{n}}m ago",
+      "hourAgo": "{{n}}h ago",
+      "yesterday": "Yesterday",
+      "dayAgo": "{{n}}d ago"
+    },
+    "snackbar": {
+      "defaultCreated": [
+        "Default template created",
+        "The default intake form has been generated"
+      ],
+      "defaultFailed": [
+        "Failed to create default"
+      ],
+      "loadFailedFallback": "Could not load schemas. Please try again.",
+      "duplicated": [
+        "Schema duplicated",
+        "A copy has been created"
+      ],
+      "duplicateFailed": [
+        "Duplicate failed"
+      ],
+      "deleted": [
+        "Schema deleted",
+        "The form template has been removed"
+      ],
+      "deleteFailed": [
+        "Delete failed"
+      ],
+      "archived": [
+        "Schema archived",
+        "The form template has been archived"
+      ],
+      "archiveFailed": [
+        "Archive failed"
+      ],
+      "unarchived": [
+        "Schema unarchived",
+        "The form template has been published again"
+      ],
+      "unarchiveFailed": [
+        "Unarchive failed"
+      ],
+      "exported": [
+        "Exported",
+        "Schema JSON downloaded"
+      ],
+      "exportFailed": [
+        "Export failed"
+      ],
+      "notPublished": [
+        "Not published"
+      ],
+      "notPublishedShare": [
+        "Publish the schema first to generate a shareable link."
+      ],
+      "notPublishedQr": [
+        "Only published schemas can generate QR codes."
+      ],
+      "linkCopied": [
+        "Link copied",
+        "Public URL copied to clipboard"
+      ],
+      "linkReady": [
+        "Link ready"
+      ],
+      "shareFailed": [
+        "Share failed"
+      ],
+      "qrFailed": [
+        "QR generation failed"
+      ],
+      "printBlocked": [
+        "Print blocked",
+        "Allow pop-ups for this site to print the QR code."
+      ],
+      "copied": [
+        "Copied",
+        "URL copied to clipboard"
+      ],
+      "copyFailed": [
+        "Copy failed",
+        "Could not copy URL"
+      ],
+      "published": [
+        "Schema published",
+        "Form schema is now live"
+      ],
+      "publishFailed": [
+        "Publish failed"
+      ]
+    },
+    "confirm": {
+      "deleteHeader": "Delete Schema",
+      "deleteMessage": "Delete \"{{name}}\"?{{submissions}} This action cannot be undone.",
+      "deleteSubmissions": " It has {{count}} submission(s) that will be orphaned.",
+      "archiveHeader": "Archive Schema",
+      "archiveMessage": "Archive \"{{name}}\"? It will be hidden from active views but can be unarchived later.",
+      "unarchiveHeader": "Unarchive Schema",
+      "unarchiveMessage": "Unarchive \"{{name}}\"? It will be published and available again.",
+      "acceptDelete": "Delete",
+      "acceptArchive": "Archive",
+      "acceptUnarchive": "Unarchive"
+    },
+    "errors": {
+      "unexpected": "Unexpected error"
+    }
+  },
+  "builder": {
+    "toolbar": {
+      "backToSchemas": "Back to Schemas",
+      "previewBadge": "Preview",
+      "editModeBadge": "Edit Mode",
+      "newSchemaBadge": "New Schema",
+      "untitledSchema": "Untitled Schema",
+      "exitPreview": "Exit Preview",
+      "saveDraft": "Save Draft",
+      "publish": "Publish"
+    },
+    "tabs": {
+      "structure": "Structure",
+      "preview": "Preview",
+      "properties": "Properties",
+      "structureAria": "Builder sections"
+    },
+    "sidebar": {
+      "title": "Structure",
+      "sectionsCount": "{{n}} section(s)",
+      "schemaSettings": "Schema Settings",
+      "deleteSectionTooltip": "Delete section",
+      "doctorOnlyGroup": "Doctor-only group",
+      "deleteGroupTooltip": "Delete group",
+      "deleteQuestionTooltip": "Delete question",
+      "addQuestion": "Add Question",
+      "addGroup": "Add Group",
+      "addSection": "Add Section"
+    },
+    "canvas": {
+      "previewModeTitle": "Preview Mode",
+      "previewModeDesc": "This is a read-only preview of the published form. No changes can be made.",
+      "emptyTitle": "Start Building Your Form",
+      "emptyDesc": "Add sections from the left panel to start building your intake form. Questions and groups will appear here as you build.",
+      "addFirstSection": "Add First Section",
+      "sampleTextInput": "Sample text input",
+      "sampleLongText": "Sample longer text...",
+      "selectDate": "Select date",
+      "selectDateTime": "Select date & time",
+      "selectOption": "Select an option",
+      "selectOptions": "Select options",
+      "option1": "Option 1",
+      "option2": "Option 2",
+      "noOptionsYet": "No options yet",
+      "toggle": "Toggle",
+      "clickOrDragToUpload": "Click or drag to upload",
+      "painPointIntensity": "Pain point: intensity {{n}}/10",
+      "interactiveBodyMap": "Interactive body map",
+      "autoSummary": "Auto-generated clinical summary (read-only)",
+      "input": "Input",
+      "conditionalBadge": "Conditional",
+      "groupsCount": "{{n}} group(s)",
+      "validationRulesCount": "{{n}} validation rule(s)",
+      "noQuestionsYet": "No questions yet",
+      "addQuestion": "+ Add question",
+      "noGroupsYet": "No groups yet",
+      "requiredBadge": "Required"
+    },
+    "props": {
+      "title": "Properties",
+      "selectElementHint": "Select an element to edit its properties",
+      "schemaName": "Schema Name *",
+      "schemaNamePlaceholder": "e.g. Pre-Visit Intake Form",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the purpose of this form...",
+      "setDefaultSchema": "Set as default schema",
+      "defaultSchemaHint": "Default schema is used for new patient intakes",
+      "schemaVersion": "Schema version:",
+      "sectionBadge": "Section",
+      "groupBadge": "Group",
+      "questionBadge": "Question",
+      "titleLabel": "Title *",
+      "sectionTitlePlaceholder": "Section title",
+      "optionalDescription": "Optional description",
+      "order": "Order",
+      "groupTitlePlaceholder": "Group title",
+      "hiddenFromPatient": "Hidden from patient (doctor/staff only)",
+      "hiddenFromPatientHint": "Questions in this group won't appear on the public intake form. They'll only be visible and editable in the submission review/edit view.",
+      "questionTextLabel": "Question Text *",
+      "questionTextPlaceholder": "Enter your question",
+      "questionTypeLabel": "Question Type *",
+      "selectType": "Select type",
+      "placeholderLabel": "Placeholder",
+      "placeholderPlaceholder": "Placeholder text",
+      "helperTextLabel": "Helper Text",
+      "helperTextHint": "Additional guidance for the patient",
+      "helpTextLabel": "Help Text",
+      "helpTextHint": "Detailed help shown below the input",
+      "requiredField": "Required field",
+      "optionsLabel": "Options (comma-separated)",
+      "optionsPlaceholder": "Option A, Option B, Option C",
+      "validationRules": "Validation Rules",
+      "addRuleTooltip": "Add rule",
+      "pattern": "Pattern",
+      "value": "Value",
+      "characters": "Characters",
+      "errorMessage": "Error message",
+      "customErrorMessage": "Custom error message",
+      "noValidationRules": "No validation rules",
+      "addRule": "+ Add rule",
+      "conditionalLogic": "Conditional Logic",
+      "addConditionTooltip": "Add condition",
+      "match": "Match:",
+      "targetQuestion": "Target question",
+      "operator": "Operator",
+      "noConditionalRules": "No conditional rules",
+      "addCondition": "+ Add condition",
+      "ruleTypePlaceholder": "Rule type"
+    },
+    "quickAdd": {
+      "tooltip": "Quick Add",
+      "aria": "Quick add section, group, or question",
+      "title": "Quick Add",
+      "subtitle": "Add a new element to your form",
+      "newSection": "New Section",
+      "newSectionDesc": "Top-level container",
+      "newGroup": "New Group",
+      "newGroupDesc": "Inside active section",
+      "newQuestion": "New Question",
+      "newQuestionDesc": "Inside active group",
+      "menuAria": "Quick add menu"
+    },
+    "publishValidation": {
+      "header": "Cannot Publish Form",
+      "subtitle": "Required core fields are missing or misconfigured",
+      "description": "Your form must include all required patient information fields before it can be published.",
+      "issuesTitle": "Issues to fix",
+      "howToFixTitle": "How to fix",
+      "howToFixBody": "Open the builder and add the missing core questions listed above. Each core field must keep its locked question ID (for example question_default_full_name) and stay marked as Required so the system can detect it.",
+      "gotIt": "Got it",
+      "missingFromSchema": "Missing from schema",
+      "requiredFlagDisabled": "Required flag is disabled"
+    },
+    "snackbar": {
+      "loadFailed": [
+        "Failed to load schema"
+      ],
+      "savedUpdated": [
+        "Schema saved",
+        "Draft updated successfully"
+      ],
+      "savedCreated": [
+        "Schema saved",
+        "Draft created successfully"
+      ],
+      "saveFailed": [
+        "Save failed"
+      ],
+      "published": [
+        "Schema published",
+        "Form schema is now live"
+      ],
+      "publishFailed": [
+        "Publish failed"
+      ],
+      "cannotDelete": [
+        "Cannot delete"
+      ],
+      "sectionLocked": [
+        "This is a required section and cannot be removed."
+      ],
+      "sectionHasLocked": [
+        "This section contains locked required fields and cannot be removed."
+      ],
+      "groupHasLocked": [
+        "This group contains locked required fields and cannot be removed."
+      ],
+      "questionLocked": [
+        "This field is locked and cannot be removed."
+      ]
+    },
+    "conditionLogic": {
+      "all": "All (AND)",
+      "any": "Any (OR)"
+    },
+    "questionType": {
+      "text": "Text",
+      "number": "Number",
+      "email": "Email",
+      "phone": "Phone",
+      "date": "Date",
+      "datetime": "Date Time",
+      "textarea": "Textarea",
+      "select": "Dropdown",
+      "multiselect": "Multi Select",
+      "checkbox": "Checkbox",
+      "radio": "Radio",
+      "boolean": "Boolean",
+      "file": "File Upload",
+      "fileupload": "File Upload (Legacy)",
+      "painscale": "Pain Scale",
+      "summary": "Clinical Summary"
+    }
+  },
+  "wizard": {
+    "header": {
+      "guidedWizard": "Guided Wizard",
+      "fallbackName": "New Form Wizard",
+      "backToSchemas": "Back to Schemas"
+    },
+    "steps": {
+      "template": "Template",
+      "details": "Details",
+      "build": "Build",
+      "review": "Review"
+    },
+    "step1": {
+      "title": "Choose a Starting Point",
+      "subtitle": "Pick a template that matches your needs, or start from scratch. You can customize everything later.",
+      "sectionsCount": "{{n}} section(s)",
+      "questionsCount": "{{n}} question(s)",
+      "continue": "Continue"
+    },
+    "step2": {
+      "title": "Tell Us About Your Form",
+      "subtitle": "Give your form a name and description so your team knows what it's for.",
+      "formName": "Form Name *",
+      "formNameTooltip": "A clear name helps your team identify this form later",
+      "formNamePlaceholder": "e.g. Pre-Visit Intake Form",
+      "formNameHint": "Example: New Patient Intake, Post-Surgery Follow-up",
+      "description": "Description",
+      "descriptionTooltip": "Optional — describe when this form should be used",
+      "descriptionPlaceholder": "Describe what this form collects and when patients should fill it out...",
+      "setDefaultSchema": "Set as default schema",
+      "setDefaultTooltip": "The default schema opens automatically when patients start a new intake",
+      "usingTemplate": "Using template: {{name}} with {{sections}} sections and {{questions}} questions",
+      "continueToBuild": "Continue to Build"
+    },
+    "step3": {
+      "title": "Build Your Form",
+      "subtitle": "Add questions to your form. Click on any section or group name to edit it.",
+      "quickAddQuestions": "Quick Add Questions",
+      "quickAddHint": "Click a preset to add it to the selected group below, or type a custom question.",
+      "addingTo": "Adding to:",
+      "customQuestionPlaceholder": "Type a custom question...",
+      "addCustomTooltip": "Add custom question",
+      "selected": "Selected:",
+      "addToForm": "Add to Form",
+      "addToWhichGroup": "Add to which group?",
+      "hiddenFromPatient": "hidden from patient",
+      "formStructure": "Form Structure",
+      "sectionButton": "Section",
+      "emptyTitle": "Your form is empty",
+      "emptyDesc": "Add your first section to get started. A section is like a chapter in your form.",
+      "addFirstSection": "Add First Section",
+      "editNameTooltip": "Edit name",
+      "deleteSectionTooltip": "Delete section",
+      "deleteGroupTooltip": "Delete group",
+      "doctorOnlyTooltip": "Doctor-only group — hidden from patient",
+      "removeQuestionTooltip": "Remove question",
+      "requiredTooltip": "Required",
+      "hiddenFromPatientFull": "Hidden from patient (doctor/staff only)",
+      "reviewAndFinish": "Review & Finish"
+    },
+    "step4": {
+      "title": "Review Your Form",
+      "subtitle": "Here's a summary of your form. You can save as draft or publish it right away.",
+      "statSections": "Sections",
+      "statGroups": "Groups",
+      "statQuestions": "Questions",
+      "statDefault": "Default",
+      "structurePreview": "Form Structure Preview",
+      "saving": "Saving...",
+      "saveDraft": "Save Draft",
+      "publishing": "Publishing...",
+      "publishForm": "Publish Form"
+    },
+    "back": "Back",
+    "change": "Change",
+    "sectionNamePlaceholder": "Section name",
+    "groupNamePlaceholder": "Group name",
+    "addQuestion": "Add Question",
+    "addGroup": "Add Group",
+    "publishValidation": {
+      "howToFixBody": "Go back to the Build step and add the missing fields. Use the \"Quick Add\" presets panel on the left to add required fields like Full Name, Email, Phone, Date of Birth, Gender, and Occupation with the Required flag enabled."
+    },
+    "templates": {
+      "general-intake": {
+        "name": "General Patient Intake",
+        "description": "Standard pre-visit form with patient demographics, contact info, and reason for visit."
+      },
+      "pain-assessment": {
+        "name": "Pain Assessment",
+        "description": "Detailed pain evaluation with body map, pain scale, and symptom tracking."
+      },
+      "medical-history": {
+        "name": "Medical History",
+        "description": "Comprehensive medical history including conditions, medications, allergies, and surgeries."
+      },
+      "blank": {
+        "name": "Start from Scratch",
+        "description": "Begin with an empty form and build it your way with guided help along the way."
+      }
+    }
+  },
+  "submissions": {
+    "header": {
+      "title": "Submissions",
+      "totalCount": "{{n}} Total",
+      "subtitle": "Manage pre-visit intake questionnaires submitted by patients"
+    },
+    "error": {
+      "title": "Failed to load submissions",
+      "message": "Failed to load intake submissions. Please try again."
+    },
+    "empty": {
+      "noMatchTitle": "No matching submissions",
+      "noMatchDesc": "No submissions match your current filters. Try adjusting your search or status filter.",
+      "emptyTitle": "No submissions yet",
+      "emptyDesc": "Patient intake submissions will appear here once patients complete their pre-visit forms.",
+      "clearAllFilters": "Clear All Filters"
+    },
+    "table": {
+      "patient": "Patient",
+      "intakeCode": "Intake Code",
+      "status": "Status",
+      "painRegions": "Pain Regions",
+      "submitted": "Submitted",
+      "action": "Action"
+    },
+    "row": {
+      "codeNA": "#N/A",
+      "painRegion": "{{n}} pain region",
+      "painRegions": "{{n}} pain regions",
+      "viewSubmissionAria": "View submission details"
+    },
+    "pagination": {
+      "showing": "Showing {{from}}–{{to}} of {{total}} submissions",
+      "prevPage": "Previous page",
+      "nextPage": "Next page",
+      "perPage": "per page",
+      "perPageAria": "Items per page"
+    },
+    "stats": {
+      "totalSubmissions": "Total Submissions",
+      "pending": "Pending",
+      "inReview": "In Review",
+      "approved": "Approved",
+      "waiting": "Waiting",
+      "todaysArrivals": "Today's Arrivals"
+    },
+    "filters": {
+      "searchPlaceholder": "Search patient name, submission code, or symptoms...",
+      "searchAria": "Search submissions",
+      "clearSearch": "Clear search",
+      "clearSearchText": "Clear search text",
+      "sortNewestFirst": "Newest First",
+      "sortOldestFirst": "Oldest First",
+      "sortPatientName": "Patient Name (A-Z)",
+      "sortPainRegions": "Pain Regions (High to Low)",
+      "listViewTitle": "List view",
+      "gridViewTitle": "Grid view",
+      "listViewAria": "Switch to list view",
+      "gridViewAria": "Switch to grid view",
+      "sortAria": "Sort submissions",
+      "viewModeGroupAria": "View mode toggle",
+      "clearAllTitle": "Clear all active filters"
+    }
+  },
+  "detail": {
+    "loading": "Loading submission details...",
+    "errorTitle": "Failed to Load",
+    "errorMessage": "Failed to load submission details. Please try again.",
+    "invalidId": "Invalid submission ID.",
+    "breadcrumb": "Submissions",
+    "actions": "Actions",
+    "convertDialog": {
+      "title": "Convert to Patient",
+      "subtitle": "Create an active patient profile from this intake submission",
+      "info": "Converting this submission will create a new patient record in the system using the pre-visit intake data provided.",
+      "missingFields": "Missing required fields:",
+      "profileSummary": "Patient Profile Summary",
+      "readyToImport": "Ready to Import",
+      "incomplete": "Incomplete",
+      "fullName": "Full Name",
+      "email": "Email",
+      "phone": "Phone",
+      "confirm": "Confirm & Create Patient",
+      "dialogAria": "Convert to patient dialog",
+      "cancelAria": "Cancel conversion",
+      "confirmAria": "Confirm convert to patient"
+    },
+    "viewer": {
+      "title": "Submitted Answers",
+      "editingBadge": "Editing",
+      "schemaUnavailable": "Form schema unavailable — can't edit answers without it.",
+      "sectionFallback": "Section",
+      "groupFallback": "Group",
+      "questionFallback": "Question",
+      "noAnswers": "No submitted answers available.",
+      "editSubmissionAria": "Edit submission",
+      "cancelEditingAria": "Cancel editing"
+    },
+    "summary": {
+      "submitted": "Submitted",
+      "submissionId": "Submission ID",
+      "formName": "Form Name",
+      "version": "Version",
+      "reviewedAt": "Reviewed At",
+      "patientId": "Patient ID",
+      "unnamedPatient": "Unnamed patient",
+      "formDetails": "Form Details"
+    },
+    "errors": {
+      "notPermitted": "Not permitted",
+      "notPermittedBody": "You do not have permission to edit this submission."
+    }
+  },
+  "painMap": {
+    "title": "Pain Map",
+    "instructions": "Tap the regions where you feel pain, on the front or back view.",
+    "legendSelected": "Selected",
+    "legendTapToSelect": "Tap to select",
+    "front": "Front",
+    "back": "Back",
+    "selectedRegions": "Selected regions",
+    "tapRegionHint": "Tap a body region above to mark pain.",
+    "removeRegionAria": "Remove region",
+    "aria": "Pain map"
+  },
+  "renderer": {
+    "noSchema": "No form schema provided.",
+    "noSections": "This form has no sections defined yet.",
+    "noQuestionsInGroup": "No questions in this group",
+    "enterAnswer": "Enter your answer",
+    "emailPlaceholder": "email@example.com",
+    "phonePlaceholder": "(555) 123-4567",
+    "selectOption": "Select an option",
+    "selectOptions": "Select options",
+    "booleanYes": "Yes",
+    "fileUnavailable": "File upload is not available",
+    "fileUnavailableDesc": "This feature will be available in a future update",
+    "painPoint": {
+      "intensity": "Intensity",
+      "region": "Region",
+      "side": "Side",
+      "description": "Description",
+      "regionPlaceholder": "e.g. lumbar spine, shoulder, knee",
+      "sidePlaceholder": "left, right, bilateral",
+      "descriptionPlaceholder": "Describe the pain"
+    },
+    "summaryFallback": "Auto-generated clinical summary will appear here once the intake is submitted.",
+    "validation": {
+      "required": "This field is required.",
+      "email": "Please enter a valid email address.",
+      "pattern": "Value does not match the required format.",
+      "min": "Value must be at least {{min}}.",
+      "max": "Value must be at most {{max}}.",
+      "minLength": "Must be at least {{requiredLength}} characters.",
+      "maxLength": "Must be at most {{requiredLength}} characters.",
+      "url": "Please enter a valid URL."
+    },
+    "aria": {
+      "required": "required",
+      "conditionalQuestion": "Conditional question",
+      "dynamicIntakeForm": "Dynamic intake form",
+      "fileUploadPlaceholder": "File upload placeholder"
+    }
+  },
+  "engine": {
+    "operators": {
+      "equals": "Equals",
+      "notEquals": "Not Equals",
+      "contains": "Contains",
+      "greaterThan": "Greater Than",
+      "lessThan": "Less Than",
+      "in": "In",
+      "notIn": "Not In"
+    },
+    "rules": {
+      "required": "Required",
+      "pattern": "Pattern",
+      "min": "Min",
+      "max": "Max",
+      "minLength": "Min Length",
+      "maxLength": "Max Length",
+      "email": "Email",
+      "url": "URL"
+    },
+    "validation": {
+      "versionMin": "Schema version must be at least 1",
+      "sectionRequired": "Schema must have at least one section",
+      "duplicateSection": "Duplicate section ID: {{id}}",
+      "duplicateGroup": "Duplicate group ID: {{id}}",
+      "duplicateQuestion": "Duplicate question ID: {{id}}",
+      "conditionMissingTarget": "Condition references non-existent question: {{id}}"
+    }
+  },
+  "schemaText": {
+    "fullName": "Full Name",
+    "emailAddress": "Email Address",
+    "phoneNumber": "Phone Number",
+    "patientFreeTime": "Patient Free Time",
+    "gender": "Gender",
+    "dateOfBirth": "Date of Birth",
+    "chiefComplaint": "Chief Complaint",
+    "injuryDate": "Injury Date",
+    "patientType": "Patient Type",
+    "optMale": "Male",
+    "optFemale": "Female",
+    "optOrthopedic": "Orthopedic",
+    "optNeurological": "Neurological",
+    "optPediatric": "Pediatric",
+    "optGeneralOther": "GeneralOther",
+    "phJohnDoe": "e.g. John Doe",
+    "phEmail": "john@example.com",
+    "phPhone": "(555) 000-0000",
+    "phFreeTime": "e.g. Weekdays after 5pm",
+    "phChiefComplaint": "Primary reason for the visit",
+    "sectionRequiredPatientInfo": "Required Patient Information",
+    "groupPatientDetails": "Patient Details",
+    "groupMedicalInformation": "Medical Information",
+    "clinicalSummary": "Clinical Summary",
+    "addressCity": "Address / City",
+    "jobOccupation": "Job / Occupation",
+    "married": "Married",
+    "referralSource": "How did you know us?",
+    "previousInjuries": "Previous Injuries",
+    "notes": "Notes",
+    "optSocialMedia": "Social Media",
+    "optFriendOrFamily": "Friend or Family",
+    "optGoogleSearch": "Google Search",
+    "optDoctorReferral": "Doctor Referral",
+    "optAdvertisement": "Advertisement",
+    "phFreeTimeLong": "e.g. Weekdays after 5pm, weekends anytime",
+    "phChiefComplaintLong": "Primary reason for the visit (moved here from the pain map)",
+    "phGiza": "e.g. Giza, Egypt",
+    "phSoftwareEngineer": "e.g. Software Engineer",
+    "phPriorInjuries": "e.g. None, or describe prior injuries",
+    "phNotes": "e.g. Pain worsens after long sitting.",
+    "descCoreFields": "Core fields required for every intake form — cannot be removed",
+    "descDemographicsContact": "Demographics and contact information",
+    "descPatientDemographics": "Basic patient demographics and contact details",
+    "descHowToReach": "How to reach the patient",
+    "descAdditionalInfo": "Additional patient information",
+    "descPresentingCondition": "Details about the presenting condition",
+    "descClinicianClassification": "Classification used by clinicians",
+    "descReasonVisit": "Reason for today's visit",
+    "descDescribePain": "Describe your pain",
+    "descPreviousTreatment": "Previous treatments and history",
+    "descHealthBackground": "Your health background",
+    "descLifestyleFactors": "Lifestyle factors that may affect your health"
+  }
+}

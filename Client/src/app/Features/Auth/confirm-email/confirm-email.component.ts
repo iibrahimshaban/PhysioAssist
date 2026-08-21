@@ -3,12 +3,13 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputOtpModule } from 'primeng/inputotp';
+import { TranslocoModule } from '@jsverse/transloco';
 import { AuthService } from '../../../Core/Services/auth.service';
 
 @Component({
   selector: 'app-confirm-email',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ButtonModule, InputOtpModule],
+  imports: [ReactiveFormsModule, RouterLink, TranslocoModule, ButtonModule, InputOtpModule],
   templateUrl: './confirm-email.component.html',
 })
 export class ConfirmEmailComponent implements OnInit {

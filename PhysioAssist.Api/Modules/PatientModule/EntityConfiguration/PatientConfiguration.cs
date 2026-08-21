@@ -32,10 +32,17 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
         builder.Property(p => p.Status)
                .HasConversion<int>();
 
+        builder.HasOne(p => p.Clinic)
+            .WithMany(c => c.Patients)
+            .HasForeignKey(p => p.ClinicId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired();
+
         builder.HasIndex(p => p.QRCodeToken)
                .IsUnique();
 
-        builder.HasIndex(p => p.EmailAddress)
-               .IsUnique();
+        builder.HasIndex(p => new { p.ClinicId, p.EmailAddress })
+               .IsUnique()
+               .HasDatabaseName("IX_Patient_ClinicId_EmailAddress");
     }
 }

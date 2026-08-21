@@ -3,11 +3,12 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
+import { TranslocoModule } from '@jsverse/transloco';
 import { AuthService } from '../../../Core/Services/auth.service';
 
 @Component({
   selector: 'app-google-onboarding',
-  imports: [ReactiveFormsModule, InputTextModule, ButtonModule],
+  imports: [ReactiveFormsModule, TranslocoModule, InputTextModule, ButtonModule],
   templateUrl: './google-onboarding.component.html',
   styleUrl: './google-onboarding.component.css',
 })

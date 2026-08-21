@@ -3,6 +3,8 @@
 public class Patient : AuditableEntity
 {
     public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid ClinicId { get; set; }
+    public Auth.Entities.Clinic Clinic { get; set; } = default!;
     public string FullName { get; set; } = string.Empty;
     public DateTime? DateOfBirth { get; set; }
     public string Gender { get; set; } = string.Empty;

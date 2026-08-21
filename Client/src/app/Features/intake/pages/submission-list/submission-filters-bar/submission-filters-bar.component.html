@@ -8,17 +8,17 @@
         type="text"
         [ngModel]="searchTerm"
         (ngModelChange)="onSearchInput($event)"
-        placeholder="Search patient name, submission code, or symptoms..."
+        [placeholder]="'intake.submissions.filters.searchPlaceholder' | transloco"
         class="filters-search-input"
-        aria-label="Search submissions" />
+        [attr.aria-label]="'intake.submissions.filters.searchAria' | transloco" />
 
       @if (searchTerm) {
         <button
           type="button"
           (click)="onClearSearch()"
           class="filters-clear-btn"
-          title="Clear search"
-          aria-label="Clear search text">
+          [title]="'intake.submissions.filters.clearSearch' | transloco"
+          [attr.aria-label]="'intake.submissions.filters.clearSearchText' | transloco">
           <i class="pi pi-times"></i>
         </button>
       }
@@ -34,23 +34,23 @@
             [ngModel]="sortOption"
             (ngModelChange)="onSortSelect($event)"
             class="filters-sort-select"
-            aria-label="Sort submissions">
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="name">Patient Name (A-Z)</option>
-            <option value="pain">Pain Regions (High to Low)</option>
+            [attr.aria-label]="'intake.submissions.filters.sortAria' | transloco">
+            <option value="newest">{{ 'intake.submissions.filters.sortNewestFirst' | transloco }}</option>
+            <option value="oldest">{{ 'intake.submissions.filters.sortOldestFirst' | transloco }}</option>
+            <option value="name">{{ 'intake.submissions.filters.sortPatientName' | transloco }}</option>
+            <option value="pain">{{ 'intake.submissions.filters.sortPainRegions' | transloco }}</option>
           </select>
         </div>
 
         <!-- View Toggle -->
-        <div class="filters-view-group" role="group" aria-label="View mode toggle">
+        <div class="filters-view-group" role="group" [attr.aria-label]="'intake.submissions.filters.viewModeGroupAria' | transloco">
           <button
             type="button"
             class="filters-view-btn"
             [class.active]="viewMode === 'cards'"
             (click)="onViewModeToggle('cards')"
-            title="Card Grid View"
-            aria-label="Switch to Card Grid View">
+            [title]="'intake.submissions.filters.gridViewTitle' | transloco"
+            [attr.aria-label]="'intake.submissions.filters.gridViewAria' | transloco">
             <i class="pi pi-th-large"></i>
           </button>
           <button
@@ -58,8 +58,8 @@
             class="filters-view-btn"
             [class.active]="viewMode === 'table'"
             (click)="onViewModeToggle('table')"
-            title="Compact Table View"
-            aria-label="Switch to Table View">
+            [title]="'intake.submissions.filters.listViewTitle' | transloco"
+            [attr.aria-label]="'intake.submissions.filters.listViewAria' | transloco">
             <i class="pi pi-list"></i>
           </button>
         </div>
@@ -76,7 +76,7 @@
           class="filters-chip"
           [class.active]="selectedStatus === opt.value"
           (click)="onStatusSelect(opt.value)">
-          <span>{{ opt.label }}</span>
+          <span>{{ opt.label | transloco }}</span>
           @if (opt.count !== undefined) {
             <span class="filters-chip-count">{{ opt.count }}</span>
           }
@@ -89,9 +89,9 @@
         type="button"
         (click)="clearFilters.emit()"
         class="filters-clear-chip"
-        title="Clear all active filters">
+        [title]="'intake.submissions.filters.clearAllTitle' | transloco">
         <i class="pi pi-filter-slash"></i>
-        <span>Reset</span>
+        <span>{{ 'intake.common.reset' | transloco }}</span>
       </button>
     }
   </div>

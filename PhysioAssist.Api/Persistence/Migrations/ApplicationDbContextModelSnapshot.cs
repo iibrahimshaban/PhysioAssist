@@ -164,6 +164,9 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<Guid>("ClinicId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
@@ -231,6 +234,9 @@ namespace PhysioAssist.Api.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClinicId")
+                        .HasDatabaseName("IX_ApplicationUser_ClinicId");
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -240,6 +246,24 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Auth.Entities.Clinic", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Clinic", "auth");
                 });
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.Auth.Entities.Doctor", b =>
@@ -913,6 +937,9 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("ClinicId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -972,13 +999,14 @@ namespace PhysioAssist.Api.Persistence.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.HasIndex("EmailAddress")
-                        .IsUnique();
-
                     b.HasIndex("QRCodeToken")
                         .IsUnique();
 
                     b.HasIndex("UpdatedById");
+
+                    b.HasIndex("ClinicId", "EmailAddress")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Patient_ClinicId_EmailAddress");
 
                     b.ToTable("Patient", "patient");
                 });
@@ -1492,6 +1520,17 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", b =>
+                {
+                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.Clinic", "Clinic")
+                        .WithMany("Users")
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
+                });
+
             modelBuilder.Entity("PhysioAssist.Api.Modules.Auth.Entities.Doctor", b =>
                 {
                     b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "User")
@@ -1705,6 +1744,12 @@ namespace PhysioAssist.Api.Persistence.Migrations
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.PatientModule.Entities.Patient", b =>
                 {
+                    b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.Clinic", "Clinic")
+                        .WithMany("Patients")
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
@@ -1714,6 +1759,8 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.HasOne("PhysioAssist.Api.Modules.Auth.Entities.ApplicationUser", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById");
+
+                    b.Navigation("Clinic");
 
                     b.Navigation("CreatedBy");
 
@@ -1861,6 +1908,13 @@ namespace PhysioAssist.Api.Persistence.Migrations
                     b.Navigation("OtpEntries");
 
                     b.Navigation("RefreshTokens");
+                });
+
+            modelBuilder.Entity("PhysioAssist.Api.Modules.Auth.Entities.Clinic", b =>
+                {
+                    b.Navigation("Patients");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.InitialReportModule.Entities.InitialReport", b =>

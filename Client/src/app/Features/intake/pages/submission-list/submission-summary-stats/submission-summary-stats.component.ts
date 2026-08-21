@@ -1,11 +1,12 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslocoModule } from '@jsverse/transloco';
 import { IntakeStatus } from '../../../models';
 
 @Component({
   selector: 'app-submission-summary-stats',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslocoModule],
   templateUrl: './submission-summary-stats.component.html',
   styleUrl: './submission-summary-stats.component.css'
 })

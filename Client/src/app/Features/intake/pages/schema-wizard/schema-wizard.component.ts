@@ -9,7 +9,8 @@ import { SelectModule } from 'primeng/select';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { DynamicFormEngineService } from '../../services/dynamic-form-engine.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
@@ -300,6 +301,7 @@ const QUESTION_PRESETS: QuestionPreset[] = [
   imports: [
     CommonModule,
     FormsModule,
+    TranslocoModule,
     ButtonModule,
     InputTextModule,
     TextareaModule,
@@ -315,6 +317,7 @@ export class SchemaWizardComponent {
   private readonly apiService = inject(IntakeApiService);
   private readonly engine = inject(DynamicFormEngineService);
   private readonly snackbar = inject(SnackbarService);
+  private readonly translate = inject(TranslocoService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -417,15 +420,15 @@ export class SchemaWizardComponent {
       if (!found) {
         const byText = allQuestions.find(q => CORE_FIELD_TEXTS.has(q.text));
         if (!byText) {
-          issues.push({ fieldName: coreId.replace('question_default_', '').replace('_', ' '), issue: 'Missing from schema' });
+          issues.push({ fieldName: coreId.replace('question_default_', '').replace('_', ' '), issue: this.translate.translate('intake.builder.publishValidation.missingFromSchema') });
           continue;
         }
         if (!byText.required) {
-          issues.push({ fieldName: byText.text, issue: 'Required flag is disabled' });
+          issues.push({ fieldName: byText.text, issue: this.translate.translate('intake.builder.publishValidation.requiredFlagDisabled') });
         }
       } else {
         if (!found.required) {
-          issues.push({ fieldName: found.text, issue: 'Required flag is disabled' });
+          issues.push({ fieldName: found.text, issue: this.translate.translate('intake.builder.publishValidation.requiredFlagDisabled') });
         }
       }
     }
@@ -436,11 +439,11 @@ export class SchemaWizardComponent {
   readonly canPublish = computed(() => this.prePublishValidation().length === 0);
 
   readonly stepProgress = computed(() => {
-    const steps: { key: WizardStep; label: string; icon: string; completed: boolean }[] = [
-      { key: 'template', label: 'Template', icon: 'pi pi-template', completed: this.selectedTemplateId() !== null },
-      { key: 'details', label: 'Details', icon: 'pi pi-info-circle', completed: this.schemaName().trim().length > 0 },
-      { key: 'build', label: 'Build', icon: 'pi pi-pencil', completed: this.canProceedFromBuild() },
-      { key: 'review', label: 'Review', icon: 'pi pi-check-circle', completed: false },
+    const steps: { key: WizardStep; labelKey: string; icon: string; completed: boolean }[] = [
+      { key: 'template', labelKey: 'intake.wizard.steps.template', icon: 'pi pi-template', completed: this.selectedTemplateId() !== null },
+      { key: 'details', labelKey: 'intake.wizard.steps.details', icon: 'pi pi-info-circle', completed: this.schemaName().trim().length > 0 },
+      { key: 'build', labelKey: 'intake.wizard.steps.build', icon: 'pi pi-pencil', completed: this.canProceedFromBuild() },
+      { key: 'review', labelKey: 'intake.wizard.steps.review', icon: 'pi pi-check-circle', completed: false },
     ];
     return steps;
   });
@@ -827,12 +830,12 @@ export class SchemaWizardComponent {
     this.apiService.createFormSchema(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (created) => {
         this.saving.set(false);
-        this.snackbar.success('Schema saved', ['Draft created successfully']);
+        this.snackbar.success(...this.snack('intake.builder.snackbar.savedCreated'));
         this.router.navigate(['/app/intake/schemas/edit', created.id], { replaceUrl: true });
       },
       error: (err: any) => {
         this.saving.set(false);
-        this.snackbar.error('Save failed', [this.extractError(err)]);
+        this.snackbar.error(...this.snack('intake.builder.snackbar.saveFailed'));
       }
     });
   }
@@ -862,24 +865,30 @@ export class SchemaWizardComponent {
           .subscribe({
             next: () => {
               this.publishing.set(false);
-              this.snackbar.success('Schema published', ['Form schema is now live']);
+              this.snackbar.success(...this.snack('intake.builder.snackbar.published'));
               this.router.navigate(['/app/intake/schemas']);
             },
             error: (err: any) => {
               this.publishing.set(false);
-              this.snackbar.error('Publish failed', [this.extractError(err)]);
+              this.snackbar.error(...this.snack('intake.builder.snackbar.publishFailed'));
             }
           });
       },
       error: (err: any) => {
         this.publishing.set(false);
-        this.snackbar.error('Save failed', [this.extractError(err)]);
+        this.snackbar.error(...this.snack('intake.builder.snackbar.saveFailed'));
       }
     });
   }
 
   goBack(): void {
     this.router.navigate(['/app/intake/schemas']);
+  }
+
+  private snack(key: string): [string, string[]] {
+    const value = this.translate.translate(key);
+    const [title, description = ''] = Array.isArray(value) ? value : [value, ''];
+    return [title, description ? [description] : []];
   }
 
   private extractError(err: any): string {
@@ -889,6 +898,6 @@ export class SchemaWizardComponent {
       const msgs = Object.values(body.errors as Record<string, string[]>).flat();
       return msgs.join('; ');
     }
-    return body?.title || 'Unexpected error';
+    return body?.title || this.translate.translate('intake.schemaList.errors.unexpected');
   }
 }

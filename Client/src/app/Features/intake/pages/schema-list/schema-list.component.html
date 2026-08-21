@@ -1,4 +1,4 @@
-<app-intake-page-container>
+﻿<app-intake-page-container>
 <div class="intake-module form-templates-page">
   <p-confirmDialog [style]="{ width: '420px' }" ariaLabel="Confirmation dialog" />
 
@@ -6,17 +6,17 @@
   <div class="intake-page-header">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="page-title">Form templates</h1>
-        <p class="page-subtitle" style="margin-bottom: 1.5rem;">All schemas you've built for patient intake</p>
+        <h1 class="page-title">{{ 'intake.schemaList.header.title' | transloco }}</h1>"
+        <p class="page-subtitle" style="margin-bottom: 1.5rem;">{{ 'intake.schemaList.header.subtitle' | transloco }}</p>
       </div>
       <div class="flex items-center gap-2">
         <button class="btn-outline" (click)="openWizard()">
           <i class="pi pi-magic"></i>
-          Guided Wizard
+          {{ 'intake.schemaList.header.guidedWizard' | transloco }}
         </button>
         <button class="btn-primary" (click)="createSchema()">
           <i class="pi pi-plus"></i>
-          New form
+          {{ 'intake.schemaList.header.newForm' | transloco }}
         </button>
       </div>
     </div>
@@ -28,15 +28,15 @@
       <div class="default-card default-card--loading">
         <div class="default-card-badge default-card-badge--loading">
           <i class="pi pi-spinner pi-spin"></i>
-          <span>Loading default template</span>
+          <span>{{ 'intake.schemaList.loadingDefault.title' | transloco }}</span>
         </div>
         <div class="default-card-body">
           <div class="default-card-icon default-card-icon--loading">
             <i class="pi pi-file"></i>
           </div>
           <div class="default-card-content">
-            <span class="default-card-title">Loading your default intake form...</span>
-            <p class="default-card-desc">Please wait while we load the default template for the schema page.</p>
+            <span class="default-card-title">{{ 'intake.schemaList.loadingDefault.desc' | transloco }}</span>
+            <p class="default-card-desc">{{ 'intake.schemaList.loadingDefault.subDesc' | transloco }}</p>
           </div>
         </div>
       </div>
@@ -46,7 +46,7 @@
       <div class="default-card" role="button" tabindex="0" (click)="editSchema(defaultForm()!.id)">
         <div class="default-card-badge">
           <i class="pi pi-star-fill"></i>
-          <span>Default Template</span>
+          <span>{{ 'intake.schemaList.default.badge' | transloco }}</span>
         </div>
 
         <div class="default-card-body">
@@ -59,7 +59,7 @@
             @if (defaultForm()!.description) {
               <p class="default-card-desc">{{ defaultForm()!.description }}</p>
             } @else {
-              <p class="default-card-desc">This default intake form is used when new patients begin their intake process.</p>
+              <p class="default-card-desc">{{ 'intake.schemaList.default.fallbackDesc' | transloco }}</p>
             }
           </div>
         </div>
@@ -67,42 +67,42 @@
         <div class="default-card-summary">
           <div class="default-card-stat">
             <span class="default-card-stat-value">{{ defaultFormSummary()?.fieldsCount ?? getFieldsCount(defaultForm()!.schemaJson) }}</span>
-            <span class="default-card-stat-label">Fields</span>
+            <span class="default-card-stat-label">{{ 'intake.schemaList.stats.fields' | transloco }}</span>
           </div>
           <div class="default-card-stat">
             <span class="default-card-stat-value">{{ defaultFormSummary()?.submissionCount ?? '-' }}</span>
-            <span class="default-card-stat-label">Submissions</span>
+            <span class="default-card-stat-label">{{ 'intake.schemaList.stats.submissions' | transloco }}</span>
           </div>
           <div class="default-card-stat">
             <span class="default-card-stat-value">{{ relativeTime(defaultForm()!.updatedAt || defaultForm()!.createdAt) }}</span>
-            <span class="default-card-stat-label">Updated</span>
+            <span class="default-card-stat-label">{{ 'intake.schemaList.stats.updated' | transloco }}</span>
           </div>
         </div>
 
         <div class="default-card-meta">
           <span class="default-meta-item default-meta-item--id">{{ getFriendlyFormId(defaultForm()!) }}</span>
           <span class="default-meta-item">{{ getStatusLabel(defaultForm()!.status) }}</span>
-          <span class="default-meta-item">Version {{ defaultForm()!.version }}</span>
+          <span class="default-meta-item">{{ 'intake.schemaList.meta.version' | transloco: { v: defaultForm()!.version } }}</span>
         </div>
 
         <div class="default-card-actions-row" (click)="$event.stopPropagation()">
-          <button class="btn-outline btn-sm" (click)="editSchema(defaultForm()!.id)" pTooltip="Edit default form">
-            <i class="pi pi-pencil"></i> Edit
+          <button class="btn-outline btn-sm" (click)="editSchema(defaultForm()!.id)" [pTooltip]="'intake.schemaList.default.editTooltip' | transloco">
+            <i class="pi pi-pencil"></i> {{ 'intake.schemaList.default.edit' | transloco }}
           </button>
-          <button class="btn-outline btn-sm" (click)="previewSchema(defaultForm()!)" pTooltip="Preview default form">
-            <i class="pi pi-eye"></i> Preview
+          <button class="btn-outline btn-sm" (click)="previewSchema(defaultForm()!)" [pTooltip]="'intake.schemaList.default.previewTooltip' | transloco">
+            <i class="pi pi-eye"></i> {{ 'intake.schemaList.default.preview' | transloco }}
           </button>
-          <button class="btn-outline btn-sm" (click)="duplicateSchema(defaultForm()!)" pTooltip="Duplicate default form">
-            <i class="pi pi-copy"></i> Duplicate
+          <button class="btn-outline btn-sm" (click)="duplicateSchema(defaultForm()!)" [pTooltip]="'intake.schemaList.default.duplicateTooltip' | transloco">
+            <i class="pi pi-copy"></i> {{ 'intake.schemaList.default.duplicate' | transloco }}
           </button>
           @if (defaultForm()?.status === FormSchemaStatus.Published) {
-            <button class="btn-outline btn-sm" (click)="openQrDialog(defaultForm()!)" pTooltip="QR Code">
+            <button class="btn-outline btn-sm" (click)="openQrDialog(defaultForm()!)" [pTooltip]="'intake.schemaList.default.qrTooltip' | transloco">
               <i class="pi pi-qrcode"></i> QR
             </button>
           }
           @if (defaultForm()!.status === FormSchemaStatus.Draft) {
-            <button class="btn-primary btn-sm" (click)="publishSchema(defaultForm()!)" pTooltip="Publish default form">
-              <i class="pi pi-check-circle"></i> Publish
+            <button class="btn-primary btn-sm" (click)="publishSchema(defaultForm()!)" [pTooltip]="'intake.schemaList.default.publishTooltip' | transloco">
+              <i class="pi pi-check-circle"></i> {{ 'intake.schemaList.default.publish' | transloco }}
             </button>
           }
         </div>
@@ -113,19 +113,19 @@
       <div class="default-card default-card--empty" (click)="generateDefaultForm()">
         <div class="default-card-badge default-card-badge--empty">
           <i class="pi pi-star"></i>
-          <span>No Default Template</span>
+          <span>{{ 'intake.schemaList.default.noDefaultTitle' | transloco }}</span>
         </div>
         <div class="default-card-body">
           <div class="default-card-icon default-card-icon--empty">
             <i class="pi pi-plus"></i>
           </div>
           <div class="default-card-content">
-            <span class="default-card-title">Set a default intake form</span>
-            <p class="default-card-desc">Click to auto-generate a default template with all question types, or mark an existing form as default.</p>
+            <span class="default-card-title">{{ 'intake.schemaList.default.setDefault' | transloco }}</span>
+            <p class="default-card-desc">{{ 'intake.schemaList.default.generateHint' | transloco }}</p>
           </div>
           <div class="default-card-actions" (click)="$event.stopPropagation()">
             <button class="btn-primary btn-sm" (click)="generateDefaultForm()">
-              <i class="pi pi-sparkles"></i> Generate Default
+              <i class="pi pi-sparkles"></i> {{ 'intake.schemaList.default.generate' | transloco }}
             </button>
           </div>
         </div>
@@ -138,13 +138,13 @@
     <div class="search-bar">
       <i class="pi pi-search search-icon"></i>
       <input type="text" [(ngModel)]="searchTerm" (input)="onSearch()"
-        placeholder="Search form templates" class="search-input" />
+        [placeholder]="'intake.schemaList.toolbar.searchPlaceholder' | transloco" class="search-input" />
     </div>
     <div class="sort-control">
       <i class="pi pi-sort-alt sort-icon"></i>
       <select class="sort-select" [value]="sortBy()" (change)="setSort($any($event.target).value)">
         @for (opt of sortOptions; track opt.value) {
-          <option [value]="opt.value">{{ opt.label }}</option>
+          <option [value]="opt.value">{{ opt.labelKey | transloco }}</option>
         }
       </select>
     </div>
@@ -152,10 +152,10 @@
 
   <!-- Status Filter Tabs -->
   <div class="filter-tabs">
-    <button class="filter-tab" [class.filter-tab--active]="activeTab() === 'all'" (click)="setTab('all')">All</button>
-    <button class="filter-tab" [class.filter-tab--active]="activeTab() === 'published'" (click)="setTab('published')">Published</button>
-    <button class="filter-tab" [class.filter-tab--active]="activeTab() === 'draft'" (click)="setTab('draft')">Drafts</button>
-    <button class="filter-tab" [class.filter-tab--active]="activeTab() === 'archived'" (click)="setTab('archived')">Archived</button>
+    <button class="filter-tab" [class.filter-tab--active]="activeTab() === 'all'" (click)="setTab('all')">{{ 'intake.schemaList.toolbar.tabAll' | transloco }}</button>
+    <button class="filter-tab" [class.filter-tab--active]="activeTab() === 'published'" (click)="setTab('published')">{{ 'intake.schemaList.toolbar.tabPublished' | transloco }}</button>
+    <button class="filter-tab" [class.filter-tab--active]="activeTab() === 'draft'" (click)="setTab('draft')">{{ 'intake.schemaList.toolbar.tabDrafts' | transloco }}</button>
+    <button class="filter-tab" [class.filter-tab--active]="activeTab() === 'archived'" (click)="setTab('archived')">{{ 'intake.schemaList.toolbar.tabArchived' | transloco }}</button>
   </div>
 
   <!-- Loading Skeleton -->
@@ -187,9 +187,9 @@
   @if (!loading() && loadError()) {
     <div class="error-state" role="alert">
       <i class="pi pi-exclamation-triangle"></i>
-      <p class="error-title">Failed to load schemas</p>
+      <p class="error-title">{{ 'intake.schemaList.states.errorTitle' | transloco }}</p>
       <p class="error-text">{{ loadError() }}</p>
-      <button class="btn-outline" (click)="loadSchemas()"><i class="pi pi-refresh"></i> Try Again</button>
+      <button class="btn-outline" (click)="loadSchemas()"><i class="pi pi-refresh"></i> {{ 'intake.schemaList.states.tryAgain' | transloco }}</button>
     </div>
   }
 
@@ -198,11 +198,11 @@
     <div class="empty-state">
       <i class="pi pi-file-edit empty-icon"></i>
       <p class="empty-title">
-        @if (searchTerm || activeTab() !== 'all') { No schemas match your filters. Try a different term or tab. }
-        @else { No form templates yet. }
+        @if (searchTerm || activeTab() !== 'all') { {{ 'intake.schemaList.states.noMatchDesc' | transloco }} }
+        @else { {{ 'intake.schemaList.states.emptyTitle' | transloco }} }
       </p>
       @if (!searchTerm && activeTab() === 'all') {
-        <button class="btn-primary" (click)="createSchema()"><i class="pi pi-plus"></i> Create Your First Template</button>
+        <button class="btn-primary" (click)="createSchema()"><i class="pi pi-plus"></i> {{ 'intake.schemaList.states.createFirst' | transloco }}</button>
       }
     </div>
   }
@@ -223,15 +223,15 @@
               <div class="card-title-row">
                 <span class="card-title">{{ schema.name }}</span>
                 @if (schema.isDefault) {
-                  <span class="badge-default"><i class="pi pi-check"></i> Default</span>
+                  <span class="badge-default"><i class="pi pi-check"></i> {{ 'intake.common.default' | transloco }}</span>
                 }
                 @if (schema.originalFormId) {
-                  <span class="badge-copied"><i class="pi pi-copy"></i> Copied</span>
+                  <span class="badge-copied"><i class="pi pi-copy"></i> {{ 'intake.schemaList.card.copiedBadge' | transloco }}</span>
                 }
               </div>
               <span class="card-short-code">{{ getFriendlyFormId(schema) }}</span>
               @if (schema.originalName) {
-                <span class="card-copy-origin">Original: {{ schema.originalName }}</span>
+                <span class="card-copy-origin">{{ 'intake.schemaList.card.original' | transloco: { name: schema.originalName } }}</span>
               }
             </div>
           </div>
@@ -240,24 +240,24 @@
           @if (schema.description) {
             <p class="card-description">{{ schema.description }}</p>
           } @else {
-            <p class="card-description card-description--empty">No description</p>
+            <p class="card-description card-description--empty">{{ 'intake.schemaList.card.noDescription' | transloco }}</p>
           }
 
           <!-- Stats Row -->
           <div class="card-stats">
             <div class="stat">
               <span class="stat-value">{{ schema.fieldsCount }}</span>
-              <span class="stat-label">FIELDS</span>
+              <span class="stat-label">{{ 'intake.schemaList.stats.fields' | transloco | uppercase }}</span>
             </div>
             <div class="stat-divider"></div>
             <div class="stat">
               <span class="stat-value">{{ schema.submissionCount }}</span>
-              <span class="stat-label">SUBMISSIONS</span>
+              <span class="stat-label">{{ 'intake.schemaList.stats.submissions' | transloco | uppercase }}</span>
             </div>
             <div class="stat-divider"></div>
             <div class="stat">
               <span class="stat-value">{{ relativeTime(schema.publishedAt || schema.createdAt) }}</span>
-              <span class="stat-label">UPDATED</span>
+              <span class="stat-label">{{ 'intake.schemaList.stats.updated' | transloco | uppercase }}</span>
             </div>
           </div>
 
@@ -274,22 +274,22 @@
 
           <!-- Actions Row -->
           <div class="card-actions" (click)="$event.stopPropagation()">
-            <button class="action-btn" (click)="editSchema(schema.id)" pTooltip="Edit schema" tooltipPosition="top">
-              <i class="pi pi-pencil"></i> Edit
+            <button class="action-btn" (click)="editSchema(schema.id)" [pTooltip]="'intake.schemaList.tooltips.editSchema' | transloco" tooltipPosition="top">
+              <i class="pi pi-pencil"></i> {{ 'intake.schemaList.actions.edit' | transloco }}
             </button>
             @if (!schema.isDefault) {
               <button class="action-btn action-btn--danger" (click)="confirmDelete(schema)"
-                [disabled]="isLoading(schema.id, 'delete')" pTooltip="Delete" tooltipPosition="top">
+                [disabled]="isLoading(schema.id, 'delete')" [pTooltip]="'intake.schemaList.tooltips.delete' | transloco" tooltipPosition="top">
                 @if (isLoading(schema.id, 'delete')) { <i class="pi pi-spin pi-spinner"></i> }
                 @else { <i class="pi pi-trash"></i> }
-                Delete
+                {{ 'intake.schemaList.actions.delete' | transloco }}
               </button>
             }
-            <button class="action-btn" (click)="previewSchema(schema)" pTooltip="Preview schema" tooltipPosition="top">
-              <i class="pi pi-eye"></i> Preview
+            <button class="action-btn" (click)="previewSchema(schema)" [pTooltip]="'intake.schemaList.tooltips.previewSchema' | transloco" tooltipPosition="top">
+              <i class="pi pi-eye"></i> {{ 'intake.schemaList.actions.preview' | transloco }}
             </button>
             <button class="action-btn" (click)="duplicateSchema(schema)"
-              [disabled]="isLoading(schema.id, 'duplicate')" pTooltip="Create a copy" tooltipPosition="top">
+              [disabled]="isLoading(schema.id, 'duplicate')" [pTooltip]="'intake.schemaList.tooltips.createCopy' | transloco" tooltipPosition="top">
               @if (isLoading(schema.id, 'duplicate')) { <i class="pi pi-spin pi-spinner"></i> }
               @else { <i class="pi pi-copy"></i> }
               Duplicate
@@ -297,26 +297,26 @@
             <div class="action-spacer"></div>
             @if (schema.status === FormSchemaStatus.Archived) {
               <button class="action-btn action-btn--archive" (click)="confirmUnarchive(schema)"
-                [disabled]="isLoading(schema.id, 'unarchive')" pTooltip="Unarchive" tooltipPosition="top">
+                [disabled]="isLoading(schema.id, 'unarchive')" [pTooltip]="'intake.schemaList.tooltips.unarchive' | transloco" tooltipPosition="top">
                 @if (isLoading(schema.id, 'unarchive')) { <i class="pi pi-spin pi-spinner"></i> }
                 @else { <i class="pi pi-undo"></i> }
-                Unarchive
+                {{ 'intake.schemaList.actions.unarchive' | transloco }}
               </button>
             } @else {
               <button class="action-btn action-btn--archive" (click)="confirmArchive(schema)"
-                [disabled]="isLoading(schema.id, 'archive')" pTooltip="Archive" tooltipPosition="top">
+                [disabled]="isLoading(schema.id, 'archive')" [pTooltip]="'intake.schemaList.tooltips.archive' | transloco" tooltipPosition="top">"
                 @if (isLoading(schema.id, 'archive')) { <i class="pi pi-spin pi-spinner"></i> }
                 @else { <i class="pi pi-archive"></i> }
-                Archive
+                {{ 'intake.schemaList.actions.archive' | transloco }}
               </button>
             }
             @if (schema.status === FormSchemaStatus.Published) {
               <button class="action-icon-btn" (click)="quickShare(schema)"
-                pTooltip="Quick Share" tooltipPosition="top">
+                [pTooltip]="'intake.schemaList.tooltips.quickShare' | transloco" tooltipPosition="top">"
                 <i class="pi pi-share-alt"></i>
               </button>
               <button class="action-icon-btn" (click)="openQrDialog(schema)"
-                pTooltip="QR Code" tooltipPosition="top">
+                pTooltip="{{ 'intake.schemaList.qrDialog.qrCodeTooltip' | transloco }}" tooltipPosition="top">
                 <i class="pi pi-qrcode"></i>
               </button>
             }
@@ -328,7 +328,7 @@
     <!-- Pagination -->
     @if (totalPages() > 1) {
       <div class="pagination">
-        <span class="pagination-info">Showing {{ ((currentPage() - 1) * pageSize) + 1 }} to {{ Math.min(currentPage() * pageSize, filteredSchemas().length) }} of {{ filteredSchemas().length }} schemas</span>
+        <span class="pagination-info">{{ 'intake.schemaList.pagination.showing' | transloco: { from: ((currentPage() - 1) * pageSize) + 1, to: Math.min(currentPage() * pageSize, filteredSchemas().length), total: filteredSchemas().length } }}</span>
         <div class="pagination-controls">
           <button class="page-btn" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1"><i class="pi pi-chevron-left"></i></button>
           @for (page of pages(); track page) {
@@ -346,49 +346,49 @@
       <div class="flex items-center gap-3">
         <div class="qr-dialog-icon"><i class="pi pi-qrcode text-white"></i></div>
         <div>
-          <h3 class="font-bold text-base m-0">Generate QR Link</h3>
-          <p class="text-xs text-[var(--color-text-secondary)] m-0">Create a public intake URL</p>
+          <h3 class="font-bold text-base m-0">{{ 'intake.schemaList.qrDialog.title' | transloco }}</h3>
+          <p class="text-xs text-[var(--color-text-secondary)] m-0">{{ 'intake.schemaList.qrDialog.subtitle' | transloco }}</p>
         </div>
       </div>
     </ng-template>
     @if (!qrResult()) {
       <div class="space-y-5">
         <div>
-          <label class="qr-url-label"><i class="pi pi-clock text-xs mr-1.5 text-[var(--color-text-secondary)]"></i> Expiry (months)</label>
+          <label class="qr-url-label"><i class="pi pi-clock text-xs me-1.5 text-[var(--color-text-secondary)]"></i> {{ 'intake.schemaList.qrDialog.expiryLabel' | transloco }}</label>
           <p-inputNumber [(ngModel)]="expiryMonths" [min]="1" [max]="24" [showButtons]="true" class="w-full"></p-inputNumber>
-          <p class="text-xs text-[var(--color-text-secondary)] mt-1.5">Link will expire after this period. Max: 24 months.</p>
+          <p class="text-xs text-[var(--color-text-secondary)] mt-1.5">{{ 'intake.schemaList.qrDialog.expiryHint' | transloco }}</p>
         </div>
       </div>
     } @else {
       <div class="space-y-5 animate-fade-in-up">
         <div class="qr-success-banner">
           <div class="qr-success-icon"><i class="pi pi-check text-white text-sm"></i></div>
-          <div><p class="text-sm font-semibold text-[var(--color-success-text)] m-0">Link generated successfully</p><p class="text-xs text-[var(--color-success-text)] opacity-80 m-0">Share this URL or print the QR code</p></div>
+          <div><p class="text-sm font-semibold text-[var(--color-success-text)] m-0">{{ 'intake.schemaList.qrDialog.generatedTitle' | transloco }}</p><p class="text-xs text-[var(--color-success-text)] opacity-80 m-0">{{ 'intake.schemaList.qrDialog.generatedDesc' | transloco }}</p></div>
         </div>
         @if (qrImageUrl()) {
-          <div class="qr-image-container"><img [src]="qrImageUrl()" alt="QR code" class="qr-image" /><p class="text-xs text-[var(--color-text-secondary)] m-0 text-center">Scan to open the intake form on a phone.</p></div>
+          <div class="qr-image-container"><img [src]="qrImageUrl()" alt="QR code" class="qr-image" /><p class="text-xs text-[var(--color-text-secondary)] m-0 text-center">{{ 'intake.schemaList.qrDialog.scanHint' | transloco }}</p></div>
         }
         <div>
-          <label class="qr-url-label"><i class="pi pi-globe text-[10px] mr-1"></i> Public URL</label>
+          <label class="qr-url-label"><i class="pi pi-globe text-[10px] me-1"></i> {{ 'intake.schemaList.qrDialog.publicUrlLabel' | transloco }}</label>
           <div class="flex gap-2 mt-2">
             <input pInputText [ngModel]="qrPublicUrl()" readonly class="flex-1 !bg-[var(--color-page-bg)] font-mono text-sm min-w-0 truncate" />
-            <button class="btn-icon-only" (click)="copyToClipboard(qrPublicUrl())" pTooltip="Copy URL"><i class="pi pi-copy"></i></button>
-            <button class="btn-icon-only btn-icon-only--primary" (click)="openUrl(qrPublicUrl())" pTooltip="Open in new tab"><i class="pi pi-external-link"></i></button>
+            <button class="btn-icon-only" (click)="copyToClipboard(qrPublicUrl())" [pTooltip]="'intake.schemaList.qrDialog.copyUrlTooltip' | transloco"><i class="pi pi-copy"></i></button>
+            <button class="btn-icon-only btn-icon-only--primary" (click)="openUrl(qrPublicUrl())" [pTooltip]="'intake.schemaList.qrDialog.openNewTabTooltip' | transloco"><i class="pi pi-external-link"></i></button>
           </div>
         </div>
-        <div class="expiry-info"><i class="pi pi-calendar text-[var(--color-text-secondary)] text-sm"></i><div><p class="text-xs text-[var(--color-text-secondary)] m-0">Expires</p><p class="text-sm font-medium text-[var(--color-text-primary)] m-0">{{ qrResult()?.expiresAt | date:'medium' }}</p></div></div>
+        <div class="expiry-info"><i class="pi pi-calendar text-[var(--color-text-secondary)] text-sm"></i><div><p class="text-xs text-[var(--color-text-secondary)] m-0">{{ 'intake.schemaList.qrDialog.expiresLabel' | transloco }}</p><p class="text-sm font-medium text-[var(--color-text-primary)] m-0">{{ qrResult()?.expiresAt | date:'medium' }}</p></div></div>
       </div>
     }
     <ng-template pTemplate="footer">
       @if (!qrResult()) {
         <div class="flex justify-end gap-2">
-          <button class="btn-outline" (click)="closeQrDialog()">Cancel</button>
-          <button class="btn-primary" (click)="generateQr()" [disabled]="qrLoading()">@if (qrLoading()) { <i class="pi pi-spin pi-spinner"></i> }<i class="pi pi-link"></i> Generate Link</button>
+          <button class="btn-outline" (click)="closeQrDialog()">{{ 'intake.schemaList.qrDialog.cancel' | transloco }}</button>
+          <button class="btn-primary" (click)="generateQr()" [disabled]="qrLoading()">@if (qrLoading()) { <i class="pi pi-spin pi-spinner"></i> }<i class="pi pi-link"></i> {{ 'intake.schemaList.qrDialog.generate' | transloco }}</button>
         </div>
       } @else {
         <div class="flex justify-between gap-2">
-          <button class="btn-outline" (click)="printQrCode()"><i class="pi pi-print"></i> Print QR</button>
-          <button class="btn-primary" (click)="closeQrDialog()"><i class="pi pi-check"></i> Done</button>
+          <button class="btn-outline" (click)="printQrCode()"><i class="pi pi-print"></i> {{ 'intake.schemaList.qrDialog.printQr' | transloco }}</button>
+          <button class="btn-primary" (click)="closeQrDialog()"><i class="pi pi-check"></i> {{ 'intake.schemaList.qrDialog.done' | transloco }}</button>
         </div>
       }
     </ng-template>

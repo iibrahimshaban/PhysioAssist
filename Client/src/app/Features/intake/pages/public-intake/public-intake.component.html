@@ -1,4 +1,4 @@
-<div class="intake-module min-h-screen bg-[var(--color-page-bg)] flex flex-col font-sans min-w-0 overflow-x-hidden" role="main" aria-label="Intake form page">
+<div class="intake-module min-h-screen bg-[var(--color-page-bg)] flex flex-col font-sans min-w-0 overflow-x-hidden" role="main" [attr.aria-label]="'intake.public.aria.page' | transloco">
   <!-- ── Branded Header ──────────────────────────────────────── -->
   <header class="bg-[var(--color-surface)] border-b border-[var(--color-border)] sticky top-0 z-50 backdrop-blur-md bg-white/90">
     <div class="max-w-3xl mx-auto px-3 sm:px-4 h-auto py-3 sm:py-4 flex items-center justify-between">
@@ -11,7 +11,7 @@
               <path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/>
               <circle cx="20" cy="10" r="2"/>
             </svg>
-            Powered by PhysioAssist
+            {{ 'intake.public.poweredBy' | transloco }}
           </span>
         } @else {
           <div class="flex items-center gap-2">
@@ -38,7 +38,7 @@
         }
       </div>
       <span class="text-xs font-semibold text-[var(--color-primary)] bg-[var(--color-primary-soft)] px-2.5 py-1 rounded-full shrink-0">
-        Patient Portal
+        {{ 'intake.public.portalTitle' | transloco }}
       </span>
     </div>
   </header>
@@ -48,8 +48,8 @@
     <div class="max-w-3xl mx-auto py-12 px-3 sm:px-4 w-full flex-1 flex items-center justify-center" role="status" aria-live="polite">
       <div class="w-full max-w-md rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 text-center shadow-sm">
         <div class="mx-auto mb-4 h-10 w-10 sm:h-12 sm:w-12 animate-spin rounded-full border-4 border-[var(--color-primary-soft)] border-t-[var(--color-primary)]"></div>
-        <h2 class="text-base sm:text-lg font-semibold text-[var(--color-text-primary)]">Loading your intake form</h2>
-        <p class="mt-2 text-sm text-[var(--color-text-secondary)]">Please wait while we prepare your secure intake form.</p>
+        <h2 class="text-base sm:text-lg font-semibold text-[var(--color-text-primary)]">{{ 'intake.public.loading.title' | transloco }}</h2>
+        <p class="mt-2 text-sm text-[var(--color-text-secondary)]">{{ 'intake.public.loading.desc' | transloco }}</p>
       </div>
     </div>
   }
@@ -61,16 +61,16 @@
         <div class="mx-auto mb-4 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-[var(--color-danger-light)]">
           <i class="pi pi-exclamation-triangle text-xl sm:text-2xl text-[var(--color-danger)]"></i>
         </div>
-        <h2 class="text-base sm:text-lg font-semibold text-[var(--color-text-primary)]">We couldn't load this form</h2>
+        <h2 class="text-base sm:text-lg font-semibold text-[var(--color-text-primary)]">{{ 'intake.public.error.title' | transloco }}</h2>
         <p class="mt-2 text-sm text-[var(--color-text-secondary)]">{{ error() }}</p>
         <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3">
           <button type="button" (click)="retry()" class="btn-action-primary w-full sm:w-auto justify-center">
             <i class="pi pi-refresh text-xs"></i>
-            Try Again
+            {{ 'intake.common.tryAgain' | transloco }}
           </button>
           <button type="button" (click)="goHome()" class="btn-action-secondary w-full sm:w-auto justify-center">
             <i class="pi pi-home text-xs"></i>
-            Go Home
+            {{ 'intake.public.error.goHome' | transloco }}
           </button>
         </div>
       </div>
@@ -80,22 +80,22 @@
   <!-- ── Success State ────────────────────────────────────────── -->
   @else if (submitted() && submissionResult()) {
     <div class="max-w-lg mx-auto mt-8 sm:mt-12 px-3 sm:px-4 w-full animate-fade-in-up">
-      <div class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 sm:p-8 text-center" role="status" aria-label="Form submitted successfully">
+      <div class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 sm:p-8 text-center" role="status" [attr.aria-label]="'intake.public.success.aria' | transloco">
         <div class="w-16 h-16 sm:w-20 sm:h-20 bg-[var(--color-success-bg)] rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
           <svg class="w-8 h-8 sm:w-10 sm:h-10 text-[var(--color-success-text)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
             <path stroke-linecap="round" stroke-linejoin="round" class="success-checkmark-check" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 class="text-lg sm:text-xl font-bold text-[var(--color-text-primary)] mb-2">Thank you!</h2>
+        <h2 class="text-lg sm:text-xl font-bold text-[var(--color-text-primary)] mb-2">{{ 'intake.public.success.thanks' | transloco }}</h2>
         <p class="text-[var(--color-text-secondary)] mb-6 text-sm">{{ submissionResult()!.message }}</p>
 
-        <div class="bg-[var(--color-page-bg)] rounded-xl p-4 mb-6 border border-[var(--color-border)] text-left">
-          <p class="text-[10px] font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1">Receipt ID</p>
+        <div class="bg-[var(--color-page-bg)] rounded-xl p-4 mb-6 border border-[var(--color-border)] text-start">
+          <p class="text-[10px] font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1">{{ 'intake.public.success.receiptId' | transloco }}</p>
           <p class="text-xs font-mono text-[var(--color-text-primary)] break-all select-all font-semibold">{{ submissionResult()!.shortCode }}</p>
         </div>
 
         <p class="text-[11px] text-[var(--color-text-secondary)] opacity-80">
-          Submitted at {{ submissionResult()!.submittedAt | date:'medium' }}
+          {{ 'intake.public.success.submittedAt' | transloco: { date: submissionResult()!.submittedAt | date:'medium':undefined:currentLang() } }}
         </p>
       </div>
     </div>
@@ -107,7 +107,7 @@
       <div>
         <!-- Banner / Header Info -->
         <div class="mb-6 sm:mb-8">
-          <h1 class="page-title">{{ formData()?.formName || 'Patient Intake Form' }}</h1>
+          <h1 class="page-title">{{ formData()?.formName || ('intake.public.form.fallbackName' | transloco) }}</h1>
           @if (formData()?.formDescription) {
             <p class="page-subtitle leading-relaxed">{{ formData()?.formDescription }}</p>
           }
@@ -115,9 +115,9 @@
 
         <!-- Progress Bar -->
         @if (requiredTotal() > 0) {
-          <div class="mb-6 progress-bar-container" role="progressbar" [attr.aria-valuenow]="progressPercent()" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="'Form completion: ' + progressPercent() + '%'">
+          <div class="mb-6 progress-bar-container" role="progressbar" [attr.aria-valuenow]="progressPercent()" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="'intake.public.progress.aria' | transloco: { percent: progressPercent() }">
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs font-semibold text-[var(--color-text-secondary)]">Form Progress</span>
+              <span class="text-xs font-semibold text-[var(--color-text-secondary)]">{{ 'intake.public.progress.label' | transloco }}</span>
               <span class="text-xs font-bold" [style.color]="progressPercent() === 100 ? 'var(--color-success-text)' : 'var(--color-primary)'">{{ progressPercent() }}%</span>
             </div>
             <div class="progress-bar-track">
@@ -125,9 +125,9 @@
             </div>
             <p class="text-[11px] mt-1.5" [style.color]="progressPercent() === 100 ? 'var(--color-success-text)' : 'var(--color-text-muted)'">
               @if (progressPercent() === 100) {
-                <i class="pi pi-check-circle text-xs"></i> All required fields completed
+                <i class="pi pi-check-circle text-xs"></i> {{ 'intake.public.progress.allCompleted' | transloco }}
               } @else {
-                {{ requiredCompleted() }} of {{ requiredTotal() }} required fields completed
+                {{ 'intake.public.progress.completedOf' | transloco: { completed: requiredCompleted(), total: requiredTotal() } }}
               }
             </p>
           </div>
@@ -137,7 +137,7 @@
         @if (isDirty() && !submitting() && !emailDuplicate()) {
           <div class="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--color-warning-light)] border border-[var(--color-warning-border)] text-[var(--color-warning-text)] text-xs font-medium animate-fade-in-up" role="status">
             <i class="pi pi-info-circle text-sm shrink-0"></i>
-            <span>You have unsaved changes. Please submit the form or your progress may be lost.</span>
+            <span>{{ 'intake.public.unsavedWarning' | transloco }}</span>
           </div>
         }
 
@@ -148,7 +148,7 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span>Verifying email address&hellip;</span>
+            <span>{{ 'intake.public.email.verifying' | transloco }}</span>
           </div>
         }
 
@@ -159,11 +159,10 @@
               <i class="pi pi-exclamation-triangle text-base shrink-0 mt-0.5"></i>
               <div class="flex flex-col gap-1 min-w-0">
                 <p class="text-sm font-semibold m-0">
-                  Email already registered
+                  {{ 'intake.public.email.alreadyRegisteredTitle' | transloco }}
                 </p>
                 <p class="text-xs m-0 leading-relaxed">
-                  The email address <span class="font-mono font-semibold break-all">{{ duplicateEmailAddress() }}</span> is already associated with an existing patient record.
-                  Please contact your healthcare provider directly to update your information, or use a different email address.
+                  {{ 'intake.public.email.alreadyRegisteredBody' | transloco: { email: duplicateEmailAddress() } }}
                 </p>
               </div>
             </div>
@@ -194,7 +193,7 @@
         <!-- Pain Map Section -->
          @if (formData()?.showPainMap) {
           <div class="mb-6 sm:mb-8">
-            <h2 class="page-title">Pain point diagram</h2>
+            <h2 class="page-title">{{ 'intake.public.painPointDiagram' | transloco }}</h2>
             <app-body-pain-map (mapChange)="onPainMapChange($event)" />
           </div>
          }
@@ -205,32 +204,32 @@
         <div class="flex flex-col gap-1 text-xs text-[var(--color-text-secondary)]">
           <div class="flex items-center gap-2">
             <i class="pi pi-lock text-[10px]"></i>
-            <span>Your data is encrypted and secure</span>
+            <span>{{ 'intake.public.securityNote' | transloco }}</span>
           </div>
           @if (!canSubmit()) {
             @if (emailDuplicate()) {
               <span class="text-[11px] text-[var(--color-danger)] font-medium opacity-90">
                 <i class="pi pi-exclamation-triangle text-[10px]"></i>
-                This email address is already registered. Please use a different email or contact your provider.
+                {{ 'intake.public.email.alreadyRegisteredShort' | transloco }}
               </span>
             } @else if (emailChecking()) {
               <span class="text-[11px] text-[var(--color-primary)] font-medium opacity-90">
-                <svg class="animate-spin h-3 w-3 inline-block align-[-0.1em] mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg class="animate-spin h-3 w-3 inline-block align-[-0.1em] me-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Verifying email, please wait&hellip;
+                {{ 'intake.public.email.verifyingWait' | transloco }}
               </span>
             } @else {
               <span class="text-[11px] text-[var(--color-danger)] font-medium opacity-90">
                 <i class="pi pi-exclamation-triangle text-[10px]"></i>
-                Please complete all required fields before submitting.
+                {{ 'intake.public.validation.incomplete' | transloco }}
               </span>
             }
           }
         </div>
         <p-button
-          [label]="submitting() ? 'Submitting\u2026' : 'Submit Form'"
+          [label]="submitting() ? ('intake.public.submit.submitting' | transloco) : ('intake.public.submit.button' | transloco)"
           icon="pi pi-check"
           [disabled]="!canSubmit()"
           [loading]="submitting()"
@@ -250,30 +249,30 @@
         <div class="confirm-icon">
           <i class="pi pi-question-circle"></i>
         </div>
-        <h3 id="confirm-title" class="confirm-title">Submit Intake Form?</h3>
+        <h3 id="confirm-title" class="confirm-title">{{ 'intake.public.confirm.title' | transloco }}</h3>
         <p class="confirm-message">
-          Please review your answers before submitting. Once submitted, you won't be able to edit your responses.
+          {{ 'intake.public.confirm.body' | transloco }}
         </p>
         <div class="confirm-details">
           <div class="confirm-detail-row">
             <i class="pi pi-check-circle text-[var(--color-success-text)]"></i>
-            <span>{{ requiredCompleted() }} of {{ requiredTotal() }} required fields completed</span>
+            <span>{{ 'intake.public.progress.completedOf' | transloco: { completed: requiredCompleted(), total: requiredTotal() } }}</span>
           </div>
           @if (painMapPayload()?.regions?.length) {
             <div class="confirm-detail-row">
               <i class="pi pi-map-marker text-[var(--color-primary)]"></i>
-              <span>{{ painMapPayload()!.regions.length }} pain region(s) marked</span>
+              <span>{{ 'intake.public.confirm.painRegionsMarked' | transloco: { n: painMapPayload()!.regions.length } }}</span>
             </div>
           }
         </div>
         <div class="confirm-actions">
           <button type="button" (click)="cancelSubmit()" class="btn-action-secondary">
             <i class="pi pi-arrow-left text-xs"></i>
-            Go Back & Edit
+            {{ 'intake.public.confirm.goBackEdit' | transloco }}
           </button>
           <button type="button" (click)="confirmSubmit()" class="btn-action-primary">
             <i class="pi pi-check text-xs"></i>
-            Yes, Submit
+            {{ 'intake.public.confirm.yesSubmit' | transloco }}
           </button>
         </div>
       </div>

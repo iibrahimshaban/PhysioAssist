@@ -29,7 +29,7 @@
         </span>
         <span class="row-meta-item">
           <i class="pi pi-heart"></i>
-          {{ submission.painRegionCount }} pain {{ submission.painRegionCount === 1 ? 'region' : 'regions' }}
+          {{ submission.painRegionCount === 1 ? ('intake.submissions.row.painRegion' | transloco: { n: submission.painRegionCount }) : ('intake.submissions.row.painRegions' | transloco: { n: submission.painRegionCount }) }}
         </span>
       </div>
     </div>
@@ -44,7 +44,7 @@
         class="row-action-circle"
         role="button"
         tabindex="-1"
-        aria-label="View submission details">
+        [attr.aria-label]="'intake.submissions.row.viewSubmissionAria' | transloco">
         <i class="pi pi-chevron-right"></i>
       </div>
     </div>

@@ -84,7 +84,7 @@
 
 .search-icon {
   position: absolute;
-  left: 0.875rem;
+  inset-inline-start: 0.875rem;
   top: 50%;
   transform: translateY(-50%);
   color: var(--neutral-400);
@@ -376,7 +376,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .default-card-short-code {

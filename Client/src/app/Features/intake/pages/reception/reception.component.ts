@@ -4,9 +4,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
-import { PreVisitIntakeResponse, IntakeStatus } from '../../models';
+import { PreVisitIntakeResponse, IntakeStatus, INTAKE_STATUS_KEYS } from '../../models';
 import { SubmissionRowComponent } from '../submission-list/submission-row/submission-row.component';
 import { SubmissionSummaryStatsComponent } from '../submission-list/submission-summary-stats/submission-summary-stats.component';
 import { SubmissionFiltersBarComponent } from '../submission-list/submission-filters-bar/submission-filters-bar.component';
@@ -19,6 +20,7 @@ import { IntakePageContainerComponent } from '../../shared/intake-page-container
     CommonModule,
     FormsModule,
     ButtonModule,
+    TranslocoModule,
     IntakePageContainerComponent,
     SubmissionRowComponent,
     SubmissionSummaryStatsComponent,
@@ -31,6 +33,7 @@ export class ReceptionComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly intakeApi = inject(IntakeApiService);
   private readonly snackbar = inject(SnackbarService);
+  private readonly transloco = inject(TranslocoService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(false);
@@ -67,9 +70,9 @@ export class ReceptionComponent implements OnInit {
   readonly statusOptions = computed(() => {
     const counts = this.statusCounts();
     return [
-      { label: 'All Waiting', value: null, count: counts['all'] },
-      { label: 'Pending', value: IntakeStatus.Pending, count: counts[IntakeStatus.Pending] },
-      { label: 'In Review', value: IntakeStatus.InReview, count: counts[IntakeStatus.InReview] }
+      { label: 'intake.filters.allWaiting', value: null, count: counts['all'] },
+      { label: INTAKE_STATUS_KEYS[IntakeStatus.Pending], value: IntakeStatus.Pending, count: counts[IntakeStatus.Pending] },
+      { label: INTAKE_STATUS_KEYS[IntakeStatus.InReview], value: IntakeStatus.InReview, count: counts[IntakeStatus.InReview] }
     ];
   });
 
@@ -165,8 +168,10 @@ export class ReceptionComponent implements OnInit {
       error: () => {
         if (requestId !== this.loadRequestId) return;
         if (!silent) {
-          this.error.set('Failed to load reception queue. Please try again.');
-          this.snackbar.error('Error', ['Could not load pending intake submissions.']);
+          this.error.set(this.transloco.translate('intake.reception.error.message'));
+          this.snackbar.error(this.transloco.translate('intake.snackbar.error'), [
+            this.transloco.translate('intake.snackbar.couldNotLoadPending')
+          ]);
         }
         this.loading.set(false);
       }

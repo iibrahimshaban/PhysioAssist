@@ -1,17 +1,20 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PreVisitIntakeResponse, IntakeStatus, getIntakeStatusLabel, getIntakeStatusPillClass } from '../../../models';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { PreVisitIntakeResponse, IntakeStatus, getIntakeStatusKey, getIntakeStatusPillClass } from '../../../models';
 
 @Component({
   selector: 'app-submission-row',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslocoModule],
   templateUrl: './submission-row.component.html',
   styleUrl: './submission-row.component.css'
 })
 export class SubmissionRowComponent {
   @Input({ required: true }) submission!: PreVisitIntakeResponse;
   @Output() selected = new EventEmitter<PreVisitIntakeResponse>();
+
+  private readonly transloco = inject(TranslocoService);
 
   readonly IntakeStatus = IntakeStatus;
 
@@ -45,9 +48,9 @@ export class SubmissionRowComponent {
       return submission.patientName.trim();
     }
     if (submission.shortCode) {
-      return `Unnamed Patient (#${submission.shortCode})`;
+      return `${this.transloco.translate('intake.common.unnamedPatient')} (#${submission.shortCode})`;
     }
-    return 'Unnamed Patient';
+    return this.transloco.translate('intake.common.unnamedPatient');
   }
 
   getShortCodeDisplay(code?: string): string {
@@ -56,7 +59,7 @@ export class SubmissionRowComponent {
   }
 
   getQueueStatusLabel(status: IntakeStatus): string {
-    return getIntakeStatusLabel(status);
+    return this.transloco.translate(getIntakeStatusKey(status));
   }
 
   getStatusPillClass(status: IntakeStatus): string {
@@ -114,18 +117,18 @@ export class SubmissionRowComponent {
     if (isNaN(parsed.getTime())) return '';
 
     const diffMs = Date.now() - parsed.getTime();
-    if (diffMs < 0) return 'just now';
+    if (diffMs < 0) return this.transloco.translate('intake.common.time.justNow');
 
     const minutes = Math.floor(diffMs / 60000);
-    if (minutes < 1) return 'just now';
-    if (minutes < 60) return `${minutes}m ago`;
+    if (minutes < 1) return this.transloco.translate('intake.common.time.justNow');
+    if (minutes < 60) return this.transloco.translate('intake.common.time.mAgo', { n: minutes });
 
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) return this.transloco.translate('intake.common.time.hAgo', { n: hours });
 
     const days = Math.floor(hours / 24);
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days}d ago`;
+    if (days === 1) return this.transloco.translate('intake.common.time.yesterday');
+    if (days < 7) return this.transloco.translate('intake.common.time.dAgo', { n: days });
 
     return parsed.toLocaleDateString(undefined, {
       month: 'short',

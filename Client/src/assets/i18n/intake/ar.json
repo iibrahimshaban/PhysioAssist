@@ -1,0 +1,982 @@
+{
+  "common": {
+    "tryAgain": "حاول مرة أخرى",
+    "cancel": "إلغاء",
+    "back": "رجوع",
+    "edit": "تعديل",
+    "preview": "معاينة",
+    "delete": "حذف",
+    "publish": "نشر",
+    "duplicate": "نسخ",
+    "archive": "أرشفة",
+    "unarchive": "إلغاء الأرشفة",
+    "retry": "إعادة المحاولة",
+    "goBack": "رجوع",
+    "view": "عرض",
+    "change": "تغيير",
+    "done": "تم",
+    "reset": "إعادة تعيين",
+    "required": "مطلوب",
+    "unnamedPatient": "مريض بدون اسم",
+    "yes": "نعم",
+    "no": "لا",
+    "dash": "—",
+    "physioAssist": "PhysioAssist",
+    "time": {
+      "justNow": "الآن",
+      "mAgo": "قبل {{n}} دقيقة",
+      "hAgo": "قبل {{n}} ساعة",
+      "yesterday": "أمس",
+      "dAgo": "قبل {{n}} يوم"
+    },
+    "default": "افتراضي"
+  },
+  "status": {
+    "pending": "قيد الانتظار",
+    "submitted": "تم الإرسال",
+    "inReview": "قيد المراجعة",
+    "approved": "تمت الموافقة",
+    "rejected": "مرفوض",
+    "converted": "تم التحويل",
+    "expired": "منتهي الصلاحية",
+    "unknown": "غير معروف"
+  },
+  "filters": {
+    "allStatuses": "جميع الحالات",
+    "allWaiting": "جميع المنتظرين"
+  },
+  "action": {
+    "approve": "موافقة",
+    "reject": "رفض",
+    "markInReview": "وضع قيد المراجعة",
+    "convertToPatient": "تحويل إلى مريض",
+    "reopenReview": "إعادة فتح المراجعة",
+    "msgApprove": "الموافقة على هذا الطلب لتحويله إلى مريض؟",
+    "msgReject": "رفض هذا الطلب؟ سيتم وضع الاستمارة في حالة الرفض.",
+    "msgRejectShort": "رفض هذا الطلب؟",
+    "msgMarkInReview": "وضع هذا الطلب قيد المراجعة؟",
+    "msgReopenReview": "إعادة فتح هذا الطلب للمراجعة؟"
+  },
+  "snackbar": {
+    "error": "خطأ",
+    "unexpectedError": "خطأ غير متوقع",
+    "couldNotLoadPending": "تعذر تحميل استمارات الانتظار.",
+    "couldNotLoadSubmissions": "تعذر تحميل الاستمارات المرسلة.",
+    "schemaSaved": "تم حفظ الاستمارة",
+    "draftUpdatedSuccessfully": "تم تحديث المسودة بنجاح",
+    "draftCreatedSuccessfully": "تم إنشاء المسودة بنجاح",
+    "saveFailed": "فشل الحفظ",
+    "schemaPublished": "تم نشر الاستمارة",
+    "formSchemaIsNowLive": "استمارة النموذج أصبحت متاحة الآن",
+    "publishFailed": "فشل النشر",
+    "failedToLoadSchema": "فشل تحميل الاستمارة",
+    "cannotDelete": "لا يمكن الحذف",
+    "sectionRequiredCannotRemove": "هذا قسم مطلوب ولا يمكن حذفه.",
+    "sectionLockedFieldsCannotRemove": "يحتوي هذا القسم على حقول مطلوبة مقفلة ولا يمكن حذفه.",
+    "groupLockedFieldsCannotRemove": "تحتوي هذه المجموعة على حقول مطلوبة مقفلة ولا يمكن حذفها.",
+    "fieldLockedCannotRemove": "هذا الحقل مقفل ولا يمكن حذفه.",
+    "defaultTemplateCreated": "تم إنشاء القالب الافتراضي",
+    "defaultFormGenerated": "تم إنشاء استمارة القبول الافتراضية",
+    "failedToCreateDefault": "فشل إنشاء القالب الافتراضي",
+    "schemaDuplicated": "تم نسخ الاستمارة",
+    "copyCreated": "تم إنشاء نسخة",
+    "duplicateFailed": "فشل النسخ",
+    "schemaDeleted": "تم حذف الاستمارة",
+    "templateRemoved": "تم حذف نموذج الاستمارة",
+    "deleteFailed": "فشل الحذف",
+    "schemaArchived": "تم أرشفة الاستمارة",
+    "templateArchived": "تم أرشفة نموذج الاستمارة",
+    "archiveFailed": "فشلت الأرشفة",
+    "schemaUnarchived": "تم إلغاء أرشفة الاستمارة",
+    "templatePublishedAgain": "تم إعادة نشر نموذج الاستمارة",
+    "unarchiveFailed": "فشل إلغاء الأرشفة",
+    "exported": "تم التصدير",
+    "schemaJsonDownloaded": "تم تنزيل ملف JSON الخاص بالاستمارة",
+    "exportFailed": "فشل التصدير",
+    "notPublished": "غير منشورة",
+    "publishFirstForLink": "انشر الاستمارة أولاً لإنشاء رابط مشاركة.",
+    "onlyPublishedForQr": "الاستمارات المنشورة فقط يمكنها إنشاء رموز QR.",
+    "linkCopied": "تم نسخ الرابط",
+    "publicUrlCopied": "تم نسخ الرابط العام إلى الحافظة",
+    "linkReady": "الرابط جاهز",
+    "copied": "تم النسخ",
+    "urlCopiedToClipboard": "تم نسخ الرابط إلى الحافظة",
+    "copyFailed": "فشل النسخ",
+    "couldNotCopyUrl": "تعذر نسخ الرابط",
+    "shareFailed": "فشلت المشاركة",
+    "qrGenerationFailed": "فشل إنشاء رمز QR",
+    "printBlocked": "تم حظر الطباعة",
+    "allowPopupsToPrint": "اسمح بالنوافذ المنبثقة لهذا الموقع لطباعة رمز QR.",
+    "notPermitted": "غير مسموح",
+    "noPermissionEdit": "ليست لديك صلاحية لتعديل هذا الطلب.",
+    "noPermissionConvert": "ليست لديك صلاحية لتحويل هذا الطلب.",
+    "missingRequiredFields": "حقول مطلوبة ناقصة",
+    "pleaseComplete": "يرجى إكمال: {{fields}}",
+    "statusUpdated": "تم تحديث الحالة",
+    "submissionMovedTo": "تم نقل الطلب إلى {{status}}.",
+    "updateFailed": "فشل التحديث",
+    "conversionSuccessful": "تم التحويل بنجاح",
+    "convertedToPatientRecord": "تم تحويل الطلب إلى ملف مريض.",
+    "conversionFailed": "فشل التحويل"
+  },
+  "confirm": {
+    "confirmAction": "تأكيد الإجراء",
+    "yesProceed": "نعم، تابع",
+    "yes": "نعم",
+    "no": "لا",
+    "deleteHeader": "حذف الاستمارة",
+    "deleteMessage": "هل أنت متأكد من حذف \"{{name}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+    "archiveHeader": "أرشفة الاستمارة",
+    "archiveMessage": "أرشفة \"{{name}}\"؟ ستختفي من القائمة الرئيسية ويمكن استعادتها لاحقاً.",
+    "unarchiveHeader": "إلغاء أرشفة الاستمارة",
+    "unarchiveMessage": "إعادة \"{{name}}\" إلى حالة النشر؟"
+  },
+  "public": {
+    "portalTitle": "بوابة المريض",
+    "loading": {
+      "title": "جارٍ تحميل استمارتك",
+      "desc": "يرجى الانتظار بينما نجهز استمارة القبول الآمنة الخاصة بك."
+    },
+    "error": {
+      "title": "لم نتمكن من تحميل هذه الاستمارة",
+      "goHome": "الصفحة الرئيسية",
+      "invalidUrl": "رابط غير صالح: لم يتم العثور على رمز الاستمارة. يرجى التأكد من صحة الرابط.",
+      "emptySchema": "يبدو أن محتوى الاستمارة فارغ أو تالف. يرجى التواصل مع مقدم الرعاية الصحية.",
+      "parseFailed": "فشل قراءة محتوى الاستمارة. قد يكون المحتوى تالفاً. يرجى طلب رابط جديد.",
+      "linkInvalid": "رابط هذه الاستمارة غير صالح أو منتهي الصلاحية. يرجى طلب رابط جديد من مقدم الرعاية الصحية.",
+      "linkExpired": "انتهت صلاحية هذه الاستمارة ولم تعد متاحة. يرجى طلب رابط جديد.",
+      "loadFailed": "فشل تحميل الاستمارة. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى."
+    },
+    "success": {
+      "aria": "تم إرسال النموذج بنجاح",
+      "thanks": "شكرًا لك — تم إرسال الاستمارة",
+      "receiptId": "رقم الإيصال",
+      "submittedAt": "تم الإرسال في {{date}}"
+    },
+    "form": {
+      "fallbackName": "استمارة قبول المريض"
+    },
+    "progress": {
+      "aria": "نسبة إكمال النموذج: {{percent}}%",
+      "label": "تقدم الاستمارة",
+      "allCompleted": "اكتملت جميع الأقسام المطلوبة",
+      "completedOf": "اكتمل {{completed}} من {{total}}"
+    },
+    "unsavedWarning": "لديك تغييرات غير محفوظة. يرجى إرسال الاستمارة وإلا فقد تفقد تقدمك.",
+    "email": {
+      "verifying": "جارٍ التحقق من البريد الإلكتروني…",
+      "alreadyRegisteredTitle": "البريد الإلكتروني مسجل بالفعل",
+      "alreadyRegisteredBody": "عنوان البريد الإلكتروني {{email}} مرتبط بالفعل بسجل مريض موجود. يرجى التواصل مع مقدم الرعاية الصحية مباشرة لتحديث معلوماتك، أو استخدام بريد إلكتروني مختلف.",
+      "alreadyRegisteredShort": "عنوان البريد الإلكتروني هذا مسجل بالفعل. يرجى استخدام بريد مختلف أو التواصل مع مقدم الرعاية.",
+      "verifyingWait": "جارٍ التحقق من البريد الإلكتروني، يرجى الانتظار…"
+    },
+    "securityNote": "بياناتك مشفرة وآمنة",
+    "painPointDiagram": "مخطط مواقع الألم",
+    "validation": {
+      "incomplete": "يرجى إكمال جميع الحقول المطلوبة قبل الإرسال."
+    },
+    "submit": {
+      "button": "إرسال الاستمارة",
+      "submitting": "جارٍ الإرسال…"
+    },
+    "confirm": {
+      "title": "إرسال استمارة القبول؟",
+      "body": "يرجى مراجعة إجاباتك قبل الإرسال. بعد الإرسال، لن تتمكن من تعديل إجاباتك.",
+      "painRegionsMarked": "تم تحديد {{n}} منطقة ألم",
+      "goBackEdit": "رجوع وتعديل",
+      "yesSubmit": "نعم، إرسال"
+    },
+    "submitErrorAlreadyRegistered": "عنوان البريد الإلكتروني {{email}} مرتبط بالفعل بسجل مريض موجود. يرجى التواصل مع مقدم الرعاية الصحية أو استخدام بريد إلكتروني مختلف.",
+    "submitErrorGeneric": "فشل إرسال الاستمارة. يرجى المحاولة مرة أخرى.",
+    "aria": {
+      "page": "صفحة نموذج القبول"
+    },
+    "poweredBy": "مدعوم بواسطة PhysioAssist"
+  },
+  "reception": {
+    "header": {
+      "title": "قائمة الاستقبال",
+      "activeCount": "{{n}} نشط",
+      "subtitle": "المرضى بانتظار تسجيل الوصول أو قيد المراجعة (تحديث تلقائي كل 30 ثانية)"
+    },
+    "error": {
+      "title": "فشل تحميل القائمة",
+      "message": "فشل تحميل قائمة الاستقبال. يرجى المحاولة مرة أخرى."
+    },
+    "empty": {
+      "noMatchTitle": "لا يوجد مرضى منتظرون مطابقون",
+      "allCaughtUp": "لا يوجد شيء معلق!",
+      "noMatchDesc": "لم نتمكن من العثور على أي طلبات مرضى نشطة تطابق معايير البحث الخاصة بك.",
+      "emptyDesc": "لا يوجد مرضى منتظرون في قائمة الاستقبال حالياً. ستظهر الطلبات الجديدة هنا تلقائياً.",
+      "clearSearch": "مسح البحث"
+    },
+    "pagination": {
+      "showing": "عرض {{from}}–{{to}} من {{total}} في القائمة",
+      "prevPage": "الصفحة السابقة",
+      "nextPage": "الصفحة التالية"
+    }
+  },
+  "schemaList": {
+    "header": {
+      "title": "قوالب الاستمارات",
+      "subtitle": "جميع الاستمارات التي أنشأتها لقبول المرضى",
+      "guidedWizard": "المعالج الموجّه",
+      "newForm": "استمارة جديدة"
+    },
+    "loadingDefault": {
+      "title": "جارٍ تحميل القالب الافتراضي",
+      "desc": "جارٍ تحميل استمارة القبول الافتراضية...",
+      "subDesc": "يرجى الانتظار بينما نقوم بتحميل القالب الافتراضي لصفحة الاستمارات."
+    },
+    "default": {
+      "badge": "القالب الافتراضي",
+      "fallbackDesc": "تُستخدم استمارة القبول الافتراضية هذه عندما يبدأ المرضى الجدد عملية القبول.",
+      "noDefaultTitle": "لا يوجد قالب افتراضي",
+      "setDefault": "تعيين استمارة قبول افتراضية",
+      "generateHint": "انقر لإنشاء قالب افتراضي تلقائياً يشمل جميع أنواع الأسئلة، أو حدد استمارة موجودة كافتراضية.",
+      "generate": "إنشاء القالب الافتراضي",
+      "editTooltip": "تعديل الاستمارة الافتراضية",
+      "previewTooltip": "معاينة الاستمارة الافتراضية",
+      "duplicateTooltip": "نسخ الاستمارة الافتراضية",
+      "qrTooltip": "رمز QR",
+      "publishTooltip": "نشر الاستمارة الافتراضية",
+      "edit": "تحرير",
+      "preview": "معاينة",
+      "duplicate": "نسخ",
+      "publish": "نشر"
+    },
+    "stats": {
+      "fields": "حقول",
+      "submissions": "طلبات",
+      "updated": "آخر تحديث"
+    },
+    "meta": {
+      "version": "الإصدار {{v}}"
+    },
+    "tooltips": {
+      "editSchema": "تعديل الاستمارة",
+      "previewSchema": "معاينة الاستمارة",
+      "createCopy": "إنشاء نسخة",
+      "quickShare": "مشاركة سريعة",
+      "delete": "حذف",
+      "archive": "أرشفة",
+      "unarchive": "إلغاء الأرشفة"
+    },
+    "actions": {
+      "qr": "QR",
+      "edit": "تحرير",
+      "delete": "حذف",
+      "preview": "معاينة",
+      "duplicate": "نسخ",
+      "archive": "أرشفة",
+      "unarchive": "إلغاء الأرشفة"
+    },
+    "toolbar": {
+      "searchPlaceholder": "البحث في قوالب الاستمارات",
+      "sortName": "الاسم",
+      "sortUpdated": "آخر تحديث",
+      "sortSubmissions": "عدد الطلبات",
+      "tabAll": "الكل",
+      "tabPublished": "منشورة",
+      "tabDrafts": "مسودات",
+      "tabArchived": "مؤرشفة"
+    },
+    "states": {
+      "errorTitle": "فشل تحميل الاستمارات",
+      "noMatchDesc": "لا توجد استمارات تطابق عوامل التصفية. جرّب كلمة بحث أو تبويباً مختلفاً.",
+      "emptyTitle": "لا توجد قوالب استمارات بعد.",
+      "createFirst": "أنشئ أول قالب",
+      "tryAgain": "حاول مجددًا"
+    },
+    "card": {
+      "copiedBadge": "نسخة",
+      "original": "الأصل: {{name}}",
+      "noDescription": "لا يوجد وصف"
+    },
+    "pagination": {
+      "showing": "عرض {{from}} إلى {{to}} من {{total}} استمارة"
+    },
+    "qrDialog": {
+      "title": "إنشاء رابط QR",
+      "subtitle": "إنشاء رابط عام للاستمارة",
+      "expiryLabel": "مدة الصلاحية (بالأشهر)",
+      "expiryHint": "سينتهي الرابط بعد هذه المدة. الحد الأقصى: 24 شهراً.",
+      "generatedTitle": "تم إنشاء الرابط بنجاح",
+      "generatedDesc": "شارك هذا الرابط أو اطبع رمز QR",
+      "scanHint": "امسح الرمز لفتح استمارة القبول على الهاتف.",
+      "publicUrlLabel": "الرابط العام",
+      "copyUrlTooltip": "نسخ الرابط",
+      "openNewTabTooltip": "فتح في تبويب جديد",
+      "expiresLabel": "ينتهي في",
+      "generate": "إنشاء الرابط",
+      "printQr": "طباعة QR",
+      "cancel": "إلغاء",
+      "done": "تم",
+      "qrCodeTooltip": "رمز QR"
+    },
+    "print": {
+      "title": "رمز QR لاستمارة قبول المريض",
+      "formName": "استمارة قبول المريض",
+      "instructions": "امسح الرمز أو زر الرابط أدناه لإكمال الاستمارة قبل الزيارة",
+      "publicUrl": "الرابط العام"
+    },
+    "schemaStatus": {
+      "draft": "مسودة",
+      "published": "منشورة",
+      "archived": "مؤرشفة",
+      "unknown": "غير معروف"
+    },
+    "formId": "معرّف النموذج: {{id}}",
+    "relativeTime": {
+      "justNow": "الآن",
+      "minAgo": "قبل {{n}} د",
+      "hourAgo": "قبل {{n}} س",
+      "yesterday": "أمس",
+      "dayAgo": "قبل {{n}} يوم"
+    },
+    "snackbar": {
+      "defaultCreated": [
+        "تم إنشاء القالب الافتراضي",
+        "تم إنشاء نموذج القبول الافتراضي"
+      ],
+      "defaultFailed": [
+        "فشل إنشاء الافتراضي"
+      ],
+      "loadFailedFallback": "تعذر تحميل النماذج. حاول مرة أخرى.",
+      "duplicated": [
+        "تم نسخ النموذج",
+        "تم إنشاء نسخة"
+      ],
+      "duplicateFailed": [
+        "فشل النسخ"
+      ],
+      "deleted": [
+        "تم حذف النموذج",
+        "تمت إزالة قالب النموذج"
+      ],
+      "deleteFailed": [
+        "فشل الحذف"
+      ],
+      "archived": [
+        "تم أرشفة النموذج",
+        "تمت أرشفة قالب النموذج"
+      ],
+      "archiveFailed": [
+        "فشل الأرشفة"
+      ],
+      "unarchived": [
+        "تم إلغاء أرشفة النموذج",
+        "تم نشر قالب النموذج مرة أخرى"
+      ],
+      "unarchiveFailed": [
+        "فشل إلغاء الأرشفة"
+      ],
+      "exported": [
+        "تم التصدير",
+        "تم تنزيل ملف JSON للنموذج"
+      ],
+      "exportFailed": [
+        "فشل التصدير"
+      ],
+      "notPublished": [
+        "غير منشور"
+      ],
+      "notPublishedShare": [
+        "انشر النموذج أولًا لإنشاء رابط مشاركة."
+      ],
+      "notPublishedQr": [
+        "يمكن فقط للنماذج المنشورة إنشاء رموز QR."
+      ],
+      "linkCopied": [
+        "تم نسخ الرابط",
+        "تم نسخ الرابط العام إلى الحافظة"
+      ],
+      "linkReady": [
+        "الرابط جاهز"
+      ],
+      "shareFailed": [
+        "فشل المشاركة"
+      ],
+      "qrFailed": [
+        "فشل إنشاء رمز QR"
+      ],
+      "printBlocked": [
+        "تم حظر الطباعة",
+        "اسمح بالنوافذ المنبثقة لهذا الموقع لطباعة رمز QR."
+      ],
+      "copied": [
+        "تم النسخ",
+        "تم نسخ الرابط إلى الحافظة"
+      ],
+      "copyFailed": [
+        "فشل النسخ",
+        "تعذر نسخ الرابط"
+      ],
+      "published": [
+        "تم نشر النموذج",
+        "نموذج القبول متاح الآن"
+      ],
+      "publishFailed": [
+        "فشل النشر"
+      ]
+    },
+    "confirm": {
+      "deleteHeader": "حذف النموذج",
+      "deleteMessage": "حذف \"{{name}}\"؟{{submissions}} لا يمكن التراجع عن هذا الإجراء.",
+      "deleteSubmissions": " يحتوي على {{count}} إرسال ستُصبح يتيمة.",
+      "archiveHeader": "أرشفة النموذج",
+      "archiveMessage": "أرشفة \"{{name}}\"؟ سيتم إخفاؤه من العروض النشطة ويمكن إلغاء أرشفته لاحقًا.",
+      "unarchiveHeader": "إلغاء أرشفة النموذج",
+      "unarchiveMessage": "إلغاء أرشفة \"{{name}}\"؟ سيتم نشره ويصبح متاحًا مرة أخرى.",
+      "acceptDelete": "حذف",
+      "acceptArchive": "أرشفة",
+      "acceptUnarchive": "إلغاء الأرشفة"
+    },
+    "errors": {
+      "unexpected": "خطأ غير متوقع"
+    }
+  },
+  "builder": {
+    "toolbar": {
+      "backToSchemas": "رجوع إلى الاستمارات",
+      "previewBadge": "معاينة",
+      "editModeBadge": "وضع التحرير",
+      "newSchemaBadge": "استمارة جديدة",
+      "untitledSchema": "استمارة بدون عنوان",
+      "exitPreview": "خروج من المعاينة",
+      "saveDraft": "حفظ المسودة",
+      "publish": "نشر"
+    },
+    "tabs": {
+      "structure": "الهيكل",
+      "preview": "معاينة",
+      "properties": "الخصائص",
+      "structureAria": "أقسام المنشئ"
+    },
+    "sidebar": {
+      "title": "الهيكل",
+      "sectionsCount": "{{n}} قسم",
+      "schemaSettings": "إعدادات الاستمارة",
+      "deleteSectionTooltip": "حذف القسم",
+      "doctorOnlyGroup": "مجموعة للأطباء فقط",
+      "deleteGroupTooltip": "حذف المجموعة",
+      "deleteQuestionTooltip": "حذف السؤال",
+      "addQuestion": "إضافة سؤال",
+      "addGroup": "إضافة مجموعة",
+      "addSection": "إضافة قسم"
+    },
+    "canvas": {
+      "previewModeTitle": "وضع المعاينة",
+      "previewModeDesc": "هذه معاينة للقراءة فقط للاستمارة المنشورة. لا يمكن إجراء أي تغييرات.",
+      "emptyTitle": "ابدأ ببناء استمارتك",
+      "emptyDesc": "أضف أقساماً من اللوحة الجانبية لبدء بناء استمارة القبول. ستظهر الأسئلة والمجموعات هنا أثناء البناء.",
+      "addFirstSection": "إضافة أول قسم",
+      "sampleTextInput": "نص تجريبي",
+      "sampleLongText": "نص أطول تجريبي...",
+      "selectDate": "اختر التاريخ",
+      "selectDateTime": "اختر التاريخ والوقت",
+      "selectOption": "اختر خياراً",
+      "selectOptions": "اختر خيارات",
+      "option1": "خيار 1",
+      "option2": "خيار 2",
+      "noOptionsYet": "لا توجد خيارات بعد",
+      "toggle": "مفتاح تبديل",
+      "clickOrDragToUpload": "انقر أو اسحب للرفع",
+      "painPointIntensity": "نقطة ألم: الشدة {{n}}/10",
+      "interactiveBodyMap": "خريطة جسم تفاعلية",
+      "autoSummary": "ملخص سريري يتم إنشاؤه تلقائياً (للقراءة فقط)",
+      "input": "إدخال",
+      "conditionalBadge": "مشروط",
+      "groupsCount": "{{n}} مجموعة",
+      "validationRulesCount": "{{n}} قاعدة تحقق",
+      "noQuestionsYet": "لا توجد أسئلة بعد",
+      "addQuestion": "+ إضافة سؤال",
+      "noGroupsYet": "لا توجد مجموعات بعد",
+      "requiredBadge": "مطلوب"
+    },
+    "props": {
+      "title": "الخصائص",
+      "selectElementHint": "حدد عنصراً لتعديل خصائصه",
+      "schemaName": "اسم الاستمارة *",
+      "schemaNamePlaceholder": "مثال: استمارة القبول قبل الزيارة",
+      "description": "الوصف",
+      "descriptionPlaceholder": "صف الغرض من هذه الاستمارة...",
+      "setDefaultSchema": "تعيين كاستمارة افتراضية",
+      "defaultSchemaHint": "تُستخدم الاستمارة الافتراضية لقبول المرضى الجدد",
+      "schemaVersion": "إصدار الاستمارة:",
+      "sectionBadge": "قسم",
+      "groupBadge": "مجموعة",
+      "questionBadge": "سؤال",
+      "titleLabel": "العنوان *",
+      "sectionTitlePlaceholder": "عنوان القسم",
+      "optionalDescription": "وصف اختياري",
+      "order": "الترتيب",
+      "groupTitlePlaceholder": "عنوان المجموعة",
+      "hiddenFromPatient": "مخفية عن المريض (طبيب/موظفون فقط)",
+      "hiddenFromPatientHint": "لن تظهر أسئلة هذه المجموعة في استمارة القبول العامة. ستكون مرئية وقابلة للتعديل فقط في شاشة مراجعة/تعديل الطلبات.",
+      "questionTextLabel": "نص السؤال *",
+      "questionTextPlaceholder": "اكتب سؤالك",
+      "questionTypeLabel": "نوع السؤال *",
+      "selectType": "اختر النوع",
+      "placeholderLabel": "النص التوضيحي",
+      "placeholderPlaceholder": "نص توضيحي",
+      "helperTextLabel": "نص مساعد",
+      "helperTextHint": "إرشادات إضافية للمريض",
+      "helpTextLabel": "نص التعليمات",
+      "helpTextHint": "تعليمات مفصلة تظهر أسفل حقل الإدخال",
+      "requiredField": "حقل مطلوب",
+      "optionsLabel": "الخيارات (مفصولة بفواصل)",
+      "optionsPlaceholder": "الخيار أ، الخيار ب، الخيار ج",
+      "validationRules": "قواعد التحقق",
+      "addRuleTooltip": "إضافة قاعدة",
+      "pattern": "نمط",
+      "value": "القيمة",
+      "characters": "حرف",
+      "errorMessage": "رسالة الخطأ",
+      "customErrorMessage": "رسالة خطأ مخصصة",
+      "noValidationRules": "لا توجد قواعد تحقق",
+      "addRule": "+ إضافة قاعدة",
+      "conditionalLogic": "المنطق الشرطي",
+      "addConditionTooltip": "إضافة شرط",
+      "match": "المطابقة:",
+      "targetQuestion": "السؤال المستهدف",
+      "operator": "العامل",
+      "noConditionalRules": "لا توجد شروط",
+      "addCondition": "+ إضافة شرط",
+      "ruleTypePlaceholder": "نوع القاعدة"
+    },
+    "quickAdd": {
+      "tooltip": "إضافة سريعة",
+      "aria": "إضافة سريعة لقسم أو مجموعة أو سؤال",
+      "title": "إضافة سريعة",
+      "subtitle": "أضف عنصراً جديداً إلى استمارتك",
+      "newSection": "قسم جديد",
+      "newSectionDesc": "حاوية رئيسية",
+      "newGroup": "مجموعة جديدة",
+      "newGroupDesc": "داخل القسم النشط",
+      "newQuestion": "سؤال جديد",
+      "newQuestionDesc": "داخل المجموعة النشطة",
+      "menuAria": "قائمة الإضافة السريعة"
+    },
+    "publishValidation": {
+      "header": "لا يمكن نشر الاستمارة",
+      "subtitle": "الحقول الأساسية المطلوبة ناقصة أو غير مضبوطة",
+      "description": "يجب أن تتضمن استمارتك جميع حقول معلومات المريض المطلوبة قبل نشرها.",
+      "issuesTitle": "مشاكل يجب إصلاحها",
+      "howToFixTitle": "كيفية الإصلاح",
+      "howToFixBody": "افتح المنشئ وأضف الأسئلة الأساسية الناقصة المذكورة أعلاه. يجب أن يحتفظ كل حقل أساسي بمعرّفه المقفل (مثل question_default_full_name) ويبقى محدداً كمطلوب حتى يتمكن النظام من اكتشافه.",
+      "gotIt": "حسناً",
+      "missingFromSchema": "غير موجود في الاستمارة",
+      "requiredFlagDisabled": "خيار \"مطلوب\" غير مفعّل"
+    },
+    "snackbar": {
+      "loadFailed": [
+        "فشل تحميل النموذج"
+      ],
+      "savedUpdated": [
+        "تم حفظ النموذج",
+        "تم تحديث المسودة بنجاح"
+      ],
+      "savedCreated": [
+        "تم حفظ النموذج",
+        "تم إنشاء المسودة بنجاح"
+      ],
+      "saveFailed": [
+        "فشل الحفظ"
+      ],
+      "published": [
+        "تم نشر النموذج",
+        "نموذج القبول متاح الآن"
+      ],
+      "publishFailed": [
+        "فشل النشر"
+      ],
+      "cannotDelete": [
+        "لا يمكن الحذف"
+      ],
+      "sectionLocked": [
+        "هذا قسم مطلوب ولا يمكن إزالته."
+      ],
+      "sectionHasLocked": [
+        "يحتوي هذا القسم على حقول مطلوبة مقفلة ولا يمكن إزالته."
+      ],
+      "groupHasLocked": [
+        "تحتوي هذه المجموعة على حقول مطلوبة مقفلة ولا يمكن إزالتها."
+      ],
+      "questionLocked": [
+        "هذا الحقل مقفل ولا يمكن إزالته."
+      ]
+    },
+    "conditionLogic": {
+      "all": "الكل (AND)",
+      "any": "أي (OR)"
+    },
+    "questionType": {
+      "text": "نص",
+      "number": "رقم",
+      "email": "بريد إلكتروني",
+      "phone": "هاتف",
+      "date": "تاريخ",
+      "datetime": "تاريخ ووقت",
+      "textarea": "نص طويل",
+      "select": "قائمة منسدلة",
+      "multiselect": "اختيار متعدد",
+      "checkbox": "مربعات اختيار",
+      "radio": "زر اختيار",
+      "boolean": "نعم/لا",
+      "file": "رفع ملف",
+      "fileupload": "رفع ملف (قديم)",
+      "painscale": "مقياس الألم",
+      "summary": "ملخص سريري"
+    }
+  },
+  "wizard": {
+    "header": {
+      "guidedWizard": "المعالج الموجّه",
+      "fallbackName": "معالج استمارة جديدة",
+      "backToSchemas": "رجوع إلى الاستمارات"
+    },
+    "steps": {
+      "template": "القالب",
+      "details": "التفاصيل",
+      "build": "البناء",
+      "review": "المراجعة"
+    },
+    "step1": {
+      "title": "اختر نقطة البداية",
+      "subtitle": "اختر قالباً يناسب احتياجاتك أو ابدأ من الصفر. يمكنك تخصيص كل شيء لاحقاً.",
+      "sectionsCount": "{{n}} قسم",
+      "questionsCount": "{{n}} سؤال",
+      "continue": "متابعة"
+    },
+    "step2": {
+      "title": "أخبرنا عن استمارتك",
+      "subtitle": "أعطِ استمارتك اسماً ووصفاً ليعرف فريقك الغرض منها.",
+      "formName": "اسم الاستمارة *",
+      "formNameTooltip": "الاسم الواضح يساعد فريقك في التعرف على هذه الاستمارة لاحقاً",
+      "formNamePlaceholder": "مثال: استمارة القبول قبل الزيارة",
+      "formNameHint": "مثال: قبول مريض جديد، متابعة ما بعد الجراحة",
+      "description": "الوصف",
+      "descriptionTooltip": "اختياري — صف متى يجب استخدام هذه الاستمارة",
+      "descriptionPlaceholder": "صف ما تجمعه هذه الاستمارة ومتى يجب على المرضى تعبئتها...",
+      "setDefaultSchema": "تعيين كاستمارة افتراضية",
+      "setDefaultTooltip": "تُفتح الاستمارة الافتراضية تلقائياً عند بدء المرضى عملية قبول جديدة",
+      "usingTemplate": "باستخدام القالب: {{name}} مع {{sections}} أقسام و{{questions}} أسئلة",
+      "continueToBuild": "متابعة إلى البناء"
+    },
+    "step3": {
+      "title": "ابنِ استمارتك",
+      "subtitle": "أضف الأسئلة إلى استمارتك. انقر على اسم أي قسم أو مجموعة لتعديله.",
+      "quickAddQuestions": "أسئلة الإضافة السريعة",
+      "quickAddHint": "انقر على أحد الاختصارات لإضافته إلى المجموعة المحددة أدناه، أو اكتب سؤالاً مخصصاً.",
+      "addingTo": "الإضافة إلى:",
+      "customQuestionPlaceholder": "اكتب سؤالاً مخصصاً...",
+      "addCustomTooltip": "إضافة سؤال مخصص",
+      "selected": "المحدد:",
+      "addToForm": "إضافة إلى الاستمارة",
+      "addToWhichGroup": "إضافة إلى أي مجموعة؟",
+      "hiddenFromPatient": "مخفي عن المريض",
+      "formStructure": "هيكل الاستمارة",
+      "sectionButton": "قسم",
+      "emptyTitle": "استمارتك فارغة",
+      "emptyDesc": "أضف أول قسم للبدء. القسم يشبه الفصل في كتاب استمارتك.",
+      "addFirstSection": "إضافة أول قسم",
+      "editNameTooltip": "تعديل الاسم",
+      "deleteSectionTooltip": "حذف القسم",
+      "deleteGroupTooltip": "حذف المجموعة",
+      "doctorOnlyTooltip": "مجموعة للأطباء فقط — مخفية عن المريض",
+      "removeQuestionTooltip": "إزالة السؤال",
+      "requiredTooltip": "مطلوب",
+      "hiddenFromPatientFull": "مخفية عن المريض (طبيب/موظفون فقط)",
+      "reviewAndFinish": "مراجعة وإنهاء"
+    },
+    "step4": {
+      "title": "راجع استمارتك",
+      "subtitle": "هذا ملخص لاستمارتك. يمكنك حفظها كمسودة أو نشرها فوراً.",
+      "statSections": "أقسام",
+      "statGroups": "مجموعات",
+      "statQuestions": "أسئلة",
+      "statDefault": "افتراضية",
+      "structurePreview": "معاينة هيكل الاستمارة",
+      "saving": "جارٍ الحفظ...",
+      "saveDraft": "حفظ المسودة",
+      "publishing": "جارٍ النشر...",
+      "publishForm": "نشر الاستمارة"
+    },
+    "back": "رجوع",
+    "change": "تغيير",
+    "sectionNamePlaceholder": "اسم القسم",
+    "groupNamePlaceholder": "اسم المجموعة",
+    "addQuestion": "إضافة سؤال",
+    "addGroup": "إضافة مجموعة",
+    "publishValidation": {
+      "howToFixBody": "عُد إلى خطوة البناء وأضف الحقول الناقصة. استخدم لوحة \"الإضافة السريعة\" على اليسار لإضافة الحقول المطلوبة مثل الاسم الكامل والبريد الإلكتروني والهاتف وتاريخ الميلاد والجنس والمهنة مع تفعيل خيار \"مطلوب\"."
+    },
+    "templates": {
+      "general-intake": {
+        "name": "استقبال عام للمريض",
+        "description": "استمارة ما قبل الزيارة القياسية تشمل بيانات المريض الأساسية ومعلومات التواصل وسبب الزيارة."
+      },
+      "pain-assessment": {
+        "name": "تقييم الألم",
+        "description": "تقييم مفصّل للألم يشمل خريطة الجسم ومقياس الألم وتتبع الأعراض."
+      },
+      "medical-history": {
+        "name": "التاريخ الطبي",
+        "description": "تاريخ طبي شامل يغطي الحالات والأدوية والحساسيات والعمليات الجراحية."
+      },
+      "blank": {
+        "name": "ابدأ من الصفر",
+        "description": "ابدأ باستمارة فارغة وابنها على طريقتك بمساعدة إرشادية خطوة بخطوة."
+      }
+    }
+  },
+  "submissions": {
+    "header": {
+      "title": "الطلبات المرسلة",
+      "totalCount": "{{n}} إجمالي",
+      "subtitle": "إدارة استمارات ما قبل الزيارة المرسلة من المرضى"
+    },
+    "error": {
+      "title": "فشل تحميل الطلبات",
+      "message": "فشل تحميل طلبات القبول. يرجى المحاولة مرة أخرى."
+    },
+    "empty": {
+      "noMatchTitle": "لا توجد طلبات مطابقة",
+      "noMatchDesc": "لا توجد طلبات تطابق عوامل التصفية الحالية. جرّب تعديل البحث أو تصفية الحالة.",
+      "emptyTitle": "لا توجد طلبات بعد",
+      "emptyDesc": "ستظهر طلبات قبول المرضى هنا بمجرد إكمال المرضى استماراتهم قبل الزيارة.",
+      "clearAllFilters": "مسح جميع عوامل التصفية"
+    },
+    "table": {
+      "patient": "المريض",
+      "intakeCode": "رمز الطلب",
+      "status": "الحالة",
+      "painRegions": "مناطق الألم",
+      "submitted": "تاريخ الإرسال",
+      "action": "إجراء"
+    },
+    "row": {
+      "codeNA": "#N/A",
+      "painRegion": "منطقة ألم واحدة",
+      "painRegions": "{{n}} مناطق ألم",
+      "viewSubmissionAria": "عرض تفاصيل الطلب"
+    },
+    "pagination": {
+      "showing": "عرض {{from}}–{{to}} من {{total}} طلب",
+      "prevPage": "الصفحة السابقة",
+      "nextPage": "الصفحة التالية",
+      "perPage": "لكل صفحة",
+      "perPageAria": "عناصر في الصفحة"
+    },
+    "stats": {
+      "totalSubmissions": "إجمالي الطلبات",
+      "pending": "قيد الانتظار",
+      "inReview": "قيد المراجعة",
+      "approved": "تمت الموافقة",
+      "waiting": "منتظرون",
+      "todaysArrivals": "زيارات اليوم"
+    },
+    "filters": {
+      "searchPlaceholder": "ابحث باسم المريض أو رمز الطلب أو الأعراض...",
+      "searchAria": "البحث في الطلبات",
+      "clearSearch": "مسح البحث",
+      "clearSearchText": "مسح نص البحث",
+      "sortNewestFirst": "الأحدث أولاً",
+      "sortOldestFirst": "الأقدم أولاً",
+      "sortPatientName": "اسم المريض (أ-ي)",
+      "sortPainRegions": "مناطق الألم (الأكثر أولاً)",
+      "listViewTitle": "عرض القائمة",
+      "gridViewTitle": "عرض الشبكة",
+      "listViewAria": "التبديل إلى عرض القائمة",
+      "gridViewAria": "التبديل إلى عرض الشبكة",
+      "sortAria": "ترتيب الطلبات",
+      "viewModeGroupAria": "مفتاح تبديل طريقة العرض",
+      "clearAllTitle": "مسح جميع عوامل التصفية النشطة"
+    }
+  },
+  "detail": {
+    "loading": "جارٍ تحميل تفاصيل الطلب...",
+    "errorTitle": "فشل التحميل",
+    "errorMessage": "فشل تحميل تفاصيل الطلب. يرجى المحاولة مرة أخرى.",
+    "invalidId": "معرّف طلب غير صالح.",
+    "breadcrumb": "الطلبات المرسلة",
+    "actions": "الإجراءات",
+    "convertDialog": {
+      "title": "تحويل إلى مريض",
+      "subtitle": "إنشاء ملف مريض نشط من طلب القبول هذا",
+      "info": "سيؤدي تحويل هذا الطلب إلى إنشاء سجل مريض جديد في النظام باستخدام بيانات الاستمارة المقدمة قبل الزيارة.",
+      "missingFields": "حقول مطلوبة ناقصة:",
+      "profileSummary": "ملخص ملف المريض",
+      "readyToImport": "جاهز للاستيراد",
+      "incomplete": "غير مكتمل",
+      "fullName": "الاسم الكامل",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "confirm": "تأكيد وإنشاء ملف المريض",
+      "dialogAria": "نافذة التحويل إلى مريض",
+      "cancelAria": "إلغاء التحويل",
+      "confirmAria": "تأكيد التحويل إلى مريض"
+    },
+    "viewer": {
+      "title": "الإجابات المرسلة",
+      "editingBadge": "تحرير",
+      "schemaUnavailable": "قالب الاستمارة غير متوفر — لا يمكن تعديل الإجابات بدونه.",
+      "sectionFallback": "قسم",
+      "groupFallback": "مجموعة",
+      "questionFallback": "سؤال",
+      "noAnswers": "لا توجد إجابات مرسلة.",
+      "editSubmissionAria": "تعديل الطلب",
+      "cancelEditingAria": "إلغاء التعديل"
+    },
+    "summary": {
+      "submitted": "أُرسلت",
+      "submissionId": "معرّف الإرسال",
+      "formName": "اسم الاستمارة",
+      "version": "الإصدار",
+      "reviewedAt": "تاريخ المراجعة",
+      "patientId": "معرّف المريض",
+      "unnamedPatient": "مريض بدون اسم",
+      "formDetails": "تفاصيل الاستمارة"
+    },
+    "errors": {
+      "notPermitted": "غير مسموح",
+      "notPermittedBody": "ليست لديك صلاحية تعديل هذا الإرسال."
+    }
+  },
+  "painMap": {
+    "title": "خريطة الألم",
+    "instructions": "انقر على المناطق التي تشعر فيها بألم، في الواجهة الأمامية أو الخلفية.",
+    "legendSelected": "محددة",
+    "legendTapToSelect": "انقر للتحديد",
+    "front": "أمامي",
+    "back": "خلفي",
+    "selectedRegions": "المناطق المحددة",
+    "tapRegionHint": "انقر على منطقة في الجسم أعلاه لتحديد الألم.",
+    "removeRegionAria": "إزالة المنطقة",
+    "aria": "خريطة الألم"
+  },
+  "renderer": {
+    "noSchema": "لم يتم توفير قالب استمارة.",
+    "noSections": "لا تحتوي هذه الاستمارة على أقسام محددة بعد.",
+    "noQuestionsInGroup": "لا توجد أسئلة في هذه المجموعة",
+    "enterAnswer": "أدخل إجابتك",
+    "emailPlaceholder": "email@example.com",
+    "phonePlaceholder": "(555) 123-4567",
+    "selectOption": "اختر خياراً",
+    "selectOptions": "اختر خيارات",
+    "booleanYes": "نعم",
+    "fileUnavailable": "رفع الملفات غير متاح",
+    "fileUnavailableDesc": "ستكون هذه الميزة متاحة في تحديث قادم",
+    "painPoint": {
+      "intensity": "الشدة",
+      "region": "المنطقة",
+      "side": "الجانب",
+      "description": "الوصف",
+      "regionPlaceholder": "مثال: الفقرات القطنية، الكتف، الركبة",
+      "sidePlaceholder": "يسار، يمين، جانبان",
+      "descriptionPlaceholder": "صف الألم"
+    },
+    "summaryFallback": "سيظهر الملخص السريري الذي يتم إنشاؤه تلقائياً هنا بعد إرسال الاستمارة.",
+    "validation": {
+      "required": "هذا الحقل مطلوب.",
+      "email": "يرجى إدخال بريد إلكتروني صالح.",
+      "pattern": "القيمة لا تطابق التنسيق المطلوب.",
+      "min": "يجب أن تكون القيمة {{min}} على الأقل.",
+      "max": "يجب أن تكون القيمة {{max}} على الأكثر.",
+      "minLength": "يجب ألا يقل عن {{requiredLength}} حرفاً.",
+      "maxLength": "يجب ألا يزيد عن {{requiredLength}} حرفاً.",
+      "url": "يرجى إدخال رابط إلكتروني صالح."
+    },
+    "aria": {
+      "required": "مطلوب",
+      "conditionalQuestion": "سؤال مشروط",
+      "dynamicIntakeForm": "استمارة قبول ديناميكية",
+      "fileUploadPlaceholder": "حقل رفع الملفات"
+    }
+  },
+  "engine": {
+    "operators": {
+      "equals": "يساوي",
+      "notEquals": "لا يساوي",
+      "contains": "يحتوي على",
+      "greaterThan": "أكبر من",
+      "lessThan": "أقل من",
+      "in": "ضمن",
+      "notIn": "ليس ضمن"
+    },
+    "rules": {
+      "required": "مطلوب",
+      "pattern": "نمط",
+      "min": "الحد الأدنى",
+      "max": "الحد الأقصى",
+      "minLength": "أقل طول",
+      "maxLength": "أقصى طول",
+      "email": "بريد إلكتروني",
+      "url": "رابط إلكتروني"
+    },
+    "validation": {
+      "versionMin": "يجب أن يكون إصدار الاستمارة 1 على الأقل",
+      "sectionRequired": "يجب أن تحتوي الاستمارة على قسم واحد على الأقل",
+      "duplicateSection": "معرّف القسم مكرر: {{id}}",
+      "duplicateGroup": "معرّف المجموعة مكرر: {{id}}",
+      "duplicateQuestion": "معرّف السؤال مكرر: {{id}}",
+      "conditionMissingTarget": "الشرط يشير إلى سؤال غير موجود: {{id}}"
+    }
+  },
+  "schemaText": {
+    "fullName": "الاسم الكامل",
+    "emailAddress": "البريد الإلكتروني",
+    "phoneNumber": "رقم الهاتف",
+    "patientFreeTime": "أوقات فراغ المريض",
+    "gender": "الجنس",
+    "dateOfBirth": "تاريخ الميلاد",
+    "chiefComplaint": "الشكوى الرئيسية",
+    "injuryDate": "تاريخ الإصابة",
+    "patientType": "نوع المريض",
+    "optMale": "ذكر",
+    "optFemale": "أنثى",
+    "optOrthopedic": "عيادات العظام",
+    "optNeurological": "عيادات الأعصاب",
+    "optPediatric": "عيادات الأطفال",
+    "optGeneralOther": "عام / أخرى",
+    "phJohnDoe": "مثال: محمد أحمد",
+    "phEmail": "john@example.com",
+    "phPhone": "(555) 000-0000",
+    "phFreeTime": "مثال: أيام الأسبوع بعد الخامسة مساءً",
+    "phChiefComplaint": "السبب الرئيسي للزيارة",
+    "sectionRequiredPatientInfo": "معلومات المريض المطلوبة",
+    "groupPatientDetails": "بيانات المريض",
+    "groupMedicalInformation": "المعلومات الطبية",
+    "clinicalSummary": "الملخص السريري",
+    "addressCity": "العنوان / المدينة",
+    "jobOccupation": "الوظيفة / المهنة",
+    "married": "متزوج",
+    "referralSource": "كيف عرفت عنّا؟",
+    "previousInjuries": "إصابات سابقة",
+    "notes": "ملاحظات",
+    "optSocialMedia": "وسائل التواصل الاجتماعي",
+    "optFriendOrFamily": "صديق أو فرد من العائلة",
+    "optGoogleSearch": "بحث Google",
+    "optDoctorReferral": "إحالة من طبيب",
+    "optAdvertisement": "إعلان",
+    "phFreeTimeLong": "مثال: أيام الأسبوع بعد الخامسة مساءً، وعطلات نهاية الأسبوع في أي وقت",
+    "phChiefComplaintLong": "السبب الرئيسي للزيارة (نُقل هنا من خريطة الألم)",
+    "phGiza": "مثال: الجيزة، مصر",
+    "phSoftwareEngineer": "مثال: مهندس برمجيات",
+    "phPriorInjuries": "مثال: لا يوجد، أو اذكر الإصابات السابقة",
+    "phNotes": "مثال: يزداد الألم سوءًا بعد الجلوس لفترة طويلة.",
+    "descCoreFields": "الحقول الأساسية المطلوبة لكل استمارة استقبال — لا يمكن إزالتها",
+    "descDemographicsContact": "البيانات الديموغرافية ومعلومات التواصل",
+    "descPatientDemographics": "بيانات المريض الأساسية ومعلومات التواصل",
+    "descHowToReach": "كيفية التواصل مع المريض",
+    "descAdditionalInfo": "معلومات إضافية عن المريض",
+    "descPresentingCondition": "تفاصيل عن الحالة الحالية",
+    "descClinicianClassification": "التصنيف الذي يحدده الأخصائي",
+    "descReasonVisit": "سبب زيارة اليوم",
+    "descDescribePain": "صف لنا الألم الذي تشعر به",
+    "descPreviousTreatment": "العلاجات السابقة والتاريخ المرضي",
+    "descHealthBackground": "خلفيتك الصحية",
+    "descLifestyleFactors": "عوامل نمط الحياة التي قد تؤثر على صحتك"
+  }
+}

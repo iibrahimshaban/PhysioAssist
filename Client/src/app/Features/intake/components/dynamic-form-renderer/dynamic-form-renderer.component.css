@@ -110,7 +110,7 @@
 
 .required-mark {
   color: var(--color-danger);
-  margin-left: 0.125rem;
+  margin-inline-start: 0.125rem;
 }
 
 .intake-upload-placeholder {

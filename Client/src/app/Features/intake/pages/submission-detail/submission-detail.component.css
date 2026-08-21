@@ -176,13 +176,13 @@
 /* ---- Activity Timeline ---- */
 .timeline {
   position: relative;
-  padding-left: 24px;
+  padding-inline-start: 24px;
 }
 
 .timeline::before {
   content: '';
   position: absolute;
-  left: 7px;
+  inset-inline-start: 7px;
   top: 0;
   bottom: 0;
   width: 2px;
@@ -200,7 +200,7 @@
 
 .timeline-dot {
   position: absolute;
-  left: -20px;
+  inset-inline-start: -20px;
   top: 4px;
   width: 10px;
   height: 10px;

@@ -3,22 +3,27 @@ import { IntakeStatus } from './intake-submission.model';
 import {
   canEditIntake,
   getAvailableIntakeActions,
-  getIntakeStatusLabel,
+  getIntakeStatusKey,
   getIntakeStatusPillClass,
 } from './intake-status-policy';
 
 describe('intake status policy', () => {
   it.each([
-    [IntakeStatus.Pending, 'Pending'],
-    [IntakeStatus.Submitted, 'Submitted'],
-    [IntakeStatus.InReview, 'In Review'],
-    [IntakeStatus.Approved, 'Approved'],
-    [IntakeStatus.Rejected, 'Rejected'],
-    [IntakeStatus.Converted, 'Converted'],
-    [IntakeStatus.Expired, 'Expired'],
-  ])('uses the exact label for %s', (status, label) => {
-    expect(getIntakeStatusLabel(status)).toBe(label);
+    [IntakeStatus.Pending, 'intake.status.pending'],
+    [IntakeStatus.Submitted, 'intake.status.submitted'],
+    [IntakeStatus.InReview, 'intake.status.inReview'],
+    [IntakeStatus.Approved, 'intake.status.approved'],
+    [IntakeStatus.Rejected, 'intake.status.rejected'],
+    [IntakeStatus.Converted, 'intake.status.converted'],
+    [IntakeStatus.Expired, 'intake.status.expired'],
+  ])('uses the exact translation key for %s', (status, key) => {
+    expect(getIntakeStatusKey(status)).toBe(key);
     expect(getIntakeStatusPillClass(status)).not.toBe('status-badge-neutral');
+  });
+
+  it('falls back to the unknown key for invalid statuses', () => {
+    expect(getIntakeStatusKey(undefined)).toBe('intake.status.unknown');
+    expect(getIntakeStatusKey(999 as IntakeStatus)).toBe('intake.status.unknown');
   });
 
   it('allows approval from every reviewable state', () => {
@@ -26,7 +31,7 @@ describe('intake status policy', () => {
       expect(getAvailableIntakeActions(status)).toContainEqual(expect.objectContaining({
         type: 'status',
         status: IntakeStatus.Approved,
-        label: 'Approve',
+        labelKey: 'intake.action.approve',
       }));
     }
   });

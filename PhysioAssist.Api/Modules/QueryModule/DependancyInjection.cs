@@ -2,6 +2,7 @@
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.Google;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using PhysioAssist.Api.Infrastructure.Documentation;
 using PhysioAssist.Api.Modules.QueryModule.Interfaces;
@@ -31,6 +32,12 @@ public static class DependancyInjection
         services
         .AddOptions<SbgQueryAgentChatOptions>()
         .BindConfiguration(SbgQueryAgentChatOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        services
+        .AddOptions<GeminiQueryAgentChatOptions>()
+        .BindConfiguration(GeminiQueryAgentChatOptions.SectionName)
         .ValidateDataAnnotations()
         .ValidateOnStart();
 
@@ -71,8 +78,9 @@ public static class DependancyInjection
             var TranslationPlugin = sp.GetRequiredService<AnswerTranslationPlugin>();
             var patientQueryPlugin = sp.GetRequiredService<PatientQueryPlugin>();
 
-            var kernel = BuildSbgKernel(sp);
-            // var kernel = BuildNvidiaKernel(sp);
+            //var kernel = BuildSbgKernel(sp);
+            //var kernel = BuildNvidiaKernel(sp);
+            var kernel = BuildGeminiKernel(sp);
 
             var webSearchPlugin = new WebSearchPlugin(tavilyClient, tavilyOptions);
 
@@ -82,22 +90,18 @@ public static class DependancyInjection
             kernel.Plugins.AddFromObject(TranslationPlugin, "AnswerTranslation");
             kernel.Plugins.AddFromObject(patientQueryPlugin, "PatientQuery");
 
-            #pragma warning disable SKEXP0110
+#pragma warning disable SKEXP0110, SKEXP0070
             return new ChatCompletionAgent
             {
                 Name = "QueryAgent",
                 Instructions = QueryAgentPrompts.AgentInstructions,
                 Kernel = kernel,
-                Arguments = new KernelArguments(new OpenAIPromptExecutionSettings
+                Arguments = new KernelArguments(new GeminiPromptExecutionSettings
                 {
-                    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+                    ToolCallBehavior = GeminiToolCallBehavior.EnableKernelFunctions
                 }),
-                //TODO: USE CHEAPER MODEL FOR SUMMARIZATION LIKE GPT4O-MINI or Something
-                HistoryReducer = new ChatHistorySummarizationReducer(
-                    service: summarizationService,
-                    targetCount: 10,
-                    thresholdCount: 15)
             };
+#pragma warning restore SKEXP0110, SKEXP0070
         });
 
         return services;
@@ -122,5 +126,18 @@ public static class DependancyInjection
         var builder = Kernel.CreateBuilder();
         builder.Services.AddSingleton<IChatCompletionService>(sbgService);
         return builder.Build();
+    }
+    private static Kernel BuildGeminiKernel(IServiceProvider sp)
+    {
+        var options = sp.GetRequiredService<IOptions<GeminiQueryAgentChatOptions>>().Value;
+
+        #pragma warning disable SKEXP0070 // Google connector is experimental
+                return Kernel.CreateBuilder()
+                    .AddGoogleAIGeminiChatCompletion(
+                        modelId: options.ChatModel,
+                        apiKey: options.Token,
+                        apiVersion: GoogleAIVersion.V1_Beta) // v1beta is required for thought-signature/thinking support
+                    .Build();
+        #pragma warning restore SKEXP0070
     }
 }

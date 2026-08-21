@@ -5,6 +5,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../../Core/Services/auth.service';
 
 @Component({
@@ -13,6 +14,7 @@ import { AuthService } from '../../../Core/Services/auth.service';
   imports: [
     ReactiveFormsModule,
     RouterLink,
+    TranslocoModule,
     InputTextModule,
     PasswordModule,
     ButtonModule,
@@ -21,9 +23,10 @@ import { AuthService } from '../../../Core/Services/auth.service';
   templateUrl: './register.component.html',
 })
 export class RegisterComponent {
-  private readonly fb     = inject(FormBuilder);
-  private readonly auth   = inject(AuthService);
-  private readonly router = inject(Router);
+  private readonly fb        = inject(FormBuilder);
+  private readonly auth      = inject(AuthService);
+  private readonly router    = inject(Router);
+  private readonly transloco = inject(TranslocoService);
 
   loading = signal(false);
   photoPreview = signal<string | null>(null);
@@ -87,21 +90,10 @@ export class RegisterComponent {
   getFieldError(field: string): string {
     const ctrl = this.form.get(field);
     if (!ctrl) return '';
-    if (ctrl.hasError('required'))     return `${this.fieldLabel()[field]} is required.`;
-    if (ctrl.hasError('email'))        return 'Enter a valid email address.';
-    if (ctrl.hasError('minlength'))    return `At least ${ctrl.errors?.['minlength'].requiredLength} characters required.`;
-    if (ctrl.hasError('requiredTrue')) return 'You must agree to the Terms and Privacy Policy.';
+    if (ctrl.hasError('required'))     return this.transloco.translate('auth.validation.required', { field: this.transloco.translate('auth.fields.' + field) });
+    if (ctrl.hasError('email'))        return this.transloco.translate('auth.validation.email');
+    if (ctrl.hasError('minlength'))    return this.transloco.translate('auth.validation.minLength', { n: ctrl.errors?.['minlength'].requiredLength });
+    if (ctrl.hasError('requiredTrue')) return this.transloco.translate('auth.validation.requiredTrue');
     return '';
-  }
-
-  private fieldLabel(): Record<string, string> {
-    return {
-      firstName:  'First name',
-      lastName:   'Last name',
-      clinicName: 'Clinic name',
-      email:      'Email',
-      password:   'Password',
-      agreed:     'Terms',
-    };
   }
 }

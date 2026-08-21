@@ -1,17 +1,19 @@
 import { Component, computed, inject, signal, HostListener, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { TranslocoModule } from '@jsverse/transloco';
 import { AuthService } from '../../Core/Services/auth.service';
 import { NavigationService } from '../../Core/Services/navigation.service';
 
 interface MarketingNavItem {
   label: string;
+  labelKey: string;
   fragment: string;
 }
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, TranslocoModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
 })
@@ -49,10 +51,10 @@ export class HeaderComponent {
 
   // ── Marketing nav (shown to logged-out visitors, e.g. on the landing page) ──
   readonly marketingNavItems: MarketingNavItem[] = [
-    { label: 'Features', fragment: 'features' },
-    { label: 'AI Assistant', fragment: 'ai-assistant' },
-    { label: 'Scheduling', fragment: 'scheduling' },
-    { label: 'For Physiotherapists', fragment: 'for-physios' },
+    { label: 'Features', labelKey: 'shared.nav.marketingFeatures', fragment: 'features' },
+    { label: 'AI Assistant', labelKey: 'shared.nav.marketingAiAssistant', fragment: 'ai-assistant' },
+    { label: 'Scheduling', labelKey: 'shared.nav.marketingScheduling', fragment: 'scheduling' },
+    { label: 'For Physiotherapists', labelKey: 'shared.nav.marketingForPhysios', fragment: 'for-physios' },
   ];
 
   // ── Sticky/blurred navbar on scroll ──
