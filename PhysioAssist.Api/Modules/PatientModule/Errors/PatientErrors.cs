@@ -5,6 +5,9 @@
         public static readonly Error NotFound =
             new("Patient.NotFound", "The requested patient was not found.", StatusCodes.Status404NotFound);
 
+        public static readonly Error NoDoctorsInClinic =
+            new("Patient.NoDoctorsInClinic", "There are no doctors available in the requested clinic.", StatusCodes.Status404NotFound);
+
         public static readonly Error DuplicatePhone =
             new("Patient.DuplicatePhone", "A patient with this phone number already exists.", StatusCodes.Status409Conflict);
 
@@ -21,6 +24,8 @@
     new("Patient.DuplicateEmail", "A patient with this email address already exists.", StatusCodes.Status409Conflict);
 
         public static readonly Error InvalidIntakeSubmission =
-    new("Patient.InvalidIntakeSubmission", "The intake form submission could not be processed.", StatusCodes.Status400BadRequest);
+           new("Patient.InvalidIntakeSubmission", "The intake form submission could not be processed.", StatusCodes.Status400BadRequest);
+    public static readonly Error ClinicIdRequired =
+           new("Patient.ClinicIdRequired", "Clinic ID is required for patient", StatusCodes.Status400BadRequest);
     }
 }

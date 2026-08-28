@@ -6,7 +6,7 @@ public record FormSchemaResponse
     public string Name { get; init; } = string.Empty;
     public string? Description { get; init; }
     public string SchemaJson { get; init; } = string.Empty;
-    public Guid DoctorId { get; init; }
+    public Guid ClinicId { get; init; }
     public int Version { get; init; }
     public FormSchemaStatus Status { get; init; }
     public bool IsDefault { get; init; }

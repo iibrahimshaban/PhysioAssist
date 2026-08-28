@@ -21,7 +21,7 @@ public class IntakeQueryService(ApplicationDbContext context) : IIntakeQueryServ
 
         var response = new PreVisitIntakeDataResponse(
             intake.Id,
-            intake.DoctorId,
+            intake.GeneratedByUserId,
             intake.FormSchemaId,
             intake.FormSchemaVersion,
             intake.FormSubmissionData,
@@ -106,11 +106,11 @@ public class IntakeQueryService(ApplicationDbContext context) : IIntakeQueryServ
         return Result.Success(freeTimeText);
     }
 
-    public async Task<Result<PendingIntakesResult>> GetPendingIntakesAsync(Guid doctorId, int take, CancellationToken cancellationToken = default)
+    public async Task<Result<PendingIntakesResult>> GetPendingIntakesAsync(Guid clinicId, int take, CancellationToken cancellationToken = default)
     {
         var pendingQuery = _context.PreVisitIntakes
             .AsNoTracking()
-            .Where(x => x.DoctorId == doctorId && x.Status == IntakeStatus.Pending);
+            .Where(x => x.FormSchema!.ClinicId == clinicId && x.Status == IntakeStatus.Pending);
 
         var totalCount = await pendingQuery.CountAsync(cancellationToken);
 

@@ -69,5 +69,11 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
                 .Include(p => p.PreferredTimeSlots)
                 .FirstOrDefaultAsync(p => p.Id == patientId, cancellation);
         }
+        public async Task<IEnumerable<Patient>> GetByClinicIdAsync(Guid clinicId, CancellationToken cancellation)
+        {
+            return await _context.Patients
+                .Where(p => p.ClinicId == clinicId)
+                .ToListAsync(cancellation);
+        }
     }
 }

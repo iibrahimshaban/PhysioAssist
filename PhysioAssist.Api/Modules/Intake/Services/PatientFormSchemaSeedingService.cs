@@ -16,9 +16,9 @@ public class PatientFormSchemaSeedingService(IIntakeService intakeService) : IPa
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
-    public async Task<Result> SeedDefaultSchemaAsync(Guid doctorId, string clinicName, CancellationToken cancellationToken = default)
+    public async Task<Result> SeedDefaultSchemaAsync(Guid clinicId, string clinicName, CancellationToken cancellationToken = default)
     {
-        var existingDefault = await _intakeService.GetDefaultFormSchemaAsync(doctorId, cancellationToken);
+        var existingDefault = await _intakeService.GetDefaultFormSchemaAsync(clinicId, cancellationToken);
         if (existingDefault.IsSuccess)
             return Result.Success();
 
@@ -35,13 +35,13 @@ public class PatientFormSchemaSeedingService(IIntakeService intakeService) : IPa
             IsDefault = true,
         };
 
-        var createResult = await _intakeService.CreateFormSchemaAsync(createRequest, doctorId, cancellationToken);
+        var createResult = await _intakeService.CreateFormSchemaAsync(createRequest, clinicId, cancellationToken);
         if (createResult.IsFailure)
             return Result.Failure(createResult.Error);
 
         var publishRequest = new PublishFormSchemaRequest { Version = createResult.Value.Version };
         var publishResult = await _intakeService.PublishFormSchemaAsync(
-            createResult.Value.Id, publishRequest, doctorId, cancellationToken);
+            createResult.Value.Id, publishRequest, clinicId, cancellationToken);
 
         return publishResult.IsFailure ? Result.Failure(publishResult.Error) : Result.Success();
     }

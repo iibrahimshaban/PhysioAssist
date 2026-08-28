@@ -5,7 +5,7 @@ namespace PhysioAssist.Api.Modules.DashboardModule.Services;
 public interface IDoctorDashboardService
 {
     Task<Result<DoctorDashboardSummaryDto>> GetSummaryAsync(
-        Guid doctorId,
+        Guid clinicId,
         string doctorFirstName,
         CancellationToken cancellationToken = default);
 }

@@ -4,7 +4,7 @@ public class PreVisitIntake
 {
     public Guid Id { get; set; } = Guid.CreateVersion7();
     public string ShortCode { get; set; } = string.Empty;
-    public Guid DoctorId { get; set; }
+    public Guid GeneratedByUserId { get; set; }
     public Guid FormSchemaId { get; set; }
     public int FormSchemaVersion { get; set; }
     public string FormSubmissionData { get; set; } = string.Empty;

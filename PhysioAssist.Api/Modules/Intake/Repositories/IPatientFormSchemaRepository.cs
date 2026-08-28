@@ -7,12 +7,12 @@ public interface IPatientFormSchemaRepository
     Task AddAsync(PatientFormSchema schema, CancellationToken cancellationToken = default);
     Task<PatientFormSchema?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<PatientFormSchema?> GetPublishedByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<PatientFormSchema?> GetDefaultForDoctorAsync(Guid doctorId, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<PatientFormSchema>> GetByDoctorAsync(Guid doctorId, CancellationToken cancellationToken = default);
-    Task<bool> ExistsNameForDoctorAsync(Guid doctorId, string name, Guid? excludeId, CancellationToken cancellationToken = default);
-    Task UnsetDefaultSchemasAsync(Guid doctorId, CancellationToken cancellationToken = default);
+    Task<PatientFormSchema?> GetDefaultForClinicAsync(Guid clinicId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<PatientFormSchema>> GetByClinicAsync(Guid clinicId, CancellationToken cancellationToken = default);
+    Task<bool> ExistsNameForClinicAsync(Guid clinicId, string name, Guid? excludeId, CancellationToken cancellationToken = default);
+    Task UnsetDefaultSchemasAsync(Guid clinicId, CancellationToken cancellationToken = default);
     void Update(PatientFormSchema schema);
     void Remove(PatientFormSchema schema);
-    Task<IReadOnlyList<PatientFormSchema>> GetCopiesByOriginalFormIdAsync(Guid originalFormId, Guid doctorId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<PatientFormSchema>> GetCopiesByOriginalFormIdAsync(Guid originalFormId, Guid clinicId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<PatientFormSchema>> GetAllAsync(CancellationToken cancellationToken = default);
 }

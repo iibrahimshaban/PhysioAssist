@@ -1,4 +1,3 @@
-using MapsterMapper;
 using PhysioAssist.Api.Modules.Intake.Constants;
 using PhysioAssist.Api.Modules.Intake.DTOs.DynamicForms;
 using PhysioAssist.Api.Modules.Intake.DTOs.FormSchemas;
@@ -9,9 +8,6 @@ using PhysioAssist.Api.Modules.Intake.Errors;
 using PhysioAssist.Api.Modules.Intake.Helpers;
 using PhysioAssist.Api.Modules.Intake.Repositories;
 using PhysioAssist.Api.Shared.Dtos.Patient;
-using PhysioAssist.Api.Shared.Interfaces.Common;
-using PhysioAssist.Api.Shared.Interfaces.Exposed;
-using PhysioAssist.Api.Persistence;
 using PhysioAssist.Api.Shared.QR;
 using System.Security.Cryptography;
 using System.Text;
@@ -104,33 +100,36 @@ public class IntakeService(
     private readonly ILogger<IntakeService> _logger = logger;
     private readonly ApplicationDbContext _context = context;
 
-    public async Task<Result> EnsureSchemaBelongsToDoctorAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result> EnsureSchemaBelongsToDoctorAsync(Guid schemaId, Guid clinicId, CancellationToken cancellationToken = default)
     {
         var schema = await _patientFormSchemaRepository.GetByIdAsync(schemaId, cancellationToken);
 
         if (schema is null)
             return Result.Failure(IntakeErrors.SchemaNotFound);
 
-        if (schema.DoctorId != doctorId)
-            return Result.Failure(IntakeErrors.UnauthorizedDoctor);
+        if (schema.ClinicId != clinicId)
+            return Result.Failure(IntakeErrors.UnauthorizedClinic);
 
         return Result.Success();
     }
 
-    public async Task<Result> EnsureIntakeBelongsToDoctorAsync(Guid intakeId, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result> EnsureIntakeBelongsToClinicAsync(Guid intakeId, Guid clinicId, CancellationToken cancellationToken = default)
     {
         var intake = await _preVisitIntakeRepository.GetByIdAsync(intakeId, cancellationToken);
 
         if (intake is null)
             return Result.Failure(IntakeErrors.IntakeNotFound);
 
-        if (intake.DoctorId != doctorId)
+        var belongsToClinic = await _context.Users
+            .AnyAsync(u => u.Id == intake.GeneratedByUserId.ToString() && u.ClinicId == clinicId, cancellationToken);
+
+        if (!belongsToClinic)
             return Result.Failure(IntakeErrors.UnauthorizedDoctor);
 
         return Result.Success();
     }
 
-    public async Task<Result<FormSchemaResponse>> CreateFormSchemaAsync(CreateFormSchemaRequest request, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result<FormSchemaResponse>> CreateFormSchemaAsync(CreateFormSchemaRequest request, Guid clinicId, CancellationToken cancellationToken = default)
     {
         var schemaDto = DeserializeSchemaJson(request.SchemaJson);
 
@@ -141,10 +140,12 @@ public class IntakeService(
         schemaDto = MergeCoreFields(schemaDto);
 
         var validationResult = _dynamicFormValidationService.ValidateSchema(schemaDto);
+
         if (validationResult.IsFailure)
             return Result.Failure<FormSchemaResponse>(validationResult.Error);
 
-        var nameExists = await _patientFormSchemaRepository.ExistsNameForDoctorAsync(doctorId, request.Name, null, cancellationToken);
+        var nameExists = await _patientFormSchemaRepository.ExistsNameForClinicAsync(clinicId, request.Name, null, cancellationToken);
+
         if (nameExists)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.SchemaNameDuplicated);
 
@@ -152,7 +153,7 @@ public class IntakeService(
         var mergedSchemaJson = SerializeSchemaJson(schemaDto);
 
         var schema = _mapper.Map<PatientFormSchema>(request);
-        schema.DoctorId = doctorId;
+        schema.ClinicId = clinicId;
         schema.SchemaHash = ComputeSchemaHash(mergedSchemaJson);
         schema.CreatedById = DefaultUsers.UserId;
         schema.CreatedAt = DateTime.UtcNow;
@@ -161,7 +162,7 @@ public class IntakeService(
 
         if (request.IsDefault)
         {
-            await _patientFormSchemaRepository.UnsetDefaultSchemasAsync(doctorId, cancellationToken);
+            await _patientFormSchemaRepository.UnsetDefaultSchemasAsync(clinicId, cancellationToken);
         }
 
         await _patientFormSchemaRepository.AddAsync(schema, cancellationToken);
@@ -171,14 +172,14 @@ public class IntakeService(
         return Result.Success(response);
     }
 
-    public async Task<Result<FormSchemaResponse>> UpdateFormSchemaAsync(Guid schemaId, UpdateFormSchemaRequest request, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result<FormSchemaResponse>> UpdateFormSchemaAsync(Guid schemaId, UpdateFormSchemaRequest request, Guid clinicId, CancellationToken cancellationToken = default)
     {
         var schema = await _patientFormSchemaRepository.GetByIdAsync(schemaId, cancellationToken);
         if (schema is null)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.SchemaNotFound);
 
-        if (schema.DoctorId != doctorId)
-            return Result.Failure<FormSchemaResponse>(IntakeErrors.UnauthorizedDoctor);
+        if (schema.ClinicId != clinicId)
+            return Result.Failure<FormSchemaResponse>(IntakeErrors.UnauthorizedClinic);
 
         var schemaDto = DeserializeSchemaJson(request.SchemaJson);
         if (schemaDto is null)
@@ -245,7 +246,7 @@ public class IntakeService(
             }
         }
 
-        var nameExists = await _patientFormSchemaRepository.ExistsNameForDoctorAsync(doctorId, request.Name, schemaId, cancellationToken);
+        var nameExists = await _patientFormSchemaRepository.ExistsNameForClinicAsync(clinicId, request.Name, schemaId, cancellationToken);
         if (nameExists)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.SchemaNameDuplicated);
 
@@ -257,7 +258,7 @@ public class IntakeService(
 
         if (request.IsDefault && !schema.IsDefault)
         {
-            await _patientFormSchemaRepository.UnsetDefaultSchemasAsync(doctorId, cancellationToken);
+            await _patientFormSchemaRepository.UnsetDefaultSchemasAsync(clinicId, cancellationToken);
             schema.IsDefault = true;
         }
         else if (!request.IsDefault && schema.IsDefault)
@@ -272,15 +273,15 @@ public class IntakeService(
         return Result.Success(response);
     }
 
-    public async Task<Result<FormSchemaResponse>> PublishFormSchemaAsync(Guid schemaId, PublishFormSchemaRequest request, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result<FormSchemaResponse>> PublishFormSchemaAsync(Guid schemaId, PublishFormSchemaRequest request, Guid clinicId, CancellationToken cancellationToken = default)
     {
         var schema = await _patientFormSchemaRepository.GetByIdAsync(schemaId, cancellationToken);
 
         if (schema is null)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.SchemaNotFound);
 
-        if (schema.DoctorId != doctorId)
-            return Result.Failure<FormSchemaResponse>(IntakeErrors.UnauthorizedDoctor);
+        if (schema.ClinicId != clinicId)
+            return Result.Failure<FormSchemaResponse>(IntakeErrors.UnauthorizedClinic);
 
         if (request.Version != schema.Version)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.SchemaVersionMismatch);
@@ -315,27 +316,28 @@ public class IntakeService(
         return Result.Success(response);
     }
 
-    public async Task<Result<FormSchemaResponse>> GetFormSchemaByIdAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result<FormSchemaResponse>> GetFormSchemaByIdAsync(Guid schemaId, Guid clinicId, CancellationToken cancellationToken = default)
     {
         var schema = await _patientFormSchemaRepository.GetByIdAsync(schemaId, cancellationToken);
+
         if (schema is null)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.SchemaNotFound);
 
-        if (schema.DoctorId != doctorId)
-            return Result.Failure<FormSchemaResponse>(IntakeErrors.UnauthorizedDoctor);
+        if (schema.ClinicId != clinicId)
+            return Result.Failure<FormSchemaResponse>(IntakeErrors.UnauthorizedClinic);
 
         var response = _mapper.Map<FormSchemaResponse>(schema);
         return Result.Success(response);
     }
 
-    public async Task<Result<IReadOnlyList<FormSchemaSummaryResponse>>> GetFormSchemasByDoctorAsync(Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<FormSchemaSummaryResponse>>> GetFormSchemasByClinicAsync(Guid clinicId, CancellationToken cancellationToken = default)
     {
-        var schemas = await _patientFormSchemaRepository.GetByDoctorAsync(doctorId, cancellationToken);
+        var schemas = await _patientFormSchemaRepository.GetByClinicAsync(clinicId, cancellationToken);
 
         if (schemas.Count == 0)
         {
-            await SeedDefaultSchemaAsync(doctorId, cancellationToken);
-            schemas = await _patientFormSchemaRepository.GetByDoctorAsync(doctorId, cancellationToken);
+            await SeedDefaultSchemaAsync(clinicId, cancellationToken);
+            schemas = await _patientFormSchemaRepository.GetByClinicAsync(clinicId, cancellationToken);
         }
 
         var responses = _mapper.Map<List<FormSchemaSummaryResponse>>(schemas);
@@ -360,15 +362,15 @@ public class IntakeService(
         return Result.Success<IReadOnlyList<FormSchemaSummaryResponse>>(responses);
     }
 
-    private async Task SeedDefaultSchemaAsync(Guid doctorId, CancellationToken cancellationToken)
+    private async Task SeedDefaultSchemaAsync(Guid clinicId, CancellationToken cancellationToken)
     {
         // Re-check if schemas were just created by another concurrent request (race condition guard)
-        var existingSchemas = await _patientFormSchemaRepository.GetByDoctorAsync(doctorId, cancellationToken);
+        var existingSchemas = await _patientFormSchemaRepository.GetByClinicAsync(clinicId, cancellationToken);
         if (existingSchemas.Count > 0)
             return;
 
         // Also check if a default already exists by name (another safety net)
-        var nameExists = await _patientFormSchemaRepository.ExistsNameForDoctorAsync(doctorId, "Default Intake Form", null, cancellationToken);
+        var nameExists = await _patientFormSchemaRepository.ExistsNameForClinicAsync(clinicId, "Default Intake Form", null, cancellationToken);
         if (nameExists)
             return;
 
@@ -388,7 +390,7 @@ public class IntakeService(
             Name = "Default Intake Form",
             Description = "Welcome to our clinic, please fill out the form",
             SchemaJson = defaultJson,
-            DoctorId = doctorId,
+            ClinicId = clinicId,
             Version = 1,
             Status = FormSchemaStatus.Published,
             IsDefault = true,
@@ -413,9 +415,9 @@ public class IntakeService(
         }
     }
 
-    public async Task<Result<FormSchemaResponse>> GetDefaultFormSchemaAsync(Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result<FormSchemaResponse>> GetDefaultFormSchemaAsync(Guid clinicId, CancellationToken cancellationToken = default)
     {
-        var schema = await _patientFormSchemaRepository.GetDefaultForDoctorAsync(doctorId, cancellationToken);
+        var schema = await _patientFormSchemaRepository.GetDefaultForClinicAsync(clinicId, cancellationToken);
         if (schema is not null)
         {
             return Result.Success(_mapper.Map<FormSchemaResponse>(schema));
@@ -424,23 +426,23 @@ public class IntakeService(
         // No default schema exists yet — self-heal by generating one on the fly
         // (same safety net the list endpoint uses). This guarantees the public
         // intake link / reception flow always has a usable default form.
-        var generateResult = await GenerateDefaultFormSchemaAsync(doctorId, cancellationToken);
+        var generateResult = await GenerateDefaultFormSchemaAsync(clinicId, cancellationToken);
         if (generateResult.IsFailure)
             return Result.Failure<FormSchemaResponse>(generateResult.Error);
 
         return Result.Success(generateResult.Value);
     }
 
-    public async Task<Result<FormSchemaResponse>> GenerateDefaultFormSchemaAsync(Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result<FormSchemaResponse>> GenerateDefaultFormSchemaAsync(Guid clinicId, CancellationToken cancellationToken = default)
     {
-        // Regenerate: always replace the doctor's existing default with the corrected template.
+        // Regenerate: always replace the clinic's existing default with the corrected template.
         // (Previously this early-returned the stale default, so a wrong default could never be fixed.)
         // We UPDATE the existing default in place rather than delete+recreate, because the system
         // forbids deleting a default schema (CannotDeleteDefaultSchema). Updating only adds the new
         // required fields, so the merge guard (which blocks REMOVING locked questions) is satisfied.
-        var existingDefault = await _patientFormSchemaRepository.GetDefaultForDoctorAsync(doctorId, cancellationToken);
+        var existingDefault = await _patientFormSchemaRepository.GetDefaultForClinicAsync(clinicId, cancellationToken);
 
-        var clinicName = await GetDoctorClinicNameAsync(doctorId, cancellationToken);
+        var clinicName = await GetClinicNameAsync(clinicId, cancellationToken);
         var formName = string.IsNullOrWhiteSpace(clinicName)
             ? "Default Intake Form"
             : $"{clinicName} - Form";
@@ -460,13 +462,13 @@ public class IntakeService(
                 ShowPainMap = true,
             };
 
-            var updateResult = await UpdateFormSchemaAsync(existingDefault.Id, updateRequest, doctorId, cancellationToken);
+            var updateResult = await UpdateFormSchemaAsync(existingDefault.Id, updateRequest, clinicId, cancellationToken);
             if (updateResult.IsFailure)
                 return Result.Failure<FormSchemaResponse>(updateResult.Error);
 
             // Re-publish so the corrected form becomes the live default.
             var publishRequest = new PublishFormSchemaRequest { Version = updateResult.Value.Version };
-            var publishResult = await PublishFormSchemaAsync(existingDefault.Id, publishRequest, doctorId, cancellationToken);
+            var publishResult = await PublishFormSchemaAsync(existingDefault.Id, publishRequest, clinicId, cancellationToken);
             return publishResult.IsFailure ? publishResult : updateResult;
         }
 
@@ -479,36 +481,38 @@ public class IntakeService(
             ShowPainMap = true,
         };
 
-        var createResult = await CreateFormSchemaAsync(createRequest, doctorId, cancellationToken);
+        var createResult = await CreateFormSchemaAsync(createRequest, clinicId, cancellationToken);
         if (createResult.IsFailure)
             return createResult;
 
         var publishRequest2 = new PublishFormSchemaRequest { Version = createResult.Value.Version };
-        var publishResult2 = await PublishFormSchemaAsync(createResult.Value.Id, publishRequest2, doctorId, cancellationToken);
+        var publishResult2 = await PublishFormSchemaAsync(createResult.Value.Id, publishRequest2, clinicId, cancellationToken);
 
         return publishResult2.IsFailure ? publishResult2 : createResult;
     }
 
-    private async Task<string?> GetDoctorClinicNameAsync(Guid doctorId, CancellationToken cancellationToken)
+    private async Task<string?> GetClinicNameAsync(Guid clinicId, CancellationToken cancellationToken)
     {
-        var doctor = await _context.Doctors.FindAsync([doctorId], cancellationToken);
-        return doctor?.ClinicName;
+        return await _context.Clinics
+            .Where(c => c.Id == clinicId)
+            .Select(c => c.ClinicName)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     private const int MaximumCopiesPerForm = 10;
 
-    public async Task<Result<FormSchemaResponse>> DuplicateFormSchemaAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result<FormSchemaResponse>> DuplicateFormSchemaAsync(Guid schemaId, Guid clinicId, CancellationToken cancellationToken = default)
     {
         var originalSchema = await _patientFormSchemaRepository.GetByIdAsync(schemaId, cancellationToken);
         if (originalSchema is null)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.SchemaNotFound);
 
-        if (originalSchema.DoctorId != doctorId)
-            return Result.Failure<FormSchemaResponse>(IntakeErrors.UnauthorizedDoctor);
+        if (originalSchema.ClinicId != clinicId)
+            return Result.Failure<FormSchemaResponse>(IntakeErrors.UnauthorizedClinic);
 
         // Check copy limit
         var existingCopies = await _patientFormSchemaRepository.GetCopiesByOriginalFormIdAsync(
-            originalSchema.OriginalFormId ?? originalSchema.Id, doctorId, cancellationToken);
+            originalSchema.OriginalFormId ?? originalSchema.Id, clinicId, cancellationToken);
         if (existingCopies.Count >= MaximumCopiesPerForm)
             return Result.Failure<FormSchemaResponse>(IntakeErrors.CopyLimitExceeded);
 
@@ -528,7 +532,7 @@ public class IntakeService(
         {
             newName = $"{originalName} (Copy #{nextCopyNumber + attempt})";
             attempt++;
-        } while (await _patientFormSchemaRepository.ExistsNameForDoctorAsync(doctorId, newName, null, cancellationToken));
+        } while (await _patientFormSchemaRepository.ExistsNameForClinicAsync(clinicId, newName, null, cancellationToken));
 
         // Merge core fields into the duplicated schema to ensure they're present
         var duplicatedSchemaDto = DeserializeSchemaJson(originalSchema.SchemaJson);
@@ -547,7 +551,7 @@ public class IntakeService(
             ShortCode = await GenerateUniqueFormShortCodeAsync(cancellationToken),
             Description = originalSchema.Description,
             SchemaJson = duplicatedJson,
-            DoctorId = doctorId,
+            ClinicId = clinicId,
             Version = 1,
             Status = FormSchemaStatus.Draft,
             IsDefault = false,
@@ -567,14 +571,14 @@ public class IntakeService(
         return Result.Success(response);
     }
 
-    public async Task<Result> DeleteFormSchemaAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result> DeleteFormSchemaAsync(Guid schemaId, Guid clinicId, CancellationToken cancellationToken = default)
     {
         var schema = await _patientFormSchemaRepository.GetByIdAsync(schemaId, cancellationToken);
         if (schema is null)
             return Result.Failure(IntakeErrors.SchemaNotFound);
 
-        if (schema.DoctorId != doctorId)
-            return Result.Failure(IntakeErrors.UnauthorizedDoctor);
+        if (schema.ClinicId != clinicId)
+            return Result.Failure(IntakeErrors.UnauthorizedClinic);
 
         if (schema.IsDefault)
             return Result.Failure(IntakeErrors.CannotDeleteDefaultSchema);
@@ -598,14 +602,14 @@ public class IntakeService(
         return Result.Success();
     }
 
-    public async Task<Result> ArchiveFormSchemaAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result> ArchiveFormSchemaAsync(Guid schemaId, Guid clinicId, CancellationToken cancellationToken = default)
     {
         var schema = await _patientFormSchemaRepository.GetByIdAsync(schemaId, cancellationToken);
         if (schema is null)
             return Result.Failure(IntakeErrors.SchemaNotFound);
 
-        if (schema.DoctorId != doctorId)
-            return Result.Failure(IntakeErrors.UnauthorizedDoctor);
+        if (schema.ClinicId != clinicId)
+            return Result.Failure(IntakeErrors.UnauthorizedClinic);
 
         if (schema.Status == FormSchemaStatus.Archived)
             return Result.Failure(IntakeErrors.SchemaAlreadyArchived);
@@ -620,14 +624,14 @@ public class IntakeService(
         return Result.Success();
     }
 
-    public async Task<Result> UnarchiveFormSchemaAsync(Guid schemaId, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result> UnarchiveFormSchemaAsync(Guid schemaId, Guid clinicId, CancellationToken cancellationToken = default)
     {
         var schema = await _patientFormSchemaRepository.GetByIdAsync(schemaId, cancellationToken);
         if (schema is null)
             return Result.Failure(IntakeErrors.SchemaNotFound);
 
-        if (schema.DoctorId != doctorId)
-            return Result.Failure(IntakeErrors.UnauthorizedDoctor);
+        if (schema.ClinicId != clinicId)
+            return Result.Failure(IntakeErrors.UnauthorizedClinic);
 
         if (schema.Status != FormSchemaStatus.Archived)
             return Result.Failure(IntakeErrors.SchemaNotArchived);
@@ -639,14 +643,15 @@ public class IntakeService(
         return Result.Success();
     }
 
-    public async Task<Result<GenerateIntakeQrLinkResponse>> GenerateIntakeQrLinkAsync(Guid schemaId, GenerateIntakeQrLinkRequest request, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result<GenerateIntakeQrLinkResponse>> GenerateIntakeQrLinkAsync(Guid schemaId, 
+        GenerateIntakeQrLinkRequest request, Guid clinicId, Guid generatedByUserId, CancellationToken cancellationToken = default)
     {
         var schema = await _patientFormSchemaRepository.GetByIdAsync(schemaId, cancellationToken);
         if (schema is null)
             return Result.Failure<GenerateIntakeQrLinkResponse>(IntakeErrors.SchemaNotFound);
 
-        if (schema.DoctorId != doctorId)
-            return Result.Failure<GenerateIntakeQrLinkResponse>(IntakeErrors.UnauthorizedDoctor);
+        if (schema.ClinicId != clinicId)
+            return Result.Failure<GenerateIntakeQrLinkResponse>(IntakeErrors.UnauthorizedClinic);
 
         if (schema.Status != FormSchemaStatus.Published)
             return Result.Failure<GenerateIntakeQrLinkResponse>(IntakeErrors.SchemaNotPublished);
@@ -665,6 +670,19 @@ public class IntakeService(
         var tokenResult = _qrService.GenerateToken(payload);
         if (tokenResult.IsFailure)
             return Result.Failure<GenerateIntakeQrLinkResponse>(tokenResult.Error);
+
+        var access = new IntakeFormAccess
+        {
+            Nonce = Guid.Parse(nonce),
+            SchemaId = schema.Id,
+            ClinicId = clinicId,
+            GeneratedByUserId = generatedByUserId,
+            GeneratedAt = DateTime.UtcNow,
+            ExpiresAt = expiry
+        };
+
+        await _context.IntakeFormAccesses.AddAsync(access, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
 
         var response = new GenerateIntakeQrLinkResponse
         {
@@ -690,11 +708,14 @@ public class IntakeService(
 
         var response = _mapper.Map<PublicIntakeFormResponse>(schema);
 
-        if (schema.DoctorId is Guid doctorId)
+        if (schema.ClinicId is Guid clinicId)
         {
-            var doctor = await context.Doctors.FindAsync([doctorId], cancellationToken);
-            if (doctor is not null)
-                response = response with { ClinicName = doctor.ClinicName ?? string.Empty };
+            var clinic = await context.Clinics
+                .Where(u => u.Id == clinicId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (clinic is not null)
+                response = response with { ClinicName = clinic.ClinicName ?? "none" };
         }
 
         return Result.Success(response);
@@ -710,6 +731,13 @@ public class IntakeService(
         var schema = await _patientFormSchemaRepository.GetPublishedByIdAsync(payload.TargetId, cancellationToken);
         if (schema is null)
             return Result.Failure<PublicIntakeSubmissionResponse>(IntakeErrors.SchemaNotFound);
+
+        var access = await _context.IntakeFormAccesses
+            .Where(a => a.Nonce == Guid.Parse(payload.Nonce))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (access is null)
+            return Result.Failure<PublicIntakeSubmissionResponse>(IntakeErrors.OpenerNotFound);
 
         var schemaDto = DeserializeSchemaJson(schema.SchemaJson);
         if (schemaDto is null)
@@ -732,7 +760,7 @@ public class IntakeService(
 
         var intake = _mapper.Map<PreVisitIntake>(request);
         intake.ShortCode = await GenerateUniqueFormShortCodeAsync(cancellationToken);
-        intake.DoctorId = schema.DoctorId;
+        intake.GeneratedByUserId = access.GeneratedByUserId;
         intake.FormSchemaId = schema.Id;
         intake.FormSchemaVersion = schema.Version;
         intake.FormSubmissionData = formSubmissionData;
@@ -750,24 +778,27 @@ public class IntakeService(
         return Result.Success(response);
     }
 
-    public async Task<Result<bool>> IsPatientEmailRegisteredAsync(string email, CancellationToken cancellationToken = default)
+    public async Task<Result<bool>> CheckEmailAvailabilityAsync(string token, string email, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(email))
-            return Result.Success(false);
+        var clinicIdResult = await ResolveClinicIdFromTokenAsync(token, cancellationToken);
+        if (clinicIdResult.IsFailure)
+            return Result.Failure<bool>(clinicIdResult.Error);
 
-        var normalized = email.Trim().ToLowerInvariant();
-
-        var exists = await _context.Patients
-            .AsNoTracking()
-            .AnyAsync(p => !string.IsNullOrEmpty(p.EmailAddress) && p.EmailAddress.ToLower() == normalized, cancellationToken);
-
-        return Result.Success(exists);
+        return await _patientQueryService.IsPatientEmailRegisteredAsync(email, clinicIdResult.Value, cancellationToken);
     }
 
-    public async Task<Result<IReadOnlyList<PreVisitIntakeResponse>>> GetSubmissionsAsync(
-    Guid doctorId, IntakeStatus? status, CancellationToken cancellationToken = default)
+    public async Task<Result<bool>> CheckPhoneAvailabilityAsync(string token, string phoneNumber, CancellationToken cancellationToken = default)
     {
-        var intakes = await _preVisitIntakeRepository.GetByDoctorAsync(doctorId, status, cancellationToken);
+        var clinicIdResult = await ResolveClinicIdFromTokenAsync(token, cancellationToken);
+        if (clinicIdResult.IsFailure)
+            return Result.Failure<bool>(clinicIdResult.Error);
+
+        return await _patientQueryService.IsPatientPhoneRegisteredAsync(phoneNumber, clinicIdResult.Value, cancellationToken);
+    }
+    public async Task<Result<IReadOnlyList<PreVisitIntakeResponse>>> GetSubmissionsAsync(
+    Guid clinicId, IntakeStatus? status, CancellationToken cancellationToken = default)
+    {
+        var intakes = await _preVisitIntakeRepository.GetByClinicAsync(clinicId, status, cancellationToken);
 
         // Pre-load all schemas for these intakes so we can extract patient names
         // dynamically (handles customized forms where question IDs differ from defaults).
@@ -796,26 +827,33 @@ public class IntakeService(
         return Result.Success<IReadOnlyList<PreVisitIntakeResponse>>(responses);
     }
 
-    public async Task<Result<PreVisitIntakeDetailsResponse>> GetSubmissionDetailsAsync(Guid id, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result<PreVisitIntakeDetailsResponse>> GetSubmissionDetailsAsync(Guid id, Guid clinicId, CancellationToken cancellationToken = default)
     {
         var intake = await _preVisitIntakeRepository.GetDetailsByIdAsync(id, cancellationToken);
+
         if (intake is null)
             return Result.Failure<PreVisitIntakeDetailsResponse>(IntakeErrors.IntakeNotFound);
 
-        if (intake.DoctorId != doctorId)
-            return Result.Failure<PreVisitIntakeDetailsResponse>(IntakeErrors.UnauthorizedDoctor);
+        var belongsToClinic = await _context.Users
+            .AnyAsync(u => u.Id == intake.GeneratedByUserId.ToString() && u.ClinicId == clinicId, cancellationToken);
+
+        if (!belongsToClinic)
+            return Result.Failure<PreVisitIntakeDetailsResponse>(IntakeErrors.UnauthorizedClinic);
 
         var response = _mapper.Map<PreVisitIntakeDetailsResponse>(intake);
         return Result.Success(response);
     }
 
-    public async Task<Result<PreVisitIntakeResponse>> UpdateStatusAsync(Guid id, UpdateIntakeStatusRequest request, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result<PreVisitIntakeResponse>> UpdateStatusAsync(
+    Guid id, UpdateIntakeStatusRequest request, Guid doctorId, Guid clinicId, CancellationToken cancellationToken = default)
     {
         var intake = await _preVisitIntakeRepository.GetByIdAsync(id, cancellationToken);
         if (intake is null)
             return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.IntakeNotFound);
 
-        if (intake.DoctorId != doctorId)
+        var isAuthorized = await IsUserInClinicAsync(doctorId, clinicId, cancellationToken);
+
+        if (!isAuthorized)
             return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.UnauthorizedDoctor);
 
         if (intake.Status == request.NewStatus)
@@ -843,13 +881,19 @@ public class IntakeService(
     }
 
     public async Task<Result<PreVisitIntakeResponse>> ConvertToPatientAsync(
-    Guid id, ConvertIntakeToPatientRequest request, Guid doctorId, CancellationToken cancellationToken = default)
+    Guid id, ConvertIntakeToPatientRequest request, Guid doctorId, Guid? clinicId, CancellationToken cancellationToken = default)
     {
+        if (clinicId is null)
+            return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.ClinicIdRequired);
+
         var intake = await _preVisitIntakeRepository.GetByIdAsync(id, cancellationToken);
+
         if (intake is null)
             return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.IntakeNotFound);
 
-        if (intake.DoctorId != doctorId)
+        // Authorization: converting doctor must belong to the same clinic as the intake.
+        var isAuthorized = await IsUserInClinicAsync(doctorId, clinicId.Value, cancellationToken);
+        if (!isAuthorized)
             return Result.Failure<PreVisitIntakeResponse>(IntakeErrors.UnauthorizedDoctor);
 
         if (intake.ConvertedToPatientId is not null)
@@ -891,7 +935,8 @@ public class IntakeService(
                 doctorId,
                 ExtractInputValuesHelper.ExtractPatientCategory(submission),
                 freeTime,
-                chiefComplaint),
+                chiefComplaint,
+                clinicId),
             cancellationToken);
 
         if (createPatientResult.IsFailure)
@@ -1121,4 +1166,27 @@ public class IntakeService(
             PainRegionCount = ExtractInputValuesHelper.CountPainRegions(intake.PainPointsData)
         };
     }
+    private async Task<Result<Guid>> ResolveClinicIdFromTokenAsync(string token, CancellationToken cancellationToken)
+    {
+        var tokenValidationResult = _qrService.ValidateToken(token, QRTokenPurpose.Intake);
+        if (tokenValidationResult.IsFailure)
+            return Result.Failure<Guid>(tokenValidationResult.Error);
+
+        var payload = tokenValidationResult.Value;
+
+        var access = await _context.IntakeFormAccesses
+            .Where(a => a.Nonce == Guid.Parse(payload.Nonce))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (access is null)
+            return Result.Failure<Guid>(IntakeErrors.OpenerNotFound);
+
+        if (access.ExpiresAt < DateTime.UtcNow)
+            return Result.Failure<Guid>(IntakeErrors.LinkExpired);
+
+        return Result.Success(access.ClinicId);
+    }
+    // e.g. in a shared authorization/repository helper
+    public async Task<bool> IsUserInClinicAsync(Guid userId, Guid clinicId, CancellationToken cancellationToken = default)
+        => await _context.Users.AnyAsync(u => u.Id == userId.ToString() && u.ClinicId == clinicId, cancellationToken);
 }

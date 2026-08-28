@@ -13,7 +13,8 @@ public class IntakeCreationQueryService(ApplicationDbContext context) : IIntakeC
     private readonly ApplicationDbContext _context = context;
     private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-    public async Task<Result<Guid>> CreateDirectIntakeAsync(Guid formSchemaId, string formSubmissionData, string? painPointsData, Guid doctorId, CancellationToken ct = default)
+    public async Task<Result<Guid>> CreateDirectIntakeAsync(Guid formSchemaId, string formSubmissionData, 
+        string? painPointsData, Guid ClinicId, Guid generatedByUserId, CancellationToken ct = default)
     {
         var schema = await _context.PatientFormSchemas
             .FirstOrDefaultAsync(s => s.Id == formSchemaId, ct);
@@ -21,20 +22,21 @@ public class IntakeCreationQueryService(ApplicationDbContext context) : IIntakeC
         if (schema is null)
             return Result.Failure<Guid>(IntakeErrors.SchemaNotFound);
 
-        if (schema.DoctorId != doctorId)
-            return Result.Failure<Guid>(IntakeErrors.UnauthorizedDoctor);
+        if (schema.ClinicId != ClinicId)
+            return Result.Failure<Guid>(IntakeErrors.UnauthorizedClinic);
 
         var schemaDto = DeserializeSchemaJson(schema.SchemaJson);
         if (schemaDto is null)
             return Result.Failure<Guid>(IntakeErrors.InvalidSchema);
 
         var submissionDto = ExtractInputValuesHelper.DeserializeSubmissionJson(formSubmissionData);
+
         if (submissionDto is null)
             return Result.Failure<Guid>(IntakeErrors.InvalidSubmission);
 
         var intake = new PreVisitIntake
         {
-            DoctorId = doctorId,
+            GeneratedByUserId = generatedByUserId,
             FormSchemaId = schema.Id,
             FormSchemaVersion = schema.Version,
             FormSubmissionData = formSubmissionData,

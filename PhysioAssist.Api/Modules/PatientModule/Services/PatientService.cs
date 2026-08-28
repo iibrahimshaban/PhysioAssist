@@ -2,8 +2,8 @@
 using PhysioAssist.Api.Modules.PatientModule.DTOs;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Errors;
-using PhysioAssist.Api.Modules.PatientModule.Repositories;
 using PhysioAssist.Api.Modules.PatientModule.Helpers;
+using PhysioAssist.Api.Modules.PatientModule.Repositories;
 
 
 namespace PhysioAssist.Api.Modules.PatientModule.Services
@@ -62,11 +62,9 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             return Result.Success(patient.Adapt<PatientResponse>());
         }
 
-        public async Task<Result<IEnumerable<PatientResponse>>> GetAllAsync()
+        public async Task<Result<IEnumerable<PatientResponse>>> GetAllAsync(Guid clinicId, CancellationToken cancellation)
         {
-            var result = await _patientRepo.GetAllAsync();
-
-
+            var result = await _patientRepo.GetByClinicIdAsync(clinicId, cancellation);
             return Result.Success(result.Adapt<IEnumerable<PatientResponse>>());
         }
 
@@ -165,29 +163,35 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             return Result.Success();
         }
 
-        public async Task<Result<IEnumerable<PatientWithNextSlotResponse>>> GetPatientsWithSlotsAsync(Guid doctorId, CancellationToken ct = default)
+        public async Task<Result<IEnumerable<PatientWithNextSlotResponse>>> GetPatientsWithSlotsAsync(Guid clinicId, CancellationToken ct = default)
         {
+            var doctorIds = await _context.Doctors
+                .Where(d => d.User.ClinicId == clinicId)
+                .Select(d => d.Id)
+                .ToListAsync(ct);
 
-            var doctor = await _context.Doctors
-                .FirstOrDefaultAsync(d => d.Id == doctorId, ct);
+            if (doctorIds.Count == 0)
+                return Result.Failure<IEnumerable<PatientWithNextSlotResponse>>(PatientErrors.NoDoctorsInClinic);
 
-            if (doctor is null)
-                return Result.Failure<IEnumerable<PatientWithNextSlotResponse>>(PatientErrors.NotADoctor);
+            var slotLookup = new Dictionary<Guid, ScheduleSlotResult>();
+            var patientsById = new Dictionary<Guid, Patient>();
+            var patients = await _patientRepo.GetByClinicIdAsync(clinicId, ct);
 
-            // 3. Get today's slots for this doctor
-            var slots = await _scheduleSlotQueryService.GetUpcomingSlotsForDoctorAsync(doctor.Id, ct);
+            foreach (var p in patients)
+                patientsById.TryAdd(p.Id, p);
 
-            // 4. Get all patients
-            var patients = await _patientRepo.GetByDoctorId(doctorId, ct);
+            foreach (var doctorId in doctorIds)
+            {
+                var slots = await _scheduleSlotQueryService.GetUpcomingSlotsForDoctorAsync(doctorId, ct);
+                
+                foreach (var s in slots.Where(s => s.PatientId.HasValue))
+                {
+                    if (!slotLookup.TryGetValue(s.PatientId!.Value, out var existing) || s.SlotStart < existing.SlotStart)
+                        slotLookup[s.PatientId!.Value] = s;
+                }
+            }
 
-            // 5. Build slot lookup
-            var slotLookup = slots
-                .Where(s => s.PatientId.HasValue)
-                .GroupBy(s => s.PatientId!.Value)
-                .ToDictionary(g => g.Key, g => g.OrderBy(s => s.SlotStart).First());
-
-            // 6. Merge and order
-            var result = patients
+            var result = patientsById.Values
                 .Select(p =>
                 {
                     var response = p.Adapt<PatientWithNextSlotResponse>();
@@ -208,12 +212,14 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         public async Task<Result<PatientOverviewResponse>> GetPatientOverviewAsync(Guid patientId, CancellationToken ct = default)
         {
             var patient = await _patientRepo.GetByIdAsync(patientId);
+
             if (patient is null)
                 return Result.Failure<PatientOverviewResponse>(PatientErrors.NotFound);
 
             var response = patient.Adapt<PatientOverviewResponse>();
 
             var overviewResult = await _overviewIntakeQueryService.GetOverviewDataForPatientAsync(patientId, ct);
+
             if (overviewResult.IsSuccess)
             {
                 response.FormSubmissionData = overviewResult.Value.FormSubmissionData;
@@ -236,10 +242,14 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         }
 
         public async Task<Result<Guid>> CreatePatientFromDynamicFormAsync(
-            Guid formSchemaId, string formSubmissionData, string? painPointsData, Guid doctorId, CancellationToken ct = default)
+            Guid formSchemaId, string formSubmissionData, string? painPointsData, Guid generatedByUserId, Guid? ClinicId, CancellationToken ct = default)
         {
+            if (ClinicId is null)
+                return Result.Failure<Guid>(PatientErrors.ClinicIdRequired);
+
             // Step 1 — extract fields using Patient module's own helper (no DB writes yet, no dependency on Intake's DTOs)
             using var submissionDoc = PatientIntakeExtractionHelper.ParseSubmissionJson(formSubmissionData);
+
             if (submissionDoc is null)
                 return Result.Failure<Guid>(PatientErrors.InvalidIntakeSubmission);
 
@@ -268,10 +278,11 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
                     phone,
                     gender,
                     dateOfBirth,
-                    doctorId,
+                    generatedByUserId,
                     patientCategory,
                     freeTime,
-                    caseNotes),
+                    caseNotes,
+                    ClinicId),
                 ct);
 
             if (createPatientResult.IsFailure)
@@ -281,7 +292,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
 
             // Step 3 — only now, after the patient exists, create the intake row via the exposed Intake function
             var createIntakeResult = await _intakeCreationQueryService.CreateDirectIntakeAsync(
-                formSchemaId, formSubmissionData, painPointsData, doctorId, ct);
+                formSchemaId, formSubmissionData, painPointsData, ClinicId.Value, generatedByUserId, ct);
 
             if (createIntakeResult.IsFailure)
                 return Result.Failure<Guid>(createIntakeResult.Error);
@@ -289,7 +300,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             var intakeId = createIntakeResult.Value;
 
             // Step 4 — wire the intake to the patient via the exposed Intake function
-            var markResult = await _intakeConversionMarkerService.MarkIntakeConvertedAsync(intakeId, patientId, doctorId, ct);
+            var markResult = await _intakeConversionMarkerService.MarkIntakeConvertedAsync(intakeId, patientId, generatedByUserId, ct);
             if (markResult.IsFailure)
                 return Result.Failure<Guid>(markResult.Error);
 

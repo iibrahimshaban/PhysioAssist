@@ -144,4 +144,16 @@ export class PatientService {
   createPatientFromIntake(request: CreateFromIntakeRequest): Observable<{ patientId: string }> {
     return this.withBusy(this.http.post<{ patientId: string }>(`${this.apiUrl}/create-from-intake`, request));
   }
+
+  checkPatientEmail(email: string): Observable<{ isRegistered: boolean }> {
+    return this.http.get<{ isRegistered: boolean }>(`${this.apiUrl}/patients/check-email`, {
+      params: { email: email.trim() }
+    });
+  }
+
+  checkPatientPhone(phoneNumber: string): Observable<{ isRegistered: boolean }> {
+    return this.http.get<{ isRegistered: boolean }>(`${this.apiUrl}/patients/check-phone`, {
+      params: { phoneNumber: phoneNumber.trim() }
+    });
+  }
 }

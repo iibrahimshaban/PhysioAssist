@@ -27,9 +27,17 @@ public class PublicIntakeController(IIntakeService intakeService) : ControllerBa
     }
 
     [HttpGet("intake/check-email")]
-    public async Task<IActionResult> CheckPatientEmail([FromQuery] string email, CancellationToken cancellationToken)
+    public async Task<IActionResult> CheckPatientEmail([FromQuery] string token, [FromQuery] string email, CancellationToken cancellationToken)
     {
-        var result = await _intakeService.IsPatientEmailRegisteredAsync(email, cancellationToken);
+        var result = await _intakeService.CheckEmailAvailabilityAsync(token, email, cancellationToken);
+
+        return result.IsSuccess ? Ok(new { isRegistered = result.Value }) : result.ToProblem();
+    }
+
+    [HttpGet("intake/check-phone")]
+    public async Task<IActionResult> CheckPatientPhone([FromQuery] string token, [FromQuery] string phoneNumber, CancellationToken cancellationToken)
+    {
+        var result = await _intakeService.CheckPhoneAvailabilityAsync(token, phoneNumber, cancellationToken);
 
         return result.IsSuccess ? Ok(new { isRegistered = result.Value }) : result.ToProblem();
     }

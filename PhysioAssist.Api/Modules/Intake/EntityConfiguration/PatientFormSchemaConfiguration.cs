@@ -13,8 +13,8 @@ public class PatientFormSchemaConfiguration : IEntityTypeConfiguration<PatientFo
         builder.Property(p => p.Id)
             .ValueGeneratedNever();
 
-        builder.Property(p => p.DoctorId)
-               .IsRequired();
+        builder.Property(p => p.ClinicId)
+            .IsRequired();
 
         builder.Property(p => p.Name)
                .IsRequired()
@@ -47,14 +47,14 @@ public class PatientFormSchemaConfiguration : IEntityTypeConfiguration<PatientFo
         builder.Property(p => p.PublishedAt)
                .IsRequired(false);
 
-        builder.HasIndex(p => new { p.DoctorId, p.IsDefault })
-               .HasDatabaseName("IX_PatientFormSchema_DoctorId_IsDefault");
+        builder.HasIndex(p => new { p.ClinicId, p.IsDefault })
+       .HasDatabaseName("IX_PatientFormSchema_ClinicId_IsDefault");
 
-        builder.HasIndex(p => new { p.DoctorId, p.Status })
-               .HasDatabaseName("IX_PatientFormSchema_DoctorId_Status");
+        builder.HasIndex(p => new { p.ClinicId, p.Status })
+               .HasDatabaseName("IX_PatientFormSchema_ClinicId_Status");
 
-        builder.HasIndex(p => new { p.DoctorId, p.Name })
-               .HasDatabaseName("IX_PatientFormSchema_DoctorId_Name");
+        builder.HasIndex(p => new { p.ClinicId, p.Name })
+               .HasDatabaseName("IX_PatientFormSchema_ClinicId_Name");
 
         builder.Property(p => p.ShowPainMap)
            .IsRequired()

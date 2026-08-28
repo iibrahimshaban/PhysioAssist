@@ -10,6 +10,8 @@ public class ApplicationUser : IdentityUser
     public bool IsDisabled { get; set; } = false;
     public string? GoogleId { get; set; }
     public Doctor? Doctor { get; set; }
+    public Guid? ClinicId { get; set; }
+    public Clinic? Clinic { get; set; }
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new HashSet<RefreshToken>();
     public ICollection<OtpEntry> OtpEntries { get; set; } = new HashSet<OtpEntry>();
 }

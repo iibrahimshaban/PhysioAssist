@@ -78,6 +78,17 @@ public class AuthService(
     public async Task<Result> RegistrationAsync(RegistrationRequest request, CancellationToken cancellationToken = default)
     {
         var userId = Guid.CreateVersion7();
+        var clinicId = Guid.CreateVersion7();
+
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        // Clinic must exist before the user row can reference it via FK
+        await _context.Clinics.AddAsync(new Clinic
+        {
+            Id = clinicId,
+            ClinicName = request.ClinicName,
+        }, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
 
         var user = new ApplicationUser
         {
@@ -87,23 +98,19 @@ public class AuthService(
             FirstName = request.FirstName,
             LastName = request.LastName,
             IsDisabled = false,
-            ProfilePictureUrl = string.Empty
+            ProfilePictureUrl = string.Empty,
+            ClinicId = clinicId,
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
 
         if (!result.Succeeded)
         {
+            await transaction.RollbackAsync(cancellationToken);
             var error = result.Errors.FirstOrDefault();
             return error is null
                 ? Result.Failure(UserErrors.RegistrationFailed)
                 : Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
-        }
-
-        if (request.ProfilePhoto is not null)
-        {
-            user.ProfilePictureUrl = await _storageService.UploadImageAsync(request.ProfilePhoto, "users", userId.ToString());
-            await _userManager.UpdateAsync(user);
         }
 
         var code = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
@@ -112,7 +119,6 @@ public class AuthService(
         {
             Id = userId,
             UserId = userId.ToString(),
-            ClinicName = request.ClinicName,
         }, cancellationToken);
 
         await _context.OtpEntries.AddAsync(new OtpEntry
@@ -124,9 +130,15 @@ public class AuthService(
         }, cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        if (request.ProfilePhoto is not null)
+        {
+            user.ProfilePictureUrl = await _storageService.UploadImageAsync(request.ProfilePhoto, "users", userId.ToString());
+            await _userManager.UpdateAsync(user);
+        }
 
         var html = EmailBodyBuilder.EmailConfirmation(user.FirstName, code);
-
         BackgroundJob.Enqueue(() =>
             _emailService.SendEmailAsync(user.Email, "Verify your PhysioAssist email", html)
         );
@@ -250,13 +262,15 @@ public class AuthService(
         await _userManager.UpdateAsync(user);
         await _userManager.AddToRoleAsync(user, DefaultRoles.SoloDoctor);
 
-        var doctor = await _context.Doctors
-        .FirstOrDefaultAsync(d => d.UserId == user.Id, cancellationToken);
+        var doctor = await _context.Users
+            .Where(d => d.Id == user.Id)
+            .Include(x => x.Clinic)
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (doctor is not null)
         {
             var seedResult = await _formSchemaSeedingService.SeedDefaultSchemaAsync(
-                doctor.Id, doctor.ClinicName, cancellationToken);
+               doctor.ClinicId!.Value, doctor.Clinic?.ClinicName ?? "Unknown Clinic name ", cancellationToken);
 
             if (seedResult.IsFailure)
                 _logger.LogWarning(
@@ -435,6 +449,17 @@ public class AuthService(
             return Result.Failure<AuthResponse>(UserErrors.AccountExistsWithPassword);
 
         var userId = Guid.CreateVersion7();
+        var clinicId = Guid.CreateVersion7();
+
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        var clinic = new Clinic
+        {
+            Id = clinicId,
+            ClinicName = request.ClinicName,
+        };
+        await _context.Clinics.AddAsync(clinic, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
 
         var user = new ApplicationUser
         {
@@ -446,13 +471,15 @@ public class AuthService(
             IsDisabled = false,
             ProfilePictureUrl = googlePictureUrl ?? string.Empty,
             GoogleId = googleSubject,
-            EmailConfirmed = true
+            EmailConfirmed = true,
+            ClinicId = clinicId
         };
 
         var result = await _userManager.CreateAsync(user);
 
         if (!result.Succeeded)
         {
+            await transaction.RollbackAsync(cancellationToken);
             var error = result.Errors.FirstOrDefault();
             return error is null
                 ? Result.Failure<AuthResponse>(UserErrors.RegistrationFailed)
@@ -461,24 +488,23 @@ public class AuthService(
 
         await _userManager.AddToRoleAsync(user, DefaultRoles.SoloDoctor);
 
+        var doctor = new Doctor
+        {
+            Id = userId,
+            UserId = userId.ToString(),
+        };
+        await _context.Doctors.AddAsync(doctor, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
         if (request.ProfilePhoto is not null)
         {
             user.ProfilePictureUrl = await _storageService.UploadImageAsync(request.ProfilePhoto, "users", userId.ToString());
             await _userManager.UpdateAsync(user);
         }
 
-        var doctor = new Doctor
-        {
-            Id = userId,
-            UserId = userId.ToString(),
-            ClinicName = request.ClinicName,
-        };
-
-        await _context.Doctors.AddAsync(doctor, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-
         var seedResult = await _formSchemaSeedingService.SeedDefaultSchemaAsync(
-            doctor.Id, doctor.ClinicName, cancellationToken);
+            user.ClinicId!.Value, clinic.ClinicName, cancellationToken);
 
         if (seedResult.IsFailure)
             _logger.LogWarning(

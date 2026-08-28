@@ -33,6 +33,11 @@ public class JwtProvider(IOptions<JwtOptions> jwtOptions, IOptions<GoogleOptions
             claims.Add(new Claim("profilePictureUrl", user.ProfilePictureUrl));
         }
 
+        if (user.ClinicId.HasValue)
+        {
+            claims.Add(new Claim("clinicId", user.ClinicId.Value.ToString()));
+        }
+
         var SymmetricSequrityKey = new
             SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Key));
 

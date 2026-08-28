@@ -11,10 +11,18 @@ public static class IntakeErrors
         "Intake.IntakeNotFound",
         "The requested intake submission was not found.",
         StatusCodes.Status404NotFound);
+    public static readonly Error OpenerNotFound = new(
+        "Intake.OpenerNotFound",
+        "The requested intake opener was not found.",
+        StatusCodes.Status404NotFound);
 
     public static readonly Error UnauthorizedDoctor = new(
         "Intake.UnauthorizedDoctor",
         "The current doctor is not allowed to access this intake resource.",
+        StatusCodes.Status403Forbidden);
+    public static readonly Error UnauthorizedClinic = new(
+        "Intake.UnauthorizedClinic",
+        "The current clinic is not allowed to access this intake resource.",
         StatusCodes.Status403Forbidden);
 
     public static readonly Error InvalidSchema = new(
@@ -25,6 +33,10 @@ public static class IntakeErrors
     public static readonly Error InvalidSubmission = new(
         "Intake.InvalidSubmission",
         "The intake form submission is invalid.",
+        StatusCodes.Status400BadRequest);
+    public static readonly Error ClinicIdRequired = new(
+        "Intake.ClinicIdRequired",
+        "Clinic ID is required for converting intake to patient.",
         StatusCodes.Status400BadRequest);
 
     public static readonly Error SchemaNameDuplicated = new(
@@ -107,6 +119,10 @@ public static class IntakeErrors
     public static readonly Error RequiredFieldEmpty = new(
         "Intake.RequiredFieldEmpty",
         "One or more required fields have empty values in the submission.",
+        StatusCodes.Status400BadRequest);
+    public static readonly Error LinkExpired = new(
+        "Intake.LinkExpired",
+        "The public intake form link has expired.",
         StatusCodes.Status400BadRequest);
 
     public static readonly Error BodyMapRequired = new(

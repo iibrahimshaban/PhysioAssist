@@ -25,10 +25,11 @@ public class PreVisitIntakeRepository(ApplicationDbContext context) : IPreVisitI
             .FirstOrDefaultAsync(intake => intake.Id == id, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<PreVisitIntake>> GetByDoctorAsync(Guid doctorId, IntakeStatus? status = null, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<PreVisitIntake>> GetByClinicAsync(Guid clinicId, IntakeStatus? status = null, CancellationToken cancellationToken = default)
     {
         var query = _context.PreVisitIntakes
-            .Where(intake => intake.DoctorId == doctorId);
+        .AsNoTracking()
+        .Where(intake => intake.FormSchema!.ClinicId == clinicId);
 
         if (status is not null)
             query = query.Where(intake => intake.Status == status);

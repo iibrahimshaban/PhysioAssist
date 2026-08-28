@@ -9,11 +9,11 @@ public class DoctorDashboardService(
     private const int PendingIntakesPreviewLimit = 3;
 
     public async Task<Result<DoctorDashboardSummaryDto>> GetSummaryAsync(
-        Guid doctorId,
+        Guid clinicId,
         string doctorFirstName,
         CancellationToken cancellationToken = default)
     {
-        var todaySessionsResult = await todaySessionsService.GetTodaySessionsAsync(doctorId, cancellationToken);
+        var todaySessionsResult = await todaySessionsService.GetTodaySessionsAsync(clinicId, cancellationToken);
         if (todaySessionsResult.IsFailure)
             return Result.Failure<DoctorDashboardSummaryDto>(todaySessionsResult.Error);
 
@@ -21,7 +21,7 @@ public class DoctorDashboardService(
         var upcomingCount = today.UpNextCount + today.InProgressCount;
 
         var pendingResult = await intakeQueryService.GetPendingIntakesAsync(
-            doctorId, PendingIntakesPreviewLimit, cancellationToken);
+            clinicId, PendingIntakesPreviewLimit, cancellationToken);
 
         if (pendingResult.IsFailure)
             return Result.Failure<DoctorDashboardSummaryDto>(pendingResult.Error);
