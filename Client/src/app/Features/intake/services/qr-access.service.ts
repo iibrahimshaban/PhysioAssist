@@ -27,11 +27,16 @@ export class QrAccessService {
     });
   }
 
-  checkPatientEmail(email: string): Observable<{ isRegistered: boolean }> {
-    const encoded = encodeURIComponent(email.trim());
-    return this.http.get<{ isRegistered: boolean }>(
-      `${this.baseUrl}/intake/check-email?email=${encoded}`
-    );
+  checkPatientEmail(token: string, email: string): Observable<{ isRegistered: boolean }> {
+    return this.http.get<{ isRegistered: boolean }>(`${this.baseUrl}/intake/check-email`, {
+      params: { token, email: email.trim() }
+    });
+  }
+
+  checkPatientPhone(token: string, phoneNumber: string): Observable<{ isRegistered: boolean }> {
+    return this.http.get<{ isRegistered: boolean }>(`${this.baseUrl}/intake/check-phone`, {
+      params: { token, phoneNumber: phoneNumber.trim() }
+    });
   }
 
   extractTokenFromUrl(url: string): string | null {

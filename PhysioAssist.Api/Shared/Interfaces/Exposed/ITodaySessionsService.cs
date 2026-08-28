@@ -4,5 +4,5 @@ namespace PhysioAssist.Api.Shared.Interfaces.Exposed;
 
 public interface ITodaySessionsService
 {
-    Task<Result<TodaySessionsOverviewDto>> GetTodaySessionsAsync(Guid doctorId, CancellationToken cancellationToken = default);
+    Task<Result<TodaySessionsOverviewDto>> GetTodaySessionsAsync(Guid clinicId, CancellationToken cancellationToken = default);
 }

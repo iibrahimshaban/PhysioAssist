@@ -47,6 +47,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     //Auth
     public DbSet<OtpEntry> OtpEntries { get; set; }
     public DbSet<Doctor> Doctors { get; set; }
+    public DbSet<Clinic> Clinics { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Receptionist> Receptionists { get; set; }
 
@@ -58,6 +59,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     // Intake
     public DbSet<PatientFormSchema> PatientFormSchemas { get; set; }
     public DbSet<PreVisitIntake> PreVisitIntakes { get; set; }
+    public DbSet<IntakeFormAccess> IntakeFormAccesses { get; set; }
 
     // InitialReport
     public DbSet<InitialReport> InitialReports { get; set; }

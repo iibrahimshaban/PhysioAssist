@@ -4,7 +4,7 @@ public record PreVisitIntakeDetailsResponse
 {
     public Guid Id { get; init; }
     public string ShortCode { get; init; } = string.Empty;
-    public Guid DoctorId { get; init; }
+    public Guid GeneratedByUserId { get; init; }
     public Guid FormSchemaId { get; init; }
     public int FormSchemaVersion { get; init; }
     public string FormSubmissionData { get; init; } = string.Empty;

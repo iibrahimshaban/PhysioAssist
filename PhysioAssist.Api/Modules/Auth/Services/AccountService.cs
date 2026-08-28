@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using PhysioAssist.Api.Modules.Auth.Contracts.Account;
 using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.Auth.Errors;
-using PhysioAssist.Api.Persistence;
-using PhysioAssist.Api.Shared.Interfaces.Common;
+
 
 namespace PhysioAssist.Api.Modules.Auth.Services;
 
@@ -48,6 +46,7 @@ public class AccountService(
     {
         var user = await _userManager.Users
             .Where(x => x.Id == userId)
+            .Include(x => x.Clinic)
             .FirstOrDefaultAsync();
 
         if (user is null)
@@ -64,8 +63,8 @@ public class AccountService(
             user.PhoneNumber,
             user.ProfilePictureUrl,
             doctor?.Title,
-            doctor?.ClinicName,
-            doctor?.ClinicAddress,
+            user.Clinic?.ClinicName ?? "none",
+            user.Clinic?.ClinicAddress ?? "none",
             doctor?.About,
             doctor?.YearsOfExperience,
             CalculateCompletion(user, doctor)
@@ -76,7 +75,10 @@ public class AccountService(
 
     public async Task<Result> UpdateProfileAsync(string userId, UpdateProfileRequest request, CancellationToken cancellationToken = default)
     {
-        var currentUser = await _userManager.FindByIdAsync(userId);
+        var currentUser = await _userManager.Users
+            .Where(x => x.Id == userId)
+            .Include(x => x.Clinic)
+            .FirstOrDefaultAsync();
 
         if (currentUser is null)
             return Result.Failure(UserErrors.UserNotFound);
@@ -128,8 +130,8 @@ public class AccountService(
         }
 
         doctor.Title = request.Title;
-        doctor.ClinicName = request.ClinicName ?? doctor.ClinicName;
-        doctor.ClinicAddress = request.ClinicAddress;
+        currentUser.Clinic?.ClinicName = request.ClinicName ?? currentUser.Clinic.ClinicName;
+        currentUser.Clinic?.ClinicAddress = request.ClinicAddress ?? currentUser.Clinic.ClinicAddress;
         doctor.About = request.About;
         doctor.YearsOfExperience = request.YearsOfExperience;
 
@@ -147,8 +149,8 @@ public class AccountService(
             !string.IsNullOrWhiteSpace(user.PhoneNumber),
             !string.IsNullOrWhiteSpace(user.ProfilePictureUrl),
             !string.IsNullOrWhiteSpace(doctor?.Title),
-            !string.IsNullOrWhiteSpace(doctor?.ClinicName),
-            !string.IsNullOrWhiteSpace(doctor?.ClinicAddress),
+            !string.IsNullOrWhiteSpace(user.Clinic?.ClinicName),
+            !string.IsNullOrWhiteSpace(user.Clinic?.ClinicAddress),
             !string.IsNullOrWhiteSpace(doctor?.About),
             doctor?.YearsOfExperience is not null,
         };

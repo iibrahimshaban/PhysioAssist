@@ -235,6 +235,24 @@ export class DynamicFormEngineService {
     'E-mail Address',
   ]);
 
+
+  private readonly PHONE_QUESTION_IDS = new Set([
+    'question_default_phone',
+    'question_default_phone_number',
+  ]);
+
+  /** User-visible labels that identify the phone field when the questionId
+   *  does not use the canonical locked prefix. */
+  private readonly PHONE_QUESTION_TEXTS = new Set([
+    'Phone',
+    'Phone Number',
+    'Phone number',
+    'phone',
+    'phone number',
+    'Mobile',
+    'Mobile Number',
+    'Mobile number',
+  ]);
   /**
    * Look up the answer value for the email question inside a submission
    * payload.  Returns the trimmed string value (lowercased), or `null` if
@@ -299,7 +317,62 @@ export class DynamicFormEngineService {
 
     return null;
   }
+  
 
+  extractPhoneAnswer(
+    schema: DynamicFormSchemaDto,
+    submission: { sections: { sectionId: string; groups: { groupId: string; answers: { questionId: string; value?: any }[] }[] }[] } | null,
+  ): string | null {
+    if (!schema || !submission || !submission.sections) return null;
+
+    // Phase 1 — collect candidate question IDs from the schema.
+    let phoneQuestionId: string | null = null;
+
+    for (const section of schema.sections) {
+      for (const group of section.groups) {
+        for (const question of group.questions) {
+          const matchesId = this.PHONE_QUESTION_IDS.has(question.questionId);
+          const matchesText = question.text && this.PHONE_QUESTION_TEXTS.has(question.text.trim());
+          if (matchesId || matchesText) {
+            phoneQuestionId = question.questionId;
+            // The locked ID match is strongest, stop immediately when found.
+            if (matchesId) break;
+          }
+        }
+        if (phoneQuestionId && this.PHONE_QUESTION_IDS.has(phoneQuestionId)) break;
+      }
+      if (phoneQuestionId && this.PHONE_QUESTION_IDS.has(phoneQuestionId)) break;
+    }
+
+    if (!phoneQuestionId) return null;
+
+    // Phase 2 — extract the answer value from the submission payload.
+    for (const section of submission.sections) {
+      for (const group of section.groups) {
+        for (const answer of group.answers) {
+          if (answer.questionId === phoneQuestionId && answer.value != null) {
+            const raw = answer.value;
+
+            // The renderer wraps "wrapTypes" answers as { [questionType]: value },
+            // e.g. { phone: "+201012345678" }. Unwrap that shape here;
+            // fall back to the raw value for older/unwrapped submissions.
+            const unwrapped =
+              raw && typeof raw === 'object' && 'phone' in raw
+                ? (raw as { phone: unknown }).phone
+                : raw;
+
+            if (unwrapped == null) return null;
+
+            const trimmed = String(unwrapped).trim();
+            if (trimmed.length === 0) return null;
+            return trimmed;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
   /**
    * Find a question in a schema by matching the user-visible text.
    * Mirrors the server-side `ExtractInputValuesHelper.FindQuestionIdByText`

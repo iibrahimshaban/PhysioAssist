@@ -48,8 +48,7 @@ public static class TestDataSeeder
         context.Doctors.Add(new Doctor
         {
             Id = TestDoctorId, // same GUID as ApplicationUser.Id
-            UserId = TestDoctorId.ToString(),
-            ClinicName = "Test Neuro Rehab Clinic"
+            UserId = TestDoctorId.ToString()
         });
 
         context.Patients.Add(new Patient

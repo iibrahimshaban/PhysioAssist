@@ -15,6 +15,7 @@ public class Patient : AuditableEntity
     public ICollection<PatientPreferredTimeSlot> PreferredTimeSlots { get; set; } = [];
     public string QRCodeToken { get; set; } = string.Empty;
     public string? PatientCaseNotes { get; set; } = string.Empty;
+    public Guid ClinicId { get; set; }
     public PatientStatus Status { get; set; } = PatientStatus.Active;
     public ICollection<DoctorPatient> DoctorPatients { get; set; } = [];
 }

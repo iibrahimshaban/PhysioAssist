@@ -42,9 +42,9 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         [HasPermission(Permissions.DailySessions)]
         public async Task<IActionResult> GetTodaySessions(CancellationToken cancellationToken)
         {
-            var doctorId = Guid.Parse(User.GetUserId()!);
+           var clinicId = User.GetClinicId();
 
-            var result = await _todaySessionsService.GetTodaySessionsAsync(doctorId, cancellationToken);
+            var result = await _todaySessionsService.GetTodaySessionsAsync(clinicId!.Value, cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
         }
 

@@ -11,7 +11,7 @@ public class TodaySessionsQueryService(
     private static readonly TimeSpan EgyptOffset = TimeSpan.FromHours(3);
 
     public async Task<Result<TodaySessionsOverviewDto>> GetTodaySessionsAsync(
-     Guid doctorId, CancellationToken cancellationToken = default)
+     Guid clinicId, CancellationToken cancellationToken = default)
     {
         var nowUtc = DateTimeOffset.UtcNow;
         var today = DateOnly.FromDateTime(nowUtc.ToOffset(EgyptOffset).Date);
@@ -19,8 +19,18 @@ public class TodaySessionsQueryService(
         var dayStart = new DateTimeOffset(today.ToDateTime(TimeOnly.MinValue), EgyptOffset);
         var dayEnd = new DateTimeOffset(today.ToDateTime(TimeOnly.MaxValue), EgyptOffset);
 
+        var doctorIds = await context.Users
+            .Where(u => u.ClinicId == clinicId
+                        && context.UserRoles.Any(ur => ur.UserId == u.Id
+                            && (ur.RoleId == DefaultRoles.JuniorDoctorRoleId || ur.RoleId == DefaultRoles.SoloRoleId)))
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+
+        if (doctorIds.Count == 0)
+            return Result.Success(new TodaySessionsOverviewDto { Date = today });
+
         var slots = await context.Set<ScheduleSlot>()
-            .Where(s => s.DoctorId == doctorId
+            .Where(s => doctorIds.Contains(s.DoctorId.ToString())
                         && s.SlotStart >= dayStart
                         && s.SlotStart <= dayEnd
                         && s.Status != SlotStatus.Cancelled

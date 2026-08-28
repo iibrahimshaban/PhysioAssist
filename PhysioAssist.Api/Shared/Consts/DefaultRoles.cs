@@ -10,4 +10,8 @@ public static class DefaultRoles
 
     public const string Receptionist = nameof(Receptionist);
     public const string ReceptionistRoleId  = "019f6b21-d46d-7cb1-830c-2c6c0b517e67";
+    public const string JuniorDoctor = nameof(JuniorDoctor);
+    public const string JuniorDoctorRoleId = "019f6b21-d46d-7cb1-830c-2c6c0b517e80";
+    public const string ClinicAdmin = nameof(ClinicAdmin);
+    public const string ClinicAdminRoleId = "019f6b21-d46d-7cb1-830c-2c6c0b517e90";
 }

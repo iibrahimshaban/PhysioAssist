@@ -17,8 +17,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.IntakeManageForms)]
     public async Task<IActionResult> CreateFormSchema([FromBody] CreateFormSchemaRequest request, CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.CreateFormSchemaAsync(request, doctorId!.Value, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var result = await _intakeService.CreateFormSchemaAsync(request, clinicId!.Value, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
@@ -27,8 +27,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.IntakeManageForms)]
     public async Task<IActionResult> UpdateFormSchema(Guid schemaId, [FromBody] UpdateFormSchemaRequest request, CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.UpdateFormSchemaAsync(schemaId, request, doctorId!.Value, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var result = await _intakeService.UpdateFormSchemaAsync(schemaId, request, clinicId!.Value, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
@@ -37,8 +37,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.IntakeManageForms)]
     public async Task<IActionResult> PublishFormSchema(Guid schemaId, [FromBody] PublishFormSchemaRequest request, CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.PublishFormSchemaAsync(schemaId, request, doctorId!.Value, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var result = await _intakeService.PublishFormSchemaAsync(schemaId, request, clinicId!.Value, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
@@ -47,8 +47,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.IntakeRead)]
     public async Task<IActionResult> GetFormSchemaById(Guid schemaId, CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.GetFormSchemaByIdAsync(schemaId, doctorId!.Value, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var result = await _intakeService.GetFormSchemaByIdAsync(schemaId, clinicId!.Value, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
@@ -57,8 +57,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.IntakeRead)]
     public async Task<IActionResult> GetFormSchemasByDoctor(CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.GetFormSchemasByDoctorAsync(doctorId!.Value, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var result = await _intakeService.GetFormSchemasByClinicAsync(clinicId!.Value, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
@@ -67,8 +67,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.IntakeRead)]
     public async Task<IActionResult> GetDefaultFormSchema(CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.GetDefaultFormSchemaAsync(doctorId!.Value, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var result = await _intakeService.GetDefaultFormSchemaAsync(clinicId!.Value, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
@@ -77,8 +77,9 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.QRGenerate)]
     public async Task<IActionResult> GenerateIntakeQrLink(Guid id, [FromBody] GenerateIntakeQrLinkRequest request, CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.GenerateIntakeQrLinkAsync(id, request, doctorId!.Value, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var userId = Guid.Parse(User.GetUserId()!);
+        var result = await _intakeService.GenerateIntakeQrLinkAsync(id, request, clinicId!.Value,userId, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
@@ -87,8 +88,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.SubmissionRead)]
     public async Task<IActionResult> GetSubmissions([FromQuery] IntakeStatus? status, CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.GetSubmissionsAsync(doctorId!.Value, status, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var result = await _intakeService.GetSubmissionsAsync(clinicId!.Value, status, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
@@ -97,8 +98,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.SubmissionRead)]
     public async Task<IActionResult> GetSubmissionDetails(Guid id, CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.GetSubmissionDetailsAsync(id, doctorId!.Value, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var result = await _intakeService.GetSubmissionDetailsAsync(id, clinicId!.Value, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
@@ -107,8 +108,9 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.IntakeConvert)]
     public async Task<IActionResult> UpdateIntakeStatus(Guid id, [FromBody] UpdateIntakeStatusRequest request, CancellationToken cancellationToken)
     {
+        var clinicId = User.GetClinicId();
         var doctorId = Guid.Parse(User.GetUserId()!);
-        var result = await _intakeService.UpdateStatusAsync(id, request, doctorId, cancellationToken);
+        var result = await _intakeService.UpdateStatusAsync(id, request, doctorId, clinicId!.Value, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
@@ -117,8 +119,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.IntakeManageForms)]
     public async Task<IActionResult> GenerateDefaultFormSchema(CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.GenerateDefaultFormSchemaAsync(doctorId!.Value, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var result = await _intakeService.GenerateDefaultFormSchemaAsync(clinicId!.Value, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
@@ -127,8 +129,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.IntakeManageForms)]
     public async Task<IActionResult> DuplicateFormSchema(Guid schemaId, CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.DuplicateFormSchemaAsync(schemaId, doctorId!.Value, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var result = await _intakeService.DuplicateFormSchemaAsync(schemaId, clinicId!.Value, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
@@ -137,8 +139,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.IntakeManageForms)]
     public async Task<IActionResult> DeleteFormSchema(Guid schemaId, CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.DeleteFormSchemaAsync(schemaId, doctorId!.Value, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var result = await _intakeService.DeleteFormSchemaAsync(schemaId, clinicId!.Value, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
@@ -147,8 +149,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.IntakeManageForms)]
     public async Task<IActionResult> ArchiveFormSchema(Guid schemaId, CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.ArchiveFormSchemaAsync(schemaId, doctorId!.Value, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var result = await _intakeService.ArchiveFormSchemaAsync(schemaId, clinicId!.Value, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
@@ -157,8 +159,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     [HasPermission(Permissions.IntakeManageForms)]
     public async Task<IActionResult> UnarchiveFormSchema(Guid schemaId, CancellationToken cancellationToken)
     {
-        var doctorId = await User.GetDoctorIdAsync(context, cancellationToken);
-        var result = await _intakeService.UnarchiveFormSchemaAsync(schemaId, doctorId!.Value, cancellationToken);
+        var clinicId = User.GetClinicId();
+        var result = await _intakeService.UnarchiveFormSchemaAsync(schemaId, clinicId!.Value, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
@@ -168,7 +170,8 @@ public class IntakeController(IIntakeService intakeService, ApplicationDbContext
     public async Task<IActionResult> ConvertToPatient(Guid id, [FromBody] ConvertIntakeToPatientRequest request, CancellationToken cancellationToken)
     {
         var doctorId = Guid.Parse(User.GetUserId()!);
-        var result = await _intakeService.ConvertToPatientAsync(id, request, doctorId, cancellationToken);
+        var clincId = User.GetClinicId();
+        var result = await _intakeService.ConvertToPatientAsync(id, request, doctorId, clincId, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }

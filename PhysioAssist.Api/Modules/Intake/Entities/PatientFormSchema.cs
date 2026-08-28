@@ -6,7 +6,7 @@ public class PatientFormSchema : AuditableEntity
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string SchemaJson { get; set; } = string.Empty;
-    public Guid DoctorId { get; set; }
+    public Guid ClinicId { get; set; }
     public int Version { get; set; } = 1;
     public FormSchemaStatus Status { get; set; } = FormSchemaStatus.Draft;
     public bool IsDefault { get; set; }

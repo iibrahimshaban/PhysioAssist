@@ -35,7 +35,10 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
         builder.HasIndex(p => p.QRCodeToken)
                .IsUnique();
 
-        builder.HasIndex(p => p.EmailAddress)
+        builder.HasIndex(p => new { p.ClinicId, p.EmailAddress })
+               .IsUnique();
+
+        builder.HasIndex(p => new { p.ClinicId, p.PhoneNumber })
                .IsUnique();
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.Auth.Errors;
 using PhysioAssist.Api.Modules.PatientModule.DTOs;
+using PhysioAssist.Api.Modules.PatientModule.Repositories;
 using PhysioAssist.Api.Modules.PatientModule.Services;
 
 namespace PhysioAssist.Api.Modules.PatientModule.Controllers
@@ -8,7 +9,11 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
     [Route("api/[controller]")]
     [ApiController]
     //[Authorize]
-    public class PatientController(IPatientService patientService, IScheduleSlotQueryService _scheduleSlotQueryService, ApplicationDbContext _dbContext) : ControllerBase
+    public class PatientController(
+        IPatientService patientService,
+        IScheduleSlotQueryService _scheduleSlotQueryService,
+        IPatientQueryService _patientRepository
+        ) : ControllerBase
     {
         private readonly IPatientService _patientService = patientService;
 
@@ -16,7 +21,8 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
         [HasPermission(Permissions.GetPatients)]
         public async Task<IActionResult> GetAllPatients()
         {
-            var result = await _patientService.GetAllAsync();
+            var clinicId = User.GetClinicId();
+            var result = await _patientService.GetAllAsync(clinicId!.Value);
             return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
         }
 
@@ -60,42 +66,16 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
             return result.IsSuccess ? NoContent() : result.ToProblem();
         }
 
-        // pat doc 
-
-        //[HttpPost("{patientId}/assign/{doctorId}")]
-        //[HasPermission(Permissions.WritePatient)]
-        //public async Task<IActionResult> AssignPatient(Guid patientId, Guid doctorId)
-        //{
-        //    var result = await _patientService.AssignPatientAsync(doctorId, patientId);
-        //    return result.IsSuccess ? NoContent() : result.ToProblem();
-        //}
-
-        //[HttpPut("{patientId}/discharge/{doctorId}")]
-        //[HasPermission(Permissions.WritePatient)]
-        //public async Task<IActionResult> DischargePatient(Guid patientId, Guid doctorId)
-        //{
-        //    var result = await _patientService.DischargePatientAsync(doctorId, patientId);
-        //    return result.IsSuccess ? NoContent() : result.ToProblem();
-        //}
-
-        //[HttpPut("{patientId}/set-primary/{doctorId}")]
-        //[HasPermission(Permissions.WritePatient)]
-        //public async Task<IActionResult> SetPrimaryDoctor(Guid patientId, Guid doctorId)
-        //{
-        //    var result = await _patientService.SetPrimaryDoctorAsync(doctorId, patientId);
-        //    return result.IsSuccess ? NoContent() : result.ToProblem();
-        //}
-
         [HttpGet("with-slots")]
         [HasPermission(Permissions.GetPatients)]
         public async Task<IActionResult> GetWithSlots(CancellationToken ct)
         {
-            var managingDoctorId = await User.GetDoctorIdAsync(_dbContext, ct);
+            var clinicId = User.GetClinicId();
 
-            if (managingDoctorId is null)
+            if (clinicId is null)
                 return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
 
-            var result = await _patientService.GetPatientsWithSlotsAsync(managingDoctorId.Value, ct);
+            var result = await _patientService.GetPatientsWithSlotsAsync(clinicId.Value, ct);
             return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
         }
 
@@ -128,9 +108,31 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
         [HttpPost("create-from-intake")]
         public async Task<IActionResult> CreateFromIntake([FromBody] CreateFromIntakeRequest request, CancellationToken ct)
         {
-            var doctorId = Guid.Parse(User.GetUserId()!);
-            var result = await _patientService.CreatePatientFromDynamicFormAsync(request.FormSchemaId, request.FormSubmissionData, request.PainPointsData, doctorId, ct);
+            var generatedByUserId = Guid.Parse(User.GetUserId()!);
+            var clinicId = User.GetClinicId();
+            var result = await _patientService.CreatePatientFromDynamicFormAsync(request.FormSchemaId, 
+                request.FormSubmissionData, request.PainPointsData, generatedByUserId, clinicId, ct);
+
             return result.IsSuccess ? Ok(new { patientId = result.Value }) : result.ToProblem();
+        }
+        [HttpGet("patients/check-email")]
+        [Authorize]
+        public async Task<IActionResult> CheckPatientEmail([FromQuery] string email, CancellationToken cancellationToken)
+        {
+            var clinicId = User.GetClinicId(); // however you currently read the claim elsewhere
+            var result = await _patientRepository.IsPatientEmailRegisteredAsync(email, clinicId!.Value, cancellationToken);
+
+            return result.IsSuccess ? Ok(new { isRegistered = result.Value }) : result.ToProblem();
+        }
+
+        [HttpGet("patients/check-phone")]
+        [Authorize]
+        public async Task<IActionResult> CheckPatientPhone([FromQuery] string phoneNumber, CancellationToken cancellationToken)
+        {
+            var clinicId = User.GetClinicId();
+            var result = await _patientRepository.IsPatientPhoneRegisteredAsync(phoneNumber, clinicId!.Value, cancellationToken);
+
+            return result.IsSuccess ? Ok(new { isRegistered = result.Value }) : result.ToProblem();
         }
     }
 }

@@ -11,9 +11,7 @@ public class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
 
         builder.ToTable("Doctor", schema: "auth");
 
-        builder.Property(x => x.ClinicName).HasMaxLength(200).IsRequired();
         builder.Property(x => x.Title).HasMaxLength(150);
-        builder.Property(x => x.ClinicAddress).HasMaxLength(300);
         builder.Property(x => x.About).HasMaxLength(1000);
     }
 }

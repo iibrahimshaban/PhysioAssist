@@ -5,7 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { debounceTime, distinctUntilChanged, switchMap, catchError, of, map } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, catchError, of, map, forkJoin } from 'rxjs';
 import { QrAccessService } from '../../services/qr-access.service';
 import { DynamicFormEngineService } from '../../services/dynamic-form-engine.service';
 import { DynamicFormRendererComponent } from '../../components/dynamic-form-renderer/dynamic-form-renderer.component';
@@ -63,6 +63,10 @@ export class PublicIntakeComponent implements OnInit {
   readonly emailDuplicate = signal(false);
   readonly duplicateEmailAddress = signal<string | null>(null);
 
+  readonly phoneChecking = signal(false);
+  readonly phoneDuplicate = signal(false);
+  readonly duplicatePhoneNumber = signal<string | null>(null);
+
   readonly progressPercent = computed(() => {
     const total = this.requiredTotal();
     if (total === 0) return 0;
@@ -75,6 +79,8 @@ export class PublicIntakeComponent implements OnInit {
     && !this.submitted()
     && !this.emailChecking()
     && !this.emailDuplicate()
+    && !this.phoneChecking()
+    && !this.phoneDuplicate()
   );
 
   @HostListener('window:beforeunload', ['$event'])
@@ -113,34 +119,52 @@ export class PublicIntakeComponent implements OnInit {
       map(submission => {
         const schema = this.schema();
         if (!schema || !submission) return null;
-        return this.dynamicFormEngine.extractEmailAnswer(schema, submission);
+        return {
+          email: this.dynamicFormEngine.extractEmailAnswer(schema, submission),
+          phone: this.dynamicFormEngine.extractPhoneAnswer(schema, submission)
+        };
       }),
       debounceTime(600),
-      distinctUntilChanged(),
-      switchMap(email => {
-        if (!email) {
-          this.emailDuplicate.set(false);
-          this.duplicateEmailAddress.set(null);
-          this.emailChecking.set(false);
-          return of(null);
-        }
-        this.emailChecking.set(true);
-        return this.qrAccessService.checkPatientEmail(email).pipe(
-          catchError(() => of({ isRegistered: false })),
-          map(result => ({ email, result }))
-        );
-      })
-    ).subscribe(checkResult => {
-      if (checkResult === null) return;
-      const { email, result } = checkResult;
+      distinctUntilChanged((a, b) => a?.email === b?.email && a?.phone === b?.phone)
+    ).subscribe(extracted => {
+      this.runEmailCheck(extracted?.email ?? null);
+      this.runPhoneCheck(extracted?.phone ?? null);
+    });
+  }
+
+  private runEmailCheck(email: string | null): void {
+    if (!email || !this.token) {
+      this.emailDuplicate.set(false);
+      this.duplicateEmailAddress.set(null);
       this.emailChecking.set(false);
-      if (result.isRegistered) {
-        this.emailDuplicate.set(true);
-        this.duplicateEmailAddress.set(email);
-      } else {
-        this.emailDuplicate.set(false);
-        this.duplicateEmailAddress.set(null);
-      }
+      return;
+    }
+    this.emailChecking.set(true);
+    this.qrAccessService.checkPatientEmail(this.token, email).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => of({ isRegistered: false }))
+    ).subscribe(result => {
+      this.emailChecking.set(false);
+      this.emailDuplicate.set(result.isRegistered);
+      this.duplicateEmailAddress.set(result.isRegistered ? email : null);
+    });
+  }
+
+  private runPhoneCheck(phone: string | null): void {
+    if (!phone || !this.token) {
+      this.phoneDuplicate.set(false);
+      this.duplicatePhoneNumber.set(null);
+      this.phoneChecking.set(false);
+      return;
+    }
+    this.phoneChecking.set(true);
+    this.qrAccessService.checkPatientPhone(this.token, phone).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => of({ isRegistered: false }))
+    ).subscribe(result => {
+      this.phoneChecking.set(false);
+      this.phoneDuplicate.set(result.isRegistered);
+      this.duplicatePhoneNumber.set(result.isRegistered ? phone : null);
     });
   }
 
@@ -200,9 +224,11 @@ export class PublicIntakeComponent implements OnInit {
   submit(): void {
     const currentSubmission = this.submission();
     const currentSchema = this.schema();
-    if (!currentSubmission || !currentSchema) return;
+    if (!currentSubmission || !currentSchema || !this.token) return;
 
     const email = this.dynamicFormEngine.extractEmailAnswer(currentSchema, currentSubmission);
+    const phone = this.dynamicFormEngine.extractPhoneAnswer(currentSchema, currentSubmission);
+
     if (email && this.emailDuplicate()) {
       this.submitError.set(
         `The email address ${email} is already associated with an existing patient record. ` +
@@ -210,34 +236,84 @@ export class PublicIntakeComponent implements OnInit {
       );
       return;
     }
-
-    if (email && !this.emailDuplicate() && !this.emailChecking()) {
-      this.emailChecking.set(true);
-      this.qrAccessService.checkPatientEmail(email).pipe(
-        takeUntilDestroyed(this.destroyRef),
-        catchError(() => of({ isRegistered: false }))
-      ).subscribe({
-        next: (result) => {
-          this.emailChecking.set(false);
-          if (result.isRegistered) {
-            this.emailDuplicate.set(true);
-            this.duplicateEmailAddress.set(email);
-            this.submitError.set(
-              `The email address ${email} is already associated with an existing patient record. ` +
-              `Please contact your healthcare provider or use a different email address.`
-            );
-          } else {
-            this.doSubmit(currentSubmission, currentSchema);
-          }
-        },
-        error: () => {
-          this.emailChecking.set(false);
-          this.doSubmit(currentSubmission, currentSchema);
-        }
-      });
-    } else {
-      this.doSubmit(currentSubmission, currentSchema);
+    if (phone && this.phoneDuplicate()) {
+      this.submitError.set(
+        `The phone number ${phone} is already associated with an existing patient record. ` +
+        `Please contact your healthcare provider or use a different phone number.`
+      );
+      return;
     }
+
+    this.verifyThenSubmit(email, phone, currentSubmission, currentSchema);
+  }
+
+  private verifyThenSubmit(
+    email: string | null,
+    phone: string | null,
+    currentSubmission: DynamicFormSubmissionDto,
+    currentSchema: DynamicFormSchemaDto
+  ): void {
+    const needsEmailCheck = !!email && !this.emailDuplicate() && !this.emailChecking();
+    const needsPhoneCheck = !!phone && !this.phoneDuplicate() && !this.phoneChecking();
+
+    if (!needsEmailCheck && !needsPhoneCheck) {
+      this.doSubmit(currentSubmission, currentSchema);
+      return;
+    }
+
+    if (needsEmailCheck) this.emailChecking.set(true);
+    if (needsPhoneCheck) this.phoneChecking.set(true);
+
+    const email$ = needsEmailCheck
+      ? this.qrAccessService.checkPatientEmail(this.token!, email!).pipe(catchError(() => of({ isRegistered: false })))
+      : of(null);
+
+    const phone$ = needsPhoneCheck
+      ? this.qrAccessService.checkPatientPhone(this.token!, phone!).pipe(catchError(() => of({ isRegistered: false })))
+      : of(null);
+
+    forkJoin([email$, phone$]).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(([emailResult, phoneResult]) => {
+      if (needsEmailCheck) this.emailChecking.set(false);
+      if (needsPhoneCheck) this.phoneChecking.set(false);
+
+      const emailTaken = needsEmailCheck && emailResult!.isRegistered;
+      const phoneTaken = needsPhoneCheck && phoneResult!.isRegistered;
+
+      if (emailTaken) {
+        this.emailDuplicate.set(true);
+        this.duplicateEmailAddress.set(email);
+      }
+      if (phoneTaken) {
+        this.phoneDuplicate.set(true);
+        this.duplicatePhoneNumber.set(phone);
+      }
+
+      if (emailTaken && phoneTaken) {
+        this.submitError.set(
+          `Both the email address ${email} and the phone number ${phone} are already associated with ` +
+          `an existing patient record. Please contact your healthcare provider or use different contact details.`
+        );
+        return;
+      }
+      if (emailTaken) {
+        this.submitError.set(
+          `The email address ${email} is already associated with an existing patient record. ` +
+          `Please contact your healthcare provider or use a different email address.`
+        );
+        return;
+      }
+      if (phoneTaken) {
+        this.submitError.set(
+          `The phone number ${phone} is already associated with an existing patient record. ` +
+          `Please contact your healthcare provider or use a different phone number.`
+        );
+        return;
+      }
+
+      this.doSubmit(currentSubmission, currentSchema);
+    });
   }
 
   private doSubmit(currentSubmission: DynamicFormSubmissionDto, currentSchema: DynamicFormSchemaDto): void {

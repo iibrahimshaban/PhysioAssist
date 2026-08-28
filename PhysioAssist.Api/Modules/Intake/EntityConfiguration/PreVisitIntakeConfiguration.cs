@@ -13,7 +13,7 @@ public class PreVisitIntakeConfiguration : IEntityTypeConfiguration<PreVisitInta
         builder.Property(p => p.Id)
             .ValueGeneratedNever();
 
-        builder.Property(p => p.DoctorId)
+        builder.Property(p => p.GeneratedByUserId)
                .IsRequired();
 
         builder.Property(p => p.ShortCode)
@@ -63,8 +63,8 @@ public class PreVisitIntakeConfiguration : IEntityTypeConfiguration<PreVisitInta
                .HasForeignKey(p => p.FormSchemaId)
                .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(p => new { p.DoctorId, p.Status, p.SubmittedAt })
-               .HasDatabaseName("IX_PreVisitIntake_DoctorId_Status_SubmittedAt");
+        builder.HasIndex(p => new { p.GeneratedByUserId, p.Status, p.SubmittedAt })
+               .HasDatabaseName("IX_PreVisitIntake_GeneratedByUserId_Status_SubmittedAt");
 
         builder.HasIndex(p => p.FormSchemaId)
                .HasDatabaseName("IX_PreVisitIntake_FormSchemaId");

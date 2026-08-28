@@ -31,7 +31,9 @@ public static class DataSeeder
         [
             new IdentityRole { Id = DefaultRoles.AdminRoleId, Name = DefaultRoles.Admin },
             new IdentityRole { Id = DefaultRoles.SoloRoleId,  Name = DefaultRoles.SoloDoctor },
-            new IdentityRole { Id = DefaultRoles.ReceptionistRoleId, Name = DefaultRoles.Receptionist }
+            new IdentityRole { Id = DefaultRoles.ReceptionistRoleId, Name = DefaultRoles.Receptionist },
+            new IdentityRole { Id = DefaultRoles.JuniorDoctorRoleId, Name = DefaultRoles.JuniorDoctor },
+            new IdentityRole { Id = DefaultRoles.ClinicAdminRoleId, Name = DefaultRoles.ClinicAdmin }
         ];
 
         foreach (var role in roles)

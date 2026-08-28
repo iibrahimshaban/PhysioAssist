@@ -30,4 +30,9 @@ public static class UserExtensions
 
         return Guid.TryParse(userId, out var doctorId) ? doctorId : null;
     }
+    public static Guid? GetClinicId(this ClaimsPrincipal principal)
+    {
+        var value = principal.FindFirstValue("clinicId");
+        return Guid.TryParse(value, out var clinicId) ? clinicId : null;
+    }
 }

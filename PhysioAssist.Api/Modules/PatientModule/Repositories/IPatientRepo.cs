@@ -8,5 +8,6 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
         Task<Patient?> GetByPhoneAsync(string phoneNumber);
         Task<IEnumerable<Patient>> GetByDoctorId(Guid doctorId, CancellationToken cancellation);
         Task<Patient?> GetByPatientWithFreeTimeSlotsAsync(Guid patientId, CancellationToken cancellation);
+        Task<IEnumerable<Patient>> GetByClinicIdAsync(Guid clinicId, CancellationToken cancellation);
     }
 }

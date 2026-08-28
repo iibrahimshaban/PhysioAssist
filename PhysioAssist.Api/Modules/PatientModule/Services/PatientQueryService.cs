@@ -105,6 +105,11 @@ public class PatientQueryService(
             existingPatient = await _patientRepo.GetByEmailAsync(rawEmail);
         }
 
+        if (request.ClinicId is not { } clinicId)
+        {
+            return Result.Failure<Guid>(PatientErrors.ClinicIdRequired);
+        }
+
         if (existingPatient != null)
         {
             // Patient already exists with this email — link to doctor if not already linked
@@ -161,7 +166,8 @@ public class PatientQueryService(
             QRCodeToken = $"patient-qr-{Guid.NewGuid():N}",
             Status = PatientStatus.Active,
             PatientFreeTime = request.FreeTime ?? string.Empty,
-            PatientCaseNotes = request.Notes ?? string.Empty
+            PatientCaseNotes = request.Notes ?? string.Empty,
+            ClinicId = clinicId,
         };
 
         if (!string.IsNullOrWhiteSpace(request.FreeTime))
@@ -361,6 +367,37 @@ public class PatientQueryService(
                                                .ToListAsync(ct);
 
         return Result.Success(matches);
+    }
+    public async Task<Result<bool>> IsPatientEmailRegisteredAsync(string email, Guid clinicId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return Result.Success(false);
+
+        var normalized = email.Trim().ToLowerInvariant();
+
+        var exists = await _dbContext.Patients
+            .AsNoTracking()
+            .AnyAsync(p => p.ClinicId == clinicId
+                           && !string.IsNullOrEmpty(p.EmailAddress)
+                           && p.EmailAddress.ToLower() == normalized, cancellationToken);
+
+        return Result.Success(exists);
+    }
+
+    public async Task<Result<bool>> IsPatientPhoneRegisteredAsync(string phoneNumber, Guid clinicId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            return Result.Success(false);
+
+        var normalized = phoneNumber.Trim();
+
+        var exists = await _dbContext.Patients
+            .AsNoTracking()
+            .AnyAsync(p => p.ClinicId == clinicId
+                           && !string.IsNullOrEmpty(p.PhoneNumber)
+                           && p.PhoneNumber == normalized, cancellationToken);
+
+        return Result.Success(exists);
     }
 }
 

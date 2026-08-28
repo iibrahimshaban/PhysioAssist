@@ -24,25 +24,26 @@ public class PatientFormSchemaRepository(ApplicationDbContext context) : IPatien
             .FirstOrDefaultAsync(schema => schema.Id == id && schema.Status == FormSchemaStatus.Published, cancellationToken);
     }
 
-    public async Task<PatientFormSchema?> GetDefaultForDoctorAsync(Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<PatientFormSchema?> GetDefaultForClinicAsync(Guid clinicId, CancellationToken cancellationToken = default)
     {
         return await _context.PatientFormSchemas
-            .FirstOrDefaultAsync(schema => schema.DoctorId == doctorId && schema.IsDefault, cancellationToken);
+            .FirstOrDefaultAsync(schema => schema.ClinicId == clinicId && schema.IsDefault, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<PatientFormSchema>> GetByDoctorAsync(Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<PatientFormSchema>> GetByClinicAsync(Guid clinicId, CancellationToken cancellationToken = default)
     {
         return await _context.PatientFormSchemas
-            .Where(schema => schema.DoctorId == doctorId)
+            .Where(schema => schema.ClinicId == clinicId)
             .OrderByDescending(schema => schema.IsDefault)
             .ThenByDescending(schema => schema.CreatedAt)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<bool> ExistsNameForDoctorAsync(Guid doctorId, string name, Guid? excludeId, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsNameForClinicAsync(Guid clinicId, string name, Guid? excludeId, CancellationToken cancellationToken = default)
     {
+
         var query = _context.PatientFormSchemas
-            .Where(schema => schema.DoctorId == doctorId && schema.Name == name);
+            .Where(schema => schema.ClinicId == clinicId && schema.Name == name);
 
         if (excludeId.HasValue)
             query = query.Where(schema => schema.Id != excludeId.Value);
@@ -50,10 +51,10 @@ public class PatientFormSchemaRepository(ApplicationDbContext context) : IPatien
         return await query.AnyAsync(cancellationToken);
     }
 
-    public async Task UnsetDefaultSchemasAsync(Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task UnsetDefaultSchemasAsync(Guid clinicId, CancellationToken cancellationToken = default)
     {
         await _context.PatientFormSchemas
-            .Where(schema => schema.DoctorId == doctorId && schema.IsDefault)
+            .Where(schema => schema.ClinicId == clinicId && schema.IsDefault)
             .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.IsDefault, false), cancellationToken);
     }
 
@@ -67,10 +68,10 @@ public class PatientFormSchemaRepository(ApplicationDbContext context) : IPatien
         _context.PatientFormSchemas.Remove(schema);
     }
 
-    public async Task<IReadOnlyList<PatientFormSchema>> GetCopiesByOriginalFormIdAsync(Guid originalFormId, Guid doctorId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<PatientFormSchema>> GetCopiesByOriginalFormIdAsync(Guid originalFormId, Guid clinicId, CancellationToken cancellationToken = default)
     {
         return await _context.PatientFormSchemas
-            .Where(schema => schema.DoctorId == doctorId && schema.OriginalFormId == originalFormId)
+            .Where(schema => schema.ClinicId == clinicId && schema.OriginalFormId == originalFormId)
             .ToListAsync(cancellationToken);
     }
 

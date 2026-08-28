@@ -5,7 +5,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
     public interface IPatientService
     {
         Task<Result<PatientResponse>> GetByIdAsync(Guid patientId);
-        Task<Result<IEnumerable<PatientResponse>>> GetAllAsync();
+        Task<Result<IEnumerable<PatientResponse>>> GetAllAsync(Guid clinicId, CancellationToken cancellation = default);
         Task<Result<PatientResponse>> CreateAsync(PatientRequest request);
         Task<Result<PatientResponse>> UpdateAsync(Guid patientId, PatientRequest request);
         Task<Result> DeleteAsync(Guid patientId);
@@ -18,7 +18,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
         Task<Result> SetPrimaryDoctorAsync(Guid doctorId, Guid patientId);
 
         // patient slot 
-        Task<Result<IEnumerable<PatientWithNextSlotResponse>>> GetPatientsWithSlotsAsync(Guid doctorId, CancellationToken ct = default);
+        Task<Result<IEnumerable<PatientWithNextSlotResponse>>> GetPatientsWithSlotsAsync(Guid clinicId, CancellationToken ct = default);
 
         Task<Result<PatientOverviewResponse>> GetPatientOverviewAsync(Guid patientId, CancellationToken ct = default);
 
@@ -29,6 +29,6 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             string? painPointsData,
             CancellationToken ct = default);
 
-        Task<Result<Guid>> CreatePatientFromDynamicFormAsync(Guid formSchemaId, string formSubmissionData, string? painPointsData, Guid doctorId, CancellationToken ct = default);
+        Task<Result<Guid>> CreatePatientFromDynamicFormAsync(Guid formSchemaId, string formSubmissionData, string? painPointsData, Guid generatedByUserId, Guid? ClinicId ,CancellationToken ct = default);
     }
 }

@@ -18,4 +18,6 @@ public interface IPatientQueryService
         CancellationToken cancellationToken = default);
 
     Task<Result<List<PatientLookupResult>>> GetPatientsByDiagnosisAsync(string? diagnosis, int topN, CancellationToken ct = default);
+    Task<Result<bool>> IsPatientEmailRegisteredAsync(string email, Guid clinicId, CancellationToken cancellationToken = default);
+    Task<Result<bool>> IsPatientPhoneRegisteredAsync(string phoneNumber, Guid clinicId, CancellationToken cancellationToken = default);
 }

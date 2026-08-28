@@ -2,5 +2,5 @@
 
 public interface IPatientFormSchemaSeedingService
 {
-    Task<Result> SeedDefaultSchemaAsync(Guid doctorId, string clinicName, CancellationToken cancellationToken = default);
+    Task<Result> SeedDefaultSchemaAsync(Guid clinicId, string clinicName, CancellationToken cancellationToken = default);
 }

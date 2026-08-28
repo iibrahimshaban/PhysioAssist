@@ -2,6 +2,6 @@
 {
     public interface IIntakeCreationQueryService
     {
-        Task<Result<Guid>> CreateDirectIntakeAsync(Guid formSchemaId, string formSubmissionData, string? painPointsData, Guid doctorId, CancellationToken ct = default);
+        Task<Result<Guid>> CreateDirectIntakeAsync(Guid formSchemaId, string formSubmissionData, string? painPointsData, Guid ClinicId, Guid generatedByUserId, CancellationToken ct = default);
     }
 }

@@ -12,12 +12,10 @@ public class DoctorDashboardController(IDoctorDashboardService _doctorDashboardS
     [HasPermission(Permissions.ReadDashboard)]
     public async Task<IActionResult> GetSummary(CancellationToken cancellationToken)
     {
-        var doctorId = Guid.Parse(User.GetUserId()!);
+        var clinicId = User.GetClinicId();
         var doctorFirstName = User.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty;
 
-        Console.WriteLine($"Doctor ID: {doctorId}, Doctor First Name: {doctorFirstName}");
-
-        var result = await _doctorDashboardService.GetSummaryAsync(doctorId, doctorFirstName, cancellationToken);
+        var result = await _doctorDashboardService.GetSummaryAsync(clinicId!.Value, doctorFirstName, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }

@@ -270,8 +270,8 @@ public static class DependancyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        //services.AddTransient<ICustomEmailService, EmailService>();
-        services.AddTransient<ICustomEmailService, BrevoEmailService>();
+        services.AddTransient<ICustomEmailService, EmailService>();
+        //services.AddTransient<ICustomEmailService, BrevoEmailService>();
 
         return services;
     }
