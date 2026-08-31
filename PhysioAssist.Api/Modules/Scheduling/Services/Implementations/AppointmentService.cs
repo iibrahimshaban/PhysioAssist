@@ -4,7 +4,6 @@ using PhysioAssist.Api.Modules.Scheduling.Errors;
 using PhysioAssist.Api.Modules.Scheduling.helpers;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Modules.Notification.DTO;
-using PhysioAssist.Api.Modules.Notification.Interfaces;
 using PhysioAssist.Api.Shared.Dtos.Schedule;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
@@ -13,8 +12,8 @@ public class AppointmentService(
     IUnitOfWork unitOfWork,
     IAppointmentValidator validator,
     PhysioAssist.Api.Modules.Notification.Interfaces.INotificationService notificationService,
-    IAppointmentContactResolver contactResolver)
-    : IAppointmentService
+    IAppointmentContactResolver contactResolver,
+    IClinicDoctorResolver _clinicDoctorResolver): IAppointmentService
 {
     private const int MaxRangeDays = 31;
 
@@ -164,20 +163,29 @@ public class AppointmentService(
             : Result.Success(MapToDto(appointment));
     }
 
-    public async Task<IReadOnlyList<ScheduleSlotDto>> GetDoctorAppointmentsAsync(Guid doctorId, DateTimeOffset date, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ScheduleSlotDto>> GetDoctorAppointmentsAsync(
+        Guid doctorId, DateTimeOffset date, CancellationToken cancellationToken = default)
     {
-        var appointments = await _unitOfWork.ScheduleSlots.GetDoctorAppointmentsForDayAsync(doctorId, date, cancellationToken);
+        var appointments = await _unitOfWork.ScheduleSlots.GetDoctorAppointmentsForDayAsync([doctorId], date, cancellationToken);
         return appointments.Select(MapToDto).ToList();
     }
 
-    public async Task<IReadOnlyList<AvailableIntervalDto>> GetAvailabilityAsync(Guid doctorId, DateTimeOffset date, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ScheduleSlotDto>> GetClinicAppointmentsAsync(
+       Guid clinicId, DateTimeOffset date, CancellationToken cancellationToken = default)
     {
-        var workingDay = await _unitOfWork.WorkingScheduleDays.GetWorkingDayAsync(doctorId, date.DayOfWeek, cancellationToken);
+        var doctorIds = await _clinicDoctorResolver.GetDoctorIdsForClinicAsync(clinicId, cancellationToken);
+        var appointments = await _unitOfWork.ScheduleSlots.GetDoctorAppointmentsForDayAsync(doctorIds, date, cancellationToken);
+        return appointments.Select(MapToDto).ToList();
+    }
+    public async Task<IReadOnlyList<AvailableIntervalDto>> GetAvailabilityAsync(
+    Guid doctorId, Guid clinicId, DateTimeOffset date, CancellationToken cancellationToken = default)
+    {
+        var workingDay = await _unitOfWork.WorkingSchedules.GetEffectiveWorkingDayAsync(doctorId, clinicId, date.DayOfWeek, cancellationToken);
 
         if (workingDay is null)
             return new List<AvailableIntervalDto>();
 
-        var appointments = await _unitOfWork.ScheduleSlots.GetDoctorAppointmentsForDayAsync(doctorId, date, cancellationToken);
+        var appointments = await _unitOfWork.ScheduleSlots.GetDoctorAppointmentsForDayAsync([doctorId], date, cancellationToken);
 
         return AvailabilityCalculator.CalculateFreeIntervals(DateOnly.FromDateTime(date.Date), workingDay, appointments);
     }
@@ -201,10 +209,11 @@ public class AppointmentService(
     }
 
     public async Task<Result<IReadOnlyList<DailyAvailabilityDto>>> GetAvailabilityRangeAsync(
-        Guid doctorId,
-        DateTimeOffset? from = null,
-        DateTimeOffset? to = null,
-        CancellationToken cancellationToken = default)
+       Guid doctorId,
+       Guid clinicId,
+       DateTimeOffset? from = null,
+       DateTimeOffset? to = null,
+       CancellationToken cancellationToken = default)
     {
         var rangeResult = ResolveRange(from, to);
         if (rangeResult.IsFailure)
@@ -212,13 +221,14 @@ public class AppointmentService(
 
         var (rangeStart, rangeEnd) = rangeResult.Value;
 
-        var schedule = await _unitOfWork.WorkingSchedules.GetActiveScheduleWithDaysAsync(doctorId, cancellationToken);
+        var schedule = await _unitOfWork.WorkingSchedules.GetEffectiveScheduleWithDaysAsync(doctorId, clinicId, cancellationToken);
         if (schedule is null)
             return Result.Failure<IReadOnlyList<DailyAvailabilityDto>>(WorkingScheduleErrors.NoActiveScheduleFound(doctorId));
 
+
         var workingDaysByWeekday = schedule.Days.ToDictionary(d => d.Day);
 
-        var appointments = await _unitOfWork.ScheduleSlots.GetDoctorAppointmentsAsync(doctorId, rangeStart, rangeEnd, cancellationToken);
+        var appointments = await _unitOfWork.ScheduleSlots.GetDoctorAppointmentsAsync([doctorId], rangeStart, rangeEnd, cancellationToken);
 
         var appointmentsByDate = appointments
             .GroupBy(a => DateOnly.FromDateTime(a.SlotStart.Date))
@@ -253,7 +263,28 @@ public class AppointmentService(
     }
 
     public async Task<Result<IReadOnlyList<ScheduleSlotDto>>> GetCancelledAppointmentsAsync(
-        Guid doctorId,
+         Guid doctorId,
+         DateTimeOffset? from,
+         DateTimeOffset? to,
+         CancellationToken cancellationToken = default)
+    {
+        if (from.HasValue || to.HasValue)
+        {
+            if (from.HasValue != to.HasValue)
+                return Result.Failure<IReadOnlyList<ScheduleSlotDto>>(AppointmentErrors.RangeIncomplete);
+
+            if (to!.Value.Date < from!.Value.Date)
+                return Result.Failure<IReadOnlyList<ScheduleSlotDto>>(AppointmentErrors.RangeEndBeforeStart);
+        }
+
+        var cancelled = await _unitOfWork.ScheduleSlots.GetCancelledAppointmentsAsync([doctorId], from, to, cancellationToken);
+
+        var dtos = cancelled.Select(MapToDto).ToList();
+
+        return Result.Success<IReadOnlyList<ScheduleSlotDto>>(dtos);
+    }
+    public async Task<Result<IReadOnlyList<ScheduleSlotDto>>> GetCancelledClinicAppointmentsAsync(
+        Guid clinicId,
         DateTimeOffset? from,
         DateTimeOffset? to,
         CancellationToken cancellationToken = default)
@@ -267,7 +298,8 @@ public class AppointmentService(
                 return Result.Failure<IReadOnlyList<ScheduleSlotDto>>(AppointmentErrors.RangeEndBeforeStart);
         }
 
-        var cancelled = await _unitOfWork.ScheduleSlots.GetCancelledAppointmentsAsync(doctorId, from, to, cancellationToken);
+        var doctorIds = await _clinicDoctorResolver.GetDoctorIdsForClinicAsync(clinicId, cancellationToken);
+        var cancelled = await _unitOfWork.ScheduleSlots.GetCancelledAppointmentsAsync(doctorIds, from, to, cancellationToken);
 
         var dtos = cancelled.Select(MapToDto).ToList();
 

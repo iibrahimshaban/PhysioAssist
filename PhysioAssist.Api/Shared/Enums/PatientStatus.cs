@@ -3,5 +3,6 @@
 public enum PatientStatus
 {
     Active = 0,
-    Discharged = 1
+    Discharged = 1,
+    Archived = 2
 }

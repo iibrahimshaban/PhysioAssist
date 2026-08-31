@@ -3,6 +3,7 @@ using PhysioAssist.Api.Modules.Auth.Entities;
 using PhysioAssist.Api.Modules.DocumentationModule.Entities;
 using PhysioAssist.Api.Modules.InitialReportModule.Entities;
 using PhysioAssist.Api.Modules.Intake.Entities;
+using PhysioAssist.Api.Modules.PackageModule.Entities;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.Scheduling.Entities;
 using PhysioAssist.Api.Modules.SessionModule.Entities;
@@ -55,6 +56,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Patient> Patients { get; set; }
     public DbSet<DoctorPatient> DoctorPatients { get; set; }
     public DbSet<PatientPreferredTimeSlot> PatientPreferredTimeSlots { get; set; }
+    public DbSet<PatientArchive> PatientArchives { get; set; }
 
     // Intake
     public DbSet<PatientFormSchema> PatientFormSchemas { get; set; }
@@ -64,7 +66,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     // InitialReport
     public DbSet<InitialReport> InitialReports { get; set; }
     public DbSet<ReportAttachment> ReportAttachments { get; set; }
+
+
+    //package 
     public DbSet<TreatmentSchedulePlan> TreatmentSchedulePlans { get; set; }
+    public DbSet<PatientSessionPackage> PatientSessionPackages { get; set; }
+    public DbSet<PackageDoctorAssignmentHistory> PackageDoctorAssignmentHistories { get; set; }
 
     // Session
     public DbSet<Session> Sessions { get; set; }
@@ -77,12 +84,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<WorkingSchedule> workingSchedules { get; set; }
     public DbSet<WorkingScheduleDay> workingScheduleDays { get; set; }
     public DbSet<DoctorSchedulingPreference> DoctorSchedulingPreferences { get; set; }
-    public DbSet<PatientSessionPackage> PatientSessionPackages { get; set; }
+    
     public DbSet<Guest> Guests { get; set; }
     //documentation 
     public DbSet<DocumentationSummary> DocumentationSummaries { get; set; }
     public DbSet<DocumentationTemplate> DocumentationTemplates { get; set; }
-    public DbSet<DoctorDocumentationPreference> DoctorDocumentationPreferences { get; set; }
+    public DbSet<ClinicDocumentationPreference> ClinicDocumentationPreferences { get; set; }
     public DbSet<SessionProgressNote> SessionProgressNotes { get; set; }
 
     // Shared

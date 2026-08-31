@@ -48,12 +48,22 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             _intakeConversionMarkerService = intakeConversionMarkerService;
             _context = context;
         }
-
-        public async Task<Result<PatientResponse>> CreateAsync(PatientRequest request)
+        public async Task<Result<PatientResponse>> CreateAsync(Guid clinicId, PatientRequest request)
         {
-            var existingPatient = await _patientRepo.GetByPhoneAsync(request.PhoneNumber);
-            if (existingPatient is not null)
-                return Result.Failure<PatientResponse>(PatientErrors.DuplicatePhone);
+
+            if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+            {
+                var existingByPhone = await _patientRepo.GetByPhoneAsync(request.PhoneNumber, clinicId);
+                if (existingByPhone is not null)
+                    return Result.Failure<PatientResponse>(PatientErrors.DuplicatePhone);
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.EmailAddress))
+            {
+                var existingByEmail = await _patientRepo.GetByEmailAsync(request.EmailAddress, clinicId);
+                if (existingByEmail is not null)
+                    return Result.Failure<PatientResponse>(PatientErrors.DuplicateEmail);
+            }
 
             var patient = request.Adapt<Patient>();
             await _patientRepo.AddAsync(patient);
@@ -183,7 +193,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
             foreach (var doctorId in doctorIds)
             {
                 var slots = await _scheduleSlotQueryService.GetUpcomingSlotsForDoctorAsync(doctorId, ct);
-                
+
                 foreach (var s in slots.Where(s => s.PatientId.HasValue))
                 {
                     if (!slotLookup.TryGetValue(s.PatientId!.Value, out var existing) || s.SlotStart < existing.SlotStart)
@@ -266,7 +276,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
 
             var raw = PatientIntakeExtractionHelper.ExtractAnswerString(root, IntakeQuestionIds.PatientType, "select");
             var patientCategory = Enum.TryParse<PatientCategory>(raw, ignoreCase: true, out var category) ? category : PatientCategory.GeneralOther;
-            
+
 
             if (string.IsNullOrWhiteSpace(fullName))
                 return Result.Failure<Guid>(PatientErrors.InvalidIntakeSubmission);

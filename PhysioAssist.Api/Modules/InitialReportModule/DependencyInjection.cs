@@ -1,5 +1,6 @@
 using PhysioAssist.Api.Modules.InitialReportModule.Repositories;
 using PhysioAssist.Api.Modules.InitialReportModule.Services;
+using PhysioAssist.Api.Modules.PackageModule.Services;
 
 namespace PhysioAssist.Api.Modules.InitialReportModule;
 
@@ -12,9 +13,6 @@ public static class DependencyInjection
 
         services.AddScoped<IInitialReportService, InitialReportService>();
         services.AddScoped<IInitialReportQueryService, InitialReportQueryService>();
-
-        services.AddScoped<ITreatmentSchedulePlanRepository, TreatmentSchedulePlanRepository>();
-        services.AddScoped<ITreatmentSchedulePlanService, TreatmentSchedulePlanService>();
 
 
         return services;

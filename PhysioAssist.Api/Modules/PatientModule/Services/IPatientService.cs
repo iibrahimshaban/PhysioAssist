@@ -6,7 +6,7 @@ namespace PhysioAssist.Api.Modules.PatientModule.Services
     {
         Task<Result<PatientResponse>> GetByIdAsync(Guid patientId);
         Task<Result<IEnumerable<PatientResponse>>> GetAllAsync(Guid clinicId, CancellationToken cancellation = default);
-        Task<Result<PatientResponse>> CreateAsync(PatientRequest request);
+        Task<Result<PatientResponse>> CreateAsync(Guid clinicId,PatientRequest request);
         Task<Result<PatientResponse>> UpdateAsync(Guid patientId, PatientRequest request);
         Task<Result> DeleteAsync(Guid patientId);
         Task<Result> UpdateStatusAsync(Guid patientId, PatientStatus status);

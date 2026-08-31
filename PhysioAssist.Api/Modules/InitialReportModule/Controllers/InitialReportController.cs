@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using PhysioAssist.Api.Modules.InitialReportModule.DTOs;
 using PhysioAssist.Api.Modules.InitialReportModule.Services;
+using PhysioAssist.Api.Modules.PackageModule.DTOs;
+using PhysioAssist.Api.Modules.PackageModule.Services;
 
 
 namespace PhysioAssist.Api.Modules.InitialReportModule.Controllers;
@@ -11,7 +13,8 @@ namespace PhysioAssist.Api.Modules.InitialReportModule.Controllers;
 public class InitialReportController(
     IInitialReportService _initialReportService,
     IIntakeQueryService _intakeQueryService,
-    ITreatmentSchedulePlanService _treatmentSchedulePlanService) : ControllerBase
+    ITreatmentSchedulePlanService _treatmentSchedulePlanService,
+    IScheduleSlotQueryService _scheduleSlotQueryService) : ControllerBase
 {
     [HttpPost]
     [HasPermission(Permissions.WriteInitialReport)]
@@ -169,5 +172,12 @@ public class InitialReportController(
         return result.IsSuccess
             ? Ok(result.Value)
             : result.ToProblem();
+    }
+    [HttpGet("patient/{patientId:guid}/package-history")]
+    [HasPermission(Permissions.ReadInitialReport)]
+    public async Task<IActionResult> GetPackageHistory(Guid patientId, CancellationToken cancellationToken)
+    {
+        var result = await _scheduleSlotQueryService.GetPackageHistoryAsync(patientId, cancellationToken);
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
 }

@@ -6,6 +6,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces
     public interface IScheduleSlotRepository : IBaseRepository<ScheduleSlot>
     {
         Task<ScheduleSlot?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
         Task<bool> HasOverlapAsync(
           Guid doctorId,
           DateTimeOffset slotStart,
@@ -14,29 +15,28 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Interfaces
           CancellationToken cancellationToken = default);
 
         Task<List<ScheduleSlot>> GetDoctorAppointmentsForDayAsync(
-            Guid doctorId,
+            IReadOnlyList<Guid> doctorIds,
             DateTimeOffset date,
             CancellationToken cancellationToken = default);
 
         Task<List<ScheduleSlot>> GetDoctorAppointmentsAsync(
-            Guid doctorId,
+            IReadOnlyList<Guid> doctorIds,
             DateTimeOffset from,
             DateTimeOffset to,
             CancellationToken cancellationToken = default);
 
         Task<List<ScheduleSlot>> GetCancelledAppointmentsAsync(
-            Guid doctorId,
+            IReadOnlyList<Guid> doctorIds,
             DateTimeOffset? from,
             DateTimeOffset? to,
             CancellationToken cancellationToken = default);
 
         Task<List<ScheduleSlot>> GetBookedAppointmentsAsync(
-            Guid doctorId,
+            IReadOnlyList<Guid> doctorIds,
             CancellationToken cancellationToken = default);
 
-        
         Task<List<ScheduleSlot>> GetFutureBookedAppointmentsAsync(
-            Guid doctorId,
+            IReadOnlyList<Guid> doctorIds,
             DateTimeOffset from,
             CancellationToken cancellationToken = default);
     }

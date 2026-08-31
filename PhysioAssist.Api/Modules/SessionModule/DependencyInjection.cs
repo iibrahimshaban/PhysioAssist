@@ -11,6 +11,7 @@ namespace PhysioAssist.Api.Modules.SessionModule
             services.AddScoped<ISessionService, SessionService>();
             services.AddScoped<ISessionQueryService, SessionQueryService>();
             services.AddScoped<ISessionSummaryWriter, SessionSummaryWriter>();
+            services.AddScoped<ISessionAssignmentService, SessionAssignmentService>();
 
             return services;
         }

@@ -12,7 +12,7 @@ import { Tag } from "primeng/tag";
   styleUrl: './session-plan-header.component.css',
 })
 export class SessionPlanHeaderComponent {
-   summary = input.required<PatientSessionPackageSummaryDto>();
+  summary = input.required<PatientSessionPackageSummaryDto>();
   patientName = input<string>('');
   planDescription = input<string>('');
 
@@ -23,4 +23,6 @@ export class SessionPlanHeaderComponent {
 
   back = output<void>();
   manualSchedule = output<void>();
+  extendPackage = output<void>();   // NEW
+  stopPackage = output<void>();     // NEW
 }

@@ -117,11 +117,12 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         public async Task<ActionResult<IReadOnlyList<AvailableIntervalDto>>> GetAvailability(Guid? doctorId,[FromQuery] DateTimeOffset date,CancellationToken cancellationToken)
         {
             var managingDoctorId = await User.GetDoctorIdAsync(_dbContext, cancellationToken);
+            var clinicId = User.GetClinicId();
 
             if (managingDoctorId is null)
                 return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
 
-            var result = await _appointmentService.GetAvailabilityAsync(managingDoctorId.Value, date, cancellationToken);
+            var result = await _appointmentService.GetAvailabilityAsync(managingDoctorId.Value,clinicId!.Value ,date, cancellationToken);
             return Ok(result);
         }
 
@@ -269,11 +270,12 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         public async Task<ActionResult<IReadOnlyList<DailyAvailabilityDto>>> GetAvailabilityRange(Guid? doctorId,[FromQuery] DateTimeOffset? from,[FromQuery] DateTimeOffset? to,CancellationToken cancellationToken)
         {
             var managingDoctorId = await User.GetDoctorIdAsync(_dbContext, cancellationToken);
+            var clinic = User.GetClinicId();
 
             if (managingDoctorId is null)
                 return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
 
-            var result = await _appointmentService.GetAvailabilityRangeAsync(managingDoctorId.Value, from, to, cancellationToken);
+            var result = await _appointmentService.GetAvailabilityRangeAsync(managingDoctorId.Value,clinic!.Value ,from, to, cancellationToken);
 
             return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
@@ -303,6 +305,59 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
 
             return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
+        /// <summary>
+        /// Retrieves all Booked or Completed appointments across every SoloDoctor/JuniorDoctor
+        /// in the calling user's clinic, for a specific date.
+        /// </summary>
+        /// <remarks>
+        /// Same exclusions as <see cref="GetDoctorAppointments"/> (Cancelled and NoShow are
+        /// left out). The clinic is resolved from the authenticated user's own clinic claim —
+        /// there is no route parameter, since a caller can only ever view their own clinic.
+        /// </remarks>
+        /// <param name="date">The calendar date to query (e.g. 2026-07-04).</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <response code="200">Returns the list of appointments across the clinic (may be empty).</response>
+        /// <response code="401">No clinic claim found on the request.</response>
+        [HttpGet("clinic/appointments")]
+        [HasPermission(Permissions.ReadSchedule)]
+        [ProducesResponseType(typeof(IReadOnlyList<ScheduleSlotDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<IReadOnlyList<ScheduleSlotDto>>> GetClinicAppointments(
+            [FromQuery] DateTimeOffset date, CancellationToken cancellationToken)
+        {
+            var clinicId = User.GetClinicId();
 
+            if (clinicId is null)
+                return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
+
+            var result = await _appointmentService.GetClinicAppointmentsAsync(clinicId.Value, date, cancellationToken);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Retrieves all cancelled appointments across every SoloDoctor/JuniorDoctor in the
+        /// calling user's clinic, optionally filtered to a date range.
+        /// </summary>
+        /// <remarks>
+        /// The clinic is resolved from the authenticated user's own clinic claim — there is
+        /// no route parameter, since a caller can only ever view their own clinic.
+        /// </remarks>
+        [HttpGet("clinic/cancelled")]
+        [HasPermission(Permissions.ReadSchedule)]
+        [ProducesResponseType(typeof(IReadOnlyList<ScheduleSlotDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<IReadOnlyList<ScheduleSlotDto>>> GetClinicCancelledAppointments(
+            [FromQuery] DateTimeOffset? from, [FromQuery] DateTimeOffset? to, CancellationToken cancellationToken)
+        {
+            var clinicId = User.GetClinicId();
+
+            if (clinicId is null)
+                return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
+
+            var result = await _appointmentService.GetCancelledClinicAppointmentsAsync(clinicId.Value, from, to, cancellationToken);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
+        }
     }
 }

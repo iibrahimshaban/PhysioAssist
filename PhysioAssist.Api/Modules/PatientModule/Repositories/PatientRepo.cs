@@ -1,6 +1,4 @@
 ﻿using PhysioAssist.Api.Modules.PatientModule.Entities;
-using PhysioAssist.Api.Persistence;
-using static QRCoder.PayloadGenerator;
 
 namespace PhysioAssist.Api.Modules.PatientModule.Repositories
 {
@@ -8,11 +6,11 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
     {
         private readonly ApplicationDbContext _context;
 
-        public PatientRepo(ApplicationDbContext context) 
+        public PatientRepo(ApplicationDbContext context)
         {
-            _context = context; 
+            _context = context;
         }
-        
+
         public async Task AddAsync(Patient entity)
         {
             await _context.Patients.AddAsync(entity);
@@ -33,17 +31,22 @@ namespace PhysioAssist.Api.Modules.PatientModule.Repositories
             return await _context.Patients.FindAsync(id);
         }
 
-        public async Task<Patient?> GetByEmailAsync(string email)
+        // CHANGED: added clinicId filter — was previously a global lookup,
+        // inconsistent with the (ClinicId, EmailAddress) unique index and
+        // the cause of the intake path's cross-clinic auto-link.
+        public async Task<Patient?> GetByEmailAsync(string email, Guid clinicId)
         {
             return await _context.Patients
                 .Include(p => p.PreferredTimeSlots)
-                .FirstOrDefaultAsync(p => p.EmailAddress == email);
+                .FirstOrDefaultAsync(p => p.ClinicId == clinicId && p.EmailAddress == email);
         }
 
-        public async Task<Patient?> GetByPhoneAsync(string phoneNumber)
+        // CHANGED: added clinicId filter — was previously a global lookup,
+        // inconsistent with the (ClinicId, PhoneNumber) unique index.
+        public async Task<Patient?> GetByPhoneAsync(string phoneNumber, Guid clinicId)
         {
             return await _context.Patients
-                .FirstOrDefaultAsync(p => p.PhoneNumber == phoneNumber);
+                .FirstOrDefaultAsync(p => p.ClinicId == clinicId && p.PhoneNumber == phoneNumber);
         }
 
 

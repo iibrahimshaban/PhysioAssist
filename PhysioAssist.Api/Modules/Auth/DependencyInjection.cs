@@ -24,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IReceptionistService, ReceptionistService>();
         services.AddScoped<ITokenCleanupService, TokenCleanupService>();
+        services.AddScoped<IClinicDoctorResolver, ClinicDoctorResolver>();
 
         services.AddSingleton<IJwtProvider, JwtProvider>();
         services.AddScoped<IAuthQueryService, AuthQueryService>();

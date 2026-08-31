@@ -7,7 +7,8 @@ namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 
 public class DoctorScheduleRecommendationService(
         IAppointmentService appointmentService,
-        ApplicationDbContext context) : IDoctorScheduleRecommendationService
+        ApplicationDbContext context,
+        IHttpContextAccessor _httpContextAccessor) : IDoctorScheduleRecommendationService
 {
     private readonly IAppointmentService _appointmentService = appointmentService;
     private readonly ApplicationDbContext _context = context;
@@ -23,16 +24,19 @@ public class DoctorScheduleRecommendationService(
     private readonly record struct BookedRange(DateTimeOffset Start, DateTimeOffset End);
 
     public async Task<Result<IReadOnlyList<SlotCandidateDto>>> GetRecommendedSlotsAsync(
-    Guid doctorId,
-    TimeSpan requestedDuration,
-    DateTimeOffset? from = null,
-    DateTimeOffset? to = null,
-    TimeOnly? preferredTimeFrom = null,
-    TimeOnly? preferredTimeTo = null,
-    bool allowSameDayBooking = false,
-    CancellationToken cancellationToken = default)
+        Guid doctorId,
+        TimeSpan requestedDuration,
+        DateTimeOffset? from = null,
+        DateTimeOffset? to = null,
+        TimeOnly? preferredTimeFrom = null,
+        TimeOnly? preferredTimeTo = null,
+        bool allowSameDayBooking = false,
+        CancellationToken cancellationToken = default)
     {
-        var availabilityResult = await _appointmentService.GetAvailabilityRangeAsync(doctorId, from, to, cancellationToken);
+
+        var clinicId = _httpContextAccessor.HttpContext!.User.GetClinicId();
+
+        var availabilityResult = await _appointmentService.GetAvailabilityRangeAsync(doctorId, clinicId!.Value, from, to, cancellationToken);
         if (availabilityResult.IsFailure)
             return Result.Failure<IReadOnlyList<SlotCandidateDto>>(availabilityResult.Error);
 

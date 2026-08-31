@@ -43,11 +43,6 @@ public class ScheduleSlotConfiguration : IEntityTypeConfiguration<ScheduleSlot>
         builder.HasIndex(s => new { s.DoctorId, s.SlotStart, s.SlotEnd })
             .HasDatabaseName("IX_ScheduleSlot_DoctorId_SlotStart_SlotEnd");
 
-        builder.HasOne(s => s.Package)
-            .WithMany()
-            .HasForeignKey(s => s.PackageId)
-            .OnDelete(DeleteBehavior.SetNull);
-
         builder.HasOne(s => s.Guest)
             .WithMany()
             .HasForeignKey(s => s.GuestId)

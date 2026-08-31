@@ -7,6 +7,6 @@ public interface IDocumentationTemplateResolver
 {
     Task<List<DocumentationTemplateSummaryResponse>> GetTemplatesAsync(PatientCategory? category = null);
     Task<Result<JsonArray>> GetAllFieldsAsync(Guid documentationTemplateId);
-    Task<Result<JsonArray>> GetEffectiveFieldsAsync(Guid doctorId, Guid documentationTemplateId);
-    Task<Result> SaveHiddenFieldsAsync(Guid doctorId, Guid documentationTemplateId, List<string> hiddenFieldIds);
+    Task<Result<JsonArray>> GetEffectiveFieldsAsync(Guid clinicId, Guid documentationTemplateId);
+    Task<Result> SaveHiddenFieldsAsync(Guid clinicId, Guid documentationTemplateId, List<string> hiddenFieldIds);
 }

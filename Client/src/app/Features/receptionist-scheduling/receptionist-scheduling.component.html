@@ -1,4 +1,32 @@
 <div class="min-h-screen bg-[#f5fafc] p-6">
+  <p-confirmDialog />
+
+  <p-dialog
+    header="Extend package"
+    [(visible)]="showExtendDialog"
+    [modal]="true"
+    [style]="{ width: '24rem' }"
+  >
+    <div class="flex flex-col gap-3">
+      <label class="text-sm font-medium text-slate-600">Additional sessions</label>
+      <p-inputNumber
+        [(ngModel)]="additionalSessions"
+        [min]="1"
+        [showButtons]="true"
+        placeholder="e.g. 5"
+      />
+    </div>
+    <div class="flex justify-end gap-2 mt-5">
+      <p-button label="Cancel" [outlined]="true" (onClick)="showExtendDialog.set(false)" />
+      <p-button
+        label="Extend"
+        [loading]="isExtending()"
+        [disabled]="!additionalSessions() || additionalSessions()! <= 0"
+        (onClick)="confirmExtend()"
+      />
+    </div>
+  </p-dialog>
+
   <div class="mx-auto max-w-5xl">
 
     @if (isLoadingContext()) {
@@ -52,6 +80,8 @@
               [weekEnd]="round()?.weekEnd ?? null"
               (back)="onBack()"
               (manualSchedule)="onManualSchedule()"
+              (extendPackage)="openExtendDialog()"
+              (stopPackage)="confirmStopPackage()"
             />
 
             @if (isPackageActive()) {
@@ -87,6 +117,14 @@
                     This package has been cancelled.
                   }
                 </p>
+                @if (s.status === packageStatusEnum.Completed) {
+                  <p-button
+                    label="Extend package"
+                    icon="pi pi-plus-circle"
+                    styleClass="mt-4"
+                    (onClick)="openExtendDialog()"
+                  />
+                }
               </div>
             }
           }

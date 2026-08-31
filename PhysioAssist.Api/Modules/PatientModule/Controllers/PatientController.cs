@@ -38,7 +38,8 @@ namespace PhysioAssist.Api.Modules.PatientModule.Controllers
         [HasPermission(Permissions.WritePatient)]
         public async Task<IActionResult> CreatePatient([FromBody] PatientRequest request)
         {
-            var result = await _patientService.CreateAsync(request);
+            var clinicId = User.GetClinicId();
+            var result = await _patientService.CreateAsync(clinicId!.Value, request);
             return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
         }
 

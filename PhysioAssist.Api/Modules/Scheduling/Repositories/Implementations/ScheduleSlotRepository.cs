@@ -6,16 +6,15 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations
     public class ScheduleSlotRepository(ApplicationDbContext context)
     : BaseRepository<ScheduleSlot>(context), IScheduleSlotRepository
     {
-
         public Task<ScheduleSlot?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-       _context.ScheduleSlots.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+            _context.ScheduleSlots.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
         public Task<bool> HasOverlapAsync(
-        Guid doctorId,
-        DateTimeOffset slotStart,
-        DateTimeOffset slotEnd,
-        Guid? excludeAppointmentId = null,
-        CancellationToken cancellationToken = default)
+            Guid doctorId,
+            DateTimeOffset slotStart,
+            DateTimeOffset slotEnd,
+            Guid? excludeAppointmentId = null,
+            CancellationToken cancellationToken = default)
         {
             var query = _context.ScheduleSlots.Where(s =>
                 s.DoctorId == doctorId &&
@@ -30,7 +29,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations
         }
 
         public async Task<List<ScheduleSlot>> GetDoctorAppointmentsForDayAsync(
-            Guid doctorId,
+            IReadOnlyList<Guid> doctorIds,
             DateTimeOffset date,
             CancellationToken cancellationToken = default)
         {
@@ -39,7 +38,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations
 
             return await _context.Set<ScheduleSlot>()
                 .Where(x =>
-                    x.DoctorId == doctorId &&
+                    doctorIds.Contains(x.DoctorId) &&
                     x.SlotStart >= dayStart &&
                     x.SlotStart < dayEnd)
                 .OrderBy(x => x.SlotStart)
@@ -47,29 +46,28 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations
         }
 
         public async Task<List<ScheduleSlot>> GetDoctorAppointmentsAsync(
-            Guid doctorId,
+            IReadOnlyList<Guid> doctorIds,
             DateTimeOffset from,
             DateTimeOffset to,
             CancellationToken cancellationToken = default)
         {
             return await _context.Set<ScheduleSlot>()
                 .Where(x =>
-                    x.DoctorId == doctorId &&
+                    doctorIds.Contains(x.DoctorId) &&
                     x.SlotStart >= from &&
                     x.SlotEnd <= to)
                 .OrderBy(x => x.SlotStart)
                 .ToListAsync(cancellationToken);
         }
 
-        // Repositories/Implementations/ScheduleSlotRepository.cs — add this method to the existing class
         public Task<List<ScheduleSlot>> GetCancelledAppointmentsAsync(
-            Guid doctorId,
+            IReadOnlyList<Guid> doctorIds,
             DateTimeOffset? from,
             DateTimeOffset? to,
             CancellationToken cancellationToken = default)
         {
             var query = _context.ScheduleSlots
-                .Where(s => s.DoctorId == doctorId && s.Status == SlotStatus.Cancelled);
+                .Where(s => doctorIds.Contains(s.DoctorId) && s.Status == SlotStatus.Cancelled);
 
             if (from.HasValue)
                 query = query.Where(s => s.SlotStart >= from.Value);
@@ -77,30 +75,25 @@ namespace PhysioAssist.Api.Modules.Scheduling.Repositories.Implementations
             if (to.HasValue)
                 query = query.Where(s => s.SlotStart <= to.Value);
 
-            // Most recently cancelled first — matches how a receptionist would want
-            // to review cancellations (newest first), unlike appointment-day queries
-            // which order chronologically ascending.
             return query.OrderByDescending(s => s.SlotStart).ToListAsync(cancellationToken);
         }
 
-
         public Task<List<ScheduleSlot>> GetBookedAppointmentsAsync(
-            Guid doctorId,
+            IReadOnlyList<Guid> doctorIds,
             CancellationToken cancellationToken = default)
         {
             return _context.ScheduleSlots
-                .Where(s => s.DoctorId == doctorId && s.Status == SlotStatus.Booked )
+                .Where(s => doctorIds.Contains(s.DoctorId) && s.Status == SlotStatus.Booked)
                 .ToListAsync(cancellationToken);
         }
 
-        
         public Task<List<ScheduleSlot>> GetFutureBookedAppointmentsAsync(
-            Guid doctorId,
+            IReadOnlyList<Guid> doctorIds,
             DateTimeOffset from,
             CancellationToken cancellationToken = default)
         {
             return _context.ScheduleSlots
-                .Where(s => s.DoctorId == doctorId && s.Status == SlotStatus.Booked && s.SlotStart >= from)
+                .Where(s => doctorIds.Contains(s.DoctorId) && s.Status == SlotStatus.Booked && s.SlotStart >= from)
                 .ToListAsync(cancellationToken);
         }
     }

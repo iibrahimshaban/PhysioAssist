@@ -8,7 +8,12 @@ import { PatientFreeTimeEditorComponent } from './patient-free-time-editor/patie
 import { SlotCandidatesGridComponent } from './slot-candidates-grid/slot-candidates-grid.component';
 import { PendingPlanSummaryComponent } from './pending-plan-summary/pending-plan-summary.component';
 import { Button } from "primeng/button";
+import { ConfirmDialog } from 'primeng/confirmdialog';
+import { Dialog } from 'primeng/dialog';
+import { InputNumber } from 'primeng/inputnumber';
+import { ConfirmationService } from 'primeng/api';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-receptionist-scheduling',
@@ -17,16 +22,20 @@ import { Router } from '@angular/router';
     PatientFreeTimeEditorComponent,
     SlotCandidatesGridComponent,
     PendingPlanSummaryComponent,
-    Button
-],
+    Button,
+    ConfirmDialog,
+    Dialog,
+    InputNumber,
+    FormsModule
+  ],
   templateUrl: './receptionist-scheduling.component.html',
   styleUrl: './receptionist-scheduling.component.css',
 })
 export class ReceptionistSchedulingComponent {
 
   private readonly router = inject(Router);
+  private readonly confirmationService = inject(ConfirmationService);
 
-  // Was `packageId` — now bound to the route's actual :patientId param.
   patientId = input.required<string>();
 
   protected readonly schedulingService = inject(ReceptionistSchedulingService);
@@ -43,10 +52,14 @@ export class ReceptionistSchedulingComponent {
   freeTimeText = signal('');
   isConfirming = signal(false);
 
+  showExtendDialog = signal(false);
+  additionalSessions = signal<number | null>(null);
+  isExtending = signal(false);
+  isStopping = signal(false);
+
   isPackageActive = computed(() => this.summary()?.status === PackageStatus.Active);
 
   constructor() {
-    // Reload whenever patientId changes (e.g. navigating between patients).
     effect(() => {
       const id = this.patientId();
       if (id) this.loadContext(id);
@@ -82,7 +95,6 @@ export class ReceptionistSchedulingComponent {
         this.isCreatingPackage.set(false);
         this.schedulingService.summary.set(packageSummary);
         this.freeTimeText.set(packageSummary.patientFreeTimeText);
-        // Flip straight into the ActivePackage view without re-fetching context.
         this.context.set({ state: PatientSchedulingState.ActivePackage, activePackage: packageSummary });
         this.schedulingService.loadNextSessionCandidates(packageSummary.packageId);
       },
@@ -104,8 +116,6 @@ export class ReceptionistSchedulingComponent {
     this.schedulingService.confirmSlot(packageId, candidate).subscribe({
       next: () => {
         this.isConfirming.set(false);
-        // Re-resolve from context again as the source of truth for
-        // remaining/status, then decide whether there's a next round to search.
         this.loadContext(this.patientId());
       },
       error: () => this.isConfirming.set(false),
@@ -117,7 +127,58 @@ export class ReceptionistSchedulingComponent {
     if (!patientId) return;
     this.router.navigate(['/app/schedule'], { queryParams: { patientId } });
   }
-    onBack(): void {
-    this.router.navigate(['/app/patients']); // or wherever "back" should go
+
+  onBack(): void {
+    this.router.navigate(['/app/patients']);
+  }
+
+  // --- Extend package ---
+
+  openExtendDialog(): void {
+    this.additionalSessions.set(null);
+    this.showExtendDialog.set(true);
+  }
+
+  confirmExtend(): void {
+    const packageId = this.summary()?.packageId;
+    const sessions = this.additionalSessions();
+    if (!packageId || !sessions || sessions <= 0) return;
+
+    this.isExtending.set(true);
+    this.schedulingService.extendPackage(packageId, { additionalSessions: sessions }).subscribe({
+      next: () => {
+        this.isExtending.set(false);
+        this.showExtendDialog.set(false);
+        this.loadContext(this.patientId());
+      },
+      error: () => this.isExtending.set(false),
+    });
+  }
+
+  // --- Stop package ---
+
+  confirmStopPackage(): void {
+    const packageId = this.summary()?.packageId;
+    if (!packageId) return;
+
+    this.confirmationService.confirm({
+      header: 'Stop package',
+      message: 'Are you sure you want to stop this package? This cannot be undone.',
+      icon: 'pi pi-exclamation-triangle',
+      acceptButtonProps: { label: 'Stop package', severity: 'danger' },
+      rejectButtonProps: { label: 'Cancel', outlined: true },
+      accept: () => this.stopPackage(packageId),
+    });
+  }
+
+  private stopPackage(packageId: string): void {
+    this.isStopping.set(true);
+    this.schedulingService.stopPackage(packageId, {}).subscribe({
+      next: () => {
+        this.isStopping.set(false);
+        this.loadContext(this.patientId());
+      },
+      error: () => this.isStopping.set(false),
+    });
   }
 }

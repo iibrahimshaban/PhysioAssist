@@ -20,6 +20,7 @@ using PhysioAssist.Api.Modules.DocumentationModule;
 using PhysioAssist.Api.Modules.InitialReportModule;
 using PhysioAssist.Api.Modules.Intake;
 using PhysioAssist.Api.Modules.Notification;
+using PhysioAssist.Api.Modules.PackageModule;
 using PhysioAssist.Api.Modules.PatientModule;
 using PhysioAssist.Api.Modules.QueryModule;
 using PhysioAssist.Api.Modules.Scheduling;
@@ -79,7 +80,9 @@ public static class DependancyInjection
            .AddPatientModule()
            .AddDocumentationModule()
            .AddInitialReportModule()
-           .AddSchedulingModule(configuration);
+           .AddSchedulingModule(configuration)
+           .AddPackageModule();
+
 
         return services;
     }

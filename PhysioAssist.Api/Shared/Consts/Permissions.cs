@@ -34,6 +34,9 @@ public static class Permissions
 
     public const string WriteQueryAgent = "QueryAgent:Write";
 
+    public const string ReassignPackageDoctor = "package:reassign-doctor";
+    public const string ManageClinicSchedule = "clinic:manage-schedule";
+
     [PermissionMetadata("Manage schedule", "Create, edit, reschedule and cancel appointments.")]
     public const string ManageSchedule = "Schedule:Write";
 
@@ -114,7 +117,7 @@ public static class Permissions
 
             GetPatients,
             WritePatient,
-
+            ManageClinicSchedule,
             ReadDashboard
         };
 }

@@ -1,4 +1,6 @@
-﻿namespace PhysioAssist.Api.Modules.InitialReportModule.Entities;
+﻿using PhysioAssist.Api.Modules.PackageModule.Entities;
+
+namespace PhysioAssist.Api.Modules.InitialReportModule.Entities;
 
 public class InitialReport : AuditableEntity
 {
@@ -10,5 +12,4 @@ public class InitialReport : AuditableEntity
     public bool IsDeleted { get; set; } = false;
     public string? ObjectiveFindings { get; set; }
     public ICollection<ReportAttachment> Attachments { get; set; } = [];
-    public TreatmentSchedulePlan? TreatmentSchedulePlan { get; set; }
 }

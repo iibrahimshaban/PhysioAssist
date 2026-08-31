@@ -1,31 +1,29 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { HttpClient, HttpContext } from '@angular/common/http';
-import { tap } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { SlotCandidateDto } from '../../Shared/Models/InitialReport.models';
 import {
-  ReceptionistCreateSessionPackageRequest,
   CreateSessionPackageResult,
   SessionBookingRoundDto,
   GetNextSessionCandidatesRequest,
   PatientSessionPackageSummaryDto,
   PatientSchedulingContextDto,
   ConvertPlanToPackageRequest,
+  ExtendPackageRequest,
+  StopPackageRequest,
 } from './SessionScheduling.model';
 import { ScheduleSlotDto } from '../../Features/Schedule/schedule.models';
 
 @Injectable({ providedIn: 'root' })
 export class ReceptionistSchedulingService {
-  private readonly baseUrl = `${environment.apiUrl}Receptionist`;
+  private readonly receptionistBaseUrl = `${environment.apiUrl}Receptionist`;
+  private readonly packageBaseUrl = `${environment.apiUrl}Package`;
   private readonly http = inject(HttpClient);
 
   summary = signal<PatientSessionPackageSummaryDto | null>(null);
   currentRound = signal<SessionBookingRoundDto | null>(null);
   isLoading = signal(false);
-
-  createPackage(request: ReceptionistCreateSessionPackageRequest) {
-    return this.http.post<CreateSessionPackageResult>(`${this.baseUrl}/packages`, request);
-  }
 
   loadNextSessionCandidates(
     packageId: string,
@@ -39,7 +37,7 @@ export class ReceptionistSchedulingService {
     };
     this.http
       .post<SessionBookingRoundDto>(
-        `${this.baseUrl}/packages/${packageId}/next-candidates`,
+        `${this.receptionistBaseUrl}/packages/${packageId}/next-candidates`,
         body
       )
       .subscribe({
@@ -53,29 +51,43 @@ export class ReceptionistSchedulingService {
 
   confirmSlot(packageId: string, chosenSlot: SlotCandidateDto) {
     return this.http
-      .post<ScheduleSlotDto>(`${this.baseUrl}/packages/${packageId}/confirm-slot`, chosenSlot)
+      .post<ScheduleSlotDto>(`${this.receptionistBaseUrl}/packages/${packageId}/confirm-slot`, chosenSlot)
       .pipe(
         tap(() => {
           this.currentRound.set(null);
         }),
       );
   }
+
   getPackageSummary(packageId: string) {
     return this.http
-      .get<PatientSessionPackageSummaryDto>(`${this.baseUrl}/packages/${packageId}/summary`)
+      .get<PatientSessionPackageSummaryDto>(`${this.receptionistBaseUrl}/packages/${packageId}/summary`)
       .pipe(tap(summary => this.summary.set(summary)));
   }
 
   getSchedulingContext(patientId: string) {
     return this.http.get<PatientSchedulingContextDto>(
-      `${this.baseUrl}/patients/${patientId}/scheduling-context`,
+      `${this.receptionistBaseUrl}/patients/${patientId}/scheduling-context`,
     );
   }
- 
+
   convertPlanToPackage(treatmentPlanId: string, request: ConvertPlanToPackageRequest) {
     return this.http.post<PatientSessionPackageSummaryDto>(
-      `${this.baseUrl}/treatment-plans/${treatmentPlanId}/convert-to-package`,
+      `${this.receptionistBaseUrl}/treatment-plans/${treatmentPlanId}/convert-to-package`,
       request,
     );
+  }
+
+  // NEW — these live on PackageController, not ReceptionistController
+  extendPackage(packageId: string, request: ExtendPackageRequest): Observable<PatientSessionPackageSummaryDto> {
+    return this.http
+      .post<PatientSessionPackageSummaryDto>(`${this.packageBaseUrl}/${packageId}/extend`, request)
+      .pipe(tap(summary => this.summary.set(summary)));
+  }
+
+  stopPackage(packageId: string, request: StopPackageRequest): Observable<PatientSessionPackageSummaryDto> {
+    return this.http
+      .post<PatientSessionPackageSummaryDto>(`${this.packageBaseUrl}/${packageId}/stop`, request)
+      .pipe(tap(summary => this.summary.set(summary)));
   }
 }
