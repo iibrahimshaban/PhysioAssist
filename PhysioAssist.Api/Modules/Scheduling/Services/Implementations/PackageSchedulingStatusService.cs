@@ -1,4 +1,5 @@
-﻿using PhysioAssist.Api.Modules.Scheduling.Entities;
+﻿using PhysioAssist.Api.Modules.PackageModule.Entities;
+using PhysioAssist.Api.Modules.Scheduling.Entities;
 using PhysioAssist.Api.Modules.SessionModule.Entities;
 using PhysioAssist.Api.Shared.Dtos.Session;
 

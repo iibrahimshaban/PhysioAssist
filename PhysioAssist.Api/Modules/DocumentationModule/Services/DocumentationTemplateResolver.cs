@@ -36,15 +36,15 @@ public class DocumentationTemplateResolver(ApplicationDbContext context) : IDocu
         return Result.Success(fieldsResult.Value);
     }
 
-    public async Task<Result<JsonArray>> GetEffectiveFieldsAsync(Guid doctorId, Guid documentationTemplateId)
+    public async Task<Result<JsonArray>> GetEffectiveFieldsAsync(Guid clinicId, Guid documentationTemplateId)
     {
         var allFieldsResult = await GetAllFieldsAsync(documentationTemplateId);
         if (allFieldsResult.IsFailure)
             return allFieldsResult;
 
-        var preference = await context.DoctorDocumentationPreferences
+        var preference = await context.ClinicDocumentationPreferences
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.DoctorId == doctorId && p.DocumentationTemplateId == documentationTemplateId);
+            .FirstOrDefaultAsync(p => p.ClinicId == clinicId && p.DocumentationTemplateId == documentationTemplateId);
 
         if (preference?.HiddenFieldIds is null)
             return allFieldsResult; // no hidden fields configured — everything is effective
@@ -66,7 +66,7 @@ public class DocumentationTemplateResolver(ApplicationDbContext context) : IDocu
         return Result.Success(effectiveFields);
     }
 
-    public async Task<Result> SaveHiddenFieldsAsync(Guid doctorId, Guid documentationTemplateId, List<string> hiddenFieldIds)
+    public async Task<Result> SaveHiddenFieldsAsync(Guid clinicId, Guid documentationTemplateId, List<string> hiddenFieldIds)
     {
         var templateExists = await context.DocumentationTemplates
             .AnyAsync(t => t.Id == documentationTemplateId);
@@ -74,17 +74,17 @@ public class DocumentationTemplateResolver(ApplicationDbContext context) : IDocu
         if (!templateExists)
             return Result.Failure(DocumentationErrors.TemplateNotFound);
 
-        var preference = await context.DoctorDocumentationPreferences
-            .FirstOrDefaultAsync(p => p.DoctorId == doctorId && p.DocumentationTemplateId == documentationTemplateId);
+        var preference = await context.ClinicDocumentationPreferences
+            .FirstOrDefaultAsync(p => p.ClinicId == clinicId && p.DocumentationTemplateId == documentationTemplateId);
 
         var serializedHiddenIds = JsonSerializer.Serialize(hiddenFieldIds);
 
         if (preference is null)
         {
-            context.DoctorDocumentationPreferences.Add(new DoctorDocumentationPreference
+            context.ClinicDocumentationPreferences.Add(new ClinicDocumentationPreference
             {
                 Id = Guid.CreateVersion7(),
-                DoctorId = doctorId,
+                ClinicId = clinicId,
                 DocumentationTemplateId = documentationTemplateId,
                 HiddenFieldIds = serializedHiddenIds
             });

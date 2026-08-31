@@ -1,4 +1,5 @@
-﻿using PhysioAssist.Api.Shared.Dtos.Patient;
+﻿using PhysioAssist.Api.Shared.Dtos.Package;
+using PhysioAssist.Api.Shared.Dtos.Patient;
 using PhysioAssist.Api.Shared.Dtos.Schedule;
 namespace PhysioAssist.Api.Shared.Interfaces.Exposed;
 
@@ -13,5 +14,7 @@ public interface IScheduleSlotQueryService
 
     Task<Result<IReadOnlyList<Guid>>> GetPriorSlotIdsInPackageAsync(Guid scheduleSlotId, CancellationToken cancellationToken = default);
     Task<Dictionary<Guid, ScheduleSlotSummary>> GetSlotSummariesByIdsAsync(IEnumerable<Guid> slotIds, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<PatientPackageHistoryItemDto>>> GetPackageHistoryAsync(
+    Guid patientId, CancellationToken cancellationToken = default);
 
 }

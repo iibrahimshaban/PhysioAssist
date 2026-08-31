@@ -2,6 +2,7 @@
 using PhysioAssist.Api.Modules.Auth.Errors;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 using PhysioAssist.Api.Shared.Authorization;
+using PhysioAssist.Api.Shared.Dtos.Package;
 using PhysioAssist.Api.Shared.Dtos.Patient;
 using PhysioAssist.Api.Shared.Dtos.Schedule;
 

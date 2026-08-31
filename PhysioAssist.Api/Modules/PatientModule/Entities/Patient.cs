@@ -18,4 +18,5 @@ public class Patient : AuditableEntity
     public Guid ClinicId { get; set; }
     public PatientStatus Status { get; set; } = PatientStatus.Active;
     public ICollection<DoctorPatient> DoctorPatients { get; set; } = [];
+    public ICollection<PatientArchive> PatientArchives { get; set; } = [];
 }

@@ -58,6 +58,14 @@ export interface PatientSessionPackageSummaryDto {
   minimumGapBetweenSessionsDays:number;
 }
 
+export interface ExtendPackageRequest {
+  additionalSessions: number;
+}
+
+export interface StopPackageRequest {
+  reason?: string;
+}
+
 export enum PackageStatus {
   Active = 0,
   Completed = 1,

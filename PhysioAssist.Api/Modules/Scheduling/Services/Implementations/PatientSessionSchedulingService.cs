@@ -1,10 +1,13 @@
-﻿using PhysioAssist.Api.Modules.Auth.Entities;
+﻿using PhysioAssist.Api.Modules.InitialReportModule.Errors;
+using PhysioAssist.Api.Modules.PackageModule.Entities;
+using PhysioAssist.Api.Modules.PackageModule.Errors;
 using PhysioAssist.Api.Modules.PatientModule.Entities;
 using PhysioAssist.Api.Modules.Scheduling.DTO;
 using PhysioAssist.Api.Modules.Scheduling.Entities;
 using PhysioAssist.Api.Modules.Scheduling.Errors;
 using PhysioAssist.Api.Modules.Scheduling.helpers;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Shared.Dtos.Package;
 using PhysioAssist.Api.Shared.Dtos.Patient;
 using PhysioAssist.Api.Shared.Dtos.Schedule;
 
@@ -15,7 +18,8 @@ public class PatientSessionSchedulingService(
         ApplicationDbContext context,
         IDoctorScheduleRecommendationService recommendationService,
         IAppointmentService appointmentService,
-        IPatientQueryService _patientQueryService) : IPatientSessionSchedulingService
+        IPatientQueryService _patientQueryService,
+        IPatientSessionPackageService _packageService) : IPatientSessionSchedulingService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IDoctorScheduleRecommendationService _recommendationService = recommendationService;
@@ -24,65 +28,22 @@ public class PatientSessionSchedulingService(
     private static readonly TimeSpan EgyptOffset = TimeSpan.FromHours(3);
     private const int CandidatesPerSession = 5;
 
-    public async Task<Result<CreateSessionPackageResult>> CreatePackageAsync(
-        CreateSessionPackageRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var package = new PatientSessionPackage
-        {
-            Id = Guid.CreateVersion7(),
-            PatientId = request.PatientId,
-            DoctorId = request.DoctorId,
-            TotalSessions = request.TotalSessions,
-            SessionDuration = request.SessionDuration,
-            ScheduledSessions = 0,
-            RemainingSessions = request.TotalSessions,
-            Status = PackageStatus.Active,
-            SessionsPerWeek = request.SessionsPerWeek,
-            MinimumGapBetweenSessionsDays = request.MinimumGapBetweenSessionsDays,
-            Priority = request.Priority
-        };
-
-        _context.Set<PatientSessionPackage>().Add(package);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        if (request.FirstSessionSlot is null)
-            return Result.Success(new CreateSessionPackageResult
-            {
-                PackageId = package.Id,
-                ScheduledSessions = 0,
-                FirstSessionSlot = null
-            });
-
-
-        var confirmResult = await ConfirmSessionSlotAsync(package.Id, request.FirstSessionSlot, cancellationToken);
-        if (confirmResult.IsFailure)
-            return Result.Failure<CreateSessionPackageResult>(confirmResult.Error);
-
-        return Result.Success(new CreateSessionPackageResult
-        {
-            PackageId = package.Id,
-            ScheduledSessions = 1,
-            FirstSessionSlot = confirmResult.Value
-        });
-    }
-
     public async Task<Result<SessionBookingRoundDto>> GetNextSessionCandidatesAsync(
-        Guid packageId,
-        string? patientFreeTimeOverride = null,
-        bool persistFreeTimeOverride = false,
-        TimeSpan? sessionDurationOverride = null,
-        int? sessionsPerWeekOverride = null,
-        int? minimumGapOverrideDays = null,
-        PreferredTimeOfDay? preferredTimeOfDayOverride = null,
-        DaysOfWeekFlags? preferredDaysOverride = null,
-        CancellationToken cancellationToken = default)
+    Guid packageId,
+    string? patientFreeTimeOverride = null,
+    bool persistFreeTimeOverride = false,
+    TimeSpan? sessionDurationOverride = null,
+    int? sessionsPerWeekOverride = null,
+    int? minimumGapOverrideDays = null,
+    PreferredTimeOfDay? preferredTimeOfDayOverride = null,
+    DaysOfWeekFlags? preferredDaysOverride = null,
+    CancellationToken cancellationToken = default)
     {
-        var package = await _context.Set<PatientSessionPackage>()
-            .FirstOrDefaultAsync(p => p.Id == packageId, cancellationToken);
+        var contextResult = await _packageService.GetSchedulingContextAsync(packageId, cancellationToken);
+        if (contextResult.IsFailure)
+            return Result.Failure<SessionBookingRoundDto>(contextResult.Error);
 
-        if (package is null)
-            return Result.Failure<SessionBookingRoundDto>(SchedulingErrors.PackageNotFound);
+        var package = contextResult.Value;   // now a DTO, not the entity
 
         if (package.RemainingSessions <= 0)
             return Result.Failure<SessionBookingRoundDto>(SchedulingErrors.PackageAlreadyComplete);
@@ -90,7 +51,6 @@ public class PatientSessionSchedulingService(
         var sessionDuration = sessionDurationOverride ?? package.SessionDuration;
         var sessionsPerWeek = sessionsPerWeekOverride ?? package.SessionsPerWeek;
         var minimumGapDays = minimumGapOverrideDays ?? package.MinimumGapBetweenSessionsDays;
-
 
         var patientFreeTimeText = string.IsNullOrWhiteSpace(patientFreeTimeOverride)
             ? await _context.Set<Patient>()
@@ -169,10 +129,6 @@ public class PatientSessionSchedulingService(
                 fallbackStart, fallbackStart, quotaMet: false, noRoom: true, candidates: [], patientFreeTimeText));
         }
 
-        TimeOnly? preferredFrom = null;
-        TimeOnly? preferredTo = null;
-        DaysOfWeekFlags preferredDays = DaysOfWeekFlags.None;
-
         var patientPreferenceResult = await _patientQueryService.ResolvePatientTimePreferenceAsync(
              package.PatientId, patientFreeTimeOverride, persistFreeTimeOverride, cancellationToken);
 
@@ -239,18 +195,17 @@ public class PatientSessionSchedulingService(
         if (createResult.IsFailure)
             return Result.Failure<ScheduleSlotDto>(createResult.Error);
 
-        package.ScheduledSessions++;
-        package.RemainingSessions--;
-
-        if (package.RemainingSessions == 0)
-            package.Status = PackageStatus.Completed;
-
-        await _context.SaveChangesAsync(cancellationToken);
+        // NEW — bookkeeping moved behind the exposed package service instead of
+        // mutating package.ScheduledSessions/RemainingSessions/Status here.
+        var recordResult = await _packageService.RecordSessionScheduledAsync(package.Id, cancellationToken);
+        if (recordResult.IsFailure)
+            return Result.Failure<ScheduleSlotDto>(recordResult.Error);
 
         return Result.Success(createResult.Value);
     }
 
-    public async Task<Result<PatientSessionPackageDto>> CreatePackageWithFirstBookingAsync(CreatePackageWithFirstBookingRequest request,
+    public async Task<Result<PatientSessionPackageDto>> CreatePackageWithFirstBookingAsync(
+        CreatePackageWithFirstBookingRequest request,
         CancellationToken cancellationToken = default)
     {
         if (request.TotalSessions <= 0)
@@ -258,33 +213,33 @@ public class PatientSessionSchedulingService(
 
         await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
-        var package = new PatientSessionPackage
+        // NEW — package creation delegated to the exposed package service instead
+        // of `new PatientSessionPackage { ... }` here.
+        var packageResult = await _packageService.CreatePackageAsync(new CreateSessionPackageRequest
         {
-            Id = Guid.CreateVersion7(),
             PatientId = request.PatientId,
             DoctorId = request.DoctorId,
+            TreatmentSchedulePlanId = request.TreatmentSchedulePlanId,
             TotalSessions = request.TotalSessions,
             SessionDuration = request.SessionDuration,
-            ScheduledSessions = 0,
-            RemainingSessions = request.TotalSessions,
-            Status = PackageStatus.Active,
             SessionsPerWeek = request.SessionsPerWeek,
             MinimumGapBetweenSessionsDays = request.MinimumGapBetweenSessionsDays,
             Priority = request.Priority
-        };
+        }, cancellationToken);
 
-        _context.Set<PatientSessionPackage>().Add(package);
-        await _context.SaveChangesAsync(cancellationToken);
+        if (packageResult.IsFailure)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return Result.Failure<PatientSessionPackageDto>(packageResult.Error);
+        }
 
-        // NOTE: requires PackageId to be added to CreateAppointmentRequest and mapped
-        // through in AppointmentService.CreateAsync — see accompanying diff notes.
         var bookingResult = await _appointmentService.CreateAsync(new CreateAppointmentRequest
         {
             DoctorId = request.DoctorId,
             PatientId = request.PatientId,
             SlotStart = request.SlotStart,
             SlotEnd = request.SlotEnd,
-            PackageId = package.Id
+            PackageId = packageResult.Value.PackageId
         }, cancellationToken);
 
         if (bookingResult.IsFailure)
@@ -293,21 +248,29 @@ public class PatientSessionSchedulingService(
             return Result.Failure<PatientSessionPackageDto>(bookingResult.Error);
         }
 
-        package.ScheduledSessions = 1;
-        package.RemainingSessions = request.TotalSessions - 1;
-        await _context.SaveChangesAsync(cancellationToken);
+        var recordResult = await _packageService.RecordSessionScheduledAsync(packageResult.Value.PackageId, cancellationToken);
+        if (recordResult.IsFailure)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return Result.Failure<PatientSessionPackageDto>(recordResult.Error);
+        }
 
         await transaction.CommitAsync(cancellationToken);
 
+        var summaryResult = await _packageService.GetPackageSummaryAsync(packageResult.Value.PackageId, cancellationToken);
+        if (summaryResult.IsFailure)
+            return Result.Failure<PatientSessionPackageDto>(summaryResult.Error);
+
+        var summary = summaryResult.Value;
         return Result.Success(new PatientSessionPackageDto
         {
-            Id = package.Id,
-            PatientId = package.PatientId,
-            DoctorId = package.DoctorId,
-            TotalSessions = package.TotalSessions,
-            ScheduledSessions = package.ScheduledSessions,
-            RemainingSessions = package.RemainingSessions,
-            Status = package.Status,
+            Id = summary.PackageId,
+            PatientId = summary.PatientId,
+            DoctorId = summary.DoctorId,
+            TotalSessions = summary.TotalSessions,
+            ScheduledSessions = summary.ScheduledSessions,
+            RemainingSessions = summary.RemainingSessions,
+            Status = summary.Status,
             FirstScheduleSlotId = bookingResult.Value.Id
         });
     }
@@ -383,53 +346,12 @@ public class PatientSessionSchedulingService(
 
         return Result.Success<IReadOnlyList<SlotCandidateDto>>(topSlots);
     }
-
-    public async Task<Guid?> GetPackageDoctorIdAsync(Guid packageId, CancellationToken cancellationToken = default)
-    {
-        return await _context.Set<PatientSessionPackage>()
-            .Where(p => p.Id == packageId)
-            .Select(p => (Guid?)p.DoctorId)
-            .FirstOrDefaultAsync(cancellationToken);
-    }
-    public async Task<Result<PatientSessionPackageSummaryDto>> GetPackageSummaryAsync(Guid packageId,
-    CancellationToken cancellationToken = default)
-    {
-        var package = await _context.Set<PatientSessionPackage>()
-            .FirstOrDefaultAsync(p => p.Id == packageId, cancellationToken);
-
-        if (package is null)
-            return Result.Failure<PatientSessionPackageSummaryDto>(SchedulingErrors.PackageNotFound);
-
-        var patientFreeTimeText = await _context.Set<Patient>()
-            .Where(p => p.Id == package.PatientId)
-            .Select(p => p.PatientFreeTime)
-            .FirstOrDefaultAsync(cancellationToken) ?? string.Empty;
-
-        var nextSessionNumber = Math.Min(package.ScheduledSessions + 1, package.TotalSessions);
-
-        return Result.Success(new PatientSessionPackageSummaryDto
-        {
-            PackageId = package.Id,
-            PatientId = package.PatientId,
-            DoctorId = package.DoctorId,
-            TotalSessions = package.TotalSessions,
-            ScheduledSessions = package.ScheduledSessions,
-            RemainingSessions = package.RemainingSessions,
-            NextSessionNumber = nextSessionNumber,
-            Status = package.Status,
-            minimumGapBetweenSessionsDays = package.MinimumGapBetweenSessionsDays,
-            SessionsPerWeek = package.SessionsPerWeek,
-            SessionDuration = package.SessionDuration,
-            PatientFreeTimeText = patientFreeTimeText
-        });
-    }
-
     private static SessionBookingRoundDto BuildRound(
-    PatientSessionPackage package, int sessionNumber, int weeklyTarget, int scheduledThisWeek,
+    PackageSchedulingContextDto package, int sessionNumber, int weeklyTarget, int scheduledThisWeek,
     DateOnly weekStart, DateOnly weekEnd, bool quotaMet, bool noRoom,
     IReadOnlyList<SlotCandidateDto> candidates, string patientFreeTimeText) => new()
     {
-        PackageId = package.Id,
+        PackageId = package.PackageId,
         SessionNumber = sessionNumber,
         TotalSessions = package.TotalSessions,
         RemainingSessions = package.RemainingSessions,

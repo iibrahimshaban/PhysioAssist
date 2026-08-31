@@ -13,7 +13,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
         private readonly IWorkingScheduleService _workingScheduleService = workingScheduleService;
 
         [HttpPost]
-        [HasPermission(Permissions.WriteWorkingSchedule)]
+        [HasPermission(Permissions.ManageClinicSchedule)]
         [ProducesResponseType(typeof(WorkingScheduleDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -23,6 +23,7 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
             CancellationToken cancellationToken)
         {
             var managingDoctorId = await User.GetDoctorIdAsync(_dbContext, cancellationToken);
+            var clinicId = User.GetClinicId();
 
             if (managingDoctorId is null)
                 return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
@@ -33,28 +34,12 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
                 Days = request.Days
             };
 
-            var result = await _workingScheduleService.CreateAsync(effectiveRequest, cancellationToken);
+            var result = await _workingScheduleService.CreateClinicDefaultAsync(clinicId!.Value, effectiveRequest, cancellationToken);
 
             if (result.IsFailure)
                 return result.ToProblem();
 
-            return CreatedAtAction(nameof(GetActiveByDoctor), new { doctorId = result.Value.DoctorId }, result.Value);
-        }
-
-        [HttpGet("doctor/{id:guid?}")]
-        [HasPermission(Permissions.ReadWorkingSchedule)]
-        [ProducesResponseType(typeof(WorkingScheduleDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<WorkingScheduleDto>> GetActiveByDoctor(CancellationToken cancellationToken)
-        {
-            var managingDoctorId = await User.GetDoctorIdAsync(_dbContext, cancellationToken);
-
-            if (managingDoctorId is null)
-                return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
-
-            var result = await _workingScheduleService.GetActiveByDoctorAsync(managingDoctorId.Value, cancellationToken);
-
-            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
+            return CreatedAtAction(nameof(GetEffective), new { doctorId = result.Value.DoctorId }, result.Value);
         }
 
         [HttpPut("{id:guid}/days")]
@@ -92,6 +77,47 @@ namespace PhysioAssist.Api.Modules.Scheduling.Controllers
             var result = await _workingScheduleService.DeleteAsync(id, cancellationToken);
 
             return result.IsFailure ? result.ToProblem() : NoContent();
+        }
+        [HttpPost("clinic-default")]
+        [HasPermission(Permissions.ManageClinicSchedule)]   
+        public async Task<ActionResult<WorkingScheduleDto>> CreateClinicDefault(
+         [FromBody] CreateWorkingScheduleRequest request, CancellationToken cancellationToken)
+        {
+            var clinicId = User.GetClinicId();
+            if (clinicId is null)
+                return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
+
+            var result = await _workingScheduleService.CreateClinicDefaultAsync(clinicId.Value, request, cancellationToken);
+
+            return result.IsFailure ? result.ToProblem() : CreatedAtAction(nameof(GetEffective), new { doctorId = (Guid?)null }, result.Value);
+        }
+
+        [HttpPost("doctor/{doctorId:guid}/override")]
+        [HasPermission(Permissions.ManageClinicSchedule)]   
+        public async Task<ActionResult<WorkingScheduleDto>> CreateDoctorOverride(
+            Guid doctorId, [FromBody] CreateWorkingScheduleRequest request, CancellationToken cancellationToken)
+        {
+            var clinicId = User.GetClinicId();
+            if (clinicId is null)
+                return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
+
+            var result = await _workingScheduleService.CreateDoctorOverrideAsync(clinicId.Value, doctorId, request, cancellationToken);
+
+            return result.IsFailure ? result.ToProblem() : CreatedAtAction(nameof(GetEffective), new { doctorId }, result.Value);
+        }
+
+        [HttpGet("doctor")]
+        [HasPermission(Permissions.ReadWorkingSchedule)]
+        public async Task<ActionResult<WorkingScheduleDto>> GetEffective(CancellationToken cancellationToken)
+        {
+            var doctorId = Guid.Parse(User.GetUserId()!);
+            var clinicId = User.GetClinicId();
+            if (clinicId is null)
+                return Result.Failure(ReceptionistErrors.DoctorNotResolved).ToProblem();
+
+            var result = await _workingScheduleService.GetEffectiveByDoctorAsync(doctorId, clinicId.Value, cancellationToken);
+
+            return result.IsFailure ? result.ToProblem() : Ok(result.Value);
         }
     }
 }

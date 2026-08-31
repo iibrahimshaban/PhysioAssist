@@ -73,7 +73,7 @@ public class PatientQueryService(
         return Result.Success(response);
     }
 
-    public async Task<Result<List<PatientResponse>>> GetAllPatientsForDoctorAsync(Guid doctorId,CancellationToken ct = default)
+    public async Task<Result<List<PatientResponse>>> GetAllPatientsForDoctorAsync(Guid doctorId, CancellationToken ct = default)
     {
         var patientIds = await _dbContext.DoctorPatients
             .Where(dp => dp.DoctorId == doctorId)
@@ -94,25 +94,52 @@ public class PatientQueryService(
         return Result.Success(response);
     }
 
+    // CHANGED (clinic-scoped uniqueness fix):
+    //
+    // 1. ClinicId is now resolved and validated FIRST, before any existing-patient
+    //    lookup — previously the email lookup ran before the ClinicId null-check,
+    //    which was harmless today only because the lookup was global.
+    //
+    // 2. The "does this patient already exist" check now looks at BOTH email and
+    //    phone, and BOTH are clinic-scoped. Previously:
+    //      - only email was checked, and it was a GLOBAL lookup — so a patient in
+    //        Clinic B with the same email as someone in Clinic A got silently
+    //        linked to Clinic A's record. That's removed: clinics never share or
+    //        link patient records, even on an exact email match.
+    //      - phone was never checked here at all, meaning a phone collision could
+    //        reach the DB and throw an unhandled DbUpdateException from the
+    //        filtered unique index. That gap is closed.
+    //
+    // 3. The final pre-insert duplicate checks (resolved email, and now phone too)
+    //    are also clinic-scoped, so a legitimate same-phone/email patient in a
+    //    DIFFERENT clinic no longer blocks creation here.
     public async Task<Result<Guid>> CreatePatientFromIntakeAsync(CreatePatientFromIntakeRequest request,
     CancellationToken cancellationToken = default)
     {
-        var rawEmail = request.Email?.Trim();
-        Patient? existingPatient = null;
-
-        if (!string.IsNullOrWhiteSpace(rawEmail))
-        {
-            existingPatient = await _patientRepo.GetByEmailAsync(rawEmail);
-        }
-
         if (request.ClinicId is not { } clinicId)
         {
             return Result.Failure<Guid>(PatientErrors.ClinicIdRequired);
         }
 
+        var rawEmail = request.Email?.Trim();
+        var rawPhone = request.Phone?.Trim();
+
+        Patient? existingPatient = null;
+
+        if (!string.IsNullOrWhiteSpace(rawEmail))
+        {
+            existingPatient = await _patientRepo.GetByEmailAsync(rawEmail, clinicId);
+        }
+
+        if (existingPatient is null && !string.IsNullOrWhiteSpace(rawPhone))
+        {
+            existingPatient = await _patientRepo.GetByPhoneAsync(rawPhone, clinicId);
+        }
+
         if (existingPatient != null)
         {
-            // Patient already exists with this email — link to doctor if not already linked
+            // Patient already exists in this clinic (matched by email or phone) —
+            // link to doctor if not already linked
             var existingDoctorPatient = await _dbContext.Set<DoctorPatient>()
                 .FirstOrDefaultAsync(dp => dp.DoctorId == request.DoctorId && dp.PatientId == existingPatient.Id, cancellationToken);
 
@@ -152,9 +179,16 @@ public class PatientQueryService(
         var gender = request.Gender?.Trim() ?? string.Empty;
         if (gender.Length > 10) gender = gender[..10];
 
-        var duplicateByResolvedEmail = await _patientRepo.GetByEmailAsync(resolvedEmail);
+        var duplicateByResolvedEmail = await _patientRepo.GetByEmailAsync(resolvedEmail, clinicId);
         if (duplicateByResolvedEmail is not null)
             return Result.Failure<Guid>(PatientErrors.DuplicateEmail);
+
+        if (!string.IsNullOrWhiteSpace(phone))
+        {
+            var duplicateByPhone = await _patientRepo.GetByPhoneAsync(phone, clinicId);
+            if (duplicateByPhone is not null)
+                return Result.Failure<Guid>(PatientErrors.DuplicatePhone);
+        }
 
         var patient = new Patient
         {
@@ -232,7 +266,7 @@ public class PatientQueryService(
         return Result.Success(patient.Id);
     }
 
-    
+
     public async Task<Result<PatientTimePreferenceInfo>> ResolvePatientTimePreferenceAsync(
         Guid patientId,
         string? freeTimeOverrideText,
@@ -277,14 +311,15 @@ public class PatientQueryService(
 
             foreach (var g in parsed.Groups)
             {
-                var newSlot = new PatientPreferredTimeSlot { 
+                var newSlot = new PatientPreferredTimeSlot
+                {
                     PatientId = patient.Id,
                     Weekdays = g.Weekdays,
                     TimeFrom = g.TimeFrom,
                     TimeTo = g.TimeTo
                 };
 
-              _dbContext.PatientPreferredTimeSlots.Add(newSlot);
+                _dbContext.PatientPreferredTimeSlots.Add(newSlot);
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -400,4 +435,3 @@ public class PatientQueryService(
         return Result.Success(exists);
     }
 }
-

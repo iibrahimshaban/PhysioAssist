@@ -10,7 +10,8 @@
     {
 
         public Guid Id { get; set; }
-        public Guid DoctorId { get; set; }
+        public Guid ClinicId { get; set; }
+        public Guid? DoctorId { get; set; }
         public bool IsActive { get; set; }
         // SlotDurationMinutes removed — duration no longer belongs to the schedule
 

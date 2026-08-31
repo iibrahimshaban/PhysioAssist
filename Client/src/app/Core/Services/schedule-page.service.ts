@@ -113,7 +113,7 @@ export class SchedulePageService {
     effect(() => {
       const doctorId = this.selectedDoctorId();
       if (!doctorId) return;
-      this.loadWorkingSchedule(doctorId);
+      this.loadWorkingSchedule();
     });
 
      effect(() => {
@@ -194,7 +194,7 @@ async refresh(): Promise<void> {
   if (!doctorId) return;
 
   await Promise.all([
-    this.loadWorkingSchedule(doctorId),
+    this.loadWorkingSchedule(),
     this.loadForCurrentSelection(doctorId, this.selectedDate(), this.currentView())
   ]);
 }
@@ -311,10 +311,10 @@ private async refreshAvailability(): Promise<void> {
   const daily = await this.fetchAvailabilityRange(doctorId, dates[0], dates[dates.length - 1]);
   this.availability.set(daily.flatMap(d => d.intervals));
 }
-  private async loadWorkingSchedule(doctorId: string): Promise<void> {
+  private async loadWorkingSchedule(): Promise<void> {
     try {
       const dto = await firstValueFrom(
-        this.http.get<WorkingScheduleDto>(`${WORKING_SCHEDULES_BASE}/doctor/${doctorId}`, {
+        this.http.get<WorkingScheduleDto>(`${WORKING_SCHEDULES_BASE}/doctor`, {
           context: new HttpContext().set(SKIP_ERROR_SNACKBAR, true)
         }).pipe(this.catchAsProblem())
       );

@@ -107,7 +107,6 @@ export interface TreatmentSchedulePlanResponse {
   priority: SchedulingPriority;
   status: TreatmentSchedulePlanStatus;
   allowSameDayBooking: boolean;
-  packageId?: string;
   candidateSlots: SlotCandidateDto[];
 }
 

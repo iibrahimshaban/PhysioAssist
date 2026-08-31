@@ -1,4 +1,6 @@
-﻿namespace PhysioAssist.Api.Modules.Scheduling.Entities;
+﻿using PhysioAssist.Api.Modules.PackageModule.Entities;
+
+namespace PhysioAssist.Api.Modules.Scheduling.Entities;
 
 public class ScheduleSlot 
 {
@@ -11,6 +13,5 @@ public class ScheduleSlot
     public DateTimeOffset SlotEnd { get; set; }
     public SlotStatus Status { get; set; }
     public Guid? PackageId { get; set; }
-    public PatientSessionPackage? Package { get; set; }
 }
 

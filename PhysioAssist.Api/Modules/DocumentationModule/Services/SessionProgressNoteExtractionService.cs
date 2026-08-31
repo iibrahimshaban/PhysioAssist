@@ -62,7 +62,12 @@ public class SessionProgressNoteExtractionService(
         if (template is null)
             return Result.Failure<SessionProgressNoteResponse>(DocumentationErrors.TemplateNotFound);
 
-        var effectiveFieldsResult = await templateResolver.GetEffectiveFieldsAsync(transcriptContext.DoctorId, template.Id);
+        var clinicId = await context.Users
+            .Where(d => d.Id == transcriptContext.DoctorId.ToString())
+            .Select(d => d.ClinicId)
+            .FirstOrDefaultAsync(ct);
+
+        var effectiveFieldsResult = await templateResolver.GetEffectiveFieldsAsync(clinicId!.Value, template.Id);
 
         if (effectiveFieldsResult.IsFailure)
             return Result.Failure<SessionProgressNoteResponse>(effectiveFieldsResult.Error);

@@ -1,4 +1,4 @@
-﻿using PhysioAssist.Api.Modules.Scheduling.Entities;
+﻿using PhysioAssist.Api.Modules.PackageModule.Entities;
 using PhysioAssist.Api.Modules.Scheduling.Errors;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
 

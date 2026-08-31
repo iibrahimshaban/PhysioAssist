@@ -27,8 +27,8 @@ public class DocumentationTemplateController(IDocumentationTemplateResolver reso
     [HttpGet("{templateId:guid}/effective-fields")]
     public async Task<IActionResult> GetEffectiveFields(Guid templateId)
     {
-        var doctorId = Guid.Parse(User.GetUserId()!);
-        var result = await resolver.GetEffectiveFieldsAsync(doctorId, templateId);
+        var clinicid = User.GetClinicId();
+        var result = await resolver.GetEffectiveFieldsAsync(clinicid!.Value, templateId);
         return result.IsFailure ? result.ToProblem() : Ok(result.Value);
     }
 
@@ -36,8 +36,8 @@ public class DocumentationTemplateController(IDocumentationTemplateResolver reso
     [HttpPut("{templateId:guid}/hidden-fields")]
     public async Task<IActionResult> SaveHiddenFields(Guid templateId, [FromBody] SaveHiddenFieldsRequest request)
     {
-        var doctorId = Guid.Parse(User.GetUserId()!);
-        var result = await resolver.SaveHiddenFieldsAsync(doctorId, templateId, request.HiddenFieldIds);
+        var clinicId = User.GetClinicId();
+        var result = await resolver.SaveHiddenFieldsAsync(clinicId!.Value, templateId, request.HiddenFieldIds);
         return result.IsFailure ? result.ToProblem() : Ok();
     }
 }

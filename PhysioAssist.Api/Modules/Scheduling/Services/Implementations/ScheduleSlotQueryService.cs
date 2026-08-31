@@ -1,12 +1,17 @@
-﻿using PhysioAssist.Api.Modules.Scheduling.Entities;
+﻿using PhysioAssist.Api.Modules.PackageModule.Entities;
+using PhysioAssist.Api.Modules.Scheduling.Entities;
 using PhysioAssist.Api.Modules.Scheduling.Errors;
 using PhysioAssist.Api.Modules.Scheduling.Services.Interfaces;
+using PhysioAssist.Api.Shared.Dtos.Package;
 using PhysioAssist.Api.Shared.Dtos.Patient;
 using PhysioAssist.Api.Shared.Dtos.Schedule;
 
 namespace PhysioAssist.Api.Modules.Scheduling.Services.Implementations;
 
-public class ScheduleSlotQueryService(ApplicationDbContext _context, IPatientSessionPackageAdjustmentService _patientSessionPackageAdjustmentService) : IScheduleSlotQueryService
+public class ScheduleSlotQueryService(
+    ApplicationDbContext _context, 
+    IPatientSessionPackageAdjustmentService _patientSessionPackageAdjustmentService,
+    IPatientSessionPackageService _patientSessionPackageService) : IScheduleSlotQueryService
 {
 
     public async Task<List<ScheduleSlotResult>> GetUpcomingSlotsForDoctorAsync(Guid doctorId, CancellationToken ct = default)
@@ -130,5 +135,47 @@ public class ScheduleSlotQueryService(ApplicationDbContext _context, IPatientSes
             .Where(s => ids.Contains(s.Id))
             .Select(s => new ScheduleSlotSummary(s.Id, s.SlotStart, s.SlotEnd, s.Status))
             .ToDictionaryAsync(s => s.SlotId, cancellationToken);
+    }
+    public async Task<Result<IReadOnlyList<PatientPackageHistoryItemDto>>> GetPackageHistoryAsync(
+    Guid patientId, CancellationToken cancellationToken = default)
+    {
+        var terminalPackagesResult = await _patientSessionPackageService.GetTerminalPackagesForPatientAsync(patientId, cancellationToken);
+        if (terminalPackagesResult.IsFailure)
+            return Result.Failure<IReadOnlyList<PatientPackageHistoryItemDto>>(terminalPackagesResult.Error);
+
+        var history = new List<PatientPackageHistoryItemDto>();
+
+        foreach (var package in terminalPackagesResult.Value)
+        {
+            var slots = await _context.Set<ScheduleSlot>()
+                .Where(s => s.PackageId == package.PackageId && s.Status != SlotStatus.Cancelled)
+                .OrderBy(s => s.SlotStart)
+                .ToListAsync(cancellationToken);
+
+            var sessionItems = slots
+                .Select((s, index) => new PatientSessionListItemDto
+                {
+                    SlotId = s.Id,
+                    SessionNumber = index + 1,
+                    SlotStart = s.SlotStart,
+                    SlotEnd = s.SlotStart.Add(package.SessionDuration),
+                    Status = s.Status
+                })
+                .ToList();
+
+            history.Add(new PatientPackageHistoryItemDto
+            {
+                PackageId = package.PackageId,
+                TreatmentSchedulePlanId = default, // see note below
+                ReportId = default,                // see note below
+                Status = package.Status,
+                TotalSessions = package.TotalSessions,
+                CompletedSessions = sessionItems.Count(s => s.Status == SlotStatus.Completed),
+                CreatedAt = default,               // see note below
+                Sessions = sessionItems
+            });
+        }
+
+        return Result.Success<IReadOnlyList<PatientPackageHistoryItemDto>>(history);
     }
 }
