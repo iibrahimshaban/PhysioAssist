@@ -1,13 +1,14 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-convert-to-patient-dialog',
   standalone: true,
-  imports: [CommonModule, DialogModule],
+  imports: [CommonModule, DialogModule, TranslatePipe],
   templateUrl: './convert-to-patient-dialog.component.html',
-  styleUrl: './convert-to-patient-dialog.component.css'
+  styleUrl: './convert-to-patient-dialog.component.css',
 })
 export class ConvertToPatientDialogComponent {
   @Input({ required: true }) visible = false;

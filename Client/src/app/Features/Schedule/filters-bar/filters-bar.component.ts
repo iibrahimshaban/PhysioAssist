@@ -1,19 +1,27 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { ScheduleFilters, ScheduleSlotStatus } from '../schedule.models';
+import { TranslatePipe } from '@ngx-translate/core';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-filters-bar',
   standalone: true,
+  imports: [TranslatePipe, TooltipModule],
   templateUrl: './filters-bar.component.html',
   styleUrl: './filters-bar.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FiltersBarComponent {
   filters = input.required<ScheduleFilters>();
   filtersChanged = output<Partial<ScheduleFilters>>();
   clearRequested = output<void>();
 
-  protected readonly statusOptions: ScheduleSlotStatus[] = ['Booked', 'Completed', 'Cancelled', 'NoShow'];
+  protected readonly statusOptions: ScheduleSlotStatus[] = [
+    'Booked',
+    'Completed',
+    'Cancelled',
+    'NoShow',
+  ];
 
   protected onSearchChange(event: Event): void {
     this.filtersChanged.emit({ patientSearch: (event.target as HTMLInputElement).value });

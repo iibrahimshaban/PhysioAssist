@@ -13,12 +13,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { DynamicFormEngineService } from '../../services/dynamic-form-engine.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
-import {
-  DynamicFormSchemaDto,
-  FormSectionDto,
-  FormGroupDto,
-  FormQuestionDto,
-} from '../../models';
+import { DynamicFormSchemaDto, FormSectionDto, FormGroupDto, FormQuestionDto } from '../../models';
+import { TranslatePipe } from '@ngx-translate/core';
 
 // Pinned/required core fields. These MUST match CoreFieldConstants.HardRequiredFields
 // on the backend (which uses question_default_* IDs); using the same IDs lets the
@@ -35,7 +31,7 @@ const CORE_FIELD_IDS = new Set([
   'question_default_free_time',
   'question_default_chief_complaint',
   'question_default_injury_date',
-  'question_default_patient_type'
+  'question_default_patient_type',
 ]);
 
 const CORE_FIELD_TEXTS = new Set([
@@ -47,7 +43,7 @@ const CORE_FIELD_TEXTS = new Set([
   'Patient Free Time',
   'Chief Complaint',
   'Injury Date',
-  'Patient Type'
+  'Patient Type',
 ]);
 
 interface PublishValidationIssue {
@@ -78,7 +74,8 @@ const FORM_TEMPLATES: FormTemplate[] = [
   {
     id: 'general-intake',
     name: 'General Patient Intake',
-    description: 'Standard pre-visit form with patient demographics, contact info, and reason for visit.',
+    description:
+      'Standard pre-visit form with patient demographics, contact info, and reason for visit.',
     icon: 'pi pi-file-edit',
     color: '#6a92cb',
     sections: [
@@ -94,11 +91,35 @@ const FORM_TEMPLATES: FormTemplate[] = [
             description: 'How to reach the patient',
             order: 1,
             questions: [
-              { questionId: 'q_full_name', text: 'Full Name', type: 'text', order: 1, required: true },
-              { questionId: 'q_email', text: 'Email Address', type: 'email', order: 2, required: true },
-              { questionId: 'q_phone', text: 'Phone Number', type: 'phone', order: 3, required: true },
-              { questionId: 'q_dob', text: 'Date of Birth', type: 'date', order: 4, required: true },
-            ]
+              {
+                questionId: 'q_full_name',
+                text: 'Full Name',
+                type: 'text',
+                order: 1,
+                required: true,
+              },
+              {
+                questionId: 'q_email',
+                text: 'Email Address',
+                type: 'email',
+                order: 2,
+                required: true,
+              },
+              {
+                questionId: 'q_phone',
+                text: 'Phone Number',
+                type: 'phone',
+                order: 3,
+                required: true,
+              },
+              {
+                questionId: 'q_dob',
+                text: 'Date of Birth',
+                type: 'date',
+                order: 4,
+                required: true,
+              },
+            ],
           },
           {
             groupId: 'group_demographics',
@@ -106,18 +127,43 @@ const FORM_TEMPLATES: FormTemplate[] = [
             description: 'Additional patient information',
             order: 2,
             questions: [
-              { questionId: 'q_gender', text: 'Gender', type: 'select', order: 1, required: false, options: ['Male', 'Female', 'Other', 'Prefer not to say'] },
-              { questionId: 'q_address', text: 'Home Address', type: 'textarea', order: 2, required: false },
-              { questionId: 'q_emergency_contact', text: 'Emergency Contact Name', type: 'text', order: 3, required: false },
-              { questionId: 'q_emergency_phone', text: 'Emergency Contact Phone', type: 'phone', order: 4, required: false },
-            ]
-          }
-        ]
+              {
+                questionId: 'q_gender',
+                text: 'Gender',
+                type: 'select',
+                order: 1,
+                required: false,
+                options: ['Male', 'Female', 'Other', 'Prefer not to say'],
+              },
+              {
+                questionId: 'q_address',
+                text: 'Home Address',
+                type: 'textarea',
+                order: 2,
+                required: false,
+              },
+              {
+                questionId: 'q_emergency_contact',
+                text: 'Emergency Contact Name',
+                type: 'text',
+                order: 3,
+                required: false,
+              },
+              {
+                questionId: 'q_emergency_phone',
+                text: 'Emergency Contact Phone',
+                type: 'phone',
+                order: 4,
+                required: false,
+              },
+            ],
+          },
+        ],
       },
       {
         sectionId: 'section_visit',
         title: 'Visit Information',
-        description: 'Reason for today\'s visit',
+        description: "Reason for today's visit",
         order: 2,
         groups: [
           {
@@ -125,14 +171,32 @@ const FORM_TEMPLATES: FormTemplate[] = [
             title: 'Reason for Visit',
             order: 1,
             questions: [
-              { questionId: 'q_chief_complaint', text: 'What is the main reason for your visit today?', type: 'textarea', order: 1, required: true },
-              { questionId: 'q_symptoms_start', text: 'When did your symptoms start?', type: 'date', order: 2, required: false },
-              { questionId: 'q_pain_level', text: 'Current pain level (0-10)', type: 'painscale', order: 3, required: false },
-            ]
-          }
-        ]
-      }
-    ]
+              {
+                questionId: 'q_chief_complaint',
+                text: 'What is the main reason for your visit today?',
+                type: 'textarea',
+                order: 1,
+                required: true,
+              },
+              {
+                questionId: 'q_symptoms_start',
+                text: 'When did your symptoms start?',
+                type: 'date',
+                order: 2,
+                required: false,
+              },
+              {
+                questionId: 'q_pain_level',
+                text: 'Current pain level (0-10)',
+                type: 'painscale',
+                order: 3,
+                required: false,
+              },
+            ],
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'pain-assessment',
@@ -152,32 +216,118 @@ const FORM_TEMPLATES: FormTemplate[] = [
             title: 'Pain Location',
             order: 1,
             questions: [
-              { questionId: 'q_pain_body_map', text: 'Show us where it hurts', type: 'bodyselector', order: 1, required: true },
-              { questionId: 'q_pain_region', text: 'Primary pain region', type: 'select', order: 2, required: true, options: ['Head', 'Neck', 'Shoulder', 'Back - Upper', 'Back - Lower', 'Arm', 'Leg', 'Knee', 'Hip', 'Other'] },
-            ]
+              {
+                questionId: 'q_pain_body_map',
+                text: 'Show us where it hurts',
+                type: 'bodyselector',
+                order: 1,
+                required: true,
+              },
+              {
+                questionId: 'q_pain_region',
+                text: 'Primary pain region',
+                type: 'select',
+                order: 2,
+                required: true,
+                options: [
+                  'Head',
+                  'Neck',
+                  'Shoulder',
+                  'Back - Upper',
+                  'Back - Lower',
+                  'Arm',
+                  'Leg',
+                  'Knee',
+                  'Hip',
+                  'Other',
+                ],
+              },
+            ],
           },
           {
             groupId: 'group_pain_characteristics',
             title: 'Pain Characteristics',
             order: 2,
             questions: [
-              { questionId: 'q_pain_type', text: 'How would you describe the pain?', type: 'multiselect', order: 1, required: true, options: ['Sharp', 'Dull', 'Burning', 'Throbbing', 'Stabbing', 'Aching', 'Numbness', 'Tingling'] },
-              { questionId: 'q_pain_intensity', text: 'Rate your pain on a scale of 0-10', type: 'painscale', order: 2, required: true },
-              { questionId: 'q_pain_duration', text: 'How long have you had this pain?', type: 'select', order: 3, required: true, options: ['Less than a week', '1-2 weeks', '2-4 weeks', '1-3 months', '3-6 months', '6+ months'] },
-              { questionId: 'q_pain_constant', text: 'Is the pain constant or intermittent?', type: 'radio', order: 4, required: false, options: ['Constant', 'Intermittent', 'Varies'] },
-            ]
+              {
+                questionId: 'q_pain_type',
+                text: 'How would you describe the pain?',
+                type: 'multiselect',
+                order: 1,
+                required: true,
+                options: [
+                  'Sharp',
+                  'Dull',
+                  'Burning',
+                  'Throbbing',
+                  'Stabbing',
+                  'Aching',
+                  'Numbness',
+                  'Tingling',
+                ],
+              },
+              {
+                questionId: 'q_pain_intensity',
+                text: 'Rate your pain on a scale of 0-10',
+                type: 'painscale',
+                order: 2,
+                required: true,
+              },
+              {
+                questionId: 'q_pain_duration',
+                text: 'How long have you had this pain?',
+                type: 'select',
+                order: 3,
+                required: true,
+                options: [
+                  'Less than a week',
+                  '1-2 weeks',
+                  '2-4 weeks',
+                  '1-3 months',
+                  '3-6 months',
+                  '6+ months',
+                ],
+              },
+              {
+                questionId: 'q_pain_constant',
+                text: 'Is the pain constant or intermittent?',
+                type: 'radio',
+                order: 4,
+                required: false,
+                options: ['Constant', 'Intermittent', 'Varies'],
+              },
+            ],
           },
           {
             groupId: 'group_pain_triggers',
             title: 'Triggers & Relief',
             order: 3,
             questions: [
-              { questionId: 'q_aggravating', text: 'What makes the pain worse?', type: 'textarea', order: 1, required: false },
-              { questionId: 'q_relieving', text: 'What makes the pain better?', type: 'textarea', order: 2, required: false },
-              { questionId: 'q_medications', text: 'Are you taking any pain medications?', type: 'radio', order: 3, required: false, options: ['Yes', 'No'] },
-            ]
-          }
-        ]
+              {
+                questionId: 'q_aggravating',
+                text: 'What makes the pain worse?',
+                type: 'textarea',
+                order: 1,
+                required: false,
+              },
+              {
+                questionId: 'q_relieving',
+                text: 'What makes the pain better?',
+                type: 'textarea',
+                order: 2,
+                required: false,
+              },
+              {
+                questionId: 'q_medications',
+                text: 'Are you taking any pain medications?',
+                type: 'radio',
+                order: 3,
+                required: false,
+                options: ['Yes', 'No'],
+              },
+            ],
+          },
+        ],
       },
       {
         sectionId: 'section_pain_history',
@@ -190,19 +340,49 @@ const FORM_TEMPLATES: FormTemplate[] = [
             title: 'Previous Treatment',
             order: 1,
             questions: [
-              { questionId: 'q_previous_care', text: 'Have you seen anyone else for this pain?', type: 'radio', order: 1, required: false, options: ['Yes', 'No'] },
-              { questionId: 'q_previous_treatment_type', text: 'What treatments have you tried?', type: 'multiselect', order: 2, required: false, options: ['Physical Therapy', 'Chiropractic', 'Massage', 'Acupuncture', 'Surgery', 'Medication', 'Other'] },
-              { questionId: 'q_imaging', text: 'Have you had any imaging (X-ray, MRI, CT)?', type: 'radio', order: 3, required: false, options: ['Yes', 'No'] },
-            ]
-          }
-        ]
-      }
-    ]
+              {
+                questionId: 'q_previous_care',
+                text: 'Have you seen anyone else for this pain?',
+                type: 'radio',
+                order: 1,
+                required: false,
+                options: ['Yes', 'No'],
+              },
+              {
+                questionId: 'q_previous_treatment_type',
+                text: 'What treatments have you tried?',
+                type: 'multiselect',
+                order: 2,
+                required: false,
+                options: [
+                  'Physical Therapy',
+                  'Chiropractic',
+                  'Massage',
+                  'Acupuncture',
+                  'Surgery',
+                  'Medication',
+                  'Other',
+                ],
+              },
+              {
+                questionId: 'q_imaging',
+                text: 'Have you had any imaging (X-ray, MRI, CT)?',
+                type: 'radio',
+                order: 3,
+                required: false,
+                options: ['Yes', 'No'],
+              },
+            ],
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'medical-history',
     name: 'Medical History',
-    description: 'Comprehensive medical history including conditions, medications, allergies, and surgeries.',
+    description:
+      'Comprehensive medical history including conditions, medications, allergies, and surgeries.',
     icon: 'pi pi-heart',
     color: '#e04b5f',
     sections: [
@@ -217,22 +397,64 @@ const FORM_TEMPLATES: FormTemplate[] = [
             title: 'Current & Past Conditions',
             order: 1,
             questions: [
-              { questionId: 'q_conditions', text: 'Do you have any current medical conditions?', type: 'textarea', order: 1, required: false, placeholder: 'e.g. Diabetes, Hypertension, Asthma' },
-              { questionId: 'q_surgeries', text: 'Have you had any surgeries?', type: 'textarea', order: 2, required: false, placeholder: 'List any surgeries and approximate dates' },
-              { questionId: 'q_family_history', text: 'Family medical history', type: 'textarea', order: 3, required: false, placeholder: 'Any relevant family medical conditions' },
-            ]
+              {
+                questionId: 'q_conditions',
+                text: 'Do you have any current medical conditions?',
+                type: 'textarea',
+                order: 1,
+                required: false,
+                placeholder: 'e.g. Diabetes, Hypertension, Asthma',
+              },
+              {
+                questionId: 'q_surgeries',
+                text: 'Have you had any surgeries?',
+                type: 'textarea',
+                order: 2,
+                required: false,
+                placeholder: 'List any surgeries and approximate dates',
+              },
+              {
+                questionId: 'q_family_history',
+                text: 'Family medical history',
+                type: 'textarea',
+                order: 3,
+                required: false,
+                placeholder: 'Any relevant family medical conditions',
+              },
+            ],
           },
           {
             groupId: 'group_medications',
             title: 'Medications & Allergies',
             order: 2,
             questions: [
-              { questionId: 'q_medications_list', text: 'Current medications', type: 'textarea', order: 1, required: false, placeholder: 'List all medications and dosages' },
-              { questionId: 'q_allergies', text: 'Do you have any allergies?', type: 'textarea', order: 2, required: true, placeholder: 'List all allergies (medications, food, etc.)' },
-              { questionId: 'q_blood_type', text: 'Blood Type', type: 'select', order: 3, required: false, options: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'] },
-            ]
-          }
-        ]
+              {
+                questionId: 'q_medications_list',
+                text: 'Current medications',
+                type: 'textarea',
+                order: 1,
+                required: false,
+                placeholder: 'List all medications and dosages',
+              },
+              {
+                questionId: 'q_allergies',
+                text: 'Do you have any allergies?',
+                type: 'textarea',
+                order: 2,
+                required: true,
+                placeholder: 'List all allergies (medications, food, etc.)',
+              },
+              {
+                questionId: 'q_blood_type',
+                text: 'Blood Type',
+                type: 'select',
+                order: 3,
+                required: false,
+                options: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'],
+              },
+            ],
+          },
+        ],
       },
       {
         sectionId: 'section_lifestyle',
@@ -245,15 +467,42 @@ const FORM_TEMPLATES: FormTemplate[] = [
             title: 'Lifestyle',
             order: 1,
             questions: [
-              { questionId: 'q_smoking', text: 'Do you smoke?', type: 'radio', order: 1, required: false, options: ['Never', 'Former', 'Current'] },
-              { questionId: 'q_alcohol', text: 'Alcohol consumption', type: 'select', order: 2, required: false, options: ['None', 'Occasional', 'Moderate', 'Heavy'] },
-              { questionId: 'q_exercise', text: 'How often do you exercise?', type: 'select', order: 3, required: false, options: ['Daily', '2-3 times/week', 'Once a week', 'Rarely', 'Never'] },
-              { questionId: 'q_occupation', text: 'Occupation', type: 'text', order: 4, required: false },
-            ]
-          }
-        ]
-      }
-    ]
+              {
+                questionId: 'q_smoking',
+                text: 'Do you smoke?',
+                type: 'radio',
+                order: 1,
+                required: false,
+                options: ['Never', 'Former', 'Current'],
+              },
+              {
+                questionId: 'q_alcohol',
+                text: 'Alcohol consumption',
+                type: 'select',
+                order: 2,
+                required: false,
+                options: ['None', 'Occasional', 'Moderate', 'Heavy'],
+              },
+              {
+                questionId: 'q_exercise',
+                text: 'How often do you exercise?',
+                type: 'select',
+                order: 3,
+                required: false,
+                options: ['Daily', '2-3 times/week', 'Once a week', 'Rarely', 'Never'],
+              },
+              {
+                questionId: 'q_occupation',
+                text: 'Occupation',
+                type: 'text',
+                order: 4,
+                required: false,
+              },
+            ],
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'blank',
@@ -261,8 +510,8 @@ const FORM_TEMPLATES: FormTemplate[] = [
     description: 'Begin with an empty form and build it your way with guided help along the way.',
     icon: 'pi pi-plus-circle',
     color: '#6b7780',
-    sections: []
-  }
+    sections: [],
+  },
 ];
 
 /* ─── Quick-Add Question Presets ────────────────────────── */
@@ -279,19 +528,105 @@ const QUESTION_PRESETS: QuestionPreset[] = [
   { label: 'Full Name', icon: 'pi pi-user', type: 'text', text: 'Full Name', required: true },
   { label: 'Email', icon: 'pi pi-at', type: 'email', text: 'Email Address', required: true },
   { label: 'Phone', icon: 'pi pi-phone', type: 'phone', text: 'Phone Number', required: true },
-  { label: 'Date of Birth', icon: 'pi pi-calendar', type: 'date', text: 'Date of Birth', required: true },
+  {
+    label: 'Date of Birth',
+    icon: 'pi pi-calendar',
+    type: 'date',
+    text: 'Date of Birth',
+    required: true,
+  },
   { label: 'Address', icon: 'pi pi-home', type: 'textarea', text: 'Home Address', required: false },
-  { label: 'Gender', icon: 'pi pi-venus-mars', type: 'select', text: 'Gender', required: false, options: ['Male', 'Female', 'Other', 'Prefer not to say'] },
-  { label: 'Chief Complaint', icon: 'pi pi-question-circle', type: 'textarea', text: 'What is the main reason for your visit today?', required: true },
-  { label: 'Pain Level', icon: 'pi pi-chart-bar', type: 'painscale', text: 'Rate your pain on a scale of 0-10', required: true },
-  { label: 'Pain Location', icon: 'pi pi-map-marker', type: 'select', text: 'Primary pain region', required: true, options: ['Head', 'Neck', 'Shoulder', 'Back - Upper', 'Back - Lower', 'Arm', 'Leg', 'Knee', 'Hip', 'Other'] },
-  { label: 'Medications', icon: 'pi pi-pill', type: 'textarea', text: 'Current medications', required: false },
-  { label: 'Allergies', icon: 'pi pi-exclamation-triangle', type: 'textarea', text: 'Do you have any allergies?', required: true },
-  { label: 'Medical Conditions', icon: 'pi pi-heart', type: 'textarea', text: 'Do you have any current medical conditions?', required: false },
-  { label: 'Surgeries', icon: 'pi pi-scissors', type: 'textarea', text: 'Have you had any surgeries?', required: false },
-  { label: 'Smoking Status', icon: 'pi pi-ban', type: 'radio', text: 'Do you smoke?', required: false, options: ['Never', 'Former', 'Current'] },
-  { label: 'Occupation', icon: 'pi pi-briefcase', type: 'text', text: 'Occupation', required: false },
-  { label: 'Emergency Contact', icon: 'pi pi-phone', type: 'text', text: 'Emergency Contact Name', required: false },
+  {
+    label: 'Gender',
+    icon: 'pi pi-venus-mars',
+    type: 'select',
+    text: 'Gender',
+    required: false,
+    options: ['Male', 'Female', 'Other', 'Prefer not to say'],
+  },
+  {
+    label: 'Chief Complaint',
+    icon: 'pi pi-question-circle',
+    type: 'textarea',
+    text: 'What is the main reason for your visit today?',
+    required: true,
+  },
+  {
+    label: 'Pain Level',
+    icon: 'pi pi-chart-bar',
+    type: 'painscale',
+    text: 'Rate your pain on a scale of 0-10',
+    required: true,
+  },
+  {
+    label: 'Pain Location',
+    icon: 'pi pi-map-marker',
+    type: 'select',
+    text: 'Primary pain region',
+    required: true,
+    options: [
+      'Head',
+      'Neck',
+      'Shoulder',
+      'Back - Upper',
+      'Back - Lower',
+      'Arm',
+      'Leg',
+      'Knee',
+      'Hip',
+      'Other',
+    ],
+  },
+  {
+    label: 'Medications',
+    icon: 'pi pi-pill',
+    type: 'textarea',
+    text: 'Current medications',
+    required: false,
+  },
+  {
+    label: 'Allergies',
+    icon: 'pi pi-exclamation-triangle',
+    type: 'textarea',
+    text: 'Do you have any allergies?',
+    required: true,
+  },
+  {
+    label: 'Medical Conditions',
+    icon: 'pi pi-heart',
+    type: 'textarea',
+    text: 'Do you have any current medical conditions?',
+    required: false,
+  },
+  {
+    label: 'Surgeries',
+    icon: 'pi pi-scissors',
+    type: 'textarea',
+    text: 'Have you had any surgeries?',
+    required: false,
+  },
+  {
+    label: 'Smoking Status',
+    icon: 'pi pi-ban',
+    type: 'radio',
+    text: 'Do you smoke?',
+    required: false,
+    options: ['Never', 'Former', 'Current'],
+  },
+  {
+    label: 'Occupation',
+    icon: 'pi pi-briefcase',
+    type: 'text',
+    text: 'Occupation',
+    required: false,
+  },
+  {
+    label: 'Emergency Contact',
+    icon: 'pi pi-phone',
+    type: 'text',
+    text: 'Emergency Contact Name',
+    required: false,
+  },
 ];
 
 @Component({
@@ -307,9 +642,10 @@ const QUESTION_PRESETS: QuestionPreset[] = [
     CheckboxModule,
     TooltipModule,
     DialogModule,
+    TranslatePipe,
   ],
   templateUrl: './schema-wizard.component.html',
-  styleUrl: './schema-wizard.component.css'
+  styleUrl: './schema-wizard.component.css',
 })
 export class SchemaWizardComponent {
   private readonly apiService = inject(IntakeApiService);
@@ -330,7 +666,7 @@ export class SchemaWizardComponent {
 
   readonly formSchema = signal<DynamicFormSchemaDto>({
     schemaVersion: 1,
-    sections: [this.buildCoreFieldsSection()]
+    sections: [this.buildCoreFieldsSection()],
   });
 
   readonly saving = signal(false);
@@ -361,7 +697,15 @@ export class SchemaWizardComponent {
   // Flat list of every group in the schema, across every section, for the "which group
   // should this go in?" picker. Rebuilt reactively whenever the schema changes.
   readonly groupTargets = computed(() => {
-    const targets: { sectionIndex: number; groupIndex: number; sectionTitle: string; groupTitle: string; questionCount: number; locked: boolean; hidden: boolean }[] = [];
+    const targets: {
+      sectionIndex: number;
+      groupIndex: number;
+      sectionTitle: string;
+      groupTitle: string;
+      questionCount: number;
+      locked: boolean;
+      hidden: boolean;
+    }[] = [];
     this.formSchema().sections.forEach((section, si) => {
       section.groups.forEach((group, gi) => {
         targets.push({
@@ -379,8 +723,8 @@ export class SchemaWizardComponent {
   });
 
   // ─── Computed ────────────────────────────────────────────
-  readonly selectedTemplate = computed(() =>
-    this.templates.find(t => t.id === this.selectedTemplateId()) || null
+  readonly selectedTemplate = computed(
+    () => this.templates.find((t) => t.id === this.selectedTemplateId()) || null,
   );
 
   readonly totalQuestions = computed(() => {
@@ -395,16 +739,12 @@ export class SchemaWizardComponent {
 
   readonly totalSections = computed(() => this.formSchema().sections.length);
 
-  readonly canProceedFromTemplate = computed(() =>
-    this.selectedTemplateId() !== null
-  );
+  readonly canProceedFromTemplate = computed(() => this.selectedTemplateId() !== null);
 
-  readonly canProceedFromDetails = computed(() =>
-    this.schemaName().trim().length > 0
-  );
+  readonly canProceedFromDetails = computed(() => this.schemaName().trim().length > 0);
 
-  readonly canProceedFromBuild = computed(() =>
-    this.formSchema().sections.length > 0 && this.totalQuestions() > 0
+  readonly canProceedFromBuild = computed(
+    () => this.formSchema().sections.length > 0 && this.totalQuestions() > 0,
   );
 
   readonly prePublishValidation = computed((): PublishValidationIssue[] => {
@@ -413,11 +753,14 @@ export class SchemaWizardComponent {
     const allQuestions = this.engine.getAllQuestions(schema);
 
     for (const coreId of CORE_FIELD_IDS) {
-      const found = allQuestions.find(q => q.questionId === coreId);
+      const found = allQuestions.find((q) => q.questionId === coreId);
       if (!found) {
-        const byText = allQuestions.find(q => CORE_FIELD_TEXTS.has(q.text));
+        const byText = allQuestions.find((q) => CORE_FIELD_TEXTS.has(q.text));
         if (!byText) {
-          issues.push({ fieldName: coreId.replace('question_default_', '').replace('_', ' '), issue: 'Missing from schema' });
+          issues.push({
+            fieldName: coreId.replace('question_default_', '').replace('_', ' '),
+            issue: 'Missing from schema',
+          });
           continue;
         }
         if (!byText.required) {
@@ -437,8 +780,18 @@ export class SchemaWizardComponent {
 
   readonly stepProgress = computed(() => {
     const steps: { key: WizardStep; label: string; icon: string; completed: boolean }[] = [
-      { key: 'template', label: 'Template', icon: 'pi pi-template', completed: this.selectedTemplateId() !== null },
-      { key: 'details', label: 'Details', icon: 'pi pi-info-circle', completed: this.schemaName().trim().length > 0 },
+      {
+        key: 'template',
+        label: 'Template',
+        icon: 'pi pi-template',
+        completed: this.selectedTemplateId() !== null,
+      },
+      {
+        key: 'details',
+        label: 'Details',
+        icon: 'pi pi-info-circle',
+        completed: this.schemaName().trim().length > 0,
+      },
       { key: 'build', label: 'Build', icon: 'pi pi-pencil', completed: this.canProceedFromBuild() },
       { key: 'review', label: 'Review', icon: 'pi pi-check-circle', completed: false },
     ];
@@ -485,15 +838,15 @@ export class SchemaWizardComponent {
     if (!template) return;
 
     // Deep clone the template sections
-    const userSections: FormSectionDto[] = template.sections.map(s => ({
+    const userSections: FormSectionDto[] = template.sections.map((s) => ({
       ...s,
-      groups: s.groups.map(g => ({
+      groups: s.groups.map((g) => ({
         ...g,
-        questions: g.questions.map(q => ({
+        questions: g.questions.map((q) => ({
           ...q,
-          options: q.options ? [...q.options] : undefined
-        }))
-      }))
+          options: q.options ? [...q.options] : undefined,
+        })),
+      })),
     }));
 
     const coreSection = this.buildCoreFieldsSection();
@@ -524,13 +877,60 @@ export class SchemaWizardComponent {
           order: 1,
           isLocked: true,
           questions: [
-            { questionId: 'question_default_full_name', text: 'Full Name', type: 'text', order: 1, required: true, isLocked: true, placeholder: 'e.g. John Doe' },
-            { questionId: 'question_default_email', text: 'Email Address', type: 'email', order: 2, required: true, isLocked: true, placeholder: 'john@example.com' },
-            { questionId: 'question_default_phone', text: 'Phone Number', type: 'phone', order: 3, required: true, isLocked: true, placeholder: '(555) 000-0000' },
-            { questionId: 'question_default_free_time', text: 'Patient Free Time', type: 'text', order: 4, required: true, isLocked: true, placeholder: 'e.g. Weekdays after 5pm' },
-            { questionId: 'question_default_gender', text: 'Gender', type: 'radio', order: 5, required: true, isLocked: true, options: ['Male', 'Female'] },
-            { questionId: 'question_default_dob', text: 'Date of Birth', type: 'date', order: 6, required: true, isLocked: true },
-          ]
+            {
+              questionId: 'question_default_full_name',
+              text: 'Full Name',
+              type: 'text',
+              order: 1,
+              required: true,
+              isLocked: true,
+              placeholder: 'e.g. John Doe',
+            },
+            {
+              questionId: 'question_default_email',
+              text: 'Email Address',
+              type: 'email',
+              order: 2,
+              required: true,
+              isLocked: true,
+              placeholder: 'john@example.com',
+            },
+            {
+              questionId: 'question_default_phone',
+              text: 'Phone Number',
+              type: 'phone',
+              order: 3,
+              required: true,
+              isLocked: true,
+              placeholder: '(555) 000-0000',
+            },
+            {
+              questionId: 'question_default_free_time',
+              text: 'Patient Free Time',
+              type: 'text',
+              order: 4,
+              required: true,
+              isLocked: true,
+              placeholder: 'e.g. Weekdays after 5pm',
+            },
+            {
+              questionId: 'question_default_gender',
+              text: 'Gender',
+              type: 'radio',
+              order: 5,
+              required: true,
+              isLocked: true,
+              options: ['Male', 'Female'],
+            },
+            {
+              questionId: 'question_default_dob',
+              text: 'Date of Birth',
+              type: 'date',
+              order: 6,
+              required: true,
+              isLocked: true,
+            },
+          ],
         },
         {
           groupId: MEDICAL_INFO_GROUP_ID,
@@ -539,9 +939,24 @@ export class SchemaWizardComponent {
           order: 2,
           isLocked: true,
           questions: [
-            { questionId: 'question_default_chief_complaint', text: 'Chief Complaint', type: 'textarea', order: 1, required: true, isLocked: true, placeholder: 'Primary reason for the visit' },
-            { questionId: 'question_default_injury_date', text: 'Injury Date', type: 'date', order: 2, required: true, isLocked: true },
-          ]
+            {
+              questionId: 'question_default_chief_complaint',
+              text: 'Chief Complaint',
+              type: 'textarea',
+              order: 1,
+              required: true,
+              isLocked: true,
+              placeholder: 'Primary reason for the visit',
+            },
+            {
+              questionId: 'question_default_injury_date',
+              text: 'Injury Date',
+              type: 'date',
+              order: 2,
+              required: true,
+              isLocked: true,
+            },
+          ],
         },
         {
           groupId: CLINICAL_SUMMARY_GROUP_ID,
@@ -551,10 +966,18 @@ export class SchemaWizardComponent {
           hiddenFromPatient: true,
           isLocked: true,
           questions: [
-            { questionId: 'question_default_patient_type', text: 'Patient Type', type: 'select', order: 1, required: true, isLocked: true, options: ['Orthopedic', 'Neurological', 'Pediatric', 'GeneralOther'] },
-          ]
-        }
-      ]
+            {
+              questionId: 'question_default_patient_type',
+              text: 'Patient Type',
+              type: 'select',
+              order: 1,
+              required: true,
+              isLocked: true,
+              options: ['Orthopedic', 'Neurological', 'Pediatric', 'GeneralOther'],
+            },
+          ],
+        },
+      ],
     };
   }
 
@@ -563,7 +986,9 @@ export class SchemaWizardComponent {
   }
 
   isQuestionLocked(question: any): boolean {
-    return question.isLocked === true || question.questionId?.startsWith('question_default_') === true;
+    return (
+      question.isLocked === true || question.questionId?.startsWith('question_default_') === true
+    );
   }
 
   // Locked groups block deletion of their existing (core) questions, but adding extra
@@ -582,11 +1007,11 @@ export class SchemaWizardComponent {
       title: 'New Section',
       description: '',
       order: schema.sections.length + 1,
-      groups: []
+      groups: [],
     };
     this.formSchema.set({
       ...schema,
-      sections: [...schema.sections, newSection]
+      sections: [...schema.sections, newSection],
     });
     this.editingSectionIndex.set(schema.sections.length);
     this.editingGroupIndex.set(null);
@@ -614,7 +1039,7 @@ export class SchemaWizardComponent {
       title: 'New Group',
       description: '',
       order: section.groups.length + 1,
-      questions: []
+      questions: [],
     };
     section.groups = [...section.groups, newGroup];
     this.formSchema.set({ ...schema });
@@ -761,9 +1186,8 @@ export class SchemaWizardComponent {
 
     const si = this.editingSectionIndex();
     const gi = this.editingGroupIndex();
-    const preselectedGroup = si !== null && gi !== null
-      ? this.formSchema().sections[si]?.groups[gi]
-      : undefined;
+    const preselectedGroup =
+      si !== null && gi !== null ? this.formSchema().sections[si]?.groups[gi] : undefined;
 
     if (preselectedGroup) {
       this.addQuestionToGroup(si!, gi!, this.selectedPreset() ?? undefined);
@@ -821,20 +1245,23 @@ export class SchemaWizardComponent {
       name: this.schemaName(),
       description: this.schemaDescription() || undefined,
       schemaJson,
-      isDefault: this.isDefault()
+      isDefault: this.isDefault(),
     };
 
-    this.apiService.createFormSchema(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (created) => {
-        this.saving.set(false);
-        this.snackbar.success('Schema saved', ['Draft created successfully']);
-        this.router.navigate(['/app/intake/schemas/edit', created.id], { replaceUrl: true });
-      },
-      error: (err: any) => {
-        this.saving.set(false);
-        this.snackbar.error('Save failed', [this.extractError(err)]);
-      }
-    });
+    this.apiService
+      .createFormSchema(request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (created) => {
+          this.saving.set(false);
+          this.snackbar.success('Schema saved', ['Draft created successfully']);
+          this.router.navigate(['/app/intake/schemas/edit', created.id], { replaceUrl: true });
+        },
+        error: (err: any) => {
+          this.saving.set(false);
+          this.snackbar.error('Save failed', [this.extractError(err)]);
+        },
+      });
   }
 
   saveAndPublish(): void {
@@ -852,30 +1279,34 @@ export class SchemaWizardComponent {
       name: this.schemaName(),
       description: this.schemaDescription() || undefined,
       schemaJson,
-      isDefault: this.isDefault()
+      isDefault: this.isDefault(),
     };
 
-    this.apiService.createFormSchema(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (created) => {
-        this.apiService.publishFormSchema(created.id, { version: created.version })
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: () => {
-              this.publishing.set(false);
-              this.snackbar.success('Schema published', ['Form schema is now live']);
-              this.router.navigate(['/app/intake/schemas']);
-            },
-            error: (err: any) => {
-              this.publishing.set(false);
-              this.snackbar.error('Publish failed', [this.extractError(err)]);
-            }
-          });
-      },
-      error: (err: any) => {
-        this.publishing.set(false);
-        this.snackbar.error('Save failed', [this.extractError(err)]);
-      }
-    });
+    this.apiService
+      .createFormSchema(request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (created) => {
+          this.apiService
+            .publishFormSchema(created.id, { version: created.version })
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => {
+                this.publishing.set(false);
+                this.snackbar.success('Schema published', ['Form schema is now live']);
+                this.router.navigate(['/app/intake/schemas']);
+              },
+              error: (err: any) => {
+                this.publishing.set(false);
+                this.snackbar.error('Publish failed', [this.extractError(err)]);
+              },
+            });
+        },
+        error: (err: any) => {
+          this.publishing.set(false);
+          this.snackbar.error('Save failed', [this.extractError(err)]);
+        },
+      });
   }
 
   goBack(): void {

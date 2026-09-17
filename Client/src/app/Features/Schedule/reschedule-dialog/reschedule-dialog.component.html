@@ -1,53 +1,62 @@
-<!-- components/reschedule-dialog/reschedule-dialog.component.html -->
 @if (isOpen() && appointment(); as a) {
   <div class="drawer-backdrop" (click)="onClose()"></div>
   <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="reschedule-title">
     <div class="drawer__header">
       <h2 class="drawer__title" id="reschedule-title">
         <i class="pi pi-history drawer__title-icon" aria-hidden="true"></i>
-        Reschedule Appointment
+        {{ 'RESCHEDULE_DIALOG.TITLE' | translate }}
       </h2>
       <button
         type="button"
         pButton
         icon="pi pi-times"
         class="p-button-text p-button-rounded drawer__close"
-        pTooltip="Close"
+        [pTooltip]="'RESCHEDULE_DIALOG.CLOSE' | translate"
         tooltipPosition="left"
-        aria-label="Close"
+        [attr.aria-label]="'RESCHEDULE_DIALOG.CLOSE' | translate"
         (click)="onClose()"
       ></button>
     </div>
 
     <div class="drawer__section">
-      <span class="drawer__label">Current Time</span>
+      <span class="drawer__label">{{ 'RESCHEDULE_DIALOG.CURRENT_TIME' | translate }}</span>
       <span class="drawer__value">
         <i class="pi pi-clock" aria-hidden="true"></i>
-        {{ a.slotStart | date:'EEE, MMM d · h:mm a' }} – {{ a.slotEnd | date:'h:mm a' }}
+        {{ a.slotStart | date: 'EEE, MMM d · h:mm a' }} – {{ a.slotEnd | date: 'h:mm a' }}
       </span>
     </div>
 
     <div class="form-field">
-      <span class="form-field__label">Choose a Working Day</span>
+      <span class="form-field__label">{{
+        'RESCHEDULE_DIALOG.CHOOSE_WORKING_DAY' | translate
+      }}</span>
       @if (loading()) {
         <span class="drawer__value drawer__value--muted">
           <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
-          Loading availability...
+          {{ 'RESCHEDULE_DIALOG.LOADING_AVAILABILITY' | translate }}
         </span>
       } @else if (workingDays().length === 0) {
         <div class="empty-note">
           <i class="pi pi-calendar-times" aria-hidden="true"></i>
-          No availability in the next 30 days.
+          {{ 'RESCHEDULE_DIALOG.NO_AVAILABILITY' | translate }}
         </div>
       } @else {
-        <div class="day-chip-row" role="listbox" aria-label="Available working days">
+        <div
+          class="day-chip-row"
+          role="listbox"
+          [attr.aria-label]="'RESCHEDULE_DIALOG.AVAILABLE_DAYS_ARIA' | translate"
+        >
           @for (day of workingDays(); track day.date.getTime()) {
-            <button type="button" role="option" class="day-chip"
+            <button
+              type="button"
+              role="option"
+              class="day-chip"
               [class.day-chip--active]="selectedDay()?.date?.getTime() === day.date.getTime()"
               [attr.aria-selected]="selectedDay()?.date?.getTime() === day.date.getTime()"
-              (click)="selectDay(day)">
+              (click)="selectDay(day)"
+            >
               <i class="pi pi-calendar" aria-hidden="true"></i>
-              {{ day.date | date:'EEE, MMM d' }}
+              {{ day.date | date: 'EEE, MMM d' }}
             </button>
           }
         </div>
@@ -56,15 +65,27 @@
 
     @if (selectedDay(); as day) {
       <div class="form-field">
-        <span class="form-field__label">Choose an Available Window</span>
-        <div class="interval-grid" role="listbox" aria-label="Available time windows">
+        <span class="form-field__label">{{ 'RESCHEDULE_DIALOG.CHOOSE_WINDOW' | translate }}</span>
+        <div
+          class="interval-grid"
+          role="listbox"
+          [attr.aria-label]="'RESCHEDULE_DIALOG.AVAILABLE_WINDOWS_ARIA' | translate"
+        >
           @for (interval of day.intervals; track interval.start.getTime()) {
-            <button type="button" role="option" class="interval-btn"
-              [class.interval-btn--active]="selectedInterval()?.start?.getTime() === interval.start.getTime()"
-              [attr.aria-selected]="selectedInterval()?.start?.getTime() === interval.start.getTime()"
-              (click)="selectInterval(interval)">
+            <button
+              type="button"
+              role="option"
+              class="interval-btn"
+              [class.interval-btn--active]="
+                selectedInterval()?.start?.getTime() === interval.start.getTime()
+              "
+              [attr.aria-selected]="
+                selectedInterval()?.start?.getTime() === interval.start.getTime()
+              "
+              (click)="selectInterval(interval)"
+            >
               <i class="pi pi-clock" aria-hidden="true"></i>
-              {{ interval.start | date:'h:mm a' }} – {{ interval.end | date:'h:mm a' }}
+              {{ interval.start | date: 'h:mm a' }} – {{ interval.end | date: 'h:mm a' }}
             </button>
           }
         </div>
@@ -73,7 +94,9 @@
 
     @if (selectedInterval()) {
       <div class="form-field">
-        <span class="form-field__label">Exact Start Time (within the window above)</span>
+        <span class="form-field__label">{{
+          'RESCHEDULE_DIALOG.EXACT_START_TIME' | translate
+        }}</span>
         <input
           type="time"
           class="form-field__input"
@@ -86,12 +109,18 @@
         @if (!isTimeValid()) {
           <span class="form-field__hint form-field__hint--error">
             <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-            Must fit within {{ timeInputMin() }} – {{ timeInputMax() }} to preserve the original duration.
+            {{
+              'RESCHEDULE_DIALOG.ERROR_DURATION'
+                | translate: { min: timeInputMin(), max: timeInputMax() }
+            }}
           </span>
         } @else {
           <span class="form-field__hint">
             <i class="pi pi-check-circle" aria-hidden="true"></i>
-            Duration stays {{ originalDurationMinutes() }} min, same as the original appointment.
+            {{
+              'RESCHEDULE_DIALOG.SUCCESS_DURATION'
+                | translate: { duration: originalDurationMinutes() }
+            }}
           </span>
         }
       </div>
@@ -103,7 +132,7 @@
         pButton
         class="drawer-btn drawer-btn--primary"
         icon="pi pi-check"
-        label="Confirm"
+        [label]="'RESCHEDULE_DIALOG.CONFIRM' | translate"
         [disabled]="!isTimeValid()"
         (click)="onConfirm()"
       ></button>
@@ -112,7 +141,7 @@
         pButton
         class="p-button-outlined drawer-btn"
         icon="pi pi-times"
-        label="Cancel"
+        [label]="'RESCHEDULE_DIALOG.CANCEL' | translate"
         (click)="onClose()"
       ></button>
     </div>

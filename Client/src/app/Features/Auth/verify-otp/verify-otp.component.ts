@@ -4,18 +4,19 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputOtpModule } from 'primeng/inputotp';
 import { AuthService } from '../../../Core/Services/auth.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-verify-otp',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ButtonModule, InputOtpModule],
+  imports: [ReactiveFormsModule, RouterLink, ButtonModule, InputOtpModule, TranslatePipe],
   templateUrl: './verify-otp.component.html',
 })
 export class VerifyOtpComponent implements OnInit {
-  private readonly fb     = inject(FormBuilder);
-  private readonly auth   = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly route  = inject(ActivatedRoute);
+  private readonly route = inject(ActivatedRoute);
 
   email = signal('');
   loading = signal(false);
@@ -44,7 +45,7 @@ export class VerifyOtpComponent implements OnInit {
 
     this.auth.verifyResetOtp({ email: this.email(), otp }).subscribe({
       next: () => {
-        this.auth.saveResetOtp(otp); 
+        this.auth.saveResetOtp(otp);
         this.router.navigate(['/auth/reset-password'], {
           queryParams: { email: this.email() },
         });

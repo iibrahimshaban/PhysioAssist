@@ -13,6 +13,7 @@ import { TreatmentPlanComponent } from './components/treatment-plan/treatment-pl
 import { NextSessionBookingComponent } from './components/next-session-booking/next-session-booking.component';
 import { SnackbarService } from '../../Core/Services/snackbar.service';
 import { catchError, concatMap, from, map, of, toArray } from 'rxjs';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-session',

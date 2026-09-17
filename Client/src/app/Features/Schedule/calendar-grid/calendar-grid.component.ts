@@ -1,30 +1,52 @@
 import {
-  Component, ChangeDetectionStrategy, computed, input, output, signal,
-  ElementRef, viewChild, AfterViewInit, OnDestroy
+  Component,
+  ChangeDetectionStrategy,
+  computed,
+  input,
+  output,
+  signal,
+  ElementRef,
+  viewChild,
+  AfterViewInit,
+  OnDestroy,
 } from '@angular/core';
-import { CalendarHeaderComponent, CalendarDayColumn } from '../calendar-header/calendar-header.component';
+import {
+  CalendarHeaderComponent,
+  CalendarDayColumn,
+} from '../calendar-header/calendar-header.component';
 import { AppointmentCardComponent } from '../appointment-card/appointment-card.component';
 import { AvailabilityOverlayComponent } from '../availability-overlay/availability-overlay.component';
-import { Appointment, AvailableInterval, WorkingDayWindow, CalendarViewMode } from '../schedule.models';
+import {
+  Appointment,
+  AvailableInterval,
+  WorkingDayWindow,
+  CalendarViewMode,
+} from '../schedule.models';
+import { TranslatePipe } from '@ngx-translate/core';
 
 interface DragState {
   appointment: Appointment;
   originalStart: Date;
   originalEnd: Date;
   startClientY: number;
-  startClientX: number;     // horizontal anchor — needed to compute day movement
+  startClientX: number; // horizontal anchor — needed to compute day movement
   originalDayIndex: number; // which column the drag started in
-  colWidth: number;         // cached once at drag-start to avoid layout thrashing on every pointermove
+  colWidth: number; // cached once at drag-start to avoid layout thrashing on every pointermove
   mode: 'move' | 'resize';
 }
 
 @Component({
   selector: 'app-calendar-grid',
   standalone: true,
-  imports: [CalendarHeaderComponent, AppointmentCardComponent, AvailabilityOverlayComponent],
+  imports: [
+    CalendarHeaderComponent,
+    AppointmentCardComponent,
+    AvailabilityOverlayComponent,
+    TranslatePipe,
+  ],
   templateUrl: './calendar-grid.component.html',
   styleUrl: './calendar-grid.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarGridComponent implements AfterViewInit, OnDestroy {
   selectedDate = input.required<Date>();
@@ -67,7 +89,7 @@ export class CalendarGridComponent implements AfterViewInit, OnDestroy {
 
   private windowForDay(date: Date): WorkingDayWindow | null {
     const dow = date.getDay();
-    return this.workingDays().find(d => d.day === dow) ?? null;
+    return this.workingDays().find((d) => d.day === dow) ?? null;
   }
 
   protected readonly days = computed<CalendarDayColumn[]>(() => {
@@ -88,15 +110,19 @@ export class CalendarGridComponent implements AfterViewInit, OnDestroy {
   });
 
   protected readonly timelineStartHour = computed(() => {
-    const windows = this.days().map(d => this.windowForDay(d.date)).filter((w): w is WorkingDayWindow => w !== null);
+    const windows = this.days()
+      .map((d) => this.windowForDay(d.date))
+      .filter((w): w is WorkingDayWindow => w !== null);
     if (windows.length === 0) return 9;
-    return Math.floor(Math.min(...windows.map(w => this.hourFraction(w.startTime))));
+    return Math.floor(Math.min(...windows.map((w) => this.hourFraction(w.startTime))));
   });
 
   protected readonly timelineEndHour = computed(() => {
-    const windows = this.days().map(d => this.windowForDay(d.date)).filter((w): w is WorkingDayWindow => w !== null);
+    const windows = this.days()
+      .map((d) => this.windowForDay(d.date))
+      .filter((w): w is WorkingDayWindow => w !== null);
     if (windows.length === 0) return 18;
-    return Math.ceil(Math.max(...windows.map(w => this.hourFraction(w.endTime))));
+    return Math.ceil(Math.max(...windows.map((w) => this.hourFraction(w.endTime))));
   });
 
   protected readonly hours = computed(() => {
@@ -106,18 +132,18 @@ export class CalendarGridComponent implements AfterViewInit, OnDestroy {
   });
 
   protected readonly currentTimeTop = computed<number | null>(() => {
-  const n = this.now();
-  const start = this.timelineStartHour();
-  const end = this.timelineEndHour();
-  const fraction = n.getHours() + n.getMinutes() / 60;
-  if (fraction < start || fraction > end) return null;
-  return (fraction - start) * this.hourHeight;
-});
+    const n = this.now();
+    const start = this.timelineStartHour();
+    const end = this.timelineEndHour();
+    const fraction = n.getHours() + n.getMinutes() / 60;
+    if (fraction < start || fraction > end) return null;
+    return (fraction - start) * this.hourHeight;
+  });
 
-// add here
-protected readonly currentTimeLabel = computed(() =>
-  this.now().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-);
+  // add here
+  protected readonly currentTimeLabel = computed(() =>
+    this.now().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+  );
 
   protected isTodayColumn(date: Date): boolean {
     return date.toDateString() === new Date().toDateString();
@@ -128,11 +154,13 @@ protected readonly currentTimeLabel = computed(() =>
   // currently over, instead of staying anchored to its original column
   // until the drop completes.
   protected appointmentsForDay(date: Date): Appointment[] {
-    return this.appointments().filter(a => this.displayedStart(a).toDateString() === date.toDateString());
+    return this.appointments().filter(
+      (a) => this.displayedStart(a).toDateString() === date.toDateString(),
+    );
   }
 
   protected availabilityForDay(date: Date): AvailableInterval[] {
-    return this.availability().filter(i => i.start.toDateString() === date.toDateString());
+    return this.availability().filter((i) => i.start.toDateString() === date.toDateString());
   }
 
   protected isWorkingDay(date: Date): boolean {
@@ -165,7 +193,7 @@ protected readonly currentTimeLabel = computed(() =>
 
   protected onDragStarted(e: { appointment: Appointment; clientY: number; clientX: number }): void {
     const originalDayIndex = this.days().findIndex(
-      d => d.date.toDateString() === e.appointment.slotStart.toDateString()
+      (d) => d.date.toDateString() === e.appointment.slotStart.toDateString(),
     );
 
     this.dragState = {
@@ -176,7 +204,7 @@ protected readonly currentTimeLabel = computed(() =>
       startClientX: e.clientX,
       originalDayIndex: originalDayIndex >= 0 ? originalDayIndex : 0,
       colWidth: this.measureColumnWidth(),
-      mode: 'move'
+      mode: 'move',
     };
     this.draggingId.set(e.appointment.id);
     this.attachPointerListeners();
@@ -194,7 +222,7 @@ protected readonly currentTimeLabel = computed(() =>
       startClientX: 0,
       originalDayIndex: 0,
       colWidth: 1,
-      mode: 'resize'
+      mode: 'resize',
     };
     this.draggingId.set(e.appointment.id);
     this.attachPointerListeners();
@@ -227,7 +255,7 @@ protected readonly currentTimeLabel = computed(() =>
       const days = this.days();
       const targetDayIndex = Math.max(
         0,
-        Math.min(days.length - 1, this.dragState.originalDayIndex + dayDelta)
+        Math.min(days.length - 1, this.dragState.originalDayIndex + dayDelta),
       );
       const targetDate = days[targetDayIndex].date;
 
@@ -243,7 +271,8 @@ protected readonly currentTimeLabel = computed(() =>
 
       // --- Duration is ALWAYS preserved — computed once from the original
       // appointment, never re-derived from drag distance. ---
-      const durationMs = this.dragState.originalEnd.getTime() - this.dragState.originalStart.getTime();
+      const durationMs =
+        this.dragState.originalEnd.getTime() - this.dragState.originalStart.getTime();
       newEnd = new Date(newStart.getTime() + durationMs);
     } else {
       // Resize: vertical-only, changes duration by design. Unchanged from before.
@@ -266,17 +295,17 @@ protected readonly currentTimeLabel = computed(() =>
 
     this.draggingId.set(null);
 
-    const moved = live && (
-      live.start.getTime() !== original.start.getTime() ||
-      live.end.getTime() !== original.end.getTime()
-    );
+    const moved =
+      live &&
+      (live.start.getTime() !== original.start.getTime() ||
+        live.end.getTime() !== original.end.getTime());
 
     if (moved) {
       if (this.isWorkingDay(live!.start)) {
         this.rescheduleRequested.emit({
           appointment: this.dragState.appointment,
           newStart: live!.start,
-          newEnd: live!.end
+          newEnd: live!.end,
         });
       } else {
         // Doctor doesn't work this day at all — skip the network round trip,
@@ -327,7 +356,7 @@ protected readonly currentTimeLabel = computed(() =>
       date,
       label: date.toLocaleDateString('en-US', { weekday: 'short' }),
       dayNumber: date.getDate(),
-      isToday: date.toDateString() === today.toDateString()
+      isToday: date.toDateString() === today.toDateString(),
     };
   }
 }

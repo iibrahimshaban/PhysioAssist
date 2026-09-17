@@ -6,12 +6,18 @@ import { ButtonModule } from 'primeng/button';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IntakeApiService } from '../../services/intake-api.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
-import { PreVisitIntakeResponse, IntakeStatus, getIntakeStatusLabel, getIntakeStatusPillClass } from '../../models';
+import {
+  PreVisitIntakeResponse,
+  IntakeStatus,
+  getIntakeStatusLabel,
+  getIntakeStatusPillClass,
+} from '../../models';
 
 import { SubmissionFiltersBarComponent } from './submission-filters-bar/submission-filters-bar.component';
 import { SubmissionSummaryStatsComponent } from './submission-summary-stats/submission-summary-stats.component';
 import { SubmissionRowComponent } from './submission-row/submission-row.component';
 import { IntakePageContainerComponent } from '../../shared/intake-page-container.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-submission-list',
@@ -23,10 +29,11 @@ import { IntakePageContainerComponent } from '../../shared/intake-page-container
     SubmissionFiltersBarComponent,
     SubmissionSummaryStatsComponent,
     IntakePageContainerComponent,
-    SubmissionRowComponent
+    SubmissionRowComponent,
+    TranslatePipe,
   ],
   templateUrl: './submission-list.component.html',
-  styleUrl: './submission-list.component.css'
+  styleUrl: './submission-list.component.css',
 })
 export class SubmissionListComponent implements OnInit {
   private readonly router = inject(Router);
@@ -88,16 +95,17 @@ export class SubmissionListComponent implements OnInit {
     // Filter by status
     const status = this.selectedStatus();
     if (status !== null) {
-      list = list.filter(s => s.status === status);
+      list = list.filter((s) => s.status === status);
     }
 
     // Filter by search term
     const term = this.searchTerm().toLowerCase().trim();
     if (term) {
-      list = list.filter(s =>
-        (s.patientName ?? '').toLowerCase().includes(term) ||
-        (s.shortCode ?? '').toLowerCase().includes(term) ||
-        `#${s.shortCode ?? ''}`.toLowerCase().includes(term)
+      list = list.filter(
+        (s) =>
+          (s.patientName ?? '').toLowerCase().includes(term) ||
+          (s.shortCode ?? '').toLowerCase().includes(term) ||
+          `#${s.shortCode ?? ''}`.toLowerCase().includes(term),
       );
     }
 
@@ -123,7 +131,9 @@ export class SubmissionListComponent implements OnInit {
   });
 
   // Pagination computed values
-  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filteredSubmissions().length / this.pageSize())));
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredSubmissions().length / this.pageSize())),
+  );
 
   readonly paginatedSubmissions = computed(() => {
     const start = (this.currentPage() - 1) * this.pageSize();
@@ -131,7 +141,7 @@ export class SubmissionListComponent implements OnInit {
   });
 
   readonly pageEndIndex = computed(() =>
-    Math.min(this.currentPage() * this.pageSize(), this.filteredSubmissions().length)
+    Math.min(this.currentPage() * this.pageSize(), this.filteredSubmissions().length),
   );
 
   readonly pageNumbers = computed(() => {
@@ -148,20 +158,23 @@ export class SubmissionListComponent implements OnInit {
     return range;
   });
 
-  readonly pendingCount = computed(() =>
-    this.submissions().filter(s => s.status === IntakeStatus.Pending || s.status === IntakeStatus.Submitted).length
+  readonly pendingCount = computed(
+    () =>
+      this.submissions().filter(
+        (s) => s.status === IntakeStatus.Pending || s.status === IntakeStatus.Submitted,
+      ).length,
   );
 
-  readonly inReviewCount = computed(() =>
-    this.submissions().filter(s => s.status === IntakeStatus.InReview).length
+  readonly inReviewCount = computed(
+    () => this.submissions().filter((s) => s.status === IntakeStatus.InReview).length,
   );
 
-  readonly approvedCount = computed(() =>
-    this.submissions().filter(s => s.status === IntakeStatus.Approved).length
+  readonly approvedCount = computed(
+    () => this.submissions().filter((s) => s.status === IntakeStatus.Approved).length,
   );
 
-  readonly convertedCount = computed(() =>
-    this.submissions().filter(s => s.status === IntakeStatus.Converted).length
+  readonly convertedCount = computed(
+    () => this.submissions().filter((s) => s.status === IntakeStatus.Converted).length,
   );
 
   ngOnInit(): void {
@@ -174,19 +187,22 @@ export class SubmissionListComponent implements OnInit {
     this.error.set(null);
     this.currentPage.set(1);
 
-    this.intakeApi.getSubmissions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (data) => {
-        if (requestId !== this.loadRequestId) return;
-        this.submissions.set(data);
-        this.loading.set(false);
-      },
-      error: () => {
-        if (requestId !== this.loadRequestId) return;
-        this.error.set('Failed to load submissions. Please try again.');
-        this.loading.set(false);
-        this.snackbar.error('Error', ['Could not load intake submissions.']);
-      }
-    });
+    this.intakeApi
+      .getSubmissions()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          if (requestId !== this.loadRequestId) return;
+          this.submissions.set(data);
+          this.loading.set(false);
+        },
+        error: () => {
+          if (requestId !== this.loadRequestId) return;
+          this.error.set('Failed to load submissions. Please try again.');
+          this.loading.set(false);
+          this.snackbar.error('Error', ['Could not load intake submissions.']);
+        },
+      });
   }
 
   onSearch(term: string): void {

@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -8,12 +15,19 @@ import { DoctorSchedulingPreferenceService } from '../../Core/Services/doctor-sc
 import { SnackbarService } from '../../Core/Services/snackbar.service';
 import { UpdateDoctorSchedulingPreferenceRequest } from '../../Shared/Models/Doctorschedulingpreference.model';
 import { rxResource } from '@angular/core/rxjs-interop';
-
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-scheduling-preferences',
   standalone: true,
-  imports: [FormsModule, ButtonModule, InputNumberModule, ToggleSwitchModule, CardModule],
+  imports: [
+    FormsModule,
+    ButtonModule,
+    InputNumberModule,
+    ToggleSwitchModule,
+    CardModule,
+    TranslatePipe,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './scheduling-preferences.component.html',
 })
@@ -49,7 +63,11 @@ export class SchedulingPreferencesComponent {
     });
   }
 
-  private hydrateFrom(value: { maxShortfallToleranceMinutes: number; maxDaysOutForExactMatch: number; allowShorterSlots: boolean }) {
+  private hydrateFrom(value: {
+    maxShortfallToleranceMinutes: number;
+    maxDaysOutForExactMatch: number;
+    allowShorterSlots: boolean;
+  }) {
     this.maxShortfallToleranceMinutes.set(value.maxShortfallToleranceMinutes);
     this.maxDaysOutForExactMatch.set(value.maxDaysOutForExactMatch);
     this.allowShorterSlots.set(value.allowShorterSlots);

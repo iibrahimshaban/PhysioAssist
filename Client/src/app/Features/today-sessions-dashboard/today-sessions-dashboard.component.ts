@@ -1,14 +1,19 @@
 import { Component, computed, DestroyRef, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { TodaySessionsService } from '../../Core/Services/today-sessions.service';
-import { SlotBoardLane, TodaySessionCardDto, TodaySessionsOverviewDto } from '../../Shared/Models/today-sessions.model';
+import {
+  SlotBoardLane,
+  TodaySessionCardDto,
+  TodaySessionsOverviewDto,
+} from '../../Shared/Models/today-sessions.model';
 import { NoShowConfirmDialogComponent } from './no-show-confirm-dialog/no-show-confirm-dialog.component';
-import { Button } from "primeng/button";
+import { Button } from 'primeng/button';
 import { DatePipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-today-sessions-dashboard',
-  imports: [NoShowConfirmDialogComponent, Button, DatePipe],
+  imports: [NoShowConfirmDialogComponent, Button, DatePipe, TranslatePipe],
   templateUrl: './today-sessions-dashboard.component.html',
   styleUrl: './today-sessions-dashboard.component.css',
 })
@@ -16,7 +21,7 @@ export class TodaySessionsDashboardComponent {
   private readonly router = inject(Router);
   private readonly todaySessionsService = inject(TodaySessionsService);
   private readonly destroyRef = inject(DestroyRef);
-   protected readonly now = signal(new Date());
+  protected readonly now = signal(new Date());
 
   protected readonly laneEnum = SlotBoardLane;
   private readonly noShowDialog = viewChild.required(NoShowConfirmDialogComponent);
@@ -29,14 +34,18 @@ export class TodaySessionsDashboardComponent {
   formattedDate = computed(() => {
     const ov = this.overview();
     if (!ov) return '';
-    return new Date(ov.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+    return new Date(ov.date).toLocaleDateString(undefined, {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    });
   });
 
   timelineRange = computed(() => {
     const ov = this.overview();
     if (!ov || ov.timeline.length === 0) return null;
 
-    const starts = ov.timeline.map(t => new Date(t.slotStart).getTime());
+    const starts = ov.timeline.map((t) => new Date(t.slotStart).getTime());
     const min = Math.min(...starts);
     const max = Math.max(...starts);
     return { start: min - 60 * 60 * 1000, end: max + 60 * 60 * 1000 };
@@ -52,7 +61,7 @@ export class TodaySessionsDashboardComponent {
   private load(): void {
     this.isLoading.set(true);
     this.todaySessionsService.getTodaySessions().subscribe({
-      next: ov => {
+      next: (ov) => {
         this.overview.set(ov);
         this.isLoading.set(false);
       },
@@ -78,10 +87,14 @@ export class TodaySessionsDashboardComponent {
 
   protected laneDotClass(lane: SlotBoardLane): string {
     switch (lane) {
-      case SlotBoardLane.Completed: return 'bg-green-500';
-      case SlotBoardLane.InProgress: return 'bg-[#0B8EEA]';
-      case SlotBoardLane.Missed: return 'bg-red-400';
-      default: return 'bg-amber-400';
+      case SlotBoardLane.Completed:
+        return 'bg-green-500';
+      case SlotBoardLane.InProgress:
+        return 'bg-[#0B8EEA]';
+      case SlotBoardLane.Missed:
+        return 'bg-red-400';
+      default:
+        return 'bg-amber-400';
     }
   }
 
@@ -101,7 +114,7 @@ export class TodaySessionsDashboardComponent {
 
     this.actioningSlotId.set(card.slotId);
     this.todaySessionsService.startOrResumeSession(card.patientId, card.slotId).subscribe({
-      next: res => {
+      next: (res) => {
         this.actioningSlotId.set(null);
         this.router.navigate(['/app/session', res.id]);
       },
@@ -128,7 +141,7 @@ export class TodaySessionsDashboardComponent {
     this.todaySessionsService.markNoShow(slotId, countsAsUsed).subscribe({
       next: () => {
         this.actioningSlotId.set(null);
-        this.load(); 
+        this.load();
       },
       error: () => this.actioningSlotId.set(null),
     });

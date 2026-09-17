@@ -1,9 +1,7 @@
 <app-header></app-header>
 
 <div class="landing">
-
   <main>
-
     <!-- ============ 2 & 3 & 4. HERO ============ -->
     <section class="hero">
       <div class="hero__pulse-line" aria-hidden="true">
@@ -16,28 +14,26 @@
         <div class="hero__copy" #revealEl>
           <span class="eyebrow">
             <i class="pi pi-map-marker" aria-hidden="true"></i>
-            Built for solo physiotherapists in Egypt
+            {{ 'LANDING.HERO.EYEBROW' | translate }}
           </span>
 
           <h1 class="hero__title">
-            Run your clinic.<br />
-            <span class="text-gradient">Smarter. Simpler.</span>
+            {{ 'LANDING.HERO.TITLE_LINE_1' | translate }}<br />
+            <span class="text-gradient">{{ 'LANDING.HERO.TITLE_LINE_2' | translate }}</span>
           </h1>
 
           <p class="hero__subtitle">
-            Manage patients, appointments, treatment sessions and clinical
-            documentation from one intelligent platform &mdash; with AI that
-            listens, writes and organizes alongside you.
+            {{ 'LANDING.HERO.SUBTITLE' | translate }}
           </p>
 
           <div class="hero__actions">
             <a routerLink="/auth/register" class="btn btn--primary btn--lg">
-              Start for free
+              {{ 'LANDING.HERO.START_FOR_FREE' | translate }}
               <i class="pi pi-arrow-right" aria-hidden="true"></i>
             </a>
             <a href="#features" class="btn btn--outline btn--lg">
               <i class="pi pi-play" aria-hidden="true"></i>
-              Explore features
+              {{ 'LANDING.HERO.EXPLORE_FEATURES' | translate }}
             </a>
           </div>
         </div>
@@ -46,25 +42,43 @@
         <div class="hero__visual" #revealEl>
           <div class="dashboard-card">
             <div class="dashboard-card__header">
-              <span class="dashboard-card__title">Today's Schedule</span>
+              <span class="dashboard-card__title">{{
+                'LANDING.HERO.TODAY_SCHEDULE' | translate
+              }}</span>
               <span class="ai-orb" aria-hidden="true">
                 <i class="pi pi-sparkles"></i>
                 <span class="ai-orb__dots"><i></i><i></i><i></i></span>
               </span>
             </div>
             <ul class="dashboard-card__list">
-              <li><span class="time">09:00</span><span class="who">Ahmed</span><span class="tag tag--booked">Booked</span></li>
-              <li><span class="time">10:00</span><span class="who">Sara</span><span class="tag tag--booked">Booked</span></li>
-              <li><span class="time">11:00</span><span class="who text-muted">Available</span><span class="tag tag--open">Open</span></li>
-              <li><span class="time">12:00</span><span class="who">Mohamed</span><span class="tag tag--booked">Booked</span></li>
+              <li>
+                <span class="time">09:00</span><span class="who">Ahmed</span
+                ><span class="tag tag--booked">{{ 'LANDING.HERO.BOOKED' | translate }}</span>
+              </li>
+              <li>
+                <span class="time">10:00</span><span class="who">Sara</span
+                ><span class="tag tag--booked">{{ 'LANDING.HERO.BOOKED' | translate }}</span>
+              </li>
+              <li>
+                <span class="time">11:00</span
+                ><span class="who text-muted">{{ 'LANDING.HERO.AVAILABLE' | translate }}</span
+                ><span class="tag tag--open">{{ 'LANDING.HERO.OPEN' | translate }}</span>
+              </li>
+              <li>
+                <span class="time">12:00</span><span class="who">Mohamed</span
+                ><span class="tag tag--booked">{{ 'LANDING.HERO.BOOKED' | translate }}</span>
+              </li>
             </ul>
           </div>
 
           <div class="float-card float-card--ai" aria-hidden="true">
             <span class="float-card__icon"><i class="pi pi-sparkles"></i></span>
             <div>
-              <p class="float-card__label">AI Assistant</p>
-              <p class="float-card__value"><i class="pi pi-check-circle"></i> Session summary generated</p>
+              <p class="float-card__label">{{ 'LANDING.HERO.AI_ASSISTANT' | translate }}</p>
+              <p class="float-card__value">
+                <i class="pi pi-check-circle"></i>
+                {{ 'LANDING.HERO.SESSION_SUMMARY_GENERATED' | translate }}
+              </p>
             </div>
           </div>
 
@@ -72,15 +86,15 @@
             <span class="float-card__icon float-card__icon--teal"><i class="pi pi-user"></i></span>
             <div>
               <p class="float-card__label">Ahmed Mohamed</p>
-              <p class="float-card__value">8 sessions</p>
+              <p class="float-card__value">8 {{ 'LANDING.HERO.SESSIONS' | translate }}</p>
             </div>
           </div>
 
           <div class="float-card float-card--voice" aria-hidden="true">
             <span class="pulse-dot"></span>
             <div>
-              <p class="float-card__label">Voice Transcription</p>
-              <p class="float-card__value">Listening&hellip;</p>
+              <p class="float-card__label">{{ 'LANDING.HERO.VOICE_TRANSCRIPTION' | translate }}</p>
+              <p class="float-card__value">{{ 'LANDING.HERO.LISTENING' | translate }}</p>
             </div>
           </div>
         </div>
@@ -89,26 +103,42 @@
 
     <!-- ============ 5. TRUST STRIP ============ -->
     <section class="trust-strip" #revealEl>
-      <p class="trust-strip__label">Built for modern physiotherapy clinics</p>
+      <p class="trust-strip__label">{{ 'LANDING.TRUST_STRIP.LABEL' | translate }}</p>
       <ul class="trust-strip__list">
-        <li><i class="pi pi-check" aria-hidden="true"></i> Patient Management</li>
-        <li><i class="pi pi-check" aria-hidden="true"></i> AI Documentation</li>
-        <li><i class="pi pi-check" aria-hidden="true"></i> Smart Scheduling</li>
-        <li><i class="pi pi-check" aria-hidden="true"></i> Session Tracking</li>
+        <li>
+          <i class="pi pi-check" aria-hidden="true"></i>
+          {{ 'LANDING.TRUST_STRIP.PATIENT_MANAGEMENT' | translate }}
+        </li>
+        <li>
+          <i class="pi pi-check" aria-hidden="true"></i>
+          {{ 'LANDING.TRUST_STRIP.AI_DOCUMENTATION' | translate }}
+        </li>
+        <li>
+          <i class="pi pi-check" aria-hidden="true"></i>
+          {{ 'LANDING.TRUST_STRIP.SMART_SCHEDULING' | translate }}
+        </li>
+        <li>
+          <i class="pi pi-check" aria-hidden="true"></i>
+          {{ 'LANDING.TRUST_STRIP.SESSION_TRACKING' | translate }}
+        </li>
       </ul>
     </section>
 
     <!-- ============ 6. CORE FEATURES ============ -->
     <section class="section features" id="features">
       <div class="section__head" #revealEl>
-        <h2 class="section__title">Everything your clinic needs.<br />Nothing you don't.</h2>
+        <h2 class="section__title">
+          {{ 'LANDING.FEATURES.TITLE_LINE_1' | translate }}<br />{{
+            'LANDING.FEATURES.TITLE_LINE_2' | translate
+          }}
+        </h2>
       </div>
 
       <div class="feature-grid">
         <article class="feature-card" *ngFor="let f of features" #revealEl>
           <span class="feature-card__icon"><i class="pi" [class]="f.icon"></i></span>
-          <h3>{{ f.title }}</h3>
-          <p>{{ f.description }}</p>
+          <h3>{{ f.titleKey | translate }}</h3>
+          <p>{{ f.descKey | translate }}</p>
         </article>
       </div>
     </section>
@@ -117,31 +147,36 @@
     <section class="section ai-section" id="ai-assistant">
       <div class="section__head" #revealEl>
         <h2 class="section__title">
-          AI that works <span class="text-gradient">with you</span>,<br />not instead of you.
+          {{ 'LANDING.AI_SECTION.TITLE_LINE_1' | translate
+          }}<span class="text-gradient">{{ 'LANDING.AI_SECTION.TITLE_WITH_YOU' | translate }}</span
+          >{{ 'LANDING.AI_SECTION.TITLE_LINE_2' | translate }}
         </h2>
         <p class="section__lead">
-          PhysioAssist uses AI to reduce repetitive work while keeping the
-          physiotherapist in full control of every clinical decision.
+          {{ 'LANDING.AI_SECTION.LEAD' | translate }}
         </p>
       </div>
 
       <div class="ai-steps" #revealEl>
         <div class="ai-step">
           <span class="ai-step__num">01</span>
-          <h3>Capture</h3>
-          <p>Voice, forms and patient information</p>
+          <h3>{{ 'LANDING.AI_SECTION.STEP_1_TITLE' | translate }}</h3>
+          <p>{{ 'LANDING.AI_SECTION.STEP_1_DESC' | translate }}</p>
         </div>
-        <div class="ai-step__connector" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="ai-step__connector" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
         <div class="ai-step">
           <span class="ai-step__num">02</span>
-          <h3>Understand</h3>
-          <p>AI analyzes and organizes the information</p>
+          <h3>{{ 'LANDING.AI_SECTION.STEP_2_TITLE' | translate }}</h3>
+          <p>{{ 'LANDING.AI_SECTION.STEP_2_DESC' | translate }}</p>
         </div>
-        <div class="ai-step__connector" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="ai-step__connector" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
         <div class="ai-step">
           <span class="ai-step__num">03</span>
-          <h3>Assist</h3>
-          <p>Generate summaries, suggestions and smarter workflows</p>
+          <h3>{{ 'LANDING.AI_SECTION.STEP_3_TITLE' | translate }}</h3>
+          <p>{{ 'LANDING.AI_SECTION.STEP_3_DESC' | translate }}</p>
         </div>
       </div>
 
@@ -150,13 +185,13 @@
         <div class="voice-demo__panel voice-demo__panel--voice">
           <div class="voice-demo__header">
             <i class="pi pi-microphone" aria-hidden="true"></i>
-            Doctor speaking
+            {{ 'LANDING.AI_SECTION.DOCTOR_SPEAKING' | translate }}
           </div>
           <p class="voice-demo__quote">
-            "Patient reports reduced pain in the right knee after the previous session..."
+            {{ 'LANDING.AI_SECTION.QUOTE' | translate }}
           </p>
           <div class="waveform" aria-hidden="true">
-            <span *ngFor="let bar of [1,2,3,4,5,6,7,8,9,10,11,12]"></span>
+            <span *ngFor="let bar of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]"></span>
           </div>
         </div>
 
@@ -165,16 +200,25 @@
         <div class="voice-demo__panel voice-demo__panel--summary">
           <div class="voice-demo__header">
             <i class="pi pi-sparkles" aria-hidden="true"></i>
-            AI Session Summary
+            {{ 'LANDING.AI_SECTION.AI_SUMMARY_TITLE' | translate }}
           </div>
           <ul class="voice-demo__checklist">
-            <li><i class="pi pi-check-circle" aria-hidden="true"></i> Pain reduced</li>
-            <li><i class="pi pi-check-circle" aria-hidden="true"></i> Mobility improved</li>
-            <li><i class="pi pi-check-circle" aria-hidden="true"></i> Continue current exercises</li>
+            <li>
+              <i class="pi pi-check-circle" aria-hidden="true"></i>
+              {{ 'LANDING.AI_SECTION.PAIN_REDUCED' | translate }}
+            </li>
+            <li>
+              <i class="pi pi-check-circle" aria-hidden="true"></i>
+              {{ 'LANDING.AI_SECTION.MOBILITY_IMPROVED' | translate }}
+            </li>
+            <li>
+              <i class="pi pi-check-circle" aria-hidden="true"></i>
+              {{ 'LANDING.AI_SECTION.CONTINUE_EXERCISES' | translate }}
+            </li>
           </ul>
           <p class="voice-demo__next">
-            <span>Suggested next step</span>
-            Review after next session
+            <span>{{ 'LANDING.AI_SECTION.SUGGESTED_NEXT_STEP' | translate }}</span>
+            {{ 'LANDING.AI_SECTION.REVIEW_AFTER_SESSION' | translate }}
           </p>
         </div>
       </div>
@@ -183,36 +227,58 @@
     <!-- ============ 9. SMART SCHEDULING ============ -->
     <section class="section scheduling" id="scheduling">
       <div class="section__head" #revealEl>
-        <h2 class="section__title">Scheduling that understands both sides.</h2>
+        <h2 class="section__title">{{ 'LANDING.SCHEDULING.TITLE' | translate }}</h2>
         <p class="section__lead">
-          PhysioAssist compares patient availability with doctor availability
-          to suggest the best possible appointment time.
+          {{ 'LANDING.SCHEDULING.LEAD' | translate }}
         </p>
       </div>
 
       <div class="scheduling-demo" data-match #revealEl>
         <div class="scheduling-demo__col">
-          <h3><i class="pi pi-user" aria-hidden="true"></i> Patient availability</h3>
+          <h3>
+            <i class="pi pi-user" aria-hidden="true"></i>
+            {{ 'LANDING.SCHEDULING.PATIENT_AVAILABILITY' | translate }}
+          </h3>
           <ul class="avail-list">
-            <li><span>Saturday</span><span>3 PM &ndash; 6 PM</span></li>
-            <li><span>Sunday</span><span>4 PM &ndash; 8 PM</span></li>
-            <li><span>Monday</span><span>5 PM &ndash; 7 PM</span></li>
+            <li>
+              <span>{{ 'LANDING.SCHEDULING.DAYS.SATURDAY' | translate }}</span
+              ><span>3 PM &ndash; 6 PM</span>
+            </li>
+            <li>
+              <span>{{ 'LANDING.SCHEDULING.DAYS.SUNDAY' | translate }}</span
+              ><span>4 PM &ndash; 8 PM</span>
+            </li>
+            <li>
+              <span>{{ 'LANDING.SCHEDULING.DAYS.MONDAY' | translate }}</span
+              ><span>5 PM &ndash; 7 PM</span>
+            </li>
           </ul>
         </div>
 
         <div class="scheduling-demo__col">
-          <h3><i class="pi pi-verified" aria-hidden="true"></i> Doctor availability</h3>
+          <h3>
+            <i class="pi pi-verified" aria-hidden="true"></i>
+            {{ 'LANDING.SCHEDULING.DOCTOR_AVAILABILITY' | translate }}
+          </h3>
           <ul class="avail-list">
-            <li><span>Sunday</span><span>5 PM &ndash; 11 PM</span></li>
+            <li>
+              <span>{{ 'LANDING.SCHEDULING.DAYS.SUNDAY' | translate }}</span
+              ><span>5 PM &ndash; 11 PM</span>
+            </li>
           </ul>
         </div>
 
         <div class="scheduling-demo__match" [class.is-revealed]="matchRevealed()">
           <span class="scheduling-demo__match-label">
-            <i class="pi pi-sparkles" aria-hidden="true"></i> Best match
+            <i class="pi pi-sparkles" aria-hidden="true"></i>
+            {{ 'LANDING.SCHEDULING.BEST_MATCH' | translate }}
           </span>
-          <p class="scheduling-demo__match-time">Sunday, 5:00 &ndash; 6:00 PM</p>
-          <span class="scheduling-demo__match-score">92% match</span>
+          <p class="scheduling-demo__match-time">
+            {{ 'LANDING.SCHEDULING.BEST_MATCH_TIME' | translate }}
+          </p>
+          <span class="scheduling-demo__match-score">{{
+            'LANDING.SCHEDULING.MATCH_SCORE' | translate
+          }}</span>
         </div>
       </div>
     </section>
@@ -220,18 +286,19 @@
     <!-- ============ 10. PATIENT JOURNEY ============ -->
     <section class="section journey" id="for-physios">
       <div class="section__head" #revealEl>
-        <h2 class="section__title">One connected patient journey.</h2>
+        <h2 class="section__title">{{ 'LANDING.JOURNEY.TITLE' | translate }}</h2>
         <p class="section__lead">
-          From the first visit to long-term history, every step feeds the next
-          &mdash; no re-entering data, no lost context.
+          {{ 'LANDING.JOURNEY.LEAD' | translate }}
         </p>
       </div>
 
       <ol class="journey-timeline" #revealEl>
         <li *ngFor="let step of journey; let last = last">
           <span class="journey-timeline__icon"><i class="pi" [class]="step.icon"></i></span>
-          <span class="journey-timeline__label">{{ step.label }}</span>
-          <span class="journey-timeline__arrow" *ngIf="!last" aria-hidden="true"><i class="pi pi-arrow-right"></i></span>
+          <span class="journey-timeline__label">{{ step.labelKey | translate }}</span>
+          <span class="journey-timeline__arrow" *ngIf="!last" aria-hidden="true"
+            ><i class="pi pi-arrow-right"></i
+          ></span>
         </li>
       </ol>
     </section>
@@ -239,32 +306,36 @@
     <!-- ============ 11. CLINIC MANAGEMENT ============ -->
     <section class="section clinic-overview">
       <div class="section__head" #revealEl>
-        <h2 class="section__title">See your whole clinic, at a glance.</h2>
-        <p class="section__lead">A live-feeling overview of patients, appointments and what's next &mdash; illustrative preview data shown below.</p>
+        <h2 class="section__title">{{ 'LANDING.CLINIC_OVERVIEW.TITLE' | translate }}</h2>
+        <p class="section__lead">{{ 'LANDING.CLINIC_OVERVIEW.LEAD' | translate }}</p>
       </div>
 
       <div class="overview-card" data-stats #revealEl>
         <div class="overview-card__stats">
           <div class="stat">
             <span class="stat__value">{{ patientsCount() }}</span>
-            <span class="stat__label">Patients</span>
+            <span class="stat__label">{{ 'LANDING.CLINIC_OVERVIEW.PATIENTS' | translate }}</span>
           </div>
           <div class="stat">
             <span class="stat__value">{{ appointmentsCount() }}</span>
-            <span class="stat__label">Appointments</span>
+            <span class="stat__label">{{
+              'LANDING.CLINIC_OVERVIEW.APPOINTMENTS' | translate
+            }}</span>
           </div>
           <div class="stat">
             <span class="stat__value">{{ completedCount() }}</span>
-            <span class="stat__label">Completed</span>
+            <span class="stat__label">{{ 'LANDING.CLINIC_OVERVIEW.COMPLETED' | translate }}</span>
           </div>
           <div class="stat">
             <span class="stat__value">{{ upcomingCount() }}</span>
-            <span class="stat__label">Upcoming</span>
+            <span class="stat__label">{{ 'LANDING.CLINIC_OVERVIEW.UPCOMING' | translate }}</span>
           </div>
         </div>
 
         <div class="overview-card__next">
-          <span class="overview-card__next-label">Next appointment</span>
+          <span class="overview-card__next-label">{{
+            'LANDING.CLINIC_OVERVIEW.NEXT_APPOINTMENT' | translate
+          }}</span>
           <div class="overview-card__next-row">
             <span class="overview-card__next-avatar"><i class="pi pi-user"></i></span>
             <div>
@@ -279,38 +350,45 @@
     <!-- ============ 12. WHY PHYSIOASSIST ============ -->
     <section class="section why">
       <div class="section__head" #revealEl>
-        <h2 class="section__title">Why physiotherapists choose PhysioAssist</h2>
+        <h2 class="section__title">{{ 'LANDING.WHY.TITLE' | translate }}</h2>
       </div>
 
       <div class="why-grid" #revealEl>
         <div class="why-card">
           <i class="pi pi-file" aria-hidden="true"></i>
-          <h3>Less paperwork</h3>
+          <h3>{{ 'LANDING.WHY.LESS_PAPERWORK' | translate }}</h3>
         </div>
         <div class="why-card">
           <i class="pi pi-folder-open" aria-hidden="true"></i>
-          <h3>More organized care</h3>
+          <h3>{{ 'LANDING.WHY.MORE_ORGANIZED_CARE' | translate }}</h3>
         </div>
         <div class="why-card">
           <i class="pi pi-bolt" aria-hidden="true"></i>
-          <h3>Faster documentation</h3>
+          <h3>{{ 'LANDING.WHY.FASTER_DOCUMENTATION' | translate }}</h3>
         </div>
         <div class="why-card">
           <i class="pi pi-sitemap" aria-hidden="true"></i>
-          <h3>Smarter clinic workflows</h3>
+          <h3>{{ 'LANDING.WHY.SMARTER_WORKFLOWS' | translate }}</h3>
         </div>
       </div>
     </section>
 
     <!-- ============ 13. CTA ============ -->
     <section class="cta" #revealEl>
-      <h2>Spend less time managing your clinic.<br />Spend more time caring for your patients.</h2>
+      <h2>
+        {{ 'LANDING.CTA.TITLE_LINE_1' | translate }}<br />{{
+          'LANDING.CTA.TITLE_LINE_2' | translate
+        }}
+      </h2>
       <div class="cta__actions">
-        <a routerLink="/auth/register" class="btn btn--surface btn--lg">Start for free</a>
-        <a routerLink="/auth/login" class="btn btn--ghost-inverse btn--lg">Sign in</a>
+        <a routerLink="/auth/register" class="btn btn--surface btn--lg">{{
+          'LANDING.CTA.START_FOR_FREE' | translate
+        }}</a>
+        <a routerLink="/auth/login" class="btn btn--ghost-inverse btn--lg">{{
+          'LANDING.CTA.SIGN_IN' | translate
+        }}</a>
       </div>
     </section>
-
   </main>
 
   <!-- ============ 14. FOOTER ============ -->
@@ -318,33 +396,37 @@
     <div class="footer__inner">
       <div class="footer__brand">
         <span class="footer-brand">
-          <span  aria-hidden="true"> <img src="assets/icons/logo.svg" width="24" height="24" alt="PhysioAssist logo" /></span>
+          <span aria-hidden="true">
+            <img src="assets/icons/logo.svg" width="24" height="24" alt="PhysioAssist logo"
+          /></span>
           PhysioAssist
         </span>
-        <p>AI-powered clinic management for physiotherapists.</p>
+        <p>{{ 'LANDING.FOOTER.TAGLINE' | translate }}</p>
       </div>
 
       <div class="footer__col">
-        <h4>Product</h4>
-        <a href="#features">Features</a>
-        <a href="#ai-assistant">AI Assistant</a>
-        <a href="#scheduling">Scheduling</a>
+        <h4>{{ 'LANDING.FOOTER.PRODUCT' | translate }}</h4>
+        <a href="#features">{{ 'LANDING.FOOTER.FEATURES' | translate }}</a>
+        <a href="#ai-assistant">{{ 'LANDING.FOOTER.AI_ASSISTANT' | translate }}</a>
+        <a href="#scheduling">{{ 'LANDING.FOOTER.SCHEDULING' | translate }}</a>
       </div>
 
       <div class="footer__col">
-        <h4>Company</h4>
-        <a href="#">About</a>
-        <a href="#">Contact</a>
+        <h4>{{ 'LANDING.FOOTER.COMPANY' | translate }}</h4>
+        <a href="#">{{ 'LANDING.FOOTER.ABOUT' | translate }}</a>
+        <a href="#">{{ 'LANDING.FOOTER.CONTACT' | translate }}</a>
       </div>
 
       <div class="footer__col">
-        <h4>Legal</h4>
-        <a href="#">Privacy</a>
-        <a href="#">Terms</a>
+        <h4>{{ 'LANDING.FOOTER.LEGAL' | translate }}</h4>
+        <a href="#">{{ 'LANDING.FOOTER.PRIVACY' | translate }}</a>
+        <a href="#">{{ 'LANDING.FOOTER.TERMS' | translate }}</a>
       </div>
     </div>
 
-    <p class="footer__copyright">&copy; 2026 PhysioAssist. All rights reserved.</p>
+    <p class="footer__copyright">
+      &copy; 2026 PhysioAssist. {{ 'LANDING.FOOTER.RIGHTS' | translate }}
+    </p>
   </footer>
 
   <button
@@ -352,11 +434,10 @@
     class="back-to-top"
     [class.is-visible]="showBackToTop()"
     (click)="scrollToTop()"
-    aria-label="Back to top"
+    [attr.aria-label]="'LANDING.BACK_TO_TOP' | translate"
   >
     <i class="pi pi-arrow-up" aria-hidden="true"></i>
   </button>
-
 </div>
 
 <ng-container *appHasPermission="'QueryAgent:Write'">

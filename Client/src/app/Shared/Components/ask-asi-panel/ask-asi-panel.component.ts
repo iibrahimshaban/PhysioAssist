@@ -1,16 +1,29 @@
-import { afterNextRender, afterRenderEffect, ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, NgZone, signal, viewChild } from '@angular/core';
+import {
+  afterNextRender,
+  afterRenderEffect,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  NgZone,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { AiChatService } from '../../../Core/Services/ai-chat.service';
 import { ChatSessionStorageService } from '../../../Core/Services/chat-session-storage.service';
 import { AskAiPanelStateService } from '../../../Core/Services/ask-ai-panel-state.service';
 import { FormsModule } from '@angular/forms';
 import { ChatMessage, ChatSession, SearchMode } from '../../Models/chat.model';
 import { ChatMessageComponent } from '../chat-message/chat-message.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 type PanelView = 'search' | 'chat';
 
 @Component({
   selector: 'app-ask-asi-panel',
-  imports: [FormsModule, ChatMessageComponent],
+  imports: [FormsModule, ChatMessageComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './ask-asi-panel.component.html',
   styleUrl: './ask-asi-panel.component.css',
@@ -30,8 +43,7 @@ export class AskAsiPanelComponent {
   readonly loading = signal(false);
   readonly activeSessionId = signal<string | null>(null);
 
-  readonly modeInfo: Record<SearchMode, { description: string; comingSoon: boolean }> =
-  {
+  readonly modeInfo: Record<SearchMode, { description: string; comingSoon: boolean }> = {
     smart: {
       description: 'AI-powered search that understands intent, not just exact words.',
       comingSoon: false,
@@ -46,8 +58,8 @@ export class AskAsiPanelComponent {
 
   readonly recentSessions = computed(() => {
     return this.sessions()
-               .filter(session => session.messages.length > 0)
-               .slice(0,8);
+      .filter((session) => session.messages.length > 0)
+      .slice(0, 8);
   });
 
   readonly activeSession = computed<ChatSession | undefined>(() =>
@@ -153,7 +165,9 @@ export class AskAsiPanelComponent {
       const aborted = err instanceof DOMException && err.name === 'AbortError';
       this.zone.run(() => {
         this.sessionStore.updateMessage(sessionId, pendingId, {
-          content: aborted ? accumulated || 'Stopped.' : accumulated || 'Something went wrong reaching the AI. Please try again.',
+          content: aborted
+            ? accumulated || 'Stopped.'
+            : accumulated || 'Something went wrong reaching the AI. Please try again.',
           status: aborted ? 'sent' : 'error',
         });
       });
@@ -164,8 +178,7 @@ export class AskAsiPanelComponent {
   }
 
   onEnter(event: KeyboardEvent): void {
-    if (event.shiftKey)
-      return; // allow multi-line input with shift+enter
+    if (event.shiftKey) return; // allow multi-line input with shift+enter
 
     event.preventDefault();
     void this.send();

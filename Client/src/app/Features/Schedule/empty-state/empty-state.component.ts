@@ -1,16 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgClass } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
-export type EmptyStateKind =
-  | 'no-doctor'
-  | 'off-today'
-  | 'no-appointments'
-  | 'fully-booked';
+export type EmptyStateKind = 'no-doctor' | 'off-today' | 'no-appointments' | 'fully-booked';
 
 interface EmptyStateCopy {
   title: string;
@@ -21,10 +14,7 @@ interface EmptyStateCopy {
 @Component({
   selector: 'app-empty-state',
   standalone: true,
-  imports: [
-    RouterLink,
-    NgClass,
-  ],
+  imports: [RouterLink, NgClass, TranslatePipe],
   templateUrl: './empty-state.component.html',
   styleUrl: './empty-state.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

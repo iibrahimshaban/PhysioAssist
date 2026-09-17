@@ -4,14 +4,23 @@
 
     <div class="ws-day-row" [class.ws-day-row--enabled]="vm.enabled" [formGroup]="dayGroup(i)">
       <div class="ws-day-row-main">
-        <p-toggleswitch formControlName="enabled" [inputId]="'day-switch-' + i" [attr.aria-label]="day.label" />
+        <p-toggleswitch
+          formControlName="enabled"
+          [inputId]="'day-switch-' + i"
+          [attr.aria-label]="day.label"
+        />
 
         <label [for]="'day-switch-' + i" class="ws-day-name">{{ day.label }}</label>
 
         @if (vm.durationLabel) {
           <p-tag [value]="vm.durationLabel" severity="info" styleClass="ws-duration-chip" />
         } @else if (!vm.enabled) {
-          <p-tag value="Off" severity="secondary" [rounded]="true" styleClass="ws-off-chip" />
+          <p-tag
+            [value]="'WEEKLY_EDITOR.OFF' | translate"
+            severity="secondary"
+            [rounded]="true"
+            styleClass="ws-off-chip"
+          />
         }
       </div>
 
@@ -19,20 +28,24 @@
         <div class="ws-day-row-details">
           <div class="ws-time-fields">
             <label class="ws-time-field">
-              <span class="ws-time-label">Start Time</span>
+              <span class="ws-time-label">{{ 'WEEKLY_EDITOR.START_TIME' | translate }}</span>
               <input type="time" class="ws-time-input" formControlName="startTime" />
               @if (isRequiredError(i, 'startTime')) {
-                <span class="ws-field-error">Start time is required.</span>
+                <span class="ws-field-error">{{
+                  'WEEKLY_EDITOR.START_TIME_REQUIRED' | translate
+                }}</span>
               }
             </label>
 
             <span class="ws-time-separator pi pi-arrow-right" aria-hidden="true"></span>
 
             <label class="ws-time-field">
-              <span class="ws-time-label">End Time</span>
+              <span class="ws-time-label">{{ 'WEEKLY_EDITOR.END_TIME' | translate }}</span>
               <input type="time" class="ws-time-input" formControlName="endTime" />
               @if (isRequiredError(i, 'endTime')) {
-                <span class="ws-field-error">End time is required.</span>
+                <span class="ws-field-error">{{
+                  'WEEKLY_EDITOR.END_TIME_REQUIRED' | translate
+                }}</span>
               }
             </label>
           </div>
@@ -40,13 +53,17 @@
           @if (hasRangeError(i)) {
             <p class="ws-field-error ws-field-error--row">
               <span class="pi pi-exclamation-circle" aria-hidden="true"></span>
-              End time must be after start time.
+              {{ 'WEEKLY_EDITOR.RANGE_ERROR' | translate }}
             </p>
           }
 
           <div class="ws-timeline" aria-hidden="true">
             <div class="ws-timeline-track"></div>
-            <div class="ws-timeline-range" [style.left.%]="vm.barLeftPct" [style.width.%]="vm.barWidthPct"></div>
+            <div
+              class="ws-timeline-range"
+              [style.left.%]="vm.barLeftPct"
+              [style.width.%]="vm.barWidthPct"
+            ></div>
           </div>
           <div class="ws-timeline-ticks">
             @for (tick of timelineTicks; track $index) {

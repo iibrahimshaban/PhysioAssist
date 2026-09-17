@@ -6,7 +6,7 @@
   >
     <span class="flex items-center text-sm font-bold uppercase text-slate-700">
       <i class="pi pi-clipboard icon-gradient mr-2"></i>
-      TREATMENT PLAN
+      {{ 'TREATMENT_PLAN.TITLE' | translate }}
     </span>
 
     <i
@@ -19,7 +19,7 @@
   @if (isOpen()) {
     <div class="border-t border-slate-100 px-5 pb-5 pt-4">
       <p class="mb-2 text-xs leading-5 text-slate-400">
-        Carried over from the previous session. Edit below to update it going forward.
+        {{ 'TREATMENT_PLAN.SUBTITLE' | translate }}
       </p>
 
       <textarea
@@ -28,7 +28,7 @@
         class="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-700 focus:border-[var(--brand-gradient-start)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-gradient-start)]"
         [value]="plan()"
         (input)="onInput($any($event.target).value)"
-        placeholder="No treatment plan yet — this will start from the patient's initial report."
+        [placeholder]="'TREATMENT_PLAN.PLACEHOLDER' | translate"
       ></textarea>
     </div>
   }

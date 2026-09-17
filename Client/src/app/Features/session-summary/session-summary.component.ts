@@ -1,11 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SessionProgressNoteComponent } from '../session/components/session-progress-note/session-progress-note.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-session-summary',
   standalone: true,
-  imports: [SessionProgressNoteComponent],
+  imports: [SessionProgressNoteComponent, TranslatePipe],
   templateUrl: './session-summary.component.html',
   styleUrl: './session-summary.component.css',
 })

@@ -1,44 +1,50 @@
 <div class="flex h-screen">
-
   <!-- ─── Left panel ──────────────────────────────────────────────────── -->
-  <div class="hidden lg:flex w-[52%] flex-col justify-between p-10"
-       style="background: linear-gradient(145deg, #1a7fd4 0%, #0eb8a0 100%)">
-
+  <div
+    class="hidden lg:flex w-[52%] flex-col justify-between p-10"
+    style="background: linear-gradient(145deg, #1a7fd4 0%, #0eb8a0 100%)"
+  >
     <div class="flex items-center gap-2 text-white">
       <i class="pi pi-heart-fill text-xl"></i>
-      <span class="font-semibold text-lg tracking-tight">PhysioAssist</span>
+      <span class="font-semibold text-lg tracking-tight">{{
+        'COMPLETE_PROFILE.BRAND' | translate
+      }}</span>
     </div>
 
     <div class="text-white">
-      <h1 class="text-4xl font-bold leading-tight mb-4">
-        One more step<br>and you're in.
+      <h1 class="text-4xl font-bold leading-tight mb-4 whitespace-pre-line">
+        {{ 'COMPLETE_PROFILE.LEFT_TITLE' | translate }}
       </h1>
-      <p class="text-white/75 text-base max-w-sm leading-relaxed">
-        Just a few clinic details and we'll get<br>
-        your account set up.
+      <p class="text-white/75 text-base max-w-sm leading-relaxed whitespace-pre-line">
+        {{ 'COMPLETE_PROFILE.LEFT_DESC' | translate }}
       </p>
     </div>
 
-    <p class="text-white/50 text-sm">© PhysioAssist · v1</p>
+    <p class="text-white/50 text-sm">{{ 'COMPLETE_PROFILE.VERSION' | translate }}</p>
   </div>
 
   <!-- ─── Right panel ─────────────────────────────────────────────────── -->
   <div class="flex-1 flex items-center justify-center bg-gray-50 px-6">
-
     <div class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-100 p-10">
-
       <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-1">Create your account</h2>
-        <p class="text-gray-500 text-sm">Set up your clinic in under a minute.</p>
+        <h2 class="text-2xl font-bold text-gray-900 mb-1">
+          {{ 'COMPLETE_PROFILE.HEADING' | translate }}
+        </h2>
+        <p class="text-gray-500 text-sm">{{ 'COMPLETE_PROFILE.SUBHEADING' | translate }}</p>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5" novalidate>
-
         <!-- Profile photo -->
         <div class="flex items-center gap-4">
-          <div class="w-16 h-16 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
+          <div
+            class="w-16 h-16 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden"
+          >
             @if (photoPreviewUrl()) {
-              <img [src]="photoPreviewUrl()" class="w-full h-full object-cover" alt="Profile preview" />
+              <img
+                [src]="photoPreviewUrl()"
+                class="w-full h-full object-cover"
+                alt="Profile preview"
+              />
             } @else {
               <i class="pi pi-user text-gray-400 text-2xl"></i>
             }
@@ -48,85 +54,99 @@
               for="photoInput"
               class="inline-block text-sm font-medium text-blue-600 border border-blue-200 rounded-lg px-3 py-1.5 cursor-pointer hover:bg-blue-50 transition-colors"
             >
-              Upload photo
+              {{ 'COMPLETE_PROFILE.UPLOAD_PHOTO' | translate }}
             </label>
-            <input id="photoInput" type="file" accept="image/jpeg,image/png" class="hidden" (change)="onPhotoSelected($event)" />
-            <p class="text-xs text-gray-400 mt-1">Optional · JPG or PNG</p>
+            <input
+              id="photoInput"
+              type="file"
+              accept="image/jpeg,image/png"
+              class="hidden"
+              (change)="onPhotoSelected($event)"
+            />
+            <p class="text-xs text-gray-400 mt-1">
+              {{ 'COMPLETE_PROFILE.PHOTO_HINT' | translate }}
+            </p>
           </div>
         </div>
 
         <!-- First / Last name -->
         <div class="grid grid-cols-2 gap-4">
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-gray-700">First name</label>
+            <label class="text-sm font-medium text-gray-700">{{
+              'COMPLETE_PROFILE.FIRST_NAME' | translate
+            }}</label>
             <input
               pInputText
               formControlName="firstName"
-              placeholder="Sarah"
+              [placeholder]="'COMPLETE_PROFILE.FIRST_NAME_PLACEHOLDER' | translate"
               class="w-full"
               [class.ng-invalid]="isInvalid('firstName')"
               [class.ng-dirty]="isInvalid('firstName')"
             />
             @if (isInvalid('firstName')) {
-              <span class="text-xs text-red-500">First name is required.</span>
+              <span class="text-xs text-red-500">{{
+                'COMPLETE_PROFILE.FIRST_NAME_REQUIRED' | translate
+              }}</span>
             }
           </div>
 
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-gray-700">Last name</label>
+            <label class="text-sm font-medium text-gray-700">{{
+              'COMPLETE_PROFILE.LAST_NAME' | translate
+            }}</label>
             <input
               pInputText
               formControlName="lastName"
-              placeholder="Ahmed"
+              [placeholder]="'COMPLETE_PROFILE.LAST_NAME_PLACEHOLDER' | translate"
               class="w-full"
               [class.ng-invalid]="isInvalid('lastName')"
               [class.ng-dirty]="isInvalid('lastName')"
             />
             @if (isInvalid('lastName')) {
-              <span class="text-xs text-red-500">Last name is required.</span>
+              <span class="text-xs text-red-500">{{
+                'COMPLETE_PROFILE.LAST_NAME_REQUIRED' | translate
+              }}</span>
             }
           </div>
         </div>
 
         <!-- Clinic name -->
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-gray-700">Clinic name</label>
+          <label class="text-sm font-medium text-gray-700">{{
+            'COMPLETE_PROFILE.CLINIC_NAME' | translate
+          }}</label>
           <input
             pInputText
             formControlName="clinicName"
-            placeholder="Cairo Physio Center"
+            [placeholder]="'COMPLETE_PROFILE.CLINIC_NAME_PLACEHOLDER' | translate"
             class="w-full"
             [class.ng-invalid]="isInvalid('clinicName')"
             [class.ng-dirty]="isInvalid('clinicName')"
           />
           @if (isInvalid('clinicName')) {
-            <span class="text-xs text-red-500">Clinic name is required.</span>
+            <span class="text-xs text-red-500">{{
+              'COMPLETE_PROFILE.CLINIC_NAME_REQUIRED' | translate
+            }}</span>
           }
         </div>
 
         <!-- Email (locked, from Google) -->
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-gray-700">Email</label>
-          <input
-            pInputText
-            [value]="email()"
-            disabled
-            class="w-full bg-gray-50 text-gray-500"
-          />
+          <label class="text-sm font-medium text-gray-700">{{
+            'COMPLETE_PROFILE.EMAIL' | translate
+          }}</label>
+          <input pInputText [value]="email()" disabled class="w-full bg-gray-50 text-gray-500" />
         </div>
 
         <!-- Submit -->
         <p-button
           type="submit"
-          label="Create account"
+          [label]="'COMPLETE_PROFILE.BUTTON_SUBMIT' | translate"
           styleClass="w-full"
           [loading]="loading()"
           [disabled]="loading()"
         />
-
       </form>
-
     </div>
   </div>
-
 </div>

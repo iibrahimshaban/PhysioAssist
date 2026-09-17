@@ -1,6 +1,6 @@
 <div class="toolbar">
   <div class="toolbar__heading">
-    <h1 class="toolbar__title">Schedule</h1>
+    <h1 class="toolbar__title">{{ 'SCHEDULE_TOOLBAR.TITLE' | translate }}</h1>
     <p class="toolbar__subtitle">
       <i class="pi pi-calendar" aria-hidden="true"></i>
       {{ dateRangeLabel() }}
@@ -8,7 +8,11 @@
   </div>
 
   <div class="toolbar__controls">
-    <div class="view-switch" role="group" aria-label="Calendar view">
+    <div
+      class="view-switch"
+      role="group"
+      [attr.aria-label]="'SCHEDULE_TOOLBAR.CALENDAR_VIEW_ARIA' | translate"
+    >
       @for (option of viewOptions; track option.mode) {
         <button
           type="button"
@@ -16,8 +20,13 @@
           [class.view-switch__btn--active]="viewMode() === option.mode"
           (click)="onViewModeSelect(option.mode)"
         >
-          <i class="pi" [class.pi-calendar]="option.mode === 'week'" [class.pi-sun]="option.mode === 'day'" aria-hidden="true"></i>
-          <span>{{ option.label }}</span>
+          <i
+            class="pi"
+            [class.pi-calendar]="option.mode === 'week'"
+            [class.pi-sun]="option.mode === 'day'"
+            aria-hidden="true"
+          ></i>
+          <span>{{ 'SCHEDULE_TOOLBAR.' + option.mode.toUpperCase() | translate }}</span>
         </button>
       }
     </div>
@@ -27,19 +36,21 @@
         type="button"
         class="date-nav__btn"
         (click)="onPrevious()"
-        aria-label="Previous"
-        pTooltip="Previous"
+        [attr.aria-label]="'SCHEDULE_TOOLBAR.PREVIOUS' | translate"
+        [pTooltip]="'SCHEDULE_TOOLBAR.PREVIOUS' | translate"
         tooltipPosition="bottom"
       >
         <i class="pi pi-chevron-left"></i>
       </button>
-      <button type="button" class="date-nav__today" (click)="onToday()">Today</button>
+      <button type="button" class="date-nav__today" (click)="onToday()">
+        {{ 'SCHEDULE_TOOLBAR.TODAY' | translate }}
+      </button>
       <button
         type="button"
         class="date-nav__btn"
         (click)="onNext()"
-        aria-label="Next"
-        pTooltip="Next"
+        [attr.aria-label]="'SCHEDULE_TOOLBAR.NEXT' | translate"
+        [pTooltip]="'SCHEDULE_TOOLBAR.NEXT' | translate"
         tooltipPosition="bottom"
       >
         <i class="pi pi-chevron-right"></i>

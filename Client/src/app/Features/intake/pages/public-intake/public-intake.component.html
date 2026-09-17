@@ -1,17 +1,38 @@
-<div class="intake-module min-h-screen bg-[var(--color-page-bg)] flex flex-col font-sans min-w-0 overflow-x-hidden" role="main" aria-label="Intake form page">
+<div
+  class="intake-module flex min-h-screen min-w-0 flex-col font-sans overflow-x-hidden bg-[var(--color-page-bg)]"
+  role="main"
+  aria-label="Intake form page"
+>
   <!-- ── Branded Header ──────────────────────────────────────── -->
-  <header class="bg-[var(--color-surface)] border-b border-[var(--color-border)] sticky top-0 z-50 backdrop-blur-md bg-white/90">
-    <div class="max-w-3xl mx-auto px-3 sm:px-4 h-auto py-3 sm:py-4 flex items-center justify-between">
-      <div class="flex flex-col gap-1 min-w-0">
+  <header
+    class="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-surface)] bg-white/90 backdrop-blur-md"
+  >
+    <div
+      class="mx-auto flex h-auto max-w-3xl items-center justify-between px-3 py-3 sm:px-4 sm:py-4"
+    >
+      <div class="flex min-w-0 flex-col gap-1">
         @if (formData()?.clinicName) {
           <span class="clinic-name truncate">{{ formData()?.clinicName }}</span>
           <span class="powered-by">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 inline-block align-[-0.1em]">
-              <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/>
-              <path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/>
-              <circle cx="20" cy="10" r="2"/>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="inline-block shrink-0 align-[-0.1em] rtl:rotate-180"
+            >
+              <path
+                d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"
+              />
+              <path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4" />
+              <circle cx="20" cy="10" r="2" />
             </svg>
-            Powered by PhysioAssist
+            {{ 'INTAKE.POWERED_BY' | translate }}
           </span>
         } @else {
           <div class="flex items-center gap-2">
@@ -33,44 +54,76 @@
               <path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4" />
               <circle cx="20" cy="10" r="2" />
             </svg>
-            <span class="text-sm sm:text-base font-bold text-[var(--color-text-primary)] tracking-tight">PhysioAssist</span>
+            <span
+              class="text-sm font-bold tracking-tight text-[var(--color-text-primary)] sm:text-base"
+              >PhysioAssist</span
+            >
           </div>
         }
       </div>
-      <span class="text-xs font-semibold text-[var(--color-primary)] bg-[var(--color-primary-soft)] px-2.5 py-1 rounded-full shrink-0">
-        Patient Portal
+      <span
+        class="shrink-0 rounded-full bg-[var(--color-primary-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--color-primary)]"
+      >
+        {{ 'INTAKE.PATIENT_PORTAL' | translate }}
       </span>
     </div>
   </header>
 
   <!-- ── Loading State ──────────────────────────────────────── -->
   @if (loading()) {
-    <div class="max-w-3xl mx-auto py-12 px-3 sm:px-4 w-full flex-1 flex items-center justify-center" role="status" aria-live="polite">
-      <div class="w-full max-w-md rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 text-center shadow-sm">
-        <div class="mx-auto mb-4 h-10 w-10 sm:h-12 sm:w-12 animate-spin rounded-full border-4 border-[var(--color-primary-soft)] border-t-[var(--color-primary)]"></div>
-        <h2 class="text-base sm:text-lg font-semibold text-[var(--color-text-primary)]">Loading your intake form</h2>
-        <p class="mt-2 text-sm text-[var(--color-text-secondary)]">Please wait while we prepare your secure intake form.</p>
+    <div
+      class="mx-auto flex w-full max-w-3xl flex-1 items-center justify-center px-3 py-12 sm:px-4"
+      role="status"
+      aria-live="polite"
+    >
+      <div
+        class="w-full max-w-md rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 text-center shadow-sm"
+      >
+        <div
+          class="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-[var(--color-primary-soft)] border-t-[var(--color-primary)] sm:h-12 sm:w-12"
+        ></div>
+        <h2 class="text-base font-semibold text-[var(--color-text-primary)] sm:text-lg">
+          {{ 'INTAKE.LOADING_TITLE' | translate }}
+        </h2>
+        <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
+          {{ 'INTAKE.LOADING_SUBTITLE' | translate }}
+        </p>
       </div>
     </div>
   }
 
   <!-- ── Error State ─────────────────────────────────────────── -->
   @else if (error()) {
-    <div class="max-w-lg mx-auto mt-8 sm:mt-12 px-3 sm:px-4 w-full animate-fade-in-up">
-      <div class="rounded-2xl border border-[var(--color-danger-border)] bg-[var(--color-surface)] p-6 sm:p-8 text-center shadow-sm" role="alert">
-        <div class="mx-auto mb-4 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-[var(--color-danger-light)]">
-          <i class="pi pi-exclamation-triangle text-xl sm:text-2xl text-[var(--color-danger)]"></i>
+    <div class="mx-auto mt-8 w-full max-w-lg animate-fade-in-up px-3 sm:mt-12 sm:px-4">
+      <div
+        class="rounded-2xl border border-[var(--color-danger-border)] bg-[var(--color-surface)] p-6 text-center shadow-sm sm:p-8"
+        role="alert"
+      >
+        <div
+          class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-danger-light)] sm:h-16 sm:w-16"
+        >
+          <i class="pi pi-exclamation-triangle text-xl text-[var(--color-danger)] sm:text-2xl"></i>
         </div>
-        <h2 class="text-base sm:text-lg font-semibold text-[var(--color-text-primary)]">We couldn't load this form</h2>
+        <h2 class="text-base font-semibold text-[var(--color-text-primary)] sm:text-lg">
+          {{ 'INTAKE.ERROR_TITLE' | translate }}
+        </h2>
         <p class="mt-2 text-sm text-[var(--color-text-secondary)]">{{ error() }}</p>
-        <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3">
-          <button type="button" (click)="retry()" class="btn-action-primary w-full sm:w-auto justify-center">
+        <div class="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+          <button
+            type="button"
+            (click)="retry()"
+            class="btn-action-primary w-full justify-center sm:w-auto"
+          >
             <i class="pi pi-refresh text-xs"></i>
-            Try Again
+            {{ 'INTAKE.TRY_AGAIN' | translate }}
           </button>
-          <button type="button" (click)="goHome()" class="btn-action-secondary w-full sm:w-auto justify-center">
+          <button
+            type="button"
+            (click)="goHome()"
+            class="btn-action-secondary w-full justify-center sm:w-auto"
+          >
             <i class="pi pi-home text-xs"></i>
-            Go Home
+            {{ 'INTAKE.GO_HOME' | translate }}
           </button>
         </div>
       </div>
@@ -79,23 +132,57 @@
 
   <!-- ── Success State ────────────────────────────────────────── -->
   @else if (submitted() && submissionResult()) {
-    <div class="max-w-lg mx-auto mt-8 sm:mt-12 px-3 sm:px-4 w-full animate-fade-in-up">
-      <div class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 sm:p-8 text-center" role="status" aria-label="Form submitted successfully">
-        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-[var(--color-success-bg)] rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-          <svg class="w-8 h-8 sm:w-10 sm:h-10 text-[var(--color-success-text)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-            <path stroke-linecap="round" stroke-linejoin="round" class="success-checkmark-check" d="M5 13l4 4L19 7" />
+    <div class="mx-auto mt-8 w-full max-w-lg animate-fade-in-up px-3 sm:mt-12 sm:px-4">
+      <div
+        class="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 text-center shadow-sm sm:p-8"
+        role="status"
+        aria-label="Form submitted successfully"
+      >
+        <div
+          class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-success-bg)] sm:mb-6 sm:h-20 sm:w-20"
+        >
+          <svg
+            class="h-8 w-8 text-[var(--color-success-text)] sm:h-10 sm:w-10"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="3"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="success-checkmark-check"
+              d="M5 13l4 4L19 7"
+            />
           </svg>
         </div>
-        <h2 class="text-lg sm:text-xl font-bold text-[var(--color-text-primary)] mb-2">Thank you!</h2>
-        <p class="text-[var(--color-text-secondary)] mb-6 text-sm">{{ submissionResult()!.message }}</p>
+        <h2 class="mb-2 text-lg font-bold text-[var(--color-text-primary)] sm:text-xl">
+          {{ 'INTAKE.THANK_YOU' | translate }}
+        </h2>
+        <p class="mb-6 text-sm text-[var(--color-text-secondary)]">
+          {{ submissionResult()!.message }}
+        </p>
 
-        <div class="bg-[var(--color-page-bg)] rounded-xl p-4 mb-6 border border-[var(--color-border)] text-left">
-          <p class="text-[10px] font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1">Receipt ID</p>
-          <p class="text-xs font-mono text-[var(--color-text-primary)] break-all select-all font-semibold">{{ submissionResult()!.shortCode }}</p>
+        <div
+          class="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-page-bg)] p-4 text-left rtl:text-right"
+        >
+          <p
+            class="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-secondary)]"
+          >
+            {{ 'INTAKE.RECEIPT_ID' | translate }}
+          </p>
+          <p
+            class="select-all break-all font-mono text-xs font-semibold text-[var(--color-text-primary)]"
+          >
+            {{ submissionResult()!.shortCode }}
+          </p>
         </div>
 
         <p class="text-[11px] text-[var(--color-text-secondary)] opacity-80">
-          Submitted at {{ submissionResult()!.submittedAt | date:'medium' }}
+          {{
+            'INTAKE.SUBMITTED_AT'
+              | translate: { date: (submissionResult()!.submittedAt | date: 'medium') }
+          }}
         </p>
       </div>
     </div>
@@ -103,11 +190,15 @@
 
   <!-- ── Form View ────────────────────────────────────────────── -->
   @if (formData() && schema() && !submitted()) {
-    <div class="max-w-3xl mx-auto py-6 px-3 sm:py-8 sm:px-4 w-full flex-1 flex flex-col justify-between">
+    <div
+      class="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-between px-3 py-6 sm:px-4 sm:py-8"
+    >
       <div>
         <!-- Banner / Header Info -->
         <div class="mb-6 sm:mb-8">
-          <h1 class="page-title">{{ formData()?.formName || 'Patient Intake Form' }}</h1>
+          <h1 class="page-title">
+            {{ formData()?.formName || ('INTAKE.DEFAULT_TITLE' | translate) }}
+          </h1>
           @if (formData()?.formDescription) {
             <p class="page-subtitle leading-relaxed">{{ formData()?.formDescription }}</p>
           }
@@ -115,19 +206,43 @@
 
         <!-- Progress Bar -->
         @if (requiredTotal() > 0) {
-          <div class="mb-6 progress-bar-container" role="progressbar" [attr.aria-valuenow]="progressPercent()" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="'Form completion: ' + progressPercent() + '%'">
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs font-semibold text-[var(--color-text-secondary)]">Form Progress</span>
-              <span class="text-xs font-bold" [style.color]="progressPercent() === 100 ? 'var(--color-success-text)' : 'var(--color-primary)'">{{ progressPercent() }}%</span>
+          <div
+            class="progress-bar-container mb-6"
+            role="progressbar"
+            [attr.aria-valuenow]="progressPercent()"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            [attr.aria-label]="('INTAKE.PROGRESS' | translate) + ': ' + progressPercent() + '%'"
+          >
+            <div class="mb-1.5 flex items-center justify-between">
+              <span class="text-xs font-semibold text-[var(--color-text-secondary)]">{{
+                'INTAKE.FORM_PROGRESS' | translate
+              }}</span>
+              <span
+                class="text-xs font-bold"
+                [style.color]="
+                  progressPercent() === 100 ? 'var(--color-success-text)' : 'var(--color-primary)'
+                "
+                >{{ progressPercent() }}%</span
+              >
             </div>
             <div class="progress-bar-track">
               <div class="progress-bar-fill" [style.width.%]="progressPercent()"></div>
             </div>
-            <p class="text-[11px] mt-1.5" [style.color]="progressPercent() === 100 ? 'var(--color-success-text)' : 'var(--color-text-muted)'">
+            <p
+              class="mt-1.5 text-[11px]"
+              [style.color]="
+                progressPercent() === 100 ? 'var(--color-success-text)' : 'var(--color-text-muted)'
+              "
+            >
               @if (progressPercent() === 100) {
-                <i class="pi pi-check-circle text-xs"></i> All required fields completed
+                <i class="pi pi-check-circle text-xs"></i>
+                {{ 'INTAKE.ALL_REQUIRED_COMPLETED' | translate }}
               } @else {
-                {{ requiredCompleted() }} of {{ requiredTotal() }} required fields completed
+                {{
+                  'INTAKE.REQUIRED_STATS'
+                    | translate: { completed: requiredCompleted(), total: requiredTotal() }
+                }}
               }
             </p>
           </div>
@@ -135,52 +250,86 @@
 
         <!-- Unsaved Changes Warning -->
         @if (isDirty() && !submitting() && !emailDuplicate() && !phoneDuplicate()) {
-          <div class="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--color-warning-light)] border border-[var(--color-warning-border)] text-[var(--color-warning-text)] text-xs font-medium animate-fade-in-up" role="status">
-            <i class="pi pi-info-circle text-sm shrink-0"></i>
-            <span>You have unsaved changes. Please submit the form or your progress may be lost.</span>
+          <div
+            class="mb-4 flex items-center gap-2 rounded-xl border border-[var(--color-warning-border)] bg-[var(--color-warning-light)] px-4 py-2.5 text-xs font-medium text-[var(--color-warning-text)] animate-fade-in-up"
+            role="status"
+          >
+            <i class="pi pi-info-circle shrink-0 text-sm"></i>
+            <span>{{ 'INTAKE.UNSAVED_CHANGES' | translate }}</span>
           </div>
         }
 
         <!-- Email Checking Spinner -->
         @if (emailChecking()) {
-          <div class="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--color-primary-soft)] border border-[var(--color-primary)]/20 text-[var(--color-primary)] text-xs font-medium animate-fade-in-up" role="status" aria-live="polite">
-            <svg class="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <div
+            class="mb-4 flex items-center gap-2 rounded-xl border border-[var(--color-primary)]/20 bg-[var(--color-primary-soft)] px-4 py-2.5 text-xs font-medium text-[var(--color-primary)] animate-fade-in-up"
+            role="status"
+            aria-live="polite"
+          >
+            <svg
+              class="h-4 w-4 shrink-0 animate-spin"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
             </svg>
-            <span>Verifying email address&hellip;</span>
+            <span>{{ 'INTAKE.VERIFYING_EMAIL' | translate }}</span>
           </div>
         }
 
         <!-- Duplicate Email Warning -->
         @if (emailDuplicate() && duplicateEmailAddress()) {
-          <div class="mb-4 px-4 py-3.5 rounded-xl bg-[var(--color-danger-light)] border border-[var(--color-danger-border)] text-[var(--color-danger)] animate-fade-in-up" role="alert" aria-live="assertive">
+          <div
+            class="mb-4 rounded-xl border border-[var(--color-danger-border)] bg-[var(--color-danger-light)] px-4 py-3.5 text-[var(--color-danger)] animate-fade-in-up"
+            role="alert"
+            aria-live="assertive"
+          >
             <div class="flex items-start gap-2.5">
-              <i class="pi pi-exclamation-triangle text-base shrink-0 mt-0.5"></i>
-              <div class="flex flex-col gap-1 min-w-0">
-                <p class="text-sm font-semibold m-0">
-                  Email already registered
+              <i class="pi pi-exclamation-triangle mt-0.5 shrink-0 text-base"></i>
+              <div class="flex min-w-0 flex-col gap-1">
+                <p class="m-0 text-sm font-semibold">
+                  {{ 'INTAKE.EMAIL_REGISTERED_TITLE' | translate }}
                 </p>
-                <p class="text-xs m-0 leading-relaxed">
-                  The email address <span class="font-mono font-semibold break-all">{{ duplicateEmailAddress() }}</span> is already associated with an existing patient record.
-                  Please contact your healthcare provider directly to update your information, or use a different email address.
+                <p class="m-0 text-xs leading-relaxed">
+                  {{
+                    'INTAKE.EMAIL_REGISTERED_DESC' | translate: { email: duplicateEmailAddress() }
+                  }}
                 </p>
               </div>
             </div>
           </div>
         }
 
+        <!-- Duplicate Phone Warning -->
         @if (phoneDuplicate() && duplicatePhoneNumber()) {
-          <div class="mb-4 px-4 py-3.5 rounded-xl bg-[var(--color-danger-light)] border border-[var(--color-danger-border)] text-[var(--color-danger)] animate-fade-in-up" role="alert" aria-live="assertive">
+          <div
+            class="mb-4 rounded-xl border border-[var(--color-danger-border)] bg-[var(--color-danger-light)] px-4 py-3.5 text-[var(--color-danger)] animate-fade-in-up"
+            role="alert"
+            aria-live="assertive"
+          >
             <div class="flex items-start gap-2.5">
-              <i class="pi pi-exclamation-triangle text-base shrink-0 mt-0.5"></i>
-              <div class="flex flex-col gap-1 min-w-0">
-                <p class="text-sm font-semibold m-0">
-                  Phone number already registered
+              <i class="pi pi-exclamation-triangle mt-0.5 shrink-0 text-base"></i>
+              <div class="flex min-w-0 flex-col gap-1">
+                <p class="m-0 text-sm font-semibold">
+                  {{ 'INTAKE.PHONE_REGISTERED_TITLE' | translate }}
                 </p>
-                <p class="text-xs m-0 leading-relaxed">
-                  The phone number <span class="font-mono font-semibold break-all">{{ duplicatePhoneNumber() }}</span> is already associated with an existing patient record.
-                  Please contact your healthcare provider directly to update your information, or use a different phone number.
+                <p class="m-0 text-xs leading-relaxed">
+                  {{
+                    'INTAKE.PHONE_REGISTERED_DESC' | translate: { phone: duplicatePhoneNumber() }
+                  }}
                 </p>
               </div>
             </div>
@@ -195,12 +344,16 @@
           [patientMode]="true"
           (submissionChange)="onSubmissionChange($event)"
           (validityChange)="onValidityChange($event)"
-          (requiredStatsChange)="onRequiredStatsChange($event)" />
+          (requiredStatsChange)="onRequiredStatsChange($event)"
+        />
 
         <!-- Submission Errors -->
         @if (submitError()) {
-          <div class="mt-4 p-4 bg-[var(--color-danger-light)] border border-[var(--color-danger-border)] rounded-2xl" role="alert">
-            <p class="text-sm text-[var(--color-danger)] font-semibold flex items-center gap-2 m-0">
+          <div
+            class="mt-4 rounded-2xl border border-[var(--color-danger-border)] bg-[var(--color-danger-light)] p-4"
+            role="alert"
+          >
+            <p class="m-0 flex items-center gap-2 text-sm font-semibold text-[var(--color-danger)]">
               <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
               {{ submitError() }}
             </p>
@@ -208,66 +361,100 @@
         }
       </div>
 
-        <!-- Pain Map Section -->
-         @if (formData()?.showPainMap) {
-          <div class="mb-6 sm:mb-8">
-            <h2 class="page-title">Pain point diagram</h2>
-            <app-body-pain-map (mapChange)="onPainMapChange($event)" />
-          </div>
-         }
-
+      <!-- Pain Map Section -->
+      @if (formData()?.showPainMap) {
+        <div class="mb-6 sm:mb-8">
+          <h2 class="page-title">{{ 'INTAKE.PAIN_MAP_TITLE' | translate }}</h2>
+          <app-body-pain-map (mapChange)="onPainMapChange($event)" />
+        </div>
+      }
 
       <!-- Submit Buttons -->
-      <div class="mt-8 pt-4 border-t border-[var(--color-border)] flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div
+        class="mt-8 flex flex-col items-center justify-between gap-4 border-t border-[var(--color-border)] pt-4 sm:flex-row"
+      >
         <div class="flex flex-col gap-1 text-xs text-[var(--color-text-secondary)]">
           <div class="flex items-center gap-2">
             <i class="pi pi-lock text-[10px]"></i>
-            <span>Your data is encrypted and secure</span>
+            <span>{{ 'INTAKE.DATA_SECURE' | translate }}</span>
           </div>
           @if (!canSubmit()) {
             @if (emailDuplicate()) {
-              <span class="text-[11px] text-[var(--color-danger)] font-medium opacity-90">
+              <span class="text-[11px] font-medium text-[var(--color-danger)] opacity-90">
                 <i class="pi pi-exclamation-triangle text-[10px]"></i>
-                This email address is already registered. Please use a different email or contact your provider.
+                {{ 'INTAKE.EMAIL_DUPLICATE_SHORT' | translate }}
               </span>
             } @else if (phoneDuplicate()) {
-              <span class="text-[11px] text-[var(--color-danger)] font-medium opacity-90">
+              <span class="text-[11px] font-medium text-[var(--color-danger)] opacity-90">
                 <i class="pi pi-exclamation-triangle text-[10px]"></i>
-                This phone number is already registered. Please use a different phone number or contact your provider.
+                {{ 'INTAKE.PHONE_DUPLICATE_SHORT' | translate }}
               </span>
             } @else if (emailChecking()) {
-              <span class="text-[11px] text-[var(--color-primary)] font-medium opacity-90">
-                <svg class="animate-spin h-3 w-3 inline-block align-[-0.1em] mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <span class="text-[11px] font-medium text-[var(--color-primary)] opacity-90">
+                <svg
+                  class="mr-1 inline-block h-3 w-3 animate-spin align-[-0.1em] rtl:ml-1 rtl:mr-0"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
-                Verifying email, please wait&hellip;
+                {{ 'INTAKE.VERIFYING_EMAIL_SHORT' | translate }}
               </span>
             } @else if (phoneChecking()) {
-              <span class="text-[11px] text-[var(--color-primary)] font-medium opacity-90">
-                <svg class="animate-spin h-3 w-3 inline-block align-[-0.1em] mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <span class="text-[11px] font-medium text-[var(--color-primary)] opacity-90">
+                <svg
+                  class="mr-1 inline-block h-3 w-3 animate-spin align-[-0.1em] rtl:ml-1 rtl:mr-0"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
-                Verifying phone, please wait&hellip;
+                {{ 'INTAKE.VERIFYING_PHONE_SHORT' | translate }}
               </span>
             } @else {
-              <span class="text-[11px] text-[var(--color-danger)] font-medium opacity-90">
+              <span class="text-[11px] font-medium text-[var(--color-danger)] opacity-90">
                 <i class="pi pi-exclamation-triangle text-[10px]"></i>
-                Please complete all required fields before submitting.
+                {{ 'INTAKE.COMPLETE_REQUIRED_FIELDS' | translate }}
               </span>
             }
           }
         </div>
         <p-button
-          [label]="submitting() ? 'Submitting\u2026' : 'Submit Form'"
+          [label]="(submitting() ? 'INTAKE.SUBMITTING' : 'INTAKE.SUBMIT_FORM') | translate"
           icon="pi pi-check"
           [disabled]="!canSubmit()"
           [loading]="submitting()"
           (onClick)="requestSubmit()"
           severity="primary"
           size="large"
-          styleClass="w-full sm:w-auto shadow-sm">
+          styleClass="w-full sm:w-auto shadow-sm"
+        >
         </p-button>
       </div>
     </div>
@@ -275,35 +462,46 @@
 
   <!-- ── Confirmation Dialog ──────────────────────────────────── -->
   @if (showConfirmDialog()) {
-    <div class="confirm-overlay" (click)="cancelSubmit()" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div
+      class="confirm-overlay"
+      (click)="cancelSubmit()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-title"
+    >
       <div class="confirm-dialog" (click)="$event.stopPropagation()">
         <div class="confirm-icon">
           <i class="pi pi-question-circle"></i>
         </div>
-        <h3 id="confirm-title" class="confirm-title">Submit Intake Form?</h3>
+        <h3 id="confirm-title" class="confirm-title">{{ 'INTAKE.CONFIRM_TITLE' | translate }}</h3>
         <p class="confirm-message">
-          Please review your answers before submitting. Once submitted, you won't be able to edit your responses.
+          {{ 'INTAKE.CONFIRM_MESSAGE' | translate }}
         </p>
         <div class="confirm-details">
           <div class="confirm-detail-row">
             <i class="pi pi-check-circle text-[var(--color-success-text)]"></i>
-            <span>{{ requiredCompleted() }} of {{ requiredTotal() }} required fields completed</span>
+            <span>{{
+              'INTAKE.REQUIRED_STATS'
+                | translate: { completed: requiredCompleted(), total: requiredTotal() }
+            }}</span>
           </div>
           @if (painMapPayload()?.regions?.length) {
             <div class="confirm-detail-row">
               <i class="pi pi-map-marker text-[var(--color-primary)]"></i>
-              <span>{{ painMapPayload()!.regions.length }} pain region(s) marked</span>
+              <span>{{
+                'INTAKE.PAIN_REGIONS_COUNT' | translate: { count: painMapPayload()!.regions.length }
+              }}</span>
             </div>
           }
         </div>
         <div class="confirm-actions">
           <button type="button" (click)="cancelSubmit()" class="btn-action-secondary">
-            <i class="pi pi-arrow-left text-xs"></i>
-            Go Back & Edit
+            <i class="pi pi-arrow-left rtl:rotate-180 text-xs"></i>
+            {{ 'INTAKE.GO_BACK_EDIT' | translate }}
           </button>
           <button type="button" (click)="confirmSubmit()" class="btn-action-primary">
             <i class="pi pi-check text-xs"></i>
-            Yes, Submit
+            {{ 'INTAKE.YES_SUBMIT' | translate }}
           </button>
         </div>
       </div>

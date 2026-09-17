@@ -1,63 +1,68 @@
 <div class="flex h-screen">
-
   <!-- ─── Left panel ──────────────────────────────────────────────────────── -->
-  <div class="hidden lg:flex w-[52%] flex-col justify-between p-10"
-       style="background: linear-gradient(145deg, #1a7fd4 0%, #0eb8a0 100%)">
-
+  <div
+    class="hidden lg:flex w-[52%] flex-col justify-between p-10"
+    style="background: linear-gradient(145deg, #1a7fd4 0%, #0eb8a0 100%)"
+  >
     <div class="flex items-center gap-2 text-white">
       <i class="pi pi-heart-fill text-xl"></i>
-      <span class="font-semibold text-lg tracking-tight">PhysioAssist</span>
+      <span class="font-semibold text-lg tracking-tight">{{
+        'VERIFY_EMAIL.BRAND' | translate
+      }}</span>
     </div>
 
     <div class="text-white">
-      <h1 class="text-4xl font-bold leading-tight mb-4">One last step.</h1>
+      <h1 class="text-4xl font-bold leading-tight mb-4">
+        {{ 'VERIFY_EMAIL.LEFT_TITLE' | translate }}
+      </h1>
       <p class="text-white/75 text-base max-w-sm leading-relaxed">
-        Confirming your email keeps your patients' records secure.
+        {{ 'VERIFY_EMAIL.LEFT_DESC' | translate }}
       </p>
     </div>
 
-    <p class="text-white/50 text-sm">© PhysioAssist · v1</p>
+    <p class="text-white/50 text-sm">{{ 'VERIFY_EMAIL.VERSION' | translate }}</p>
   </div>
 
   <!-- ─── Right panel ─────────────────────────────────────────────────────── -->
   <div class="flex-1 flex items-center justify-center bg-gray-50 px-6">
-
     <div class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-100 p-10">
-
       <!-- Heading -->
       <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-1">Check your inbox</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-1">
+          {{ 'VERIFY_EMAIL.HEADING' | translate }}
+        </h2>
         <p class="text-gray-500 text-sm">
-          We sent a 6-digit code to
+          {{ 'VERIFY_EMAIL.SUBHEADING' | translate }}
           <span class="font-medium text-gray-700">{{ email() }}</span>
         </p>
       </div>
 
       <!-- Info box -->
       <div class="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
-        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+        <div
+          class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5"
+        >
           <i class="pi pi-envelope text-blue-600 text-sm"></i>
         </div>
         <p class="text-sm text-gray-600 leading-relaxed">
-          Enter the code below to activate your account. It may take a minute to arrive.
+          {{ 'VERIFY_EMAIL.INFO_BOX' | translate }}
         </p>
       </div>
 
       <!-- OTP Form -->
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6" novalidate>
-
         <!-- OTP Input -->
         <div class="flex flex-col items-center gap-2">
           <p-inputotp formControlName="code" [length]="6" [integerOnly]="true" />
           @if (form.get('code')?.invalid && form.get('code')?.touched) {
-            <span class="text-xs text-red-500">Please enter the full 6-digit code.</span>
+            <span class="text-xs text-red-500">{{ 'VERIFY_EMAIL.ERROR_CODE' | translate }}</span>
           }
         </div>
 
         <!-- Confirm -->
         <p-button
           type="submit"
-          label="Verify email"
+          [label]="'VERIFY_EMAIL.BUTTON_VERIFY' | translate"
           styleClass="w-full"
           [loading]="loading()"
           [disabled]="loading()"
@@ -66,26 +71,25 @@
         <!-- Resend -->
         <p-button
           type="button"
-          label="Resend confirmation email"
+          [label]="'VERIFY_EMAIL.BUTTON_RESEND' | translate"
           [outlined]="true"
           styleClass="w-full"
           [loading]="resending()"
           [disabled]="resending()"
           (onClick)="onResend()"
         />
-
       </form>
 
       <!-- Wrong address -->
       <p class="text-center text-sm text-gray-500 mt-6">
-        Wrong address?
-        <a routerLink="/auth/register"
-           class="font-medium text-blue-600 hover:text-blue-700 transition-colors">
-          Go back
+        {{ 'VERIFY_EMAIL.WRONG_ADDRESS' | translate }}
+        <a
+          routerLink="/auth/register"
+          class="font-medium text-blue-600 hover:text-blue-700 transition-colors"
+        >
+          {{ 'VERIFY_EMAIL.GO_BACK' | translate }}
         </a>
       </p>
-
     </div>
   </div>
-
 </div>

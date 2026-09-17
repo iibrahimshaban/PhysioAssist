@@ -2,24 +2,30 @@
   <p-confirmDialog />
 
   <p-dialog
-    header="Extend package"
+    [header]="'SCHEDULING_CONTAINER.EXTEND_DIALOG_HEADER' | translate"
     [(visible)]="showExtendDialog"
     [modal]="true"
     [style]="{ width: '24rem' }"
   >
     <div class="flex flex-col gap-3">
-      <label class="text-sm font-medium text-slate-600">Additional sessions</label>
+      <label class="text-sm font-medium text-slate-600">{{
+        'SCHEDULING_CONTAINER.ADDITIONAL_SESSIONS' | translate
+      }}</label>
       <p-inputNumber
         [(ngModel)]="additionalSessions"
         [min]="1"
         [showButtons]="true"
-        placeholder="e.g. 5"
+        [placeholder]="'SCHEDULING_CONTAINER.PLACEHOLDER_SESSIONS' | translate"
       />
     </div>
     <div class="flex justify-end gap-2 mt-5">
-      <p-button label="Cancel" [outlined]="true" (onClick)="showExtendDialog.set(false)" />
       <p-button
-        label="Extend"
+        [label]="'SCHEDULING_CONTAINER.CANCEL' | translate"
+        [outlined]="true"
+        (onClick)="showExtendDialog.set(false)"
+      />
+      <p-button
+        [label]="'SCHEDULING_CONTAINER.EXTEND' | translate"
         [loading]="isExtending()"
         [disabled]="!additionalSessions() || additionalSessions()! <= 0"
         (onClick)="confirmExtend()"
@@ -28,40 +34,47 @@
   </p-dialog>
 
   <div class="mx-auto max-w-5xl">
-
     @if (isLoadingContext()) {
       <div class="py-20 text-center text-slate-400">
         <i class="pi pi-spin pi-spinner text-2xl"></i>
-        <p class="mt-2 text-sm">Loading...</p>
+        <p class="mt-2 text-sm">{{ 'SCHEDULING_CONTAINER.LOADING' | translate }}</p>
       </div>
     } @else if (context(); as ctx) {
-
       @switch (ctx.state) {
-
         @case (schedulingStateEnum.NoInitialReport) {
           <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center">
             <i class="pi pi-file-o text-3xl text-slate-300 mb-3 block"></i>
-            <p class="text-sm font-semibold text-slate-700">No initial report yet</p>
-            <p class="text-sm text-slate-400 mt-1">This patient doesn't have one — nothing to schedule.</p>
+            <p class="text-sm font-semibold text-slate-700">
+              {{ 'SCHEDULING_CONTAINER.NO_REPORT_TITLE' | translate }}
+            </p>
+            <p class="text-sm text-slate-400 mt-1">
+              {{ 'SCHEDULING_CONTAINER.NO_REPORT_DESC' | translate }}
+            </p>
           </div>
         }
 
         @case (schedulingStateEnum.PlanPending) {
           <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center">
             <i class="pi pi-hourglass text-3xl text-slate-300 mb-3 block"></i>
-            <p class="text-sm font-semibold text-slate-700">Plan not ready yet</p>
-            <p class="text-sm text-slate-400 mt-1">The doctor hasn't finished setting up a treatment plan for this patient.</p>
+            <p class="text-sm font-semibold text-slate-700">
+              {{ 'SCHEDULING_CONTAINER.PLAN_PENDING_TITLE' | translate }}
+            </p>
+            <p class="text-sm text-slate-400 mt-1">
+              {{ 'SCHEDULING_CONTAINER.PLAN_PENDING_DESC' | translate }}
+            </p>
           </div>
         }
 
         @case (schedulingStateEnum.ReadyToSchedule) {
           @if (ctx.pendingPlan; as plan) {
             <div class="mb-2">
-              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Doctor's plan for this patient</p>
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                {{ 'SCHEDULING_CONTAINER.DOCTOR_PLAN_TITLE' | translate }}
+              </p>
               <app-pending-plan-summary [plan]="plan" />
 
               <p-button
-                label="Create package & start booking"
+                [label]="'SCHEDULING_CONTAINER.CREATE_PACKAGE_BTN' | translate"
                 icon="pi pi-check"
                 [disabled]="isCreatingPackage()"
                 (onClick)="onCreatePackage()"
@@ -100,26 +113,31 @@
               />
             } @else {
               <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center">
-                <i class="pi pi-check-circle text-3xl mb-3 block"
-                   [class.text-green-500]="s.status === packageStatusEnum.Completed"
-                   [class.text-slate-300]="s.status !== packageStatusEnum.Completed"></i>
+                <i
+                  class="pi pi-check-circle text-3xl mb-3 block"
+                  [class.text-green-500]="s.status === packageStatusEnum.Completed"
+                  [class.text-slate-300]="s.status !== packageStatusEnum.Completed"
+                ></i>
                 <p class="text-sm font-semibold text-slate-700">
                   @if (s.status === packageStatusEnum.Completed) {
-                    Package complete
+                    {{ 'SCHEDULING_CONTAINER.PACKAGE_COMPLETE' | translate }}
                   } @else {
-                    Package cancelled
+                    {{ 'SCHEDULING_CONTAINER.PACKAGE_CANCELLED' | translate }}
                   }
                 </p>
                 <p class="text-sm text-slate-400 mt-1">
                   @if (s.status === packageStatusEnum.Completed) {
-                    All {{ s.totalSessions }} sessions have been scheduled.
+                    {{
+                      'SCHEDULING_CONTAINER.PACKAGE_COMPLETE_DESC'
+                        | translate: { count: s.totalSessions }
+                    }}
                   } @else {
-                    This package has been cancelled.
+                    {{ 'SCHEDULING_CONTAINER.PACKAGE_CANCELLED_DESC' | translate }}
                   }
                 </p>
                 @if (s.status === packageStatusEnum.Completed) {
                   <p-button
-                    label="Extend package"
+                    [label]="'SCHEDULING_CONTAINER.EXTEND' | translate"
                     icon="pi pi-plus-circle"
                     styleClass="mt-4"
                     (onClick)="openExtendDialog()"
@@ -131,6 +149,5 @@
         }
       }
     }
-
   </div>
 </div>

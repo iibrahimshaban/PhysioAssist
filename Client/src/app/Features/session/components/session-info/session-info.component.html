@@ -6,7 +6,7 @@
   >
     <span class="flex items-center text-sm font-bold uppercase text-slate-700">
       <i class="pi pi-info-circle icon-gradient mr-2"></i>
-      SESSION INFO
+      {{ 'SESSION_INFO.TITLE' | translate }}
     </span>
 
     <i
@@ -20,15 +20,15 @@
     <div class="border-t border-slate-100 px-5 py-5">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div class="min-w-0">
-          <p class="text-xs text-slate-500">Patient</p>
+          <p class="text-xs text-slate-500">{{ 'SESSION_INFO.PATIENT' | translate }}</p>
 
           <p class="break-words font-semibold text-slate-900">
-            {{ session()?.patientName ?? 'Loading...' }}
+            {{ session()?.patientName ?? ('SESSION_INFO.LOADING' | translate) }}
           </p>
         </div>
 
         <div class="min-w-0">
-          <p class="text-xs text-slate-500">Scheduled</p>
+          <p class="text-xs text-slate-500">{{ 'SESSION_INFO.SCHEDULED' | translate }}</p>
 
           <p class="break-words font-semibold text-slate-900">
             {{ session()?.slotStart | date: 'MMM d · h:mm a' }}
@@ -36,9 +36,11 @@
         </div>
 
         <div class="min-w-0">
-          <p class="text-xs text-slate-500">Duration</p>
+          <p class="text-xs text-slate-500">{{ 'SESSION_INFO.DURATION' | translate }}</p>
 
-          <p class="font-semibold text-slate-900">{{ session()?.durationInMinutes ?? 0 }} min</p>
+          <p class="font-semibold text-slate-900">
+            {{ session()?.durationInMinutes ?? 0 }} {{ 'SESSION_INFO.MIN' | translate }}
+          </p>
         </div>
       </div>
     </div>

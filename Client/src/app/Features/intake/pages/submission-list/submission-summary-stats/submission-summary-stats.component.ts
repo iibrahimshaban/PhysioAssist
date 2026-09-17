@@ -1,13 +1,14 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IntakeStatus } from '../../../models';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-submission-summary-stats',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './submission-summary-stats.component.html',
-  styleUrl: './submission-summary-stats.component.css'
+  styleUrl: './submission-summary-stats.component.css',
 })
 export class SubmissionSummaryStatsComponent {
   @Input({ required: true }) totalCount = 0;

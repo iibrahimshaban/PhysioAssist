@@ -1,13 +1,19 @@
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PreVisitIntakeResponse, IntakeStatus, getIntakeStatusLabel, getIntakeStatusPillClass } from '../../../models';
+import {
+  PreVisitIntakeResponse,
+  IntakeStatus,
+  getIntakeStatusLabel,
+  getIntakeStatusPillClass,
+} from '../../../models';
 
 @Component({
   selector: 'app-submission-row',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './submission-row.component.html',
-  styleUrl: './submission-row.component.css'
+  styleUrl: './submission-row.component.css',
 })
 export class SubmissionRowComponent {
   @Input({ required: true }) submission!: PreVisitIntakeResponse;
@@ -130,7 +136,7 @@ export class SubmissionRowComponent {
     return parsed.toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
-      timeZone: 'Africa/Cairo'
+      timeZone: 'Africa/Cairo',
     });
   }
 }

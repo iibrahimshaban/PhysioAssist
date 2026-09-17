@@ -1,9 +1,9 @@
 <header class="border-b border-[#E5EDF5] bg-white">
   <div class="mx-auto max-w-[1100px] px-4 py-5 sm:px-6">
-    <p class="mb-2 text-sm text-slate-500">Patients</p>
+    <p class="mb-2 text-sm text-slate-500">{{ 'PATIENT_HEADER.PATIENTS' | translate }}</p>
 
     <h1 class="break-words text-2xl font-bold text-slate-900 sm:text-3xl lg:text-4xl">
-      {{ session()?.patientName ?? 'Loading...' }}
+      {{ session()?.patientName ?? ('PATIENT_HEADER.LOADING' | translate) }}
     </h1>
 
     <p class="mt-1 flex flex-wrap items-center gap-x-1 text-sm text-slate-500 sm:text-base">
@@ -11,7 +11,7 @@
       <span>—</span>
       <span>{{ session()?.slotEnd | date: 'shortTime' }}</span>
       <span>·</span>
-      <span>{{ getStatusText(session()?.status) }}</span>
+      <span>{{ getStatusText(session()?.status) | translate }}</span>
     </p>
   </div>
 </header>

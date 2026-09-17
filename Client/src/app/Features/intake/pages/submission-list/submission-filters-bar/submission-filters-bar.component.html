@@ -8,17 +8,19 @@
         type="text"
         [ngModel]="searchTerm"
         (ngModelChange)="onSearchInput($event)"
-        placeholder="Search patient name, submission code, or symptoms..."
+        [placeholder]="'FILTERS_BAR.SEARCH_PLACEHOLDER' | translate"
         class="filters-search-input"
-        aria-label="Search submissions" />
+        [attr.aria-label]="'FILTERS_BAR.SEARCH_ARIA' | translate"
+      />
 
       @if (searchTerm) {
         <button
           type="button"
           (click)="onClearSearch()"
           class="filters-clear-btn"
-          title="Clear search"
-          aria-label="Clear search text">
+          [title]="'FILTERS_BAR.CLEAR_SEARCH' | translate"
+          [attr.aria-label]="'FILTERS_BAR.CLEAR_SEARCH' | translate"
+        >
           <i class="pi pi-times"></i>
         </button>
       }
@@ -34,23 +36,29 @@
             [ngModel]="sortOption"
             (ngModelChange)="onSortSelect($event)"
             class="filters-sort-select"
-            aria-label="Sort submissions">
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="name">Patient Name (A-Z)</option>
-            <option value="pain">Pain Regions (High to Low)</option>
+            [attr.aria-label]="'FILTERS_BAR.SORT_ARIA' | translate"
+          >
+            <option value="newest">{{ 'FILTERS_BAR.SORT_NEWEST' | translate }}</option>
+            <option value="oldest">{{ 'FILTERS_BAR.SORT_OLDEST' | translate }}</option>
+            <option value="name">{{ 'FILTERS_BAR.SORT_NAME' | translate }}</option>
+            <option value="pain">{{ 'FILTERS_BAR.SORT_PAIN' | translate }}</option>
           </select>
         </div>
 
         <!-- View Toggle -->
-        <div class="filters-view-group" role="group" aria-label="View mode toggle">
+        <div
+          class="filters-view-group"
+          role="group"
+          [attr.aria-label]="'FILTERS_BAR.VIEW_TOGGLE_ARIA' | translate"
+        >
           <button
             type="button"
             class="filters-view-btn"
             [class.active]="viewMode === 'cards'"
             (click)="onViewModeToggle('cards')"
-            title="Card Grid View"
-            aria-label="Switch to Card Grid View">
+            [title]="'FILTERS_BAR.VIEW_CARDS' | translate"
+            [attr.aria-label]="'FILTERS_BAR.VIEW_CARDS' | translate"
+          >
             <i class="pi pi-th-large"></i>
           </button>
           <button
@@ -58,8 +66,9 @@
             class="filters-view-btn"
             [class.active]="viewMode === 'table'"
             (click)="onViewModeToggle('table')"
-            title="Compact Table View"
-            aria-label="Switch to Table View">
+            [title]="'FILTERS_BAR.VIEW_TABLE' | translate"
+            [attr.aria-label]="'FILTERS_BAR.VIEW_TABLE' | translate"
+          >
             <i class="pi pi-list"></i>
           </button>
         </div>
@@ -75,7 +84,8 @@
           type="button"
           class="filters-chip"
           [class.active]="selectedStatus === opt.value"
-          (click)="onStatusSelect(opt.value)">
+          (click)="onStatusSelect(opt.value)"
+        >
           <span>{{ opt.label }}</span>
           @if (opt.count !== undefined) {
             <span class="filters-chip-count">{{ opt.count }}</span>
@@ -89,9 +99,10 @@
         type="button"
         (click)="clearFilters.emit()"
         class="filters-clear-chip"
-        title="Clear all active filters">
+        [title]="'FILTERS_BAR.RESET_FILTERS' | translate"
+      >
         <i class="pi pi-filter-slash"></i>
-        <span>Reset</span>
+        <span>{{ 'FILTERS_BAR.RESET' | translate }}</span>
       </button>
     }
   </div>

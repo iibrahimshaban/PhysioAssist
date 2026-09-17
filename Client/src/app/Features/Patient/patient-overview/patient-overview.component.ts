@@ -1,16 +1,27 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { PatientService } from '../services/patient.service';
-import { BodyPainMapComponent, BodyPainMapPayload } from '../../intake/components/body-pain-map/body-pain-map.component';
+import {
+  BodyPainMapComponent,
+  BodyPainMapPayload,
+} from '../../intake/components/body-pain-map/body-pain-map.component';
 import { DynamicFormRendererComponent } from '../../intake/components/dynamic-form-renderer/dynamic-form-renderer.component';
 import { DynamicFormSubmissionDto } from '../../intake/models';
 import { AgePipe } from '../../../Shared/Pipes/age-pipe';
 import { PatientScheduleOverviewDto } from '../../../Shared/Models/Patient.model';
 import { PatientScheduleOverviewComponent } from '../patient-schedule-overview/patient-schedule-overview.component';
 import { GenderPipe } from '../../../Shared/Pipes/gender-pipe'; // adjust path if different
+import { TranslatePipe } from '@ngx-translate/core';
 @Component({
   selector: 'app-patient-overview',
   standalone: true,
@@ -23,6 +34,7 @@ import { GenderPipe } from '../../../Shared/Pipes/gender-pipe'; // adjust path i
     AgePipe,
     PatientScheduleOverviewComponent,
     GenderPipe,
+    TranslatePipe,
   ],
   templateUrl: './patient-overview.component.html',
   styleUrl: './patient-overview.component.css',
@@ -66,7 +78,9 @@ export class PatientOverviewComponent implements OnInit {
     return schema.sections
       .map((section: any) => ({
         ...section,
-        groups: (section.groups ?? []).filter((g: any) => !!g.hiddenFromPatient === hiddenFromPatient),
+        groups: (section.groups ?? []).filter(
+          (g: any) => !!g.hiddenFromPatient === hiddenFromPatient,
+        ),
       }))
       .filter((section: any) => section.groups.length > 0);
   }
@@ -77,7 +91,7 @@ export class PatientOverviewComponent implements OnInit {
 
     this.loadOverview(id);
 
-    this.patientService.getScheduleOverview(id).subscribe(overview => {
+    this.patientService.getScheduleOverview(id).subscribe((overview) => {
       this.scheduleOverview.set(overview);
     });
   }
@@ -85,7 +99,7 @@ export class PatientOverviewComponent implements OnInit {
   private loadOverview(id: string): void {
     this.isLoading.set(true);
     this.patientService.getOverview(id).subscribe({
-      next: data => {
+      next: (data) => {
         this.patient.set(data);
 
         if (data.formSubmissionData) {
@@ -110,7 +124,7 @@ export class PatientOverviewComponent implements OnInit {
 
         if (schemaId) {
           this.patientService.getFormSchema(schemaId).subscribe({
-            next: schemaResponse => {
+            next: (schemaResponse) => {
               try {
                 this.formSchema.set(JSON.parse(schemaResponse.schemaJson));
               } catch {
@@ -118,7 +132,7 @@ export class PatientOverviewComponent implements OnInit {
               }
               this.isLoading.set(false);
             },
-            error: err => {
+            error: (err) => {
               console.error('Failed to load form schema', err);
               this.isLoading.set(false);
             },
@@ -127,7 +141,7 @@ export class PatientOverviewComponent implements OnInit {
           this.isLoading.set(false);
         }
       },
-      error: err => {
+      error: (err) => {
         console.error(err);
         this.isLoading.set(false);
       },
@@ -216,20 +230,22 @@ export class PatientOverviewComponent implements OnInit {
     const regions = this.pendingPainMap()?.regions ?? [];
     const painMapToSave = JSON.stringify({ regions });
 
-    this.patientService.updateOverviewSubmission(patientId, {
-      formSubmissionData: submissionToSave,
-      painPointsData: painMapToSave,
-    }).subscribe({
-      next: () => {
-        this.isEditMode.set(false);
-        this.isSaving.set(false);
-        this.loadOverview(patientId);
-      },
-      error: err => {
-        console.error(err);
-        this.isSaving.set(false);
-      },
-    });
+    this.patientService
+      .updateOverviewSubmission(patientId, {
+        formSubmissionData: submissionToSave,
+        painPointsData: painMapToSave,
+      })
+      .subscribe({
+        next: () => {
+          this.isEditMode.set(false);
+          this.isSaving.set(false);
+          this.loadOverview(patientId);
+        },
+        error: (err) => {
+          console.error(err);
+          this.isSaving.set(false);
+        },
+      });
   }
 
   goToEdit(): void {
@@ -250,7 +266,7 @@ export class PatientOverviewComponent implements OnInit {
     if (confirm('Are you sure you want to delete this patient?')) {
       this.patientService.delete(patientId).subscribe({
         next: () => this.router.navigate(['/app/patients']),
-        error: err => console.error(err),
+        error: (err) => console.error(err),
       });
     }
   }

@@ -2,14 +2,15 @@ import { Component, ChangeDetectionStrategy, input, output } from '@angular/core
 import { CalendarViewMode } from '../schedule.models';
 
 import { TooltipModule } from 'primeng/tooltip';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-calendar-toolbar',
   standalone: true,
-  imports: [TooltipModule], // added
+  imports: [TooltipModule, TranslatePipe], // added
   templateUrl: './calendar-toolbar.component.html',
   styleUrl: './calendar-toolbar.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarToolbarComponent {
   dateRangeLabel = input<string>('');
@@ -22,11 +23,19 @@ export class CalendarToolbarComponent {
 
   protected readonly viewOptions: { mode: CalendarViewMode; label: string }[] = [
     { mode: 'day', label: 'Day' },
-    { mode: 'week', label: 'Week' }
+    { mode: 'week', label: 'Week' },
   ];
 
-  protected onPrevious(): void { this.previousClicked.emit(); }
-  protected onNext(): void { this.nextClicked.emit(); }
-  protected onToday(): void { this.todayClicked.emit(); }
-  protected onViewModeSelect(mode: CalendarViewMode): void { this.viewModeChanged.emit(mode); }
+  protected onPrevious(): void {
+    this.previousClicked.emit();
+  }
+  protected onNext(): void {
+    this.nextClicked.emit();
+  }
+  protected onToday(): void {
+    this.todayClicked.emit();
+  }
+  protected onViewModeSelect(mode: CalendarViewMode): void {
+    this.viewModeChanged.emit(mode);
+  }
 }

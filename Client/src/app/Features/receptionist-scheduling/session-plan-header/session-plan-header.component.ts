@@ -2,12 +2,13 @@ import { Component, input, output } from '@angular/core';
 import { PatientSessionPackageSummaryDto } from '../SessionScheduling.model';
 import { ButtonModule } from 'primeng/button';
 import { SlicePipe } from '@angular/common';
-import { ProgressBar } from "primeng/progressbar";
-import { Tag } from "primeng/tag";
+import { ProgressBar } from 'primeng/progressbar';
+import { Tag } from 'primeng/tag';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-session-plan-header',
-  imports: [ButtonModule, SlicePipe, ProgressBar, Tag],
+  imports: [ButtonModule, SlicePipe, ProgressBar, Tag, TranslatePipe],
   templateUrl: './session-plan-header.component.html',
   styleUrl: './session-plan-header.component.css',
 })
@@ -23,6 +24,6 @@ export class SessionPlanHeaderComponent {
 
   back = output<void>();
   manualSchedule = output<void>();
-  extendPackage = output<void>();   // NEW
-  stopPackage = output<void>();     // NEW
+  extendPackage = output<void>(); // NEW
+  stopPackage = output<void>(); // NEW
 }

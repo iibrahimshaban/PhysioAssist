@@ -1,71 +1,121 @@
 <div class="min-h-screen bg-[#f5fafc] p-6">
   <div class="page-container mx-auto max-w-2xl">
-
     <!-- Header -->
     <div class="mb-6 flex items-center gap-4">
-      <button (click)="goBack()" class="nav-circle" aria-label="Back" title="Back">
-        <i class="pi pi-arrow-left"></i>
+      <button
+        (click)="goBack()"
+        class="nav-circle"
+        [attr.aria-label]="'COMMON.BACK' | translate"
+        [attr.title]="'COMMON.BACK' | translate"
+      >
+        <i class="pi pi-arrow-left rtl:rotate-180"></i>
       </button>
-      <button (click)="goForward()" class="nav-circle" aria-label="Forward" title="Forward">
-        <i class="pi pi-arrow-right"></i>
+      <button
+        (click)="goForward()"
+        class="nav-circle"
+        [attr.aria-label]="'COMMON.FORWARD' | translate"
+        [attr.title]="'COMMON.FORWARD' | translate"
+      >
+        <i class="pi pi-arrow-right rtl:rotate-180"></i>
       </button>
       <div>
-        <h1 class="text-3xl font-bold text-slate-900">{{ isEditMode ? 'Edit Patient' : 'Add Patient' }}</h1>
-        <p class="text-slate-500 mt-1 text-sm">{{ isEditMode ? 'Update patient information.' : 'Register a new patient.' }}</p>
+        <h1 class="text-3xl font-bold text-slate-900">
+          {{ (isEditMode ? 'PATIENT_FORM.EDIT_TITLE' : 'PATIENT_FORM.ADD_TITLE') | translate }}
+        </h1>
+        <p class="mt-1 text-sm text-slate-500">
+          {{
+            (isEditMode ? 'PATIENT_FORM.EDIT_SUBTITLE' : 'PATIENT_FORM.ADD_SUBTITLE') | translate
+          }}
+        </p>
       </div>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="submit()">
-      <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
-
+      <div class="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <!-- Full Name -->
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-700">Full Name <span class="text-red-500">*</span></label>
-          <input formControlName="fullName" type="text" placeholder="Enter full name"
-            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0B8EEA] focus:ring-2 focus:ring-sky-100" />
+          <label class="text-sm font-medium text-slate-700">
+            {{ 'PATIENT_FORM.FULL_NAME' | translate }} <span class="text-red-500">*</span>
+          </label>
+          <input
+            formControlName="fullName"
+            type="text"
+            [placeholder]="'PATIENT_FORM.FULL_NAME_PLACEHOLDER' | translate"
+            class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-[#0B8EEA] focus:outline-none focus:ring-2 focus:ring-sky-100"
+          />
         </div>
 
+        <!-- Date of Birth -->
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-700">Date of Birth <span class="text-red-500">*</span></label>
-          <input formControlName="dateOfBirth" type="date"
-            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0B8EEA] focus:ring-2 focus:ring-sky-100" />
+          <label class="text-sm font-medium text-slate-700">
+            {{ 'PATIENT_FORM.DATE_OF_BIRTH' | translate }} <span class="text-red-500">*</span>
+          </label>
+          <input
+            formControlName="dateOfBirth"
+            type="date"
+            class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-[#0B8EEA] focus:outline-none focus:ring-2 focus:ring-sky-100"
+          />
         </div>
 
+        <!-- Phone Number -->
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-700">Phone Number <span class="text-red-500">*</span></label>
-          <input formControlName="phoneNumber" type="tel" placeholder="Enter phone number"
-            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0B8EEA] focus:ring-2 focus:ring-sky-100" />
+          <label class="text-sm font-medium text-slate-700">
+            {{ 'PATIENT_FORM.PHONE_NUMBER' | translate }} <span class="text-red-500">*</span>
+          </label>
+          <input
+            formControlName="phoneNumber"
+            type="tel"
+            [placeholder]="'PATIENT_FORM.PHONE_NUMBER_PLACEHOLDER' | translate"
+            class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-[#0B8EEA] focus:outline-none focus:ring-2 focus:ring-sky-100"
+          />
         </div>
 
+        <!-- Gender -->
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-700">Gender <span class="text-red-500">*</span></label>
-          <select formControlName="gender"
-            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0B8EEA] focus:ring-2 focus:ring-sky-100">
-            <option value="0">Male</option>
-            <option value="1">Female</option>
+          <label class="text-sm font-medium text-slate-700">
+            {{ 'PATIENT_FORM.GENDER' | translate }} <span class="text-red-500">*</span>
+          </label>
+          <select
+            formControlName="gender"
+            class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-[#0B8EEA] focus:outline-none focus:ring-2 focus:ring-sky-100"
+          >
+            <option value="0">{{ 'PATIENT_FORM.GENDER_MALE' | translate }}</option>
+            <option value="1">{{ 'PATIENT_FORM.GENDER_FEMALE' | translate }}</option>
           </select>
         </div>
 
+        <!-- Email Address -->
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-700">Email Address</label>
-          <input formControlName="emailAddress" type="email" placeholder="Enter email address"
-            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0B8EEA] focus:ring-2 focus:ring-sky-100" />
+          <label class="text-sm font-medium text-slate-700">
+            {{ 'PATIENT_FORM.EMAIL_ADDRESS' | translate }}
+          </label>
+          <input
+            formControlName="emailAddress"
+            type="email"
+            [placeholder]="'PATIENT_FORM.EMAIL_ADDRESS_PLACEHOLDER' | translate"
+            class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-[#0B8EEA] focus:outline-none focus:ring-2 focus:ring-sky-100"
+          />
         </div>
-
       </div>
 
-      <div class="flex gap-4 mt-6">
-        <button type="submit" [disabled]="isLoading"
-          class="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-white font-semibold text-sm bg-[#0B8EEA] hover:bg-[#0a7ed1] transition-colors">
+      <!-- Action Buttons -->
+      <div class="mt-6 flex gap-4">
+        <button
+          type="submit"
+          [disabled]="isLoading"
+          class="inline-flex items-center gap-2 rounded-xl bg-[#0B8EEA] px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#0a7ed1] disabled:opacity-60"
+        >
           <i class="pi pi-check"></i>
-          {{ isEditMode ? 'Update Patient' : 'Create Patient' }}
+          {{ (isEditMode ? 'PATIENT_FORM.UPDATE_BTN' : 'PATIENT_FORM.CREATE_BTN') | translate }}
         </button>
-        <button type="button" (click)="goBack()"
-          class="inline-flex items-center gap-2 px-8 py-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-          Cancel
+        <button
+          type="button"
+          (click)="goBack()"
+          class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-8 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+        >
+          {{ 'COMMON.CANCEL' | translate }}
         </button>
       </div>
-
     </form>
-
   </div>
 </div>

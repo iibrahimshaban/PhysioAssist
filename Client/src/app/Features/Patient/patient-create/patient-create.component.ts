@@ -1,4 +1,12 @@
-import { Component, OnInit, ChangeDetectorRef, DestroyRef, inject, signal, computed } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef,
+  DestroyRef,
+  inject,
+  signal,
+  computed,
+} from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -17,6 +25,7 @@ import {
   BodyPainMapComponent,
   BodyPainMapPayload,
 } from '../../intake/components/body-pain-map/body-pain-map.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-patient-create',
@@ -27,6 +36,7 @@ import {
     SelectModule,
     DynamicFormRendererComponent,
     BodyPainMapComponent,
+    TranslatePipe,
   ],
   templateUrl: './patient-create.component.html',
   styleUrl: './patient-create.component.css',
@@ -56,12 +66,13 @@ export class PatientCreateComponent implements OnInit {
   readonly phoneDuplicate = signal(false);
   readonly duplicatePhoneNumber = signal<string | null>(null);
 
-  readonly canSubmit = computed(() =>
-    !this.isSubmitting
-    && !this.emailChecking()
-    && !this.emailDuplicate()
-    && !this.phoneChecking()
-    && !this.phoneDuplicate()
+  readonly canSubmit = computed(
+    () =>
+      !this.isSubmitting &&
+      !this.emailChecking() &&
+      !this.emailDuplicate() &&
+      !this.phoneChecking() &&
+      !this.phoneDuplicate(),
   );
 
   private readonly submissionChanged$ = new Subject<DynamicFormSubmissionDto>();
@@ -70,7 +81,7 @@ export class PatientCreateComponent implements OnInit {
     private patientService: PatientService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private location: Location
+    private location: Location,
   ) {}
 
   ngOnInit() {
@@ -96,17 +107,21 @@ export class PatientCreateComponent implements OnInit {
       },
     });
 
-    this.submissionChanged$.pipe(
-      takeUntilDestroyed(this.destroyRef),
-      debounceTime(600),
-      distinctUntilChanged((a, b) =>
-        this.extractEmail(a) === this.extractEmail(b) && this.extractPhone(a) === this.extractPhone(b)
+    this.submissionChanged$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        debounceTime(600),
+        distinctUntilChanged(
+          (a, b) =>
+            this.extractEmail(a) === this.extractEmail(b) &&
+            this.extractPhone(a) === this.extractPhone(b),
+        ),
       )
-    ).subscribe(submission => {
-      this.runEmailCheck(this.extractEmail(submission));
-      this.runPhoneCheck(this.extractPhone(submission));
-      this.cdr.detectChanges();
-    });
+      .subscribe((submission) => {
+        this.runEmailCheck(this.extractEmail(submission));
+        this.runPhoneCheck(this.extractPhone(submission));
+        this.cdr.detectChanges();
+      });
   }
 
   private extractEmail(submission: DynamicFormSubmissionDto | null): string | null {
@@ -127,15 +142,18 @@ export class PatientCreateComponent implements OnInit {
       return;
     }
     this.emailChecking.set(true);
-    this.patientService.checkPatientEmail(email).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => of({ isRegistered: false }))
-    ).subscribe(result => {
-      this.emailChecking.set(false);
-      this.emailDuplicate.set(result.isRegistered);
-      this.duplicateEmailAddress.set(result.isRegistered ? email : null);
-      this.cdr.detectChanges();
-    });
+    this.patientService
+      .checkPatientEmail(email)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => of({ isRegistered: false })),
+      )
+      .subscribe((result) => {
+        this.emailChecking.set(false);
+        this.emailDuplicate.set(result.isRegistered);
+        this.duplicateEmailAddress.set(result.isRegistered ? email : null);
+        this.cdr.detectChanges();
+      });
   }
 
   private runPhoneCheck(phone: string | null): void {
@@ -146,15 +164,18 @@ export class PatientCreateComponent implements OnInit {
       return;
     }
     this.phoneChecking.set(true);
-    this.patientService.checkPatientPhone(phone).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => of({ isRegistered: false }))
-    ).subscribe(result => {
-      this.phoneChecking.set(false);
-      this.phoneDuplicate.set(result.isRegistered);
-      this.duplicatePhoneNumber.set(result.isRegistered ? phone : null);
-      this.cdr.detectChanges();
-    });
+    this.patientService
+      .checkPatientPhone(phone)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => of({ isRegistered: false })),
+      )
+      .subscribe((result) => {
+        this.phoneChecking.set(false);
+        this.phoneDuplicate.set(result.isRegistered);
+        this.duplicatePhoneNumber.set(result.isRegistered ? phone : null);
+        this.cdr.detectChanges();
+      });
   }
 
   onSchemaSelected() {
@@ -237,42 +258,47 @@ export class PatientCreateComponent implements OnInit {
     if (needsPhoneCheck) this.phoneChecking.set(true);
 
     const email$ = needsEmailCheck
-      ? this.patientService.checkPatientEmail(email!).pipe(catchError(() => of({ isRegistered: false })))
+      ? this.patientService
+          .checkPatientEmail(email!)
+          .pipe(catchError(() => of({ isRegistered: false })))
       : of(null);
     const phone$ = needsPhoneCheck
-      ? this.patientService.checkPatientPhone(phone!).pipe(catchError(() => of({ isRegistered: false })))
+      ? this.patientService
+          .checkPatientPhone(phone!)
+          .pipe(catchError(() => of({ isRegistered: false })))
       : of(null);
 
-    forkJoin([email$, phone$]).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(([emailResult, phoneResult]) => {
-      if (needsEmailCheck) this.emailChecking.set(false);
-      if (needsPhoneCheck) this.phoneChecking.set(false);
+    forkJoin([email$, phone$])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([emailResult, phoneResult]) => {
+        if (needsEmailCheck) this.emailChecking.set(false);
+        if (needsPhoneCheck) this.phoneChecking.set(false);
 
-      const emailTaken = needsEmailCheck && emailResult!.isRegistered;
-      const phoneTaken = needsPhoneCheck && phoneResult!.isRegistered;
+        const emailTaken = needsEmailCheck && emailResult!.isRegistered;
+        const phoneTaken = needsPhoneCheck && phoneResult!.isRegistered;
 
-      if (emailTaken) {
-        this.emailDuplicate.set(true);
-        this.duplicateEmailAddress.set(email);
-      }
-      if (phoneTaken) {
-        this.phoneDuplicate.set(true);
-        this.duplicatePhoneNumber.set(phone);
-      }
+        if (emailTaken) {
+          this.emailDuplicate.set(true);
+          this.duplicateEmailAddress.set(email);
+        }
+        if (phoneTaken) {
+          this.phoneDuplicate.set(true);
+          this.duplicatePhoneNumber.set(phone);
+        }
 
-      if (emailTaken || phoneTaken) {
-        this.errorMessage = emailTaken && phoneTaken
-          ? `Both the email address ${email} and the phone number ${phone} are already registered to an existing patient.`
-          : emailTaken
-            ? `The email address ${email} is already associated with an existing patient record.`
-            : `The phone number ${phone} is already associated with an existing patient record.`;
-        this.cdr.detectChanges();
-        return;
-      }
+        if (emailTaken || phoneTaken) {
+          this.errorMessage =
+            emailTaken && phoneTaken
+              ? `Both the email address ${email} and the phone number ${phone} are already registered to an existing patient.`
+              : emailTaken
+                ? `The email address ${email} is already associated with an existing patient record.`
+                : `The phone number ${phone} is already associated with an existing patient record.`;
+          this.cdr.detectChanges();
+          return;
+        }
 
-      this.doSubmit();
-    });
+        this.doSubmit();
+      });
   }
 
   private doSubmit(): void {

@@ -11,7 +11,9 @@
     </p>
 
     @if (isUploading()) {
-      <p class="mb-4 text-sm font-semibold text-slate-500">Uploading and transcribing...</p>
+      <p class="mb-4 text-sm font-semibold text-slate-500">
+        {{ 'RECORDING_MODAL.UPLOADING_AND_TRANSCRIBING' | translate }}
+      </p>
     }
 
     <div class="flex justify-center gap-3">
@@ -22,7 +24,7 @@
         class="flex h-10 items-center gap-2 rounded-lg bg-red-500 px-6 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
       >
         <i class="fa-regular fa-square text-xs"></i>
-        Stop
+        {{ 'RECORDING_MODAL.STOP' | translate }}
       </button>
 
       <button
@@ -31,7 +33,7 @@
         [disabled]="isUploading()"
         class="h-10 rounded-lg border border-slate-200 bg-slate-50 px-6 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        Cancel
+        {{ 'RECORDING_MODAL.CANCEL' | translate }}
       </button>
     </div>
   </div>

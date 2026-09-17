@@ -7,10 +7,11 @@ import { SessionService } from '../../../../Core/Services/session.service';
 import { Suggestion } from '../../../../Shared/Models/suggestion';
 import { TooltipModule } from 'primeng/tooltip';
 import { ButtonModule } from 'primeng/button';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-session-notes',
-  imports: [ButtonModule, TooltipModule],
+  imports: [ButtonModule, TooltipModule, TranslatePipe],
   templateUrl: './session-notes.component.html',
   styleUrl: './session-notes.component.css',
 })

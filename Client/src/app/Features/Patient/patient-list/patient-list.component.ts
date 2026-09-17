@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PatientService } from '../services/patient.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-patient-list',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './patient-list.component.html',
   styleUrl: './patient-list.component.css',
 })
@@ -21,17 +22,16 @@ export class PatientListComponent implements OnInit {
 
     const term = this.searchTerm().trim().toLowerCase();
     if (term) {
-      result = result.filter(p =>
-        p.fullName?.toLowerCase().includes(term) ||
-        p.phoneNumber?.includes(term)
+      result = result.filter(
+        (p) => p.fullName?.toLowerCase().includes(term) || p.phoneNumber?.includes(term),
       );
     }
 
     const tab = this.activeTab();
     if (tab === 'today') {
-      result = result.filter(p => p.slotStart && this.isToday(p.slotStart));
+      result = result.filter((p) => p.slotStart && this.isToday(p.slotStart));
     } else if (tab === 'pending') {
-      result = result.filter(p => !p.slotStart);
+      result = result.filter((p) => !p.slotStart);
     }
 
     return result;
@@ -56,16 +56,18 @@ export class PatientListComponent implements OnInit {
       error: (err) => {
         console.error(err);
         this.isLoading.set(false);
-      }
+      },
     });
   }
 
   private isToday(dateStr: string): boolean {
     const date = new Date(dateStr);
     const today = new Date();
-    return date.getFullYear() === today.getFullYear()
-        && date.getMonth() === today.getMonth()
-        && date.getDate() === today.getDate();
+    return (
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
+    );
   }
 
   setTab(tab: 'all' | 'today' | 'pending') {
@@ -74,12 +76,17 @@ export class PatientListComponent implements OnInit {
 
   getInitials(fullName: string): string {
     if (!fullName) return '?';
-    return fullName.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+    return fullName
+      .split(' ')
+      .map((n) => n.charAt(0))
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
   }
 
   goToDetail(id: string) {
-  this.router.navigate(['/app/patients', id, 'overview']);
-}
+    this.router.navigate(['/app/patients', id, 'overview']);
+  }
 
   goToCreate() {
     this.router.navigate(['app/patients/create']);
@@ -92,8 +99,8 @@ export class PatientListComponent implements OnInit {
           id: patient.id,
           name: patient.fullName,
           gender: patient.gender,
-        }
-      }
+        },
+      },
     });
   }
 }

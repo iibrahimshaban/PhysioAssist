@@ -1,12 +1,13 @@
 import { Component, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { RadioButton } from 'primeng/radiobutton';
 
 @Component({
   selector: 'app-no-show-confirm-dialog',
-  imports: [Dialog, RadioButton, FormsModule, Button],
+  imports: [Dialog, RadioButton, FormsModule, Button, TranslatePipe],
   templateUrl: './no-show-confirm-dialog.component.html',
   styleUrl: './no-show-confirm-dialog.component.css',
 })
@@ -33,7 +34,7 @@ export class NoShowConfirmDialogComponent {
     this.visible = true;
   }
 
-   onConfirm(): void {
+  onConfirm(): void {
     this.visible = false;
     this.confirmed.emit(this.countsAsUsed);
   }

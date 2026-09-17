@@ -1,9 +1,6 @@
 <div class="empty-state">
   <div class="empty-state__icon-wrap">
-    <i
-      class="pi empty-state__icon"
-      [ngClass]="copy[kind()].icon"
-    ></i>
+    <i class="pi empty-state__icon" [ngClass]="copy[kind()].icon"></i>
   </div>
 
   <h3 class="empty-state__title">
@@ -15,12 +12,9 @@
   </p>
 
   @if (kind() === 'off-today') {
-    <a
-      [routerLink]="workingHoursRoute()"
-      class="empty-state__button"
-    >
+    <a [routerLink]="workingHoursRoute()" class="empty-state__button">
       <i class="pi pi-calendar-clock"></i>
-      <span>Configure working hours</span>
+      <span>{{ 'EMPTY_STATE.CONFIGURE_WORKING_HOURS' | translate }}</span>
     </a>
   }
 </div>

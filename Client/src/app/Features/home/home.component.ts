@@ -20,15 +20,16 @@ import { AskAsiPanelComponent } from '../../Shared/Components/ask-asi-panel/ask-
 import { AskAsiButtonComponent } from '../../Shared/Components/ask-asi-button/ask-asi-button.component';
 import { AuthService } from '../../Core/Services/auth.service';
 import { HasPermissionDirective } from '../../Shared/Directives/has-permission-directive';
+import { TranslatePipe } from '@ngx-translate/core';
 
 interface FeatureCard {
   icon: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descKey: string;
 }
 
 interface JourneyStep {
-  label: string;
+  labelKey: string;
   icon: string;
 }
 
@@ -42,6 +43,7 @@ interface JourneyStep {
     AskAsiPanelComponent,
     AskAsiButtonComponent,
     HasPermissionDirective,
+    TranslatePipe,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
@@ -71,51 +73,45 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly features: FeatureCard[] = [
     {
       icon: 'pi-users',
-      title: 'Patient Management',
-      description:
-        'Keep patient profiles, history, sessions and clinical information organized in one place.',
+      titleKey: 'LANDING.FEATURES.PATIENT_MANAGEMENT.TITLE',
+      descKey: 'LANDING.FEATURES.PATIENT_MANAGEMENT.DESC',
     },
     {
       icon: 'pi-microphone',
-      title: 'Voice Transcription',
-      description:
-        'Dictate session notes in Egyptian Arabic or English and turn your voice into structured documentation.',
+      titleKey: 'LANDING.FEATURES.VOICE_TRANSCRIPTION.TITLE',
+      descKey: 'LANDING.FEATURES.VOICE_TRANSCRIPTION.DESC',
     },
     {
       icon: 'pi-sparkles',
-      title: 'AI Documentation',
-      description:
-        'Use patient history and session information to assist with reports, treatment plans and summaries.',
+      titleKey: 'LANDING.FEATURES.AI_DOCUMENTATION.TITLE',
+      descKey: 'LANDING.FEATURES.AI_DOCUMENTATION.DESC',
     },
     {
       icon: 'pi-calendar',
-      title: 'Smart Scheduling',
-      description:
-        'Manage doctor availability, appointments, rescheduling and free time from one intelligent calendar.',
+      titleKey: 'LANDING.FEATURES.SMART_SCHEDULING.TITLE',
+      descKey: 'LANDING.FEATURES.SMART_SCHEDULING.DESC',
     },
     {
       icon: 'pi-heart',
-      title: 'Treatment Sessions',
-      description:
-        "Keep treatment sessions organized and connect every session to the patient's treatment journey.",
+      titleKey: 'LANDING.FEATURES.TREATMENT_SESSIONS.TITLE',
+      descKey: 'LANDING.FEATURES.TREATMENT_SESSIONS.DESC',
     },
     {
       icon: 'pi-bell',
-      title: 'Notifications',
-      description:
-        'Keep patients informed about appointments, reminders, cancellations and schedule changes.',
+      titleKey: 'LANDING.FEATURES.NOTIFICATIONS.TITLE',
+      descKey: 'LANDING.FEATURES.NOTIFICATIONS.DESC',
     },
   ];
 
   readonly journey: JourneyStep[] = [
-    { label: 'First Visit', icon: 'pi-user-plus' },
-    { label: 'Patient Intake', icon: 'pi-file-edit' },
-    { label: 'Examination', icon: 'pi-search' },
-    { label: 'Treatment Plan', icon: 'pi-clipboard' },
-    { label: 'Smart Scheduling', icon: 'pi-calendar' },
-    { label: 'Treatment Sessions', icon: 'pi-heart' },
-    { label: 'AI Documentation', icon: 'pi-sparkles' },
-    { label: 'Patient History', icon: 'pi-history' },
+    { labelKey: 'LANDING.JOURNEY.STEPS.FIRST_VISIT', icon: 'pi-user-plus' },
+    { labelKey: 'LANDING.JOURNEY.STEPS.PATIENT_INTAKE', icon: 'pi-file-edit' },
+    { labelKey: 'LANDING.JOURNEY.STEPS.EXAMINATION', icon: 'pi-search' },
+    { labelKey: 'LANDING.JOURNEY.STEPS.TREATMENT_PLAN', icon: 'pi-clipboard' },
+    { labelKey: 'LANDING.JOURNEY.STEPS.SMART_SCHEDULING', icon: 'pi-calendar' },
+    { labelKey: 'LANDING.JOURNEY.STEPS.TREATMENT_SESSIONS', icon: 'pi-heart' },
+    { labelKey: 'LANDING.JOURNEY.STEPS.AI_DOCUMENTATION', icon: 'pi-sparkles' },
+    { labelKey: 'LANDING.JOURNEY.STEPS.PATIENT_HISTORY', icon: 'pi-history' },
   ];
 
   private observer?: IntersectionObserver;
@@ -125,14 +121,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.prefersReducedMotion.set(
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      );
+      this.prefersReducedMotion.set(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
       this.fragmentSub = this.route.fragment.subscribe((fragment) => {
         if (!fragment) return;
-        // Wait two frames so the section (and any *ngIf/*ngFor content above it)
-        // has actually painted before we measure and scroll to it.
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             document.getElementById(fragment)?.scrollIntoView({
@@ -161,13 +153,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           this.observer?.unobserve(el);
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.2 },
     );
 
     this.revealEls.forEach((ref) => this.observer?.observe(ref.nativeElement));
-
-    // Elements added after the initial view init (e.g. inside *ngIf) fall
-    // back to visible via the .reveal CSS default — no-JS-needed safety net.
   }
 
   private animateStats(): void {

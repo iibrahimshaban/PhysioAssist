@@ -10,7 +10,13 @@
   [class.appointment-card--compact]="height() < 40"
   [style.top.px]="top()"
   [style.height.px]="height()"
-  [attr.aria-label]="owner().name + ', ' + timeLabel + ', ' + appointment().status"
+  [attr.aria-label]="
+    owner().name +
+    ', ' +
+    timeLabel +
+    ', ' +
+    ('APPOINTMENT_STATUS.' + appointment().status.toUpperCase() | translate)
+  "
   tabindex="0"
   (click)="onCardClick()"
   (keydown.enter)="onCardClick()"
@@ -28,8 +34,11 @@
     </span>
   </div>
 
-  <span class="appointment-card__status-tag" [class]="'appointment-card__status-tag--' + appointment().status.toLowerCase()">
-    {{ appointment().status }}
+  <span
+    class="appointment-card__status-tag"
+    [class]="'appointment-card__status-tag--' + appointment().status.toLowerCase()"
+  >
+    {{ 'APPOINTMENT_STATUS.' + appointment().status.toUpperCase() | translate }}
   </span>
 
   @if (appointment().status === 'Booked') {
@@ -38,9 +47,9 @@
         type="button"
         class="hover-action hover-action--success"
         (click)="onQuickComplete($event)"
-        pTooltip="Mark completed"
+        [pTooltip]="'APPOINTMENT_CARD.MARK_COMPLETED' | translate"
         tooltipPosition="top"
-        aria-label="Mark appointment completed"
+        [attr.aria-label]="'APPOINTMENT_CARD.MARK_COMPLETED' | translate"
       >
         <i class="pi pi-check" aria-hidden="true"></i>
       </button>
@@ -48,9 +57,9 @@
         type="button"
         class="hover-action hover-action--danger"
         (click)="onQuickCancel($event)"
-        pTooltip="Cancel appointment"
+        [pTooltip]="'APPOINTMENT_CARD.CANCEL_APPOINTMENT' | translate"
         tooltipPosition="top"
-        aria-label="Cancel appointment"
+        [attr.aria-label]="'APPOINTMENT_CARD.CANCEL_APPOINTMENT' | translate"
       >
         <i class="pi pi-times" aria-hidden="true"></i>
       </button>
@@ -69,7 +78,7 @@
   [title]="pendingAction()?.title ?? ''"
   [message]="pendingAction()?.message ?? ''"
   [tone]="pendingAction()?.tone ?? 'default'"
-  confirmLabel="Yes"
+  [confirmLabel]="'APPOINTMENT_CARD.YES' | translate"
   (confirmed)="onConfirmed()"
   (cancelled)="onCancelled()"
 />

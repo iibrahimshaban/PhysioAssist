@@ -12,7 +12,7 @@
         <i class="pi pi-arrow-left text-xs transition-transform group-hover:-translate-x-0.5"></i>
       </span>
 
-      Back to session
+      {{ 'AI_PROGRESS_NOTE.BACK_TO_SESSION' | translate }}
     </button>
 
     <!-- Main header -->
@@ -33,20 +33,19 @@
           <div>
             <div class="flex flex-wrap items-center gap-3">
               <h1 class="text-2xl font-bold tracking-tight text-slate-950 sm:text-[28px]">
-                AI Progress Note
+                {{ 'AI_PROGRESS_NOTE.TITLE' | translate }}
               </h1>
 
               <span
                 class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-100"
               >
                 <i class="pi pi-check-circle text-[11px]"></i>
-                Session completed
+                {{ 'AI_PROGRESS_NOTE.SESSION_COMPLETED' | translate }}
               </span>
             </div>
 
             <p class="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500">
-              Review the generated clinical documentation, make any required edits, then submit the
-              final progress note.
+              {{ 'AI_PROGRESS_NOTE.SUBTITLE' | translate }}
             </p>
           </div>
         </div>
@@ -65,9 +64,11 @@
 
             <div class="hidden sm:block">
               <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                Step 1
+                {{ 'AI_PROGRESS_NOTE.STEP_1' | translate }}
               </p>
-              <p class="text-xs font-semibold text-slate-700">Session</p>
+              <p class="text-xs font-semibold text-slate-700">
+                {{ 'AI_PROGRESS_NOTE.SESSION' | translate }}
+              </p>
             </div>
           </div>
 
@@ -84,9 +85,11 @@
 
             <div class="hidden sm:block">
               <p class="text-[10px] font-semibold uppercase tracking-wider text-[#078DCC]">
-                Step 2
+                {{ 'AI_PROGRESS_NOTE.STEP_2' | translate }}
               </p>
-              <p class="text-xs font-semibold text-slate-900">AI Review</p>
+              <p class="text-xs font-semibold text-slate-900">
+                {{ 'AI_PROGRESS_NOTE.AI_REVIEW' | translate }}
+              </p>
             </div>
           </div>
 
@@ -103,9 +106,11 @@
 
             <div class="hidden sm:block">
               <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                Step 3
+                {{ 'AI_PROGRESS_NOTE.STEP_3' | translate }}
               </p>
-              <p class="text-xs font-semibold text-slate-400">Submit</p>
+              <p class="text-xs font-semibold text-slate-400">
+                {{ 'AI_PROGRESS_NOTE.SUBMIT' | translate }}
+              </p>
             </div>
           </div>
         </div>
@@ -123,10 +128,12 @@
       </div>
 
       <div>
-        <p class="text-sm font-semibold text-slate-800">AI-assisted documentation</p>
+        <p class="text-sm font-semibold text-slate-800">
+          {{ 'AI_PROGRESS_NOTE.AI_ASSISTED_DOCUMENTATION' | translate }}
+        </p>
 
         <p class="mt-0.5 text-xs leading-5 text-slate-500">
-          Review all generated findings before submitting the final clinical note.
+          {{ 'AI_PROGRESS_NOTE.AI_NOTICE_SUBTITLE' | translate }}
         </p>
       </div>
     </div>

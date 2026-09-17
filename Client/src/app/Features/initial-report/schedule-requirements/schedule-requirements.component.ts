@@ -1,5 +1,11 @@
 import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
-import {SchedulingPriority, SlotFitType, TreatmentSchedulePlanResponse, TreatmentSchedulePlanStatus, UpsertTreatmentSchedulePlanRequest } from '../../../Shared/Models/InitialReport.models';
+import {
+  SchedulingPriority,
+  SlotFitType,
+  TreatmentSchedulePlanResponse,
+  TreatmentSchedulePlanStatus,
+  UpsertTreatmentSchedulePlanRequest,
+} from '../../../Shared/Models/InitialReport.models';
 import { SnackbarService } from '../../../Core/Services/snackbar.service';
 import { InitialReportService } from '../../../Core/Services/initial-report.service';
 import { ConfirmationService } from 'primeng/api';
@@ -7,28 +13,29 @@ import { ButtonModule } from 'primeng/button';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SelectModule } from 'primeng/select';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-schedule-requirements',
-  imports: [CommonModule, FormsModule, ButtonModule, SelectModule],
+  imports: [CommonModule, FormsModule, ButtonModule, SelectModule, TranslatePipe],
   templateUrl: './schedule-requirements.component.html',
   styleUrl: './schedule-requirements.component.css',
 })
 export class ScheduleRequirementsComponent implements OnInit {
   @Input({ required: true }) reportId!: string;
   @Input() readonlyMode = false;
- 
+
   @Output() planChanged = new EventEmitter<TreatmentSchedulePlanResponse>();
- 
+
   constructor(
     private readonly initialReportService: InitialReportService,
     private readonly snackbar: SnackbarService,
     private readonly confirmationService: ConfirmationService,
   ) {}
- 
+
   readonly TreatmentSchedulePlanStatus = TreatmentSchedulePlanStatus;
   readonly SlotFitType = SlotFitType;
- 
+
   plan = signal<TreatmentSchedulePlanResponse | null>(null);
   loading = signal(false);
   saving = signal(false);
@@ -36,18 +43,27 @@ export class ScheduleRequirementsComponent implements OnInit {
   sendingToReceptionist = signal(false);
   selectedCandidateIndex = signal<number | null>(null);
   allowSameDayBooking = signal(false);
- 
+
   totalSessions = signal<number | null>(null);
   sessionDurationMinutes = signal<number | null>(null);
   sessionsPerWeek = signal(3);
   minimumGapBetweenSessionsDays = signal(2);
   selectedPreferredDays = signal<number[]>([]);
   priority = signal<SchedulingPriority>(SchedulingPriority.Normal);
- 
-  readonly totalSessionsOptions = [1,2,3,4,5, 6, 8, 10, 12, 15, 20].map(n => ({ label: `${n} sessions`, value: n }));
-  readonly sessionDurationOptions = [30, 45, 60, 75, 90].map(m => ({ label: `${m} min`, value: m }));
-  readonly sessionsPerWeekOptions = [1, 2, 3, 4, 5].map(n => ({ label: `${n}/week`, value: n }));
-  readonly minimumGapOptions = [0, 1, 2, 3, 4, 5, 7].map(n => ({ label: `${n} day${n === 1 ? '' : 's'}`, value: n }));
+
+  readonly totalSessionsOptions = [1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20].map((n) => ({
+    label: `${n} sessions`,
+    value: n,
+  }));
+  readonly sessionDurationOptions = [30, 45, 60, 75, 90].map((m) => ({
+    label: `${m} min`,
+    value: m,
+  }));
+  readonly sessionsPerWeekOptions = [1, 2, 3, 4, 5].map((n) => ({ label: `${n}/week`, value: n }));
+  readonly minimumGapOptions = [0, 1, 2, 3, 4, 5, 7].map((n) => ({
+    label: `${n} day${n === 1 ? '' : 's'}`,
+    value: n,
+  }));
 
   readonly priorityOptions = [
     { label: 'Normal', value: SchedulingPriority.Normal },
@@ -60,19 +76,19 @@ export class ScheduleRequirementsComponent implements OnInit {
     { label: 'No', value: false },
     { label: 'Yes', value: true },
   ];
- 
+
   ngOnInit(): void {
     this.loadExistingPlan();
   }
- 
+
   private loadExistingPlan(): void {
     this.loading.set(true);
     this.initialReportService.getSchedulePlan(this.reportId).subscribe({
-      next: plan => {
+      next: (plan) => {
         this.loading.set(false);
         this.applyPlan(plan);
       },
-      error: err => {
+      error: (err) => {
         this.loading.set(false);
         // 404 just means no plan exists yet for this report — normal, not an error.
         if (err.status !== 404) {
@@ -81,7 +97,7 @@ export class ScheduleRequirementsComponent implements OnInit {
       },
     });
   }
- 
+
   private applyPlan(plan: TreatmentSchedulePlanResponse): void {
     this.plan.set(plan);
     this.totalSessions.set(plan.totalSessions || null);
@@ -93,30 +109,30 @@ export class ScheduleRequirementsComponent implements OnInit {
     this.selectedCandidateIndex.set(null);
     this.planChanged.emit(plan);
   }
-  
+
   get isPending(): boolean {
     return !this.plan() || this.plan()!.status === TreatmentSchedulePlanStatus.Pending;
   }
- 
+
   searchSlots(): void {
     if (!this.totalSessions() || !this.sessionDurationMinutes()) {
       this.snackbar.error('Missing fields', ['Total sessions and session duration are required.']);
       return;
     }
- 
+
     this.saving.set(true);
- 
+
     const request: UpsertTreatmentSchedulePlanRequest = {
       totalSessions: this.totalSessions()!,
       sessionDurationMinutes: this.sessionDurationMinutes()!,
       sessionsPerWeek: this.sessionsPerWeek(),
       minimumGapBetweenSessionsDays: this.minimumGapBetweenSessionsDays(),
       priority: this.priority(),
-      allowSameDayBooking: this.allowSameDayBooking(),   // <-- new
+      allowSameDayBooking: this.allowSameDayBooking(), // <-- new
     };
- 
+
     this.initialReportService.upsertSchedulePlan(this.reportId, request).subscribe({
-      next: plan => {
+      next: (plan) => {
         this.saving.set(false);
         this.applyPlan(plan);
         if (plan.candidateSlots.length === 0) {
@@ -125,25 +141,27 @@ export class ScheduleRequirementsComponent implements OnInit {
           ]);
         }
       },
-      error: err => {
+      error: (err) => {
         this.saving.set(false);
         console.error('Failed to save schedule requirements', err);
-        this.snackbar.error('Save failed', [this.getApiErrorDetail(err) || 'Unable to save schedule requirements.']);
+        this.snackbar.error('Save failed', [
+          this.getApiErrorDetail(err) || 'Unable to save schedule requirements.',
+        ]);
       },
     });
   }
- 
+
   selectCandidate(index: number): void {
     this.selectedCandidateIndex.set(index);
   }
- 
+
   confirmBooking(): void {
     const index = this.selectedCandidateIndex();
     const plan = this.plan();
     if (index === null || !plan) return;
- 
+
     const candidate = plan.candidateSlots[index];
- 
+
     this.confirmationService.confirm({
       header: 'Confirm booking?',
       message: `Book the session for ${this.formatSlotTime(candidate.start)}?`,
@@ -155,21 +173,23 @@ export class ScheduleRequirementsComponent implements OnInit {
         this.initialReportService
           .bookSchedulePlan(this.reportId, { slotStart: candidate.start, slotEnd: candidate.end })
           .subscribe({
-            next: plan => {
+            next: (plan) => {
               this.booking.set(false);
               this.applyPlan(plan);
               this.snackbar.success('Session booked');
             },
-            error: err => {
+            error: (err) => {
               this.booking.set(false);
               console.error('Booking failed', err);
-              this.snackbar.error('Booking failed', [this.getApiErrorDetail(err) || 'Unable to book this slot.']);
+              this.snackbar.error('Booking failed', [
+                this.getApiErrorDetail(err) || 'Unable to book this slot.',
+              ]);
             },
           });
       },
     });
   }
- 
+
   sendToReceptionist(): void {
     this.confirmationService.confirm({
       header: 'Send to receptionist?',
@@ -180,21 +200,23 @@ export class ScheduleRequirementsComponent implements OnInit {
       accept: () => {
         this.sendingToReceptionist.set(true);
         this.initialReportService.sendSchedulePlanToReceptionist(this.reportId).subscribe({
-          next: plan => {
+          next: (plan) => {
             this.sendingToReceptionist.set(false);
             this.applyPlan(plan);
             this.snackbar.success('Sent to receptionist');
           },
-          error: err => {
+          error: (err) => {
             this.sendingToReceptionist.set(false);
             console.error('Send to receptionist failed', err);
-            this.snackbar.error('Failed', [this.getApiErrorDetail(err) || 'Unable to send to receptionist.']);
+            this.snackbar.error('Failed', [
+              this.getApiErrorDetail(err) || 'Unable to send to receptionist.',
+            ]);
           },
         });
       },
     });
   }
- 
+
   formatSlotTime(iso: string): string {
     return new Date(iso).toLocaleString(undefined, {
       weekday: 'short',
@@ -204,7 +226,7 @@ export class ScheduleRequirementsComponent implements OnInit {
       minute: '2-digit',
     });
   }
- 
+
   fitTypeLabel(fitType: SlotFitType): string {
     switch (fitType) {
       case SlotFitType.Exact:
@@ -217,7 +239,7 @@ export class ScheduleRequirementsComponent implements OnInit {
         return '';
     }
   }
- 
+
   // TODO: mirror your parent component's real implementation exactly — this is a
   // reasonable guess (PrimeNG-style ProblemDetails body: { detail: string }) based
   // on ResultExtensions.ToProblem() on the backend, not confirmed against your
@@ -226,8 +248,8 @@ export class ScheduleRequirementsComponent implements OnInit {
     return err?.error?.detail ?? null;
   }
   togglePreferredDay(value: number): void {
-    this.selectedPreferredDays.update(days =>
-      days.includes(value) ? days.filter(d => d !== value) : [...days, value]
+    this.selectedPreferredDays.update((days) =>
+      days.includes(value) ? days.filter((d) => d !== value) : [...days, value],
     );
   }
 }

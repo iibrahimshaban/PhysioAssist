@@ -1,4 +1,14 @@
-import { Component, computed, effect, ElementRef, inject, input, output, signal, ViewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  output,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
@@ -7,8 +17,9 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { SessionProgressNoteService } from '../../../../Core/Services/session-progress-note.service';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
 import { SessionProgressNote } from '../../../../Shared/Models/documentation.model';
-import { ConfirmDialog } from "primeng/confirmdialog";
+import { ConfirmDialog } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
+import { TranslatePipe } from '@ngx-translate/core';
 
 interface ObjectiveFindingRow {
   label: string;
@@ -24,9 +35,17 @@ interface ObjectiveGroupRow {
 @Component({
   selector: 'app-session-progress-note',
   standalone: true,
-  imports: [CommonModule, FormsModule, CardModule, ButtonModule, SkeletonModule, ConfirmDialog],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CardModule,
+    ButtonModule,
+    SkeletonModule,
+    ConfirmDialog,
+    TranslatePipe,
+  ],
   providers: [ConfirmationService],
-  templateUrl: './session-progress-note.component.html'
+  templateUrl: './session-progress-note.component.html',
 })
 export class SessionProgressNoteComponent {
   sessionId = input.required<string>();
@@ -74,7 +93,7 @@ export class SessionProgressNoteComponent {
   readonly objectiveSimpleRows = computed<ObjectiveFindingRow[]>(() =>
     Object.entries(this.parsedObjectiveFindings())
       .filter(([, value]) => !Array.isArray(value))
-      .map(([key, value]) => ({ label: this.humanize(key), value: String(value) }))
+      .map(([key, value]) => ({ label: this.humanize(key), value: String(value) })),
   );
 
   readonly objectiveGroupRows = computed<ObjectiveGroupRow[]>(() =>
@@ -84,7 +103,7 @@ export class SessionProgressNoteComponent {
         const rows = items.map((item) => this.formatGroupItemAsRow(item));
         const columns = rows.length ? Object.keys(rows[0]) : [];
         return { label: this.humanize(key), columns, items: rows };
-      })
+      }),
   );
 
   private formatGroupItemAsRow(item: unknown): Record<string, string> {
@@ -93,9 +112,10 @@ export class SessionProgressNoteComponent {
     }
 
     return Object.fromEntries(
-      Object.entries(item as Record<string, unknown>).map(
-        ([key, value]) => [this.humanize(key), String(value)]
-      )
+      Object.entries(item as Record<string, unknown>).map(([key, value]) => [
+        this.humanize(key),
+        String(value),
+      ]),
     );
   }
 
@@ -130,11 +150,12 @@ export class SessionProgressNoteComponent {
     if (this.noteExists()) {
       this.confirmationService.confirm({
         header: 'Regenerate AI Summary?',
-        message: 'This re-runs AI extraction and refills the draft fields below. Any unsaved edits will be overwritten. Continue?',
+        message:
+          'This re-runs AI extraction and refills the draft fields below. Any unsaved edits will be overwritten. Continue?',
         icon: 'pi pi-exclamation-triangle',
         acceptLabel: 'Continue',
         rejectLabel: 'Cancel',
-        accept: () => this.runGenerateAiSummary()
+        accept: () => this.runGenerateAiSummary(),
       });
       return;
     }
@@ -157,16 +178,16 @@ export class SessionProgressNoteComponent {
 
         if (!response.narrativeDraft) {
           this.snackbar.warning('Objective findings saved', [
-            'The narrative draft failed to generate — retry it below, or write S/A/P manually.'
+            'The narrative draft failed to generate — retry it below, or write S/A/P manually.',
           ]);
         }
       },
       error: () => {
         this.generating.set(false);
         this.snackbar.error('Generation failed', [
-          'Could not generate the AI summary. Make sure this session has a finalized transcript.'
+          'Could not generate the AI summary. Make sure this session has a finalized transcript.',
         ]);
-      }
+      },
     });
   }
 
@@ -184,7 +205,7 @@ export class SessionProgressNoteComponent {
       error: () => {
         this.generating.set(false);
         this.snackbar.error('Retry failed', ['Could not generate the narrative draft.']);
-      }
+      },
     });
   }
 
@@ -195,7 +216,7 @@ export class SessionProgressNoteComponent {
       .updateNarrative(this.sessionId(), {
         subjective: this.subjective(),
         assessment: this.assessment(),
-        plan: this.plan()
+        plan: this.plan(),
       })
       .subscribe({
         next: (updated) => {
@@ -206,7 +227,7 @@ export class SessionProgressNoteComponent {
         error: () => {
           this.saving.set(false);
           this.snackbar.error('Save failed', ['Please try again.']);
-        }
+        },
       });
   }
 
@@ -228,7 +249,7 @@ export class SessionProgressNoteComponent {
         this.note.set(null);
         this.noteExists.set(false);
         this.loading.set(false);
-      }
+      },
     });
   }
 

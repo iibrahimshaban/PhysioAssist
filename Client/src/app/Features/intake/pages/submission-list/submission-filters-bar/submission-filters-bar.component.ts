@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IntakeStatus } from '../../../models';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export interface StatusOption {
   label: string;
@@ -12,9 +13,9 @@ export interface StatusOption {
 @Component({
   selector: 'app-submission-filters-bar',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './submission-filters-bar.component.html',
-  styleUrl: './submission-filters-bar.component.css'
+  styleUrl: './submission-filters-bar.component.css',
 })
 export class SubmissionFiltersBarComponent {
   @Input() searchTerm = '';

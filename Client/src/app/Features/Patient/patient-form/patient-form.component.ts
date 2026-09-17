@@ -3,10 +3,11 @@ import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PatientService } from '../services/patient.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-patient-form',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipe],
   templateUrl: './patient-form.component.html',
   styleUrl: './patient-form.component.css',
 })
@@ -21,14 +22,14 @@ export class PatientFormComponent implements OnInit {
     private patientService: PatientService,
     private route: ActivatedRoute,
     private router: Router,
-    private location: Location
+    private location: Location,
   ) {
     this.form = this.fb.group({
       fullName: ['', Validators.required],
       dateOfBirth: ['', Validators.required],
       phoneNumber: ['', Validators.required],
       gender: ['', Validators.required],
-      emailAddress: ['', Validators.email]
+      emailAddress: ['', Validators.email],
     });
   }
 
@@ -39,7 +40,7 @@ export class PatientFormComponent implements OnInit {
       this.patientId = id;
       this.patientService.getById(this.patientId).subscribe({
         next: (data) => this.form.patchValue(data),
-        error: (err) => console.error(err)
+        error: (err) => console.error(err),
       });
     }
   }
@@ -54,7 +55,7 @@ export class PatientFormComponent implements OnInit {
         error: (err) => {
           console.error(err);
           this.isLoading = false;
-        }
+        },
       });
     } else {
       this.patientService.create(this.form.value).subscribe({
@@ -62,7 +63,7 @@ export class PatientFormComponent implements OnInit {
         error: (err) => {
           console.error(err);
           this.isLoading = false;
-        }
+        },
       });
     }
   }

@@ -1,8 +1,4 @@
-<button
-  type="button"
-  (click)="selected.emit(submission)"
-  class="submission-row">
-
+<button type="button" (click)="selected.emit(submission)" class="submission-row">
   <!-- 4px Left Accent Border (status) -->
   <div class="row-accent" [ngClass]="getStatusAccentClass(submission.status)"></div>
 
@@ -11,7 +7,8 @@
     <div class="row-avatar-ring">
       <div
         class="row-avatar"
-        [style.background]="getAvatarGradient(submission.patientName, submission.id)">
+        [style.background]="getAvatarGradient(submission.patientName, submission.id)"
+      >
         {{ getInitials(submission.patientName) }}
       </div>
     </div>
@@ -29,7 +26,7 @@
         </span>
         <span class="row-meta-item">
           <i class="pi pi-heart"></i>
-          {{ submission.painRegionCount }} pain {{ submission.painRegionCount === 1 ? 'region' : 'regions' }}
+          {{ 'SUBMISSION_ROW.PAIN_REGIONS' | translate: { count: submission.painRegionCount } }}
         </span>
       </div>
     </div>
@@ -44,8 +41,9 @@
         class="row-action-circle"
         role="button"
         tabindex="-1"
-        aria-label="View submission details">
-        <i class="pi pi-chevron-right"></i>
+        [attr.aria-label]="'SUBMISSION_ROW.VIEW_DETAILS' | translate"
+      >
+        <i class="pi pi-chevron-right rtl:rotate-180"></i>
       </div>
     </div>
   </div>

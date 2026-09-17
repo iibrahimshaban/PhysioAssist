@@ -14,7 +14,14 @@ import { IntakeApiService } from '../../services/intake-api.service';
 import { QrAccessService } from '../../services/qr-access.service';
 import { IntakePageContainerComponent } from '../../shared/intake-page-container.component';
 import { SnackbarService } from '../../../../Core/Services/snackbar.service';
-import { FormSchemaSummaryResponse, FormSchemaStatus, FormSchemaResponse, CreateFormSchemaRequest, GenerateIntakeQrLinkResponse } from '../../models';
+import {
+  FormSchemaSummaryResponse,
+  FormSchemaStatus,
+  FormSchemaResponse,
+  CreateFormSchemaRequest,
+  GenerateIntakeQrLinkResponse,
+} from '../../models';
+import { TranslatePipe } from '@ngx-translate/core';
 
 type TabFilter = 'all' | 'published' | 'draft' | 'archived';
 type SortField = 'name' | 'updated' | 'submissions';
@@ -31,11 +38,12 @@ type SortField = 'name' | 'updated' | 'submissions';
     DialogModule,
     ConfirmDialogModule,
     TooltipModule,
-    IntakePageContainerComponent
+    IntakePageContainerComponent,
+    TranslatePipe,
   ],
   providers: [ConfirmationService],
   templateUrl: './schema-list.component.html',
-  styleUrl: './schema-list.component.css'
+  styleUrl: './schema-list.component.css',
 })
 export class SchemaListComponent implements OnInit {
   private readonly apiService = inject(IntakeApiService);
@@ -44,7 +52,6 @@ export class SchemaListComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly qrAccessService = inject(QrAccessService);
   private readonly confirmationService = inject(ConfirmationService);
-
 
   schemas = signal<FormSchemaSummaryResponse[]>([]);
   filteredSchemas = signal<FormSchemaSummaryResponse[]>([]);
@@ -66,7 +73,7 @@ export class SchemaListComponent implements OnInit {
   readonly sortOptions = [
     { value: 'name' as SortField, label: 'Name' },
     { value: 'updated' as SortField, label: 'Last Updated' },
-    { value: 'submissions' as SortField, label: 'Submissions' }
+    { value: 'submissions' as SortField, label: 'Submissions' },
   ];
 
   // Pagination
@@ -78,12 +85,14 @@ export class SchemaListComponent implements OnInit {
     return this.filteredSchemas().slice(start, start + this.pageSize);
   });
 
-  totalPages = computed(() => Math.max(1, Math.ceil(this.filteredSchemas().length / this.pageSize)));
+  totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredSchemas().length / this.pageSize)),
+  );
   pages = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
 
   defaultFormSummary = computed(() => {
     const defaultId = this.defaultForm()?.id;
-    return defaultId ? this.schemas().find(s => s.id === defaultId) : undefined;
+    return defaultId ? this.schemas().find((s) => s.id === defaultId) : undefined;
   });
 
   // QR Dialog state
@@ -96,8 +105,6 @@ export class SchemaListComponent implements OnInit {
   qrLoading = signal(false);
   loadingStates = signal<Record<string, string>>({});
 
-
-
   ngOnInit(): void {
     this.loadSchemas();
     this.loadDefaultForm();
@@ -105,16 +112,19 @@ export class SchemaListComponent implements OnInit {
 
   private loadDefaultForm(): void {
     this.defaultFormLoading.set(true);
-    this.apiService.getDefaultFormSchema().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (form) => {
-        this.defaultForm.set(form);
-        this.defaultFormLoading.set(false);
-      },
-      error: () => {
-        this.defaultForm.set(null);
-        this.defaultFormLoading.set(false);
-      }
-    });
+    this.apiService
+      .getDefaultFormSchema()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (form) => {
+          this.defaultForm.set(form);
+          this.defaultFormLoading.set(false);
+        },
+        error: () => {
+          this.defaultForm.set(null);
+          this.defaultFormLoading.set(false);
+        },
+      });
   }
 
   getFieldsCount(schemaJson: string): number {
@@ -137,25 +147,30 @@ export class SchemaListComponent implements OnInit {
 
   generateDefaultForm(): void {
     this.defaultFormLoading.set(true);
-    this.apiService.generateDefaultFormSchema().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.snackbar.success('Default template created', ['The default intake form has been generated']);
-        this.loadSchemas();
-        this.loadDefaultForm();
-      },
-      error: (err: any) => {
-        this.defaultFormLoading.set(false);
-        this.snackbar.error('Failed to create default', [this.extractError(err)]);
-      }
-    });
+    this.apiService
+      .generateDefaultFormSchema()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.snackbar.success('Default template created', [
+            'The default intake form has been generated',
+          ]);
+          this.loadSchemas();
+          this.loadDefaultForm();
+        },
+        error: (err: any) => {
+          this.defaultFormLoading.set(false);
+          this.snackbar.error('Failed to create default', [this.extractError(err)]);
+        },
+      });
   }
 
   private setLoading(id: string, key: string): void {
-    this.loadingStates.update(s => ({ ...s, [id]: key }));
+    this.loadingStates.update((s) => ({ ...s, [id]: key }));
   }
 
   private clearLoading(id: string): void {
-    this.loadingStates.update(s => {
+    this.loadingStates.update((s) => {
       const next = { ...s };
       delete next[id];
       return next;
@@ -169,17 +184,22 @@ export class SchemaListComponent implements OnInit {
   loadSchemas(): void {
     this.loading.set(true);
     this.loadError.set(null);
-    this.apiService.getFormSchemas().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (data) => {
-        this.schemas.set(data);
-        this.applyFilters();
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.loadError.set(err?.error?.detail || err?.error?.title || 'Could not load schemas. Please try again.');
-        this.loading.set(false);
-      }
-    });
+    this.apiService
+      .getFormSchemas()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.schemas.set(data);
+          this.applyFilters();
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.loadError.set(
+            err?.error?.detail || err?.error?.title || 'Could not load schemas. Please try again.',
+          );
+          this.loading.set(false);
+        },
+      });
   }
 
   setTab(tab: TabFilter): void {
@@ -207,17 +227,18 @@ export class SchemaListComponent implements OnInit {
         all: undefined!,
         published: FormSchemaStatus.Published,
         draft: FormSchemaStatus.Draft,
-        archived: FormSchemaStatus.Archived
+        archived: FormSchemaStatus.Archived,
       };
-      result = result.filter(s => s.status === statusMap[tab]);
+      result = result.filter((s) => s.status === statusMap[tab]);
     }
 
     const term = this.searchTerm.toLowerCase().trim();
     if (term) {
-      result = result.filter(s =>
-        s.name.toLowerCase().includes(term) ||
-        s.description?.toLowerCase().includes(term) ||
-        s.shortCode.toLowerCase().includes(term)
+      result = result.filter(
+        (s) =>
+          s.name.toLowerCase().includes(term) ||
+          s.description?.toLowerCase().includes(term) ||
+          s.shortCode.toLowerCase().includes(term),
       );
     }
 
@@ -262,21 +283,26 @@ export class SchemaListComponent implements OnInit {
 
   duplicateSchema(schema: FormSchemaSummaryResponse | FormSchemaResponse): void {
     this.setLoading(schema.id, 'duplicate');
-    this.apiService.duplicateFormSchema(schema.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.clearLoading(schema.id);
-        this.snackbar.success('Schema duplicated', ['A copy has been created']);
-        this.loadSchemas();
-      },
-      error: (err: any) => {
-        this.clearLoading(schema.id);
-        this.snackbar.error('Duplicate failed', [this.extractError(err)]);
-      }
-    });
+    this.apiService
+      .duplicateFormSchema(schema.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.clearLoading(schema.id);
+          this.snackbar.success('Schema duplicated', ['A copy has been created']);
+          this.loadSchemas();
+        },
+        error: (err: any) => {
+          this.clearLoading(schema.id);
+          this.snackbar.error('Duplicate failed', [this.extractError(err)]);
+        },
+      });
   }
 
   previewSchema(schema: FormSchemaSummaryResponse | FormSchemaResponse): void {
-    this.router.navigate(['/app/intake/schemas/edit', schema.id], { queryParams: { preview: true } });
+    this.router.navigate(['/app/intake/schemas/edit', schema.id], {
+      queryParams: { preview: true },
+    });
   }
 
   confirmDelete(schema: FormSchemaSummaryResponse): void {
@@ -287,26 +313,29 @@ export class SchemaListComponent implements OnInit {
       acceptLabel: 'Delete',
       rejectLabel: 'Cancel',
       acceptButtonStyleClass: 'p-button-danger',
-      accept: () => this.deleteSchema(schema.id)
+      accept: () => this.deleteSchema(schema.id),
     });
   }
 
   private deleteSchema(id: string): void {
     this.setLoading(id, 'delete');
-    this.apiService.deleteFormSchema(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.clearLoading(id);
-        this.snackbar.success('Schema deleted', ['The form template has been removed']);
-        if (this.paginatedSchemas().length <= 1 && this.currentPage() > 1) {
-          this.goToPage(this.currentPage() - 1);
-        }
-        this.loadSchemas();
-      },
-      error: (err: any) => {
-        this.clearLoading(id);
-        this.snackbar.error('Delete failed', [this.extractError(err)]);
-      }
-    });
+    this.apiService
+      .deleteFormSchema(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.clearLoading(id);
+          this.snackbar.success('Schema deleted', ['The form template has been removed']);
+          if (this.paginatedSchemas().length <= 1 && this.currentPage() > 1) {
+            this.goToPage(this.currentPage() - 1);
+          }
+          this.loadSchemas();
+        },
+        error: (err: any) => {
+          this.clearLoading(id);
+          this.snackbar.error('Delete failed', [this.extractError(err)]);
+        },
+      });
   }
 
   confirmArchive(schema: FormSchemaSummaryResponse): void {
@@ -318,23 +347,26 @@ export class SchemaListComponent implements OnInit {
       rejectLabel: 'Cancel',
       acceptButtonStyleClass: 'p-button-primary',
       rejectButtonStyleClass: 'p-button-secondary',
-      accept: () => this.archiveSchema(schema.id)
+      accept: () => this.archiveSchema(schema.id),
     });
   }
 
   private archiveSchema(id: string): void {
     this.setLoading(id, 'archive');
-    this.apiService.archiveFormSchema(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.clearLoading(id);
-        this.snackbar.success('Schema archived', ['The form template has been archived']);
-        this.loadSchemas();
-      },
-      error: (err: any) => {
-        this.clearLoading(id);
-        this.snackbar.error('Archive failed', [this.extractError(err)]);
-      }
-    });
+    this.apiService
+      .archiveFormSchema(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.clearLoading(id);
+          this.snackbar.success('Schema archived', ['The form template has been archived']);
+          this.loadSchemas();
+        },
+        error: (err: any) => {
+          this.clearLoading(id);
+          this.snackbar.error('Archive failed', [this.extractError(err)]);
+        },
+      });
   }
 
   confirmUnarchive(schema: FormSchemaSummaryResponse): void {
@@ -346,83 +378,102 @@ export class SchemaListComponent implements OnInit {
       rejectLabel: 'Cancel',
       acceptButtonStyleClass: 'p-button-primary',
       rejectButtonStyleClass: 'p-button-secondary',
-      accept: () => this.unarchiveSchema(schema.id)
+      accept: () => this.unarchiveSchema(schema.id),
     });
   }
 
   private unarchiveSchema(id: string): void {
     this.setLoading(id, 'unarchive');
-    this.apiService.unarchiveFormSchema(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.clearLoading(id);
-        this.snackbar.success('Schema unarchived', ['The form template has been published again']);
-        this.loadSchemas();
-      },
-      error: (err: any) => {
-        this.clearLoading(id);
-        this.snackbar.error('Unarchive failed', [this.extractError(err)]);
-      }
-    });
+    this.apiService
+      .unarchiveFormSchema(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.clearLoading(id);
+          this.snackbar.success('Schema unarchived', [
+            'The form template has been published again',
+          ]);
+          this.loadSchemas();
+        },
+        error: (err: any) => {
+          this.clearLoading(id);
+          this.snackbar.error('Unarchive failed', [this.extractError(err)]);
+        },
+      });
   }
 
   exportJson(schema: FormSchemaSummaryResponse): void {
     this.setLoading(schema.id, 'export');
-    this.apiService.getFormSchemaById(schema.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (full) => {
-        this.clearLoading(schema.id);
-        const json = JSON.stringify(JSON.parse(full.schemaJson), null, 2);
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${schema.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        this.snackbar.success('Exported', ['Schema JSON downloaded']);
-      },
-      error: (err: any) => {
-        this.clearLoading(schema.id);
-        this.snackbar.error('Export failed', [this.extractError(err)]);
-      }
-    });
+    this.apiService
+      .getFormSchemaById(schema.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (full) => {
+          this.clearLoading(schema.id);
+          const json = JSON.stringify(JSON.parse(full.schemaJson), null, 2);
+          const blob = new Blob([json], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${schema.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          this.snackbar.success('Exported', ['Schema JSON downloaded']);
+        },
+        error: (err: any) => {
+          this.clearLoading(schema.id);
+          this.snackbar.error('Export failed', [this.extractError(err)]);
+        },
+      });
   }
 
   quickShare(schema: FormSchemaSummaryResponse): void {
     if (schema.status !== FormSchemaStatus.Published) {
-      this.snackbar.warning('Not published', ['Publish the schema first to generate a shareable link.']);
+      this.snackbar.warning('Not published', [
+        'Publish the schema first to generate a shareable link.',
+      ]);
       return;
     }
     this.setLoading(schema.id, 'share');
-    this.apiService.generateIntakeQrLink(schema.id, { expiryMonths: 12 }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (result) => {
-        this.clearLoading(schema.id);
-        const publicUrl = this.normalizePublicUrl(result.publicUrl || result.token);
-        navigator.clipboard.writeText(publicUrl).then(() => {
-          this.snackbar.success('Link copied', ['Public URL copied to clipboard']);
-        }).catch(() => {
-          this.snackbar.success('Link ready', [publicUrl]);
-        });
-      },
-      error: (err: any) => {
-        this.clearLoading(schema.id);
-        this.snackbar.error('Share failed', [this.extractError(err)]);
-      }
-    });
+    this.apiService
+      .generateIntakeQrLink(schema.id, { expiryMonths: 12 })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          this.clearLoading(schema.id);
+          const publicUrl = this.normalizePublicUrl(result.publicUrl || result.token);
+          navigator.clipboard
+            .writeText(publicUrl)
+            .then(() => {
+              this.snackbar.success('Link copied', ['Public URL copied to clipboard']);
+            })
+            .catch(() => {
+              this.snackbar.success('Link ready', [publicUrl]);
+            });
+        },
+        error: (err: any) => {
+          this.clearLoading(schema.id);
+          this.snackbar.error('Share failed', [this.extractError(err)]);
+        },
+      });
   }
 
   publishSchema(schema: FormSchemaSummaryResponse | FormSchemaResponse): void {
     this.setLoading(schema.id, 'publish');
-    this.apiService.publishFormSchema(schema.id, { version: schema.version }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.clearLoading(schema.id);
-        this.snackbar.success('Schema published', ['Form schema is now live']);
-        this.loadSchemas();
-      },
-      error: (err: any) => {
-        this.clearLoading(schema.id);
-        this.snackbar.error('Publish failed', [this.extractError(err)]);
-      }
-    });
+    this.apiService
+      .publishFormSchema(schema.id, { version: schema.version })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.clearLoading(schema.id);
+          this.snackbar.success('Schema published', ['Form schema is now live']);
+          this.loadSchemas();
+        },
+        error: (err: any) => {
+          this.clearLoading(schema.id);
+          this.snackbar.error('Publish failed', [this.extractError(err)]);
+        },
+      });
   }
 
   openQrDialog(schema: FormSchemaSummaryResponse | FormSchemaResponse): void {
@@ -447,25 +498,28 @@ export class SchemaListComponent implements OnInit {
 
   generateQr(): void {
     this.qrLoading.set(true);
-    this.apiService.generateIntakeQrLink(this.qrSchemaId, { expiryMonths: this.expiryMonths }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (result) => {
-        const publicUrl = this.normalizePublicUrl(result.publicUrl || result.token);
-        setTimeout(() => {
-          this.qrResult.set({ ...result, publicUrl });
-          this.qrPublicUrl.set(publicUrl);
-          this.qrLoading.set(false);
-          void this.renderQrCode(publicUrl);
-        }, 0);
-      },
-      error: (err: any) => {
-        setTimeout(() => {
-          this.qrLoading.set(false);
-          this.qrPublicUrl.set('');
-          this.qrImageUrl.set(null);
-          this.snackbar.error('QR generation failed', [this.extractError(err)]);
-        }, 0);
-      }
-    });
+    this.apiService
+      .generateIntakeQrLink(this.qrSchemaId, { expiryMonths: this.expiryMonths })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          const publicUrl = this.normalizePublicUrl(result.publicUrl || result.token);
+          setTimeout(() => {
+            this.qrResult.set({ ...result, publicUrl });
+            this.qrPublicUrl.set(publicUrl);
+            this.qrLoading.set(false);
+            void this.renderQrCode(publicUrl);
+          }, 0);
+        },
+        error: (err: any) => {
+          setTimeout(() => {
+            this.qrLoading.set(false);
+            this.qrPublicUrl.set('');
+            this.qrImageUrl.set(null);
+            this.snackbar.error('QR generation failed', [this.extractError(err)]);
+          }, 0);
+        },
+      });
   }
 
   printQrCode(): void {
@@ -504,7 +558,9 @@ export class SchemaListComponent implements OnInit {
 
   private renderQrCode(url: string): void {
     try {
-      this.qrImageUrl.set(`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(url)}`);
+      this.qrImageUrl.set(
+        `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(url)}`,
+      );
     } catch {
       this.qrImageUrl.set(null);
     }
@@ -515,7 +571,9 @@ export class SchemaListComponent implements OnInit {
   }
 
   copyToClipboard(url: string): void {
-    navigator.clipboard.writeText(url).then(() => this.snackbar.success('Copied', ['URL copied to clipboard']))
+    navigator.clipboard
+      .writeText(url)
+      .then(() => this.snackbar.success('Copied', ['URL copied to clipboard']))
       .catch(() => this.snackbar.error('Copy failed', ['Could not copy URL']));
   }
 
@@ -545,36 +603,45 @@ export class SchemaListComponent implements OnInit {
     return parsed.toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
-      timeZone: 'Africa/Cairo' // for the absolute-date fallback, display in Cairo local time
+      timeZone: 'Africa/Cairo', // for the absolute-date fallback, display in Cairo local time
     });
   }
 
   getStatusLabel(status: FormSchemaStatus): string {
     switch (status) {
-      case FormSchemaStatus.Draft: return 'Draft';
-      case FormSchemaStatus.Published: return 'Published';
-      case FormSchemaStatus.Archived: return 'Archived';
-      default: return 'Unknown';
+      case FormSchemaStatus.Draft:
+        return 'Draft';
+      case FormSchemaStatus.Published:
+        return 'Published';
+      case FormSchemaStatus.Archived:
+        return 'Archived';
+      default:
+        return 'Unknown';
     }
   }
 
   getCardBorderClass(status: FormSchemaStatus): string {
     switch (status) {
-      case FormSchemaStatus.Published: return 'card-border--published';
-      case FormSchemaStatus.Archived: return 'card-border--archived';
-      default: return 'card-border--draft';
+      case FormSchemaStatus.Published:
+        return 'card-border--published';
+      case FormSchemaStatus.Archived:
+        return 'card-border--archived';
+      default:
+        return 'card-border--draft';
     }
   }
 
   private extractError(err: any): string {
     const body = err?.error;
     if (body?.detail) return body.detail;
-    if (body?.errors) return Object.values(body.errors as Record<string, string[]>).flat().join('; ');
+    if (body?.errors)
+      return Object.values(body.errors as Record<string, string[]>)
+        .flat()
+        .join('; ');
     return body?.title || 'Unexpected error';
   }
 
   trackById(_index: number, item: FormSchemaSummaryResponse): string {
     return item.id;
   }
-
 }

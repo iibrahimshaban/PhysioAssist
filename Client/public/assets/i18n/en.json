@@ -1,0 +1,1611 @@
+{
+  "NAVBAR": {
+    "ACCOUNT_SETTINGS": "Account settings",
+    "SIGN_IN": "Sign in",
+    "START_FOR_FREE": "Start for free",
+    "LOGOUT": "Logout",
+    "SWITCH_TO_ARABIC": "Switch to Arabic",
+    "SWITCH_TO_ENGLISH": "Switch to English",
+    "TOGGLE_NAVIGATION": "Toggle navigation menu",
+    "FOR_PHYSIOTHERAPISTS": "For Physiotherapists",
+    "SCHEDULING": "Scheduling",
+    "AI_ASSISTANT": "AI Assistant",
+    "FEATURES": "Features",
+    "HOME": "Home",
+    "TODAY_SESSIONS": "Today sessions",
+    "PATIENTS": "Patients",
+    "SCHEDULE": "Schedule",
+    "RECEPTION": "Reception",
+    "WORKING_SCHEDULE": "Working schedule",
+    "SCHEDULE_PREFERENCES": "Schedule preferences",
+    "SUBMISSIONS": "Submissions",
+    "STAFF": "Staff",
+    "INTAKE_SCHEMAS": "Intake schemas",
+    "DOCUMENTATION_TEMPLATES": "Documentation templates"
+  },
+  "LANDING": {
+    "HERO": {
+      "EYEBROW": "Built for solo physiotherapists in Egypt",
+      "TITLE_LINE_1": "Run your clinic.",
+      "TITLE_LINE_2": "Smarter. Simpler.",
+      "SUBTITLE": "Manage patients, appointments, treatment sessions and clinical documentation from one intelligent platform — with AI that listens, writes and organizes alongside you.",
+      "START_FOR_FREE": "Start for free",
+      "EXPLORE_FEATURES": "Explore features",
+      "TODAY_SCHEDULE": "Today's Schedule",
+      "BOOKED": "Booked",
+      "AVAILABLE": "Available",
+      "OPEN": "Open",
+      "AI_ASSISTANT": "AI Assistant",
+      "SESSION_SUMMARY_GENERATED": "Session summary generated",
+      "SESSIONS": "sessions",
+      "VOICE_TRANSCRIPTION": "Voice Transcription",
+      "LISTENING": "Listening…"
+    },
+    "TRUST_STRIP": {
+      "LABEL": "Built for modern physiotherapy clinics",
+      "PATIENT_MANAGEMENT": "Patient Management",
+      "AI_DOCUMENTATION": "AI Documentation",
+      "SMART_SCHEDULING": "Smart Scheduling",
+      "SESSION_TRACKING": "Session Tracking"
+    },
+    "FEATURES": {
+      "TITLE_LINE_1": "Everything your clinic needs.",
+      "TITLE_LINE_2": "Nothing you don't.",
+      "PATIENT_MANAGEMENT": {
+        "TITLE": "Patient Management",
+        "DESC": "Keep patient profiles, history, sessions and clinical information organized in one place."
+      },
+      "VOICE_TRANSCRIPTION": {
+        "TITLE": "Voice Transcription",
+        "DESC": "Dictate session notes in Egyptian Arabic or English and turn your voice into structured documentation."
+      },
+      "AI_DOCUMENTATION": {
+        "TITLE": "AI Documentation",
+        "DESC": "Use patient history and session information to assist with reports, treatment plans and summaries."
+      },
+      "SMART_SCHEDULING": {
+        "TITLE": "Smart Scheduling",
+        "DESC": "Manage doctor availability, appointments, rescheduling and free time from one intelligent calendar."
+      },
+      "TREATMENT_SESSIONS": {
+        "TITLE": "Treatment Sessions",
+        "DESC": "Keep treatment sessions organized and connect every session to the patient's treatment journey."
+      },
+      "NOTIFICATIONS": {
+        "TITLE": "Notifications",
+        "DESC": "Keep patients informed about appointments, reminders, cancellations and schedule changes."
+      }
+    },
+    "AI_SECTION": {
+      "TITLE_LINE_1": "AI that works ",
+      "TITLE_WITH_YOU": "with you",
+      "TITLE_LINE_2": ", not instead of you.",
+      "LEAD": "PhysioAssist uses AI to reduce repetitive work while keeping the physiotherapist in full control of every clinical decision.",
+      "STEP_1_TITLE": "Capture",
+      "STEP_1_DESC": "Voice, forms and patient information",
+      "STEP_2_TITLE": "Understand",
+      "STEP_2_DESC": "AI analyzes and organizes the information",
+      "STEP_3_TITLE": "Assist",
+      "STEP_3_DESC": "Generate summaries, suggestions and smarter workflows",
+      "DOCTOR_SPEAKING": "Doctor speaking",
+      "QUOTE": "\"Patient reports reduced pain in the right knee after the previous session...\"",
+      "AI_SUMMARY_TITLE": "AI Session Summary",
+      "PAIN_REDUCED": "Pain reduced",
+      "MOBILITY_IMPROVED": "Mobility improved",
+      "CONTINUE_EXERCISES": "Continue current exercises",
+      "SUGGESTED_NEXT_STEP": "Suggested next step",
+      "REVIEW_AFTER_SESSION": "Review after next session"
+    },
+    "SCHEDULING": {
+      "TITLE": "Scheduling that understands both sides.",
+      "LEAD": "PhysioAssist compares patient availability with doctor availability to suggest the best possible appointment time.",
+      "PATIENT_AVAILABILITY": "Patient availability",
+      "DOCTOR_AVAILABILITY": "Doctor availability",
+      "BEST_MATCH": "Best match",
+      "BEST_MATCH_TIME": "Sunday, 5:00 – 6:00 PM",
+      "MATCH_SCORE": "92% match",
+      "DAYS": {
+        "SATURDAY": "Saturday",
+        "SUNDAY": "Sunday",
+        "MONDAY": "Monday"
+      }
+    },
+    "JOURNEY": {
+      "TITLE": "One connected patient journey.",
+      "LEAD": "From the first visit to long-term history, every step feeds the next — no re-entering data, no lost context.",
+      "STEPS": {
+        "FIRST_VISIT": "First Visit",
+        "PATIENT_INTAKE": "Patient Intake",
+        "EXAMINATION": "Examination",
+        "TREATMENT_PLAN": "Treatment Plan",
+        "SMART_SCHEDULING": "Smart Scheduling",
+        "TREATMENT_SESSIONS": "Treatment Sessions",
+        "AI_DOCUMENTATION": "AI Documentation",
+        "PATIENT_HISTORY": "Patient History"
+      }
+    },
+    "CLINIC_OVERVIEW": {
+      "TITLE": "See your whole clinic, at a glance.",
+      "LEAD": "A live-feeling overview of patients, appointments and what's next — illustrative preview data shown below.",
+      "PATIENTS": "Patients",
+      "APPOINTMENTS": "Appointments",
+      "COMPLETED": "Completed",
+      "UPCOMING": "Upcoming",
+      "NEXT_APPOINTMENT": "Next appointment"
+    },
+    "WHY": {
+      "TITLE": "Why physiotherapists choose PhysioAssist",
+      "LESS_PAPERWORK": "Less paperwork",
+      "MORE_ORGANIZED_CARE": "More organized care",
+      "FASTER_DOCUMENTATION": "Faster documentation",
+      "SMARTER_WORKFLOWS": "Smarter clinic workflows"
+    },
+    "CTA": {
+      "TITLE_LINE_1": "Spend less time managing your clinic.",
+      "TITLE_LINE_2": "Spend more time caring for your patients.",
+      "START_FOR_FREE": "Start for free",
+      "SIGN_IN": "Sign in"
+    },
+    "FOOTER": {
+      "TAGLINE": "AI-powered clinic management for physiotherapists.",
+      "PRODUCT": "Product",
+      "FEATURES": "Features",
+      "AI_ASSISTANT": "AI Assistant",
+      "SCHEDULING": "Scheduling",
+      "COMPANY": "Company",
+      "ABOUT": "About",
+      "CONTACT": "Contact",
+      "LEGAL": "Legal",
+      "PRIVACY": "Privacy",
+      "TERMS": "Terms",
+      "RIGHTS": "All rights reserved."
+    },
+    "BACK_TO_TOP": "Back to top"
+  },
+  "DASHBOARD": {
+    "WELCOME_BACK": "Welcome back,",
+    "STATS_SUMMARY": "{{ pending }} pending intake{{ pendingPlural }} · {{ upcoming }} upcoming session{{ upcomingPlural }} today",
+    "ALL_CAUGHT_UP": "You're all caught up. Start a new session or view your schedule to get going.",
+    "TODAY_SESSIONS": "Today's sessions",
+    "TODAY_SESSIONS_DESC": "Pick a patient and record",
+    "VIEW_SCHEDULE": "View schedule",
+    "VIEW_SCHEDULE_DESC": "Check availability or booking",
+    "PENDING_INTAKES": "Pending intakes",
+    "PENDING_INTAKES_DESC": "From reception, oldest first",
+    "VIEW_ALL": "View all →",
+    "NO_PENDING_TITLE": "No pending intakes right now",
+    "NO_PENDING_DESC": "New submissions from reception will show up here for review.",
+    "STATUS_PENDING": "Pending",
+    "CHECKED_IN": "Checked in {{ time }}",
+    "PAIN_REGIONS": "{{ count }} pain region{{ plural }}",
+    "REVIEW": "Review →"
+  },
+  "TODAY_SESSIONS_DASHBOARD": {
+    "LOADING": "Loading...",
+    "TITLE": "Today's sessions",
+    "WEEK_VIEW": "Week view",
+    "PERCENT_DONE": "Done",
+    "TODAY_SESSIONS_COMPLETED": "Today · sessions completed",
+    "ACTIVE": "active",
+    "UPCOMING": "upcoming",
+    "DAY_TIMELINE": "Day timeline",
+    "IN_PROGRESS": "In progress",
+    "UP_NEXT": "Up next",
+    "COMPLETED": "Completed",
+    "MISSED": "Missed",
+    "NO_NOTES": "No notes",
+    "OVERDUE": "overdue",
+    "RESUME": "Resume",
+    "START": "Start",
+    "VIEW_NOTES": "View notes",
+    "LOG_SESSION": "Log session",
+    "NO_SHOW": "No-show"
+  },
+  "NO_SHOW_DIALOG": {
+    "HEADER": "Mark as no-show",
+    "DESCRIPTION": "{{ patientName }} didn't show up for this session. What should happen to their package?",
+    "COUNTS_AS_USED_TITLE": "Counts as used",
+    "COUNTS_AS_USED_DESC": "No make-up session — this one is spent.",
+    "REOPEN_TITLE": "Reopen",
+    "REOPEN_DESC": "Patient still owes this session — a make-up slot is added.",
+    "CANCEL": "Cancel",
+    "CONFIRM": "Confirm"
+  },
+  "ADD_PATIENT": {
+    "TITLE": "Add Patient",
+    "SUBTITLE": "Fill out the intake form to register a new patient.",
+    "LOADING_FORMS": "Loading forms...",
+    "NO_FORMS_TITLE": "No intake forms found. Please create and publish one first.",
+    "INTAKE_FORM_LABEL": "Intake Form",
+    "SELECT_FORM_PLACEHOLDER": "Select an intake form",
+    "LOADING_FORM": "Loading form...",
+    "VERIFYING_EMAIL": "Verifying email address…",
+    "DUPLICATE_EMAIL": "The email address {{ email }} is already associated with an existing patient record.",
+    "VERIFYING_PHONE": "Verifying phone number…",
+    "DUPLICATE_PHONE": "The phone number {{ phone }} is already associated with an existing patient record.",
+    "CREATE_PATIENT": "Create Patient",
+    "CREATING": "Creating...",
+    "CANCEL": "Cancel",
+    "BACK": "Back",
+    "FORWARD": "Forward"
+  },
+  "PATIENT_DETAILS": {
+    "LOADING": "Loading patient...",
+    "SUBTITLE": "Patient details and information.",
+    "OVERVIEW": "Overview",
+    "EDIT": "Edit",
+    "DELETE": "Delete",
+    "INITIAL_REPORT": "Initial Report",
+    "STATUS_ACTIVE": "Active",
+    "STATUS_DISCHARGED": "Discharged",
+    "PHONE": "Phone",
+    "GENDER": "Gender",
+    "DATE_OF_BIRTH": "Date of Birth",
+    "EMAIL": "Email",
+    "NOT_FOUND": "Patient not found."
+  },
+  "COMMON": {
+    "BACK": "Back",
+    "FORWARD": "Forward",
+    "CANCEL": "Cancel"
+  },
+  "PATIENT_FORM": {
+    "ADD_TITLE": "Add Patient",
+    "EDIT_TITLE": "Edit Patient",
+    "ADD_SUBTITLE": "Register a new patient.",
+    "EDIT_SUBTITLE": "Update patient information.",
+    "FULL_NAME": "Full Name",
+    "FULL_NAME_PLACEHOLDER": "Enter full name",
+    "DATE_OF_BIRTH": "Date of Birth",
+    "PHONE_NUMBER": "Phone Number",
+    "PHONE_NUMBER_PLACEHOLDER": "Enter phone number",
+    "GENDER": "Gender",
+    "GENDER_MALE": "Male",
+    "GENDER_FEMALE": "Female",
+    "EMAIL_ADDRESS": "Email Address",
+    "EMAIL_ADDRESS_PLACEHOLDER": "Enter email address",
+    "CREATE_BTN": "Create Patient",
+    "UPDATE_BTN": "Update Patient"
+  },
+  "PATIENTS_LIST": {
+    "TITLE": "Patients",
+    "SUBTITLE": "Nearest session first",
+    "ADD_PATIENT": "Add Patient",
+    "SEARCH_PLACEHOLDER": "Search by name or phone",
+    "TAB_ALL": "All",
+    "TAB_TODAY": "Today",
+    "TAB_PENDING": "Pending",
+    "LOADING": "Loading patients...",
+    "NO_PATIENTS": "No patients found.",
+    "SCHEDULED": "scheduled",
+    "NO_SESSION_TODAY": "No session today"
+  },
+  "PATIENT_OVERVIEW": {
+    "LOADING": "Loading overview...",
+    "SUBTITLE_AGE": "{{age}} years old · {{gender}}",
+    "EDIT": "Edit",
+    "DELETE": "Delete patient",
+    "INITIAL_REPORT": "Initial Report",
+    "CONTINUE_SCHEDULING": "Continue Scheduling",
+    "DOCUMENTATION": "Documentation",
+    "PATIENT_DETAILS_HEADER": "Patient Details",
+    "CLINICAL_SUMMARY_HEADER": "Clinical Summary",
+    "NO_INTAKE": "No intake submitted for this patient yet.",
+    "INLINE_EDIT_NOTE": "These fields are edited in the Patient Details form above and saved together.",
+    "NO_PAIN_MAP": "No pain map data available.",
+    "NOT_FOUND": "Patient not found.",
+    "SAVING": "Saving...",
+    "SAVE_CHANGES": "Save Changes"
+  },
+  "SCHEDULE_OVERVIEW": {
+    "TITLE": "Schedule overview",
+    "NO_SESSIONS_TITLE": "No sessions yet",
+    "NO_SESSIONS_SUBTITLE": "This patient hasn't started a session package.",
+    "TOTAL": "Total",
+    "COMPLETED": "Completed",
+    "UPCOMING": "Upcoming",
+    "REMAINING": "Remaining",
+    "SESSIONS_LIST": "Sessions"
+  },
+  "INTAKE": {
+    "POWERED_BY": "Powered by PhysioAssist",
+    "PATIENT_PORTAL": "Patient Portal",
+    "LOADING_TITLE": "Loading your intake form",
+    "LOADING_SUBTITLE": "Please wait while we prepare your secure intake form.",
+    "ERROR_TITLE": "We couldn't load this form",
+    "TRY_AGAIN": "Try Again",
+    "GO_HOME": "Go Home",
+    "THANK_YOU": "Thank you!",
+    "RECEIPT_ID": "Receipt ID",
+    "SUBMITTED_AT": "Submitted at {{date}}",
+    "DEFAULT_TITLE": "Patient Intake Form",
+    "FORM_PROGRESS": "Form Progress",
+    "PROGRESS": "Form completion",
+    "ALL_REQUIRED_COMPLETED": "All required fields completed",
+    "REQUIRED_STATS": "{{completed}} of {{total}} required fields completed",
+    "UNSAVED_CHANGES": "You have unsaved changes. Please submit the form or your progress may be lost.",
+    "VERIFYING_EMAIL": "Verifying email address…",
+    "EMAIL_REGISTERED_TITLE": "Email already registered",
+    "EMAIL_REGISTERED_DESC": "The email address {{email}} is already associated with an existing patient record. Please contact your healthcare provider directly to update your information, or use a different email address.",
+    "PHONE_REGISTERED_TITLE": "Phone number already registered",
+    "PHONE_REGISTERED_DESC": "The phone number {{phone}} is already associated with an existing patient record. Please contact your healthcare provider directly to update your information, or use a different phone number.",
+    "PAIN_MAP_TITLE": "Pain point diagram",
+    "DATA_SECURE": "Your data is encrypted and secure",
+    "EMAIL_DUPLICATE_SHORT": "This email address is already registered. Please use a different email or contact your provider.",
+    "PHONE_DUPLICATE_SHORT": "This phone number is already registered. Please use a different phone number or contact your provider.",
+    "VERIFYING_EMAIL_SHORT": "Verifying email, please wait…",
+    "VERIFYING_PHONE_SHORT": "Verifying phone, please wait…",
+    "COMPLETE_REQUIRED_FIELDS": "Please complete all required fields before submitting.",
+    "SUBMIT_FORM": "Submit Form",
+    "SUBMITTING": "Submitting…",
+    "CONFIRM_TITLE": "Submit Intake Form?",
+    "CONFIRM_MESSAGE": "Please review your answers before submitting. Once submitted, you won't be able to edit your responses.",
+    "PAIN_REGIONS_COUNT": "{{count}} pain region(s) marked",
+    "GO_BACK_EDIT": "Go Back & Edit",
+    "YES_SUBMIT": "Yes, Submit"
+  },
+  "RECEPTION": {
+    "PAGE_TITLE": "Reception Queue",
+    "ACTIVE_COUNT": "{{count}} Active",
+    "PAGE_SUBTITLE": "Patients waiting for check-in or currently in review (auto-refreshes every 30s)",
+    "ERROR_TITLE": "Failed to load queue",
+    "TRY_AGAIN": "Try Again",
+    "EMPTY_SEARCH_TITLE": "No matching waiting patients",
+    "EMPTY_QUEUE_TITLE": "All caught up!",
+    "EMPTY_SEARCH_DESC": "We couldn't find any active patient submissions matching your search criteria.",
+    "EMPTY_QUEUE_DESC": "There are no active patients waiting in the reception queue at this moment. New submissions will appear here automatically.",
+    "CLEAR_SEARCH": "Clear Search",
+    "PAGINATION_SHOWING": "Showing",
+    "PAGINATION_OF": "of {{total}} in queue",
+    "PREVIOUS_PAGE": "Previous page",
+    "NEXT_PAGE": "Next page"
+  },
+  "BUILDER": {
+    "TOOLBAR": {
+      "BACK_TO_SCHEMAS": "Back to Schemas",
+      "PREVIEW": "Preview",
+      "EDIT_MODE": "Edit Mode",
+      "NEW_SCHEMA": "New Schema",
+      "UNTITLED_SCHEMA": "Untitled Schema",
+      "EXIT_PREVIEW": "Exit Preview",
+      "CANCEL": "Cancel",
+      "SAVE_DRAFT": "Save Draft",
+      "PUBLISH": "Publish"
+    },
+    "PANELS": {
+      "STRUCTURE": "Structure",
+      "PREVIEW": "Preview",
+      "PROPERTIES": "Properties"
+    },
+    "NAV": {
+      "TITLE": "Builder sections"
+    },
+    "STRUCTURE": {
+      "SECTIONS_COUNT": "{{count}} section(s)",
+      "SCHEMA_SETTINGS": "Schema Settings",
+      "DELETE_SECTION": "Delete section",
+      "DOCTOR_ONLY_GROUP": "Doctor-only group",
+      "DELETE_GROUP": "Delete group",
+      "DELETE_QUESTION": "Delete question",
+      "ADD_QUESTION": "Add Question",
+      "ADD_GROUP": "Add Group",
+      "ADD_SECTION": "Add Section"
+    },
+    "PREVIEW_BANNER": {
+      "TITLE": "Preview Mode",
+      "SUBTITLE": "This is a read-only preview of the published form. No changes can be made."
+    },
+    "EMPTY_STATE": {
+      "TITLE": "Start Building Your Form",
+      "DESC": "Add sections from the left panel to start building your intake form. Questions and groups will appear here as you build.",
+      "CTA": "Add First Section"
+    },
+    "CANVAS": {
+      "REQUIRED": "Required",
+      "GROUPS_COUNT": "{{count}} group(s)",
+      "CONDITIONAL": "Conditional",
+      "VALIDATION_RULES_COUNT": "{{count}} validation rule(s)",
+      "NO_QUESTIONS": "No questions yet",
+      "NO_GROUPS": "No groups yet"
+    },
+    "MOCK": {
+      "TEXT": "Sample text input",
+      "LONG_TEXT": "Sample longer text...",
+      "SELECT_DATE": "Select date",
+      "SELECT_DATETIME": "Select date & time",
+      "SELECT_OPTION": "Select an option",
+      "SELECT_OPTIONS": "Select options",
+      "OPTION_1": "Option 1",
+      "OPTION_2": "Option 2",
+      "NO_OPTIONS": "No options yet",
+      "TOGGLE": "Toggle",
+      "UPLOAD": "Click or drag to upload",
+      "PAIN_POINT": "Pain point: intensity 5/10",
+      "BODY_MAP": "Interactive body map",
+      "SUMMARY": "Auto-generated clinical summary (read-only)",
+      "INPUT": "Input"
+    },
+    "PROPERTIES": {
+      "EMPTY_STATE": "Select an element to edit its properties",
+      "SCHEMA_NAME": "Schema Name",
+      "SCHEMA_NAME_PLACEHOLDER": "e.g. Pre-Visit Intake Form",
+      "DESCRIPTION": "Description",
+      "SCHEMA_DESC_PLACEHOLDER": "Describe the purpose of this form...",
+      "SET_DEFAULT": "Set as default schema",
+      "DEFAULT_HINT": "Default schema is used for new patient intakes",
+      "SCHEMA_VERSION": "Schema version",
+      "TYPE_SECTION": "Section",
+      "TITLE": "Title",
+      "SECTION_TITLE_PLACEHOLDER": "Section title",
+      "OPTIONAL_DESC": "Optional description",
+      "ORDER": "Order",
+      "TYPE_GROUP": "Group",
+      "GROUP_TITLE_PLACEHOLDER": "Group title",
+      "HIDDEN_FROM_PATIENT": "Hidden from patient (doctor/staff only)",
+      "HIDDEN_FROM_PATIENT_HINT": "Questions in this group won't appear on the public intake form. They'll only be visible and editable in the submission review/edit view.",
+      "TYPE_QUESTION": "Question",
+      "QUESTION_TEXT": "Question Text",
+      "QUESTION_TEXT_PLACEHOLDER": "Enter your question",
+      "QUESTION_TYPE": "Question Type",
+      "SELECT_TYPE": "Select type",
+      "PLACEHOLDER": "Placeholder",
+      "HELPER_TEXT": "Helper Text",
+      "HELPER_TEXT_PLACEHOLDER": "Additional guidance for the patient",
+      "HELP_TEXT": "Help Text",
+      "HELP_TEXT_PLACEHOLDER": "Detailed help shown below the input",
+      "REQUIRED_FIELD": "Required field",
+      "OPTIONS": "Options",
+      "COMMA_SEPARATED": "(comma-separated)",
+      "OPTIONS_PLACEHOLDER": "Option A, Option B, Option C"
+    },
+    "VALIDATION": {
+      "TITLE": "Validation Rules",
+      "ADD_RULE": "Add rule",
+      "RULE_TYPE": "Rule type",
+      "PATTERN": "Pattern",
+      "VALUE": "Value",
+      "CHARACTERS": "Characters",
+      "ERROR_MESSAGE": "Error message",
+      "CUSTOM_ERROR": "Custom error message",
+      "NO_RULES": "No validation rules"
+    },
+    "CONDITIONS": {
+      "TITLE": "Conditional Logic",
+      "ADD_CONDITION": "Add condition",
+      "MATCH": "Match",
+      "TARGET_QUESTION": "Target question",
+      "OPERATOR": "Operator",
+      "VALUE": "Value",
+      "NO_CONDITIONS": "No conditional rules"
+    },
+    "QUICK_ADD": {
+      "TOOLTIP": "Quick Add",
+      "ARIA": "Quick add section, group, or question",
+      "TITLE": "Quick Add",
+      "SUBTITLE": "Add a new element to your form",
+      "NEW_SECTION": "New Section",
+      "SECTION_DESC": "Top-level container",
+      "NEW_GROUP": "New Group",
+      "GROUP_DESC": "Inside active section",
+      "NEW_QUESTION": "New Question",
+      "QUESTION_DESC": "Inside active group"
+    },
+    "DIALOG": {
+      "HEADER": "Cannot Publish Form",
+      "WARNING_TITLE": "Required core fields are missing or misconfigured",
+      "WARNING_DESC": "Your form must include all required patient information fields before it can be published.",
+      "ISSUES_TITLE": "Issues to fix",
+      "HOW_TO_FIX_TITLE": "How to fix",
+      "HOW_TO_FIX_DESC": "Add the missing fields using the \"Quick Add\" presets in the right panel, or ensure existing fields have the correct question IDs and the \"Required\" checkbox enabled.",
+      "GOT_IT": "Got it"
+    }
+  },
+  "FORM_TEMPLATES": {
+    "HEADER": {
+      "TITLE": "Form templates",
+      "SUBTITLE": "All schemas you've built for patient intake",
+      "GUIDED_WIZARD": "Guided Wizard",
+      "NEW_FORM": "New form"
+    },
+    "DEFAULT": {
+      "LOADING_BADGE": "Loading default template",
+      "LOADING_TITLE": "Loading your default intake form...",
+      "LOADING_DESC": "Please wait while we load the default template for the schema page.",
+      "BADGE": "Default Template",
+      "DEFAULT_DESC": "This default intake form is used when new patients begin their intake process.",
+      "NO_DEFAULT_BADGE": "No Default Template",
+      "SET_DEFAULT_TITLE": "Set a default intake form",
+      "SET_DEFAULT_DESC": "Click to auto-generate a default template with all question types, or mark an existing form as default.",
+      "GENERATE_DEFAULT_BTN": "Generate Default"
+    },
+    "STATS": {
+      "FIELDS": "FIELDS",
+      "SUBMISSIONS": "SUBMISSIONS",
+      "UPDATED": "UPDATED"
+    },
+    "CARD": {
+      "VERSION": "v{{version}}",
+      "DEFAULT_BADGE": "Default",
+      "COPIED_BADGE": "Copied",
+      "ORIGINAL": "Original: {{name}}",
+      "NO_DESCRIPTION": "No description"
+    },
+    "ACTIONS": {
+      "EDIT": "Edit",
+      "EDIT_DEFAULT_TOOLTIP": "Edit default form",
+      "PREVIEW": "Preview",
+      "PREVIEW_DEFAULT_TOOLTIP": "Preview default form",
+      "DUPLICATE": "Duplicate",
+      "DUPLICATE_DEFAULT_TOOLTIP": "Duplicate default form",
+      "QR": "QR",
+      "PUBLISH": "Publish",
+      "PUBLISH_DEFAULT_TOOLTIP": "Publish default form",
+      "EDIT_TOOLTIP": "Edit schema",
+      "DELETE": "Delete",
+      "PREVIEW_TOOLTIP": "Preview schema",
+      "DUPLICATE_TOOLTIP": "Create a copy",
+      "ARCHIVE": "Archive",
+      "UNARCHIVE": "Unarchive",
+      "QUICK_SHARE": "Quick Share"
+    },
+    "TOOLBAR": {
+      "SEARCH_PLACEHOLDER": "Search form templates"
+    },
+    "TABS": {
+      "ALL": "All",
+      "PUBLISHED": "Published",
+      "DRAFTS": "Drafts",
+      "ARCHIVED": "Archived"
+    },
+    "ERROR": {
+      "TITLE": "Failed to load schemas",
+      "RETRY": "Try Again"
+    },
+    "EMPTY": {
+      "FILTERED": "No schemas match your filters. Try a different term or tab.",
+      "NO_TEMPLATES": "No form templates yet.",
+      "CREATE_FIRST": "Create Your First Template"
+    },
+    "PAGINATION": {
+      "INFO": "Showing {{start}} to {{end}} of {{total}} schemas"
+    },
+    "QR_DIALOG": {
+      "TITLE": "Generate QR Link",
+      "SUBTITLE": "Create a public intake URL",
+      "EXPIRY_LABEL": "Expiry (months)",
+      "EXPIRY_HINT": "Link will expire after this period. Max: 24 months.",
+      "SUCCESS_TITLE": "Link generated successfully",
+      "SUCCESS_DESC": "Share this URL or print the QR code",
+      "SCAN_HINT": "Scan to open the intake form on a phone.",
+      "PUBLIC_URL": "Public URL",
+      "COPY_URL": "Copy URL",
+      "OPEN_NEW_TAB": "Open in new tab",
+      "EXPIRES": "Expires",
+      "CANCEL": "Cancel",
+      "GENERATE_LINK": "Generate Link",
+      "PRINT": "Print QR",
+      "DONE": "Done"
+    }
+  },
+  "WIZARD": {
+    "TOPBAR": {
+      "BACK_TOOLTIP": "Back to Schemas",
+      "BADGE": "Guided Wizard",
+      "DEFAULT_TITLE": "New Form Wizard"
+    },
+    "ACTIONS": {
+      "CANCEL": "Cancel",
+      "CONTINUE": "Continue",
+      "BACK": "Back",
+      "CONTINUE_TO_BUILD": "Continue to Build",
+      "REVIEW_AND_FINISH": "Review & Finish",
+      "SAVE_DRAFT": "Save Draft",
+      "SAVING": "Saving...",
+      "PUBLISH_FORM": "Publish Form",
+      "PUBLISHING": "Publishing..."
+    },
+    "STEP1": {
+      "TITLE": "Choose a Starting Point",
+      "SUBTITLE": "Pick a template that matches your needs, or start from scratch. You can customize everything later.",
+      "SECTIONS_COUNT": "{{count}} section(s)",
+      "QUESTIONS_COUNT": "{{count}} question(s)"
+    },
+    "STEP2": {
+      "TITLE": "Tell Us About Your Form",
+      "SUBTITLE": "Give your form a name and description so your team knows what it's for.",
+      "FORM_NAME_LABEL": "Form Name",
+      "FORM_NAME_TOOLTIP": "This name will appear in your list of forms. Choose something clear like 'New Patient Intake' or 'Follow-up Assessment'.",
+      "FORM_NAME_PLACEHOLDER": "e.g. Pre-Visit Intake Form",
+      "FORM_NAME_HINT": "Example: \"New Patient Intake\", \"Follow-up Assessment\", \"Pain Evaluation\"",
+      "DESCRIPTION_LABEL": "Description",
+      "DESCRIPTION_TOOLTIP": "Describe what this form is used for. This helps other staff members understand when to use this form.",
+      "DESCRIPTION_PLACEHOLDER": "Describe the purpose of this form...",
+      "SET_DEFAULT": "Set as default schema",
+      "SET_DEFAULT_TOOLTIP": "The default form is automatically assigned to new patient intakes. You can change this later.",
+      "TEMPLATE_SUMMARY": "Using template: <strong>{{name}}</strong> with <strong>{{sections}}</strong> section(s) and <strong>{{questions}}</strong> question(s)"
+    },
+    "STEP3": {
+      "TITLE": "Build Your Form",
+      "SUBTITLE": "Add questions to your form. Click on any section or group name to edit it.",
+      "QUICK_ADD_TITLE": "Quick Add Questions",
+      "QUICK_ADD_HINT": "Click a preset to add it to the selected group below, or type a custom question.",
+      "ADDING_TO": "Adding to",
+      "CHANGE": "Change",
+      "CUSTOM_QUESTION_PLACEHOLDER": "Type a custom question...",
+      "ADD_CUSTOM_TOOLTIP": "Add custom question",
+      "SELECTED": "Selected",
+      "ADD_TO_FORM": "Add to Form",
+      "PICK_GROUP_TITLE": "Add to which group?",
+      "HIDDEN_FROM_PATIENT_TAG": "hidden from patient",
+      "STRUCTURE_TITLE": "Form Structure",
+      "ADD_SECTION": "Section",
+      "EMPTY_TITLE": "Your form is empty",
+      "EMPTY_DESC": "Add your first section to get started. A section is like a chapter in your form.",
+      "ADD_FIRST_SECTION": "Add First Section",
+      "REQUIRED": "Required",
+      "SECTION_NAME_PLACEHOLDER": "Section name",
+      "GROUPS_COUNT": "{{count}} group(s)",
+      "EDIT_NAME": "Edit name",
+      "DELETE_SECTION": "Delete section",
+      "GROUP_NAME_PLACEHOLDER": "Group name",
+      "DELETE_GROUP": "Delete group",
+      "HIDDEN_TOOLTIP": "Doctor-only group — hidden from patient",
+      "HIDE_FROM_PATIENT_LABEL": "Hidden from patient (doctor/staff only)",
+      "REMOVE_QUESTION": "Remove question",
+      "ADD_QUESTION": "Add Question",
+      "ADD_GROUP": "Add Group"
+    },
+    "STEP4": {
+      "TITLE": "Review Your Form",
+      "SUBTITLE": "Here's a summary of your form. You can save as draft or publish it right away.",
+      "SECTIONS": "Sections",
+      "GROUPS": "Groups",
+      "QUESTIONS": "Questions",
+      "DEFAULT": "Default",
+      "PREVIEW_TITLE": "Form Structure Preview"
+    },
+    "VALIDATION_DIALOG": {
+      "HEADER": "Cannot Publish Form",
+      "TITLE": "Required core fields are missing or misconfigured",
+      "SUBTITLE": "Your form must include all required patient information fields before it can be published.",
+      "ISSUES_TITLE": "Issues to fix",
+      "HOW_TO_FIX_TITLE": "How to fix",
+      "HOW_TO_FIX_DESC": "Go back to the Build step and add the missing fields. Use the \"Quick Add\" presets panel on the left to add required fields like Full Name, Email, Phone, Date of Birth, Gender, and Occupation with the Required flag enabled.",
+      "GOT_IT": "Got it"
+    }
+  },
+  "CONVERT_DIALOG": {
+    "TITLE": "Convert to Patient",
+    "SUBTITLE": "Create an active patient profile from this intake submission",
+    "INFO_MESSAGE": "Converting this submission will create a new patient record in the system using the pre-visit intake data provided.",
+    "MISSING_FIELDS": "Missing required fields: {{fields}}",
+    "SUMMARY_TITLE": "Patient Profile Summary",
+    "STATUS_READY": "Ready to Import",
+    "STATUS_INCOMPLETE": "Incomplete",
+    "FULL_NAME": "Full Name",
+    "UNNAMED_PATIENT": "Unnamed Patient",
+    "EMAIL": "Email",
+    "PHONE": "Phone",
+    "CANCEL": "Cancel",
+    "CONFIRM": "Confirm & Create Patient"
+  },
+  "PATIENT_CARD": {
+    "UNNAMED_PATIENT": "Unnamed patient",
+    "SUBMITTED": "Submitted",
+    "SUBMISSION_ID": "Submission ID",
+    "FORM_DETAILS_TITLE": "Form Details",
+    "FORM_NAME": "Form Name",
+    "VERSION": "Version",
+    "REVIEWED_AT": "Reviewed At",
+    "PATIENT_ID": "Patient ID"
+  },
+  "SUBMITTED_ANSWERS": {
+    "TITLE": "Submitted Answers",
+    "EDITING_TAG": "Editing",
+    "SCHEMA_UNAVAILABLE": "Form schema unavailable — can't edit answers without it.",
+    "DEFAULT_SECTION": "Section",
+    "DEFAULT_GROUP": "Group",
+    "DEFAULT_QUESTION": "Question",
+    "NO_ANSWERS": "No submitted answers available."
+  },
+  "INTAKE_DETAILS": {
+    "CONFIRM_DIALOG_ARIA": "Confirmation dialog",
+    "LOADING": "Loading submission details...",
+    "ERROR_TITLE": "Failed to Load",
+    "GO_BACK": "Go Back",
+    "RETRY": "Retry",
+    "SUBMISSIONS_BREADCRUMB": "Submissions",
+    "UNNAMED_PATIENT": "Unnamed patient",
+    "ACTIONS_TITLE": "Actions",
+    "EDIT": "Edit",
+    "CANCEL": "Cancel",
+    "CONVERT_TO_PATIENT": "Convert to Patient"
+  },
+  "FILTERS_BAR": {
+    "SEARCH_PLACEHOLDER": "Search patient name, submission code, or symptoms...",
+    "SEARCH_ARIA": "Search submissions",
+    "CLEAR_SEARCH": "Clear search text",
+    "SORT_ARIA": "Sort submissions",
+    "SORT_NEWEST": "Newest First",
+    "SORT_OLDEST": "Oldest First",
+    "SORT_NAME": "Patient Name (A-Z)",
+    "SORT_PAIN": "Pain Regions (High to Low)",
+    "VIEW_TOGGLE_ARIA": "View mode toggle",
+    "VIEW_CARDS": "Card Grid View",
+    "VIEW_TABLE": "Compact Table View",
+    "RESET_FILTERS": "Clear all active filters",
+    "RESET": "Reset"
+  },
+  "SUBMISSION_ROW": {
+    "PAIN_REGIONS": "{{count}} pain {{count, plural, =1 {region} other {regions}}}",
+    "VIEW_DETAILS": "View submission details"
+  },
+  "STATS_GRID": {
+    "TOTAL_SUBMISSIONS": "Total Submissions",
+    "PENDING": "Pending",
+    "IN_REVIEW": "In Review",
+    "APPROVED": "Approved",
+    "WAITING": "Waiting",
+    "TODAYS_ARRIVALS": "Today's Arrivals"
+  },
+  "SUBMISSIONS_PAGE": {
+    "HEADER_TITLE": "Submissions",
+    "TOTAL_BADGE": "{{count}} Total",
+    "HEADER_SUBTITLE": "Manage pre-visit intake questionnaires submitted by patients",
+    "ERROR_TITLE": "Failed to load submissions",
+    "TRY_AGAIN": "Try Again",
+    "EMPTY_MATCH_TITLE": "No matching submissions",
+    "EMPTY_TITLE": "No submissions yet",
+    "EMPTY_MATCH_DESC": "We couldn't find any patient submissions matching your active search or filter criteria.",
+    "EMPTY_DESC": "Patient intake submissions will automatically appear here once patients complete the form. Share your intake form link with patients to get started.",
+    "CLEAR_FILTERS": "Clear All Filters",
+    "UNNAMED_PATIENT": "Unnamed Patient",
+    "NOT_AVAILABLE": "N/A",
+    "REGIONS_COUNT": "{{count}} region(s)",
+    "VIEW": "View",
+    "TABLE": {
+      "PATIENT": "Patient",
+      "INTAKE_CODE": "Intake Code",
+      "STATUS": "Status",
+      "PAIN_REGIONS": "Pain Regions",
+      "SUBMITTED": "Submitted",
+      "ACTION": "Action"
+    },
+    "PAGINATION": {
+      "SHOWING": "Showing",
+      "OF": "of",
+      "SUBMISSIONS": "submissions",
+      "PREVIOUS": "Previous page",
+      "NEXT": "Next page",
+      "ITEMS_PER_PAGE": "Items per page",
+      "PER_PAGE": "per page"
+    }
+  },
+  "DYNAMIC_FORM": {
+    "NO_SCHEMA": "No form schema provided.",
+    "NO_SECTIONS": "This form has no sections defined yet.",
+    "NO_QUESTIONS": "No questions in this group",
+    "SUMMARY_AUTO": "Auto-generated clinical summary will appear here once the intake is submitted.",
+    "PLACEHOLDERS": {
+      "TEXT": "Enter your answer",
+      "SELECT": "Select an option",
+      "SELECT_OPTIONS": "Select options"
+    },
+    "FILE": {
+      "NOT_AVAILABLE": "File upload is not available",
+      "COMING_SOON": "This feature will be available in a future update"
+    }
+  },
+  "PAIN_MAP": {
+    "TITLE": "Pain Map",
+    "INSTRUCTIONS": "Tap the regions where you feel pain, on the front or back view.",
+    "LEGEND_SELECTED": "Selected",
+    "LEGEND_UNSELECTED": "Tap to select",
+    "FRONT_VIEW": "Front",
+    "BACK_VIEW": "Back",
+    "SELECTED_REGIONS": "Selected regions",
+    "NO_SELECTIONS": "Tap a body region above to mark pain.",
+    "REMOVE_REGION": "Remove region",
+    "INTENSITY": "Intensity",
+    "REGION": "Region",
+    "SIDE": "Side",
+    "DESCRIPTION": "Description",
+    "SIDE_PLACEHOLDER": "left, right, bilateral",
+    "DESC_PLACEHOLDER": "Describe the pain"
+  },
+  "GLOBAL": {
+    "YES": "Yes",
+    "NO": "No",
+    "SAVE": "Save",
+    "RESET": "Reset",
+    "SAVE_CHANGES": "Save changes",
+    "REQUIRED": "Required",
+    "LOADING": "Loading...",
+    "SELECT": "Select",
+    "GO_BACK": "Go back",
+    "VOICE": "Voice",
+    "AI": "AI",
+    "REMOVE": "Remove",
+    "VALIDATION": {
+      "REQUIRED": "This field is required.",
+      "EMAIL": "Please enter a valid email address.",
+      "PATTERN": "Value does not match the required format.",
+      "MIN": "Value is below the minimum allowed.",
+      "MAX": "Value exceeds the maximum allowed.",
+      "MIN_LENGTH": "Text length is shorter than required.",
+      "MAX_LENGTH": "Text length exceeds limits.",
+      "URL": "Please enter a valid URL."
+    }
+  },
+  "DOCUMENTATION_FIELDS": {
+    "TITLE": "Documentation Fields",
+    "SUBTITLE": "Choose which fields appear in your progress notes for this template. Hidden fields are also skipped by AI extraction.",
+    "HIDDEN_COUNT": "{{count}} field(s) hidden"
+  },
+  "TEMPLATES_PAGE": {
+    "TITLE": "Documentation templates",
+    "SUBTITLE": "Pick which fields appear when documenting each patient category",
+    "FIELDS_SHOWN_COUNT": "{{visible}} of {{total}} fields shown",
+    "SECTION_TITLE": "{{category}} documentation",
+    "SECTION_SUBTITLE": "Hidden fields won't appear in the report editor for these patients",
+    "SEARCH_PLACEHOLDER": "Search fields",
+    "NO_FIELDS_MATCH": "No fields match \"{{term}}\".",
+    "LIVE_PREVIEW": "Live preview"
+  },
+  "SCHEDULE_REQUIREMENTS": {
+    "TITLE": "SCHEDULE REQUIREMENTS",
+    "SUBTITLE": "Set the treatment cadence to see recommended appointment slots.",
+    "STATUS": {
+      "BOOKED": "Session booked",
+      "SENT_TO_RECEPTIONIST": "Sent to receptionist"
+    },
+    "FIELDS": {
+      "TOTAL_SESSIONS": "Total sessions",
+      "SESSION_DURATION": "Session duration",
+      "SESSIONS_PER_WEEK": "Sessions per week",
+      "MINIMUM_GAP": "Minimum gap between sessions",
+      "PRIORITY": "Priority",
+      "SAME_DAY_BOOKING": "Same-day booking"
+    },
+    "ACTIONS": {
+      "SEARCH_SLOTS": "Search available slots",
+      "CONFIRM_BOOKING": "Confirm booking",
+      "SEND_TO_RECEPTIONIST_INSTEAD": "Send to receptionist instead",
+      "SEND_TO_RECEPTIONIST": "Send to receptionist"
+    },
+    "RECOMMENDED_SLOTS": "RECOMMENDED SLOTS",
+    "BEYOND_HORIZON": "Beyond usual booking horizon"
+  },
+
+  "INITIAL_REPORT": {
+    "TITLE": "Initial report",
+    "SUBTITLE": "Create the initial assessment report with a guided review for the patient.",
+    "READONLY_BADGE": "Viewing saved report — read only",
+    "NO_PATIENT": {
+      "TITLE": "No patient selected",
+      "SUBTITLE": "Open this page from a patient in the list to create their initial report.",
+      "ACTION": "Go to patients"
+    },
+    "PATIENT_CARD": {
+      "CHIEF_COMPLAINT": "Chief complaint",
+      "AGE": "AGE",
+      "AGE_VALUE": "{{age}} yrs",
+      "GENDER": "GENDER",
+      "INJURY": "INJURY",
+      "INJURY_DATE": "DATE OF INJURY",
+      "PATIENT_CATEGORY": "PATIENT CATEGORY"
+    },
+    "RECORDING": {
+      "TITLE": "Recording {{field}}",
+      "SUBTITLE": "Speak now and your input will be captured.",
+      "LISTENING": "Listening...",
+      "TRANSCRIBING": "Transcribing {{field}}...",
+      "WAIT_NOTE": "This can take a few seconds.",
+      "STOP": "Stop recording"
+    },
+    "EXAMINATION": {
+      "TITLE": "EXAMINATION",
+      "SUBTITLE": "Physical examination, observations, range of motion, palpation findings.",
+      "PLACEHOLDER": "Document physical exam findings..."
+    },
+    "TREATMENT_PLAN": {
+      "TITLE": "TREATMENT PLAN",
+      "SUBTITLE": "Planned treatments, number of sessions, duration, milestones.",
+      "PLACEHOLDER": "Outline the treatment plan..."
+    },
+    "ATTACHMENTS": {
+      "TITLE": "ATTACHMENTS (OPTIONAL)",
+      "SUBTITLE": "X-rays, exam photos, or PDFs. Files are only uploaded to the server when you press Submit.",
+      "BROWSE": "Browse files",
+      "DROPZONE": "Drag & drop files here",
+      "PENDING": "Pending — uploads on submit",
+      "EMPTY_READONLY": "No attachments on this report."
+    },
+    "ACTIONS": {
+      "EDIT": "Edit report",
+      "SAVE_DRAFT": "Save draft",
+      "SUBMIT_AND_SEND": "Submit & send to patient"
+    }
+  },
+  "LEGAL_PAGE": {
+    "BACK_LINK": "Back to registration",
+    "TITLE": "Privacy Policy",
+    "UPDATED": "Last updated: {{ lastUpdated }}",
+    "SECTION_1_TITLE": "1. What we collect",
+    "SECTION_1_LI_1": "Account information: name, email, clinic name, optional profile photo.",
+    "SECTION_1_LI_2": "Patient records entered by your clinic: intake forms, session notes, session audio, and generated reports.",
+    "SECTION_1_LI_3": "Usage data: how the platform is used, for support and reliability purposes.",
+    "SECTION_2_TITLE": "2. How we use it",
+    "SECTION_2_P_1": "Patient and session data is used to operate the service for your clinic: generating reports, transcribing sessions, and enabling search across your own patients' history through the query agent.",
+    "SECTION_2_P_2": "Separately, and only in anonymized, aggregated form, session data helps us improve how the system structures and retrieves information &mdash; for example, refining how session text is segmented for accurate search. This analysis does not identify individual patients, and identifiable patient records are never used to train AI models.",
+    "SECTION_3_TITLE": "3. Storage and security",
+    "SECTION_3_P": "Data is stored in encrypted infrastructure, with session data indexed for semantic search to support the query agent. Access to a clinic's patient records is restricted to that clinic's authorized doctors and staff.",
+    "SECTION_4_TITLE": "4. Third-party processing",
+    "SECTION_4_P": "Some processing, such as speech-to-text transcription and AI-assisted drafting, is performed by third-party AI providers. These providers process data solely to perform the requested task and are not authorized to use it for their own purposes.",
+    "SECTION_5_TITLE": "5. Data retention",
+    "SECTION_5_P": "Patient and session data is retained for as long as your clinic's account is active, so you can access historical records. You may request deletion of your clinic's data by contacting us.",
+    "SECTION_6_TITLE": "6. Your rights",
+    "SECTION_6_P": "Depending on your jurisdiction, you and your patients may have rights to access, correct, or request deletion of personal data. Clinics are responsible for handling patient-facing privacy requests; contact us for assistance with data stored on PhysioAssist.",
+    "SECTION_7_TITLE": "7. Contact",
+    "SECTION_7_P": "Privacy questions can be sent to <a href=\"mailto:privacy@physioassist.app\">privacy&#64;physioassist.app</a>.",
+    "DISCLAIMER": "This document is a working draft for demonstration purposes and has not been reviewed by a lawyer. Review with legal counsel before production use."
+  },
+  "TERMS_PAGE": {
+    "BACK_LINK": "Back to registration",
+    "TITLE": "Terms of Service",
+    "UPDATED": "Last updated: {{ lastUpdated }}",
+    "SECTION_1_TITLE": "1. Who this applies to",
+    "SECTION_1_P": "These Terms govern use of PhysioAssist by physiotherapy clinics, doctors, and staff accounts (\"you\") who register a clinic on the platform. By creating an account you confirm you are authorized to register your clinic and to accept these Terms on its behalf.",
+    "SECTION_2_TITLE": "2. Free plan limits",
+    "SECTION_2_P_1": "The free plan is provided so clinics can evaluate PhysioAssist with real patients before committing to a paid plan. It includes the following limits:",
+    "SECTION_2_LI_1": "Session audio recordings are limited to 1 minute per session.",
+    "SECTION_2_LI_2": "Up to 10 active patients per clinic.",
+    "SECTION_2_P_2": "Paid plans remove these limits and unlock additional capabilities as they become available, including longer session recordings and AI-assisted recommendations.",
+    "SECTION_3_TITLE": "3. How patient data is used",
+    "SECTION_3_P_1": "Session and patient data you enter is stored to provide the service to your clinic: generating reports, transcribing sessions, and allowing you to search your own patients' records.",
+    "SECTION_3_P_2": "We also use patient data, in anonymized and aggregated form only, to improve how the system organizes and retrieves information internally (for example, how session text is broken into segments for search). This process does not identify individual patients, and no individually identifiable patient data is used to train any AI model.",
+    "SECTION_4_TITLE": "4. Your responsibility as a clinic",
+    "SECTION_4_P": "You are responsible for obtaining any consent required from your patients for their information to be processed through PhysioAssist, in accordance with applicable data protection law in your jurisdiction. You should inform patients that their clinical records are stored and processed digitally, including through AI-assisted tools.",
+    "SECTION_5_TITLE": "5. Account and data access",
+    "SECTION_5_P": "Each clinic's data is only accessible to that clinic's registered doctors and staff. We do not share patient-identifiable data with other clinics or third parties outside of the service providers necessary to operate PhysioAssist (e.g. hosting and AI processing providers).",
+    "SECTION_6_TITLE": "6. Changes to these Terms",
+    "SECTION_6_P": "We may update these Terms as the product evolves, particularly as new paid features are introduced. Continued use of PhysioAssist after an update constitutes acceptance of the revised Terms.",
+    "SECTION_7_TITLE": "7. Contact",
+    "SECTION_7_P": "Questions about these Terms can be sent to <a href=\"mailto:support@physioassist.app\">support&#64;physioassist.app</a>.",
+    "DISCLAIMER": "This document is a working draft for demonstration purposes and has not been reviewed by a lawyer. Review with legal counsel before production use."
+  },
+
+  "DOC_PAGE": {
+    "BACK": "Back",
+    "TITLE": "Documentation",
+    "LOADING_SESSIONS": "Loading sessions...",
+    "SESSIONS_TITLE": "Sessions",
+    "NO_SESSIONS": "No sessions found for this patient.",
+    "MINUTES_SHORT": "min",
+    "NOTE": "Note",
+    "SUMMARY": "Summary",
+    "OUT_OF_DATE": "Out of date",
+    "NOT_COMPLETED": "Not yet completed",
+    "GENERATE_SUMMARY": "Generate Summary",
+    "REGENERATE_SUMMARY": "Regenerate Summary",
+    "ADD_NOTE_FIRST": "Add a progress note first",
+    "LOADING_NOTE": "Loading note...",
+    "NO_NOTE": "No progress note has been created for this session yet.",
+    "NOTE_ERROR": "Couldn't load the progress note. Try again.",
+    "SUBJECTIVE": "Subjective",
+    "ASSESSMENT": "Assessment",
+    "PLAN": "Plan",
+    "NOT_YET_WRITTEN": "Not yet written",
+    "OBJECTIVE_FINDINGS": "Objective Findings",
+    "NOT_RECORDED": "Not recorded",
+    "FULL_DOC_TITLE": "Full Documentation",
+    "FULL_DOC_DESC": "Combine session summaries into a single case report.",
+    "SESSIONS_EXCLUDED": "session(s) excluded",
+    "AUDIENCE": "Audience",
+    "AUDIENCE_COLLEAGUE": "Colleague",
+    "AUDIENCE_PATIENT": "Patient",
+    "SCOPE": "Scope",
+    "FOCUS_AREAS": "Focus Areas",
+    "FOCUS_PLACEHOLDER": "e.g. balance, gait, tone — comma-separated",
+    "GENERATE_DOC_BTN": "Generate Documentation",
+    "GENERATING": "Generating...",
+    "VIEW_PDF": "View PDF",
+    "GENERATE_PDF": "Generate PDF"
+  },
+
+  "STAFF_PAGE": {
+    "TITLE": "Staff",
+    "SUBTITLE": "Create receptionist accounts and control what they can do.",
+    "ADD_RECEPTIONIST": "Add receptionist",
+    "ACTIVE": "Active",
+    "DISABLED": "Disabled",
+    "RECEPTIONIST_ROLE": "Receptionist",
+    "NO_RECEPTIONISTS": "No receptionists yet. Add one to get started.",
+    "EDIT": "Edit",
+    "DISABLE": "Disable",
+    "ENABLE": "Enable",
+    "MODAL_TITLE_EDIT": "Edit receptionist",
+    "MODAL_TITLE_NEW": "New receptionist account",
+    "FULL_NAME": "Full name",
+    "FIRST_NAME_PLACEHOLDER": "First name",
+    "LAST_NAME_PLACEHOLDER": "Last name",
+    "EMAIL": "Email",
+    "EMAIL_PLACEHOLDER": "name@clinic.com",
+    "PHONE": "Phone",
+    "PHONE_PLACEHOLDER": "+20 100 000 0000",
+    "SHIFT": "Shift",
+    "FROM": "From",
+    "TO": "To",
+    "SHIFT_ERROR": "End time must be after start time.",
+    "PASSWORD": "Password",
+    "NEW_PASSWORD": "New password (optional)",
+    "PERMISSIONS": "Permissions",
+    "PERMISSIONS_GRANTED": "{{ granted }} of {{ total }} granted",
+    "CANCEL": "Cancel",
+    "SAVE_CHANGES": "Save changes",
+    "CREATE_ACCOUNT": "Create account",
+    "SAVING": "Saving..."
+  },
+
+  "PATIENT_FREE_TIMES": {
+    "TITLE": "Patient's free times",
+    "SUBTITLE": "Optional — jot down when the patient said they're available. Helps you pick the right slot.",
+    "PLACEHOLDER": "e.g. Mon & Wed after 5pm, Sat morning before 11am, not available Fridays",
+    "UPDATE_SAVED": "Update patient's saved availability",
+    "REFRESH_SLOTS": "Refresh available slots"
+  },
+
+  "TREATMENT_PLAN": {
+    "TOTAL_SESSIONS": "Total sessions",
+    "SESSION_DURATION": "Session duration",
+    "MINUTES_UNIT": "min",
+    "SESSIONS_PER_WEEK": "Sessions per week",
+    "PER_WEEK_SUFFIX": "/week",
+    "MINIMUM_GAP": "Minimum gap",
+    "DAYS_UNIT": "days",
+    "PRIORITY": "Priority"
+  },
+
+  "BOOK_NEXT_SESSION": {
+    "TITLE": "Book next session",
+    "EXTEND": "Extend",
+    "STOP_PACKAGE": "Stop package",
+    "MANUAL_SCHEDULE": "Set schedule manually",
+    "TOTAL_SESSIONS": "Total sessions",
+    "SESSION_DURATION": "Session duration",
+    "MIN_GAP": "Min gap",
+    "DAYS_PLURAL": "days",
+    "DAYS_SINGULAR": "day",
+    "NEXT_SESSION_NUM": "Next session #",
+    "REMAINING": "Remaining",
+    "THIS_WEEK": "This week",
+    "PACKAGE_PREFIX": "Package: ",
+    "WEEK_PREFIX": "Week: "
+  },
+  "AVAILABLE_SLOTS": {
+    "TITLE": "Available slots",
+    "CANDIDATES_COUNT": "{{ count }} candidates",
+    "LOADING": "Searching for available slots...",
+    "QUOTA_MET_TITLE": "This week's target is booked",
+    "QUOTA_MET_DESC": "{{ count }} session(s) confirmed. Come back next week to book the next one.",
+    "NO_ROOM_TITLE": "No slots fit within the doctor's schedule this week",
+    "NO_ROOM_DESC": "Try adjusting the patient's free times, or set the schedule manually.",
+    "MANUAL_SCHEDULE": "Set schedule manually",
+    "NO_MATCHING_TITLE": "No matching slots yet",
+    "NO_MATCHING_DESC": "Adjust the patient's free times above and refresh.",
+    "CLICK_TO_BOOK": "Click to book"
+  },
+
+  "SCHEDULING_CONTAINER": {
+    "EXTEND_DIALOG_HEADER": "Extend package",
+    "ADDITIONAL_SESSIONS": "Additional sessions",
+    "PLACEHOLDER_SESSIONS": "e.g. 5",
+    "CANCEL": "Cancel",
+    "EXTEND": "Extend",
+    "LOADING": "Loading...",
+    "NO_REPORT_TITLE": "No initial report yet",
+    "NO_REPORT_DESC": "This patient doesn't have one — nothing to schedule.",
+    "PLAN_PENDING_TITLE": "Plan not ready yet",
+    "PLAN_PENDING_DESC": "The doctor hasn't finished setting up a treatment plan for this patient.",
+    "DOCTOR_PLAN_TITLE": "Doctor's plan for this patient",
+    "CREATE_PACKAGE_BTN": "Create package & start booking",
+    "PACKAGE_COMPLETE": "Package complete",
+    "PACKAGE_CANCELLED": "Package cancelled",
+    "PACKAGE_COMPLETE_DESC": "All {{ count }} sessions have been scheduled.",
+    "PACKAGE_CANCELLED_DESC": "This package has been cancelled."
+  },
+
+  "APPOINTMENT_CARD": {
+    "MARK_COMPLETED": "Mark completed",
+    "CANCEL_APPOINTMENT": "Cancel appointment",
+    "YES": "Yes"
+  },
+
+  "APPOINTMENT_DRAWER": {
+    "TITLE": "Appointment Details",
+    "CLOSE": "Close",
+    "CLOSE_ARIA": "Close appointment details",
+    "GUEST": "Guest",
+    "PATIENT": "Patient",
+    "UNKNOWN": "Unknown",
+    "START": "Start",
+    "END": "End",
+    "DURATION": "Duration",
+    "STATUS": "Status",
+    "COMPLETE": "Complete",
+    "RESCHEDULE": "Reschedule",
+    "MARK_NO_SHOW": "Mark No Show",
+    "CANCEL": "Cancel",
+    "DELETE": "Delete",
+    "CONFIRM": "Confirm"
+  },
+  "APPOINTMENT_STATUS": {
+    "BOOKED": "Booked",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled",
+    "NOSHOW": "NoShow"
+  },
+
+  "AVAILABILITY_BLOCK": {
+    "AVAILABLE": "Available",
+    "ARIA_LABEL": "Available time slot, click to book",
+    "TITLE": "Click to book this time"
+  },
+
+  "CALENDAR_GRID": {
+    "NOT_WORKING": "Not working this day"
+  },
+
+  "SCHEDULE_TOOLBAR": {
+    "TITLE": "Schedule",
+    "CALENDAR_VIEW_ARIA": "Calendar view",
+    "WEEK": "Week",
+    "DAY": "Day",
+    "PREVIOUS": "Previous",
+    "TODAY": "Today",
+    "NEXT": "Next"
+  },
+
+  "CREATE_APPOINTMENT": {
+    "TITLE": "New Appointment",
+    "CLOSE": "Close",
+    "PATIENT_LABEL": "Patient",
+    "PATIENT_TYPE_ARIA": "Patient type",
+    "EXISTING_PATIENT": "Existing Patient",
+    "GUEST": "Guest",
+    "SEARCH_PLACEHOLDER": "Search patient by name...",
+    "SEARCH_ARIA": "Search patient by name",
+    "LOADING_PATIENTS": "Loading patients...",
+    "NO_PATIENTS_FOUND": "No patients found",
+    "SELECTED_PATIENT": "Selected: {{ name }}",
+    "FULL_NAME": "Full Name",
+    "GUEST_NAME_PLACEHOLDER": "Guest's full name",
+    "PHONE_NUMBER": "Phone Number",
+    "PHONE_PLACEHOLDER": "Phone number",
+    "START_TIME": "Start Time",
+    "DURATION": "Duration",
+    "DURATION_ARIA": "Appointment duration",
+    "CREATING_GUEST": "Creating guest...",
+    "CREATE": "Create",
+    "CANCEL": "Cancel"
+  },
+  "DOCTOR_SELECTOR": {
+    "SELECT_DOCTOR": "Select a doctor"
+  },
+
+  "EMPTY_STATE": {
+    "CONFIGURE_WORKING_HOURS": "Configure working hours"
+  },
+
+  "FILTERS_BAR": {
+    "SEARCH_PLACEHOLDER": "Search patient or guest...",
+    "SEARCH_ARIA": "Search patient or guest",
+    "STATUS_FILTER_ARIA": "Filter by status",
+    "TODAY_ONLY": "Today Only",
+    "RESET_TOOLTIP": "Reset all filters",
+    "CLEAR": "Clear"
+  },
+
+  "RESCHEDULE_DIALOG": {
+    "TITLE": "Reschedule Appointment",
+    "CLOSE": "Close",
+    "CURRENT_TIME": "Current Time",
+    "CHOOSE_WORKING_DAY": "Choose a Working Day",
+    "LOADING_AVAILABILITY": "Loading availability...",
+    "NO_AVAILABILITY": "No availability in the next 30 days.",
+    "AVAILABLE_DAYS_ARIA": "Available working days",
+    "CHOOSE_WINDOW": "Choose an Available Window",
+    "AVAILABLE_WINDOWS_ARIA": "Available time windows",
+    "EXACT_START_TIME": "Exact Start Time (within the window above)",
+    "ERROR_DURATION": "Must fit within {{ min }} – {{ max }} to preserve the original duration.",
+    "SUCCESS_DURATION": "Duration stays {{ duration }} min, same as the original appointment.",
+    "CONFIRM": "Confirm",
+    "CANCEL": "Cancel"
+  },
+
+  "STATS_PANEL": {
+    "APPOINTMENTS_TODAY": "Appointments Today",
+    "WORKING_HOURS": "Working Hours",
+    "FREE_TIME_REMAINING": "Free Time Remaining",
+    "UPCOMING_APPOINTMENT": "Upcoming Appointment",
+    "NEXT_AVAILABLE_SLOT": "Next Available Slot"
+  },
+
+  "SCHEDULE_PAGE": {
+    "DOCTOR_OFF_DAY": "Doctor doesn't work that day."
+  },
+
+  "SLOT_MATCHING_PREFERENCES": {
+    "LOADING": "Loading scheduling preferences…",
+    "ERROR_MESSAGE": "Couldn't load your scheduling preferences.",
+    "TRY_AGAIN": "Try again",
+    "TITLE": "Slot matching",
+    "SUBTITLE": "These control which free slots get offered to patients when booking against your calendar.",
+    "ALLOW_SHORTER_TITLE": "Suggest shorter appointments when there's no perfect match",
+    "ALLOW_SHORTER_DESC": "If a patient asks for, say, a 60-minute session and your calendar only has a 45-minute gap, turning this on lets the system offer that shorter opening instead of nothing. Turn it off to only show patients times that match exactly what they asked for.",
+    "TOLERANCE_TITLE": "Maximum shortfall tolerance",
+    "TOLERANCE_DESC": "How much shorter than requested a slot can be and still get offered — e.g. 15 minutes lets a 45-minute opening stand in for a 60-minute request.",
+    "DAYS_OUT_TITLE": "Exact-match window",
+    "DAYS_OUT_DESC": "Beyond this many days out, stop holding out for an exact-length slot and start surfacing near-miss shorter slots instead.",
+    "RESET_TO_DEFAULTS": "Reset to defaults",
+    "SAVE_CHANGES": "Save changes"
+  },
+
+  "WEEKLY_EDITOR": {
+    "OFF": "Off",
+    "START_TIME": "Start Time",
+    "START_TIME_REQUIRED": "Start time is required.",
+    "END_TIME": "End Time",
+    "END_TIME_REQUIRED": "End time is required.",
+    "RANGE_ERROR": "End time must be after start time."
+  },
+
+  "WORKING_HOURS_PAGE": {
+    "TITLE": "Working Hours",
+    "SUBTITLE": "Configure your weekly availability and appointment schedule.",
+    "QUICK_SETUP_TITLE": "Quick setup",
+    "QUICK_SETUP_HINT": "Apply a common pattern, then fine-tune any day below.",
+    "PRESET_WEEKDAYS": "Weekdays, 9–5",
+    "PRESET_EVERYDAY": "Every day, 9–5",
+    "PRESET_CLEAR": "Clear all",
+    "WEEKLY_SCHEDULE_TITLE": "Weekly schedule",
+    "WEEKLY_SCHEDULE_HINT": "Turn a day on to set the hours you're available.",
+    "UNSAVED_CHANGES": "Unsaved changes",
+    "CANCEL": "Cancel",
+    "DELETE_SCHEDULE": "Delete schedule",
+    "SAVING": "Saving…"
+  },
+
+  "NEXT_SESSION_BOOKING": {
+    "PACKAGE_FINISHED": "Package finished",
+    "NEXT_SESSION": "Next session",
+    "BOOK_NEXT_SESSION": "Book next session",
+    "ALREADY_SCHEDULED": "Next session already scheduled",
+    "SESSION_BOOKED": "Next session booked",
+    "LAST_SESSION_PROMPT": "This was the last session in the patient's package. Add another session, or send them to the receptionist to decide?",
+    "BOOK_ANOTHER_SESSION": "Book another session",
+    "SEND_TO_RECEPTIONIST": "Send to receptionist",
+    "HIDE_OVERRIDES": "Hide",
+    "ADJUST_OVERRIDES": "Adjust duration / frequency for this search",
+    "DURATION_MIN": "Duration (min)",
+    "SESSIONS_PER_WEEK": "Sessions/week",
+    "MIN_GAP_DAYS": "Min gap (days)",
+    "FIND_SLOTS": "Find available slots",
+    "NO_SLOTS_FOUND": "No open slots found this round.",
+    "REDIRECT_TO_RECEPTIONIST_INSTEAD": "Redirect to receptionist instead"
+  },
+
+  "RECORDING_MODAL": {
+    "UPLOADING_AND_TRANSCRIBING": "Uploading and transcribing...",
+    "STOP": "Stop",
+    "CANCEL": "Cancel"
+  },
+
+  "ACTION_BUTTONS": {
+    "SAVING": "Saving...",
+    "SAVE_DRAFT": "Save draft",
+    "COMPLETING": "Completing...",
+    "COMPLETE_AND_GENERATE_SUMMARY": "Complete & Generate Summary"
+  },
+
+  "ATTACHMENTS_SECTION": {
+    "TITLE": "ATTACHMENTS",
+    "DROP_HINT": "Drop X-rays or photos here",
+    "UPLOADED_TITLE": "Uploaded attachments",
+    "NEW_TITLE": "New attachments",
+    "NO_ATTACHMENTS": "No attachments yet.",
+    "REMOVE_ARIA": "Remove attachment"
+  },
+
+  "PATIENT_HEADER": {
+    "PATIENTS": "Patients",
+    "LOADING": "Loading...",
+    "STATUS_SCHEDULED": "scheduled",
+    "STATUS_IN_PROGRESS": "in-progress",
+    "STATUS_COMPLETED": "completed",
+    "STATUS_CANCELLED": "cancelled"
+  },
+
+  "SESSION_INFO": {
+    "TITLE": "SESSION INFO",
+    "PATIENT": "Patient",
+    "LOADING": "Loading...",
+    "SCHEDULED": "Scheduled",
+    "DURATION": "Duration",
+    "MIN": "min"
+  },
+
+  "SESSION_NOTES": {
+    "TITLE": "SESSION NOTES",
+    "TRANSCRIBING": "Transcribing...",
+    "RESUME": "Resume",
+    "PAUSE": "Pause",
+    "FINISH_AND_TRANSCRIBE": "Finish & transcribe",
+    "CANCEL_RECORDING": "Cancel recording",
+    "TAP_TO_RECORD": "Tap to record",
+    "PLACEHOLDER": "Please document:\n1) Diagnosis\n2) Treatment/exercises performed (with details)\n3) Patient's response\n4) Plan for the next session",
+    "SESSION_AUDIO": "Session audio"
+  },
+
+  "SESSION_PROGRESS_NOTE": {
+    "TITLE": "SESSION PROGRESS NOTE",
+    "SUBTITLE": "AI-assisted objective findings and narrative draft for this session.",
+    "REGENERATE_AI_SUMMARY": "Regenerate AI Summary",
+    "GENERATE_AI_SUMMARY": "Generate AI Summary",
+    "NO_DOCUMENTATION": "No documentation generated yet for this session.",
+    "OBJECTIVE_FINDINGS": "Objective Findings",
+    "NO_OBJECTIVE_FINDINGS": "No objective findings extracted yet.",
+    "SUBJECTIVE": "Subjective",
+    "ASSESSMENT": "Assessment",
+    "PLAN": "Plan",
+    "REGENERATE_NARRATIVE_ONLY": "Regenerate narrative draft only",
+    "SUBMIT": "Submit"
+  },
+
+  "TREATMENT_PLAN": {
+    "TITLE": "TREATMENT PLAN",
+    "SUBTITLE": "Carried over from the previous session. Edit below to update it going forward.",
+    "PLACEHOLDER": "No treatment plan yet — this will start from the patient's initial report."
+  },
+
+  "AI_PROGRESS_NOTE": {
+    "BACK_TO_SESSION": "Back to session",
+    "TITLE": "AI Progress Note",
+    "SESSION_COMPLETED": "Session completed",
+    "SUBTITLE": "Review the generated clinical documentation, make any required edits, then submit the final progress note.",
+    "STEP_1": "Step 1",
+    "SESSION": "Session",
+    "STEP_2": "Step 2",
+    "AI_REVIEW": "AI Review",
+    "STEP_3": "Step 3",
+    "SUBMIT": "Submit",
+    "AI_ASSISTED_DOCUMENTATION": "AI-assisted documentation",
+    "AI_NOTICE_SUBTITLE": "Review all generated findings before submitting the final clinical note."
+  },
+
+  "FLOATING_AI_BUTTON": {
+    "TEXT": "Ask AI"
+  },
+
+  "ASK_AI": {
+    "BACK_TO_RECENT": "Back to recent searches",
+    "TITLE": "Ask AI",
+    "CLOSE": "Close",
+    "EXACT_SEARCH_COMING_SOON": "Exact Search is coming soon",
+    "PLACEHOLDER_ASK": "Ask a question...",
+    "SEND": "Send",
+    "SMART_SEARCH": "Smart Search",
+    "EXACT_SEARCH": "Exact Search",
+    "COMING_SOON": "Coming soon",
+    "RECENT_SEARCHES": "Recent searches",
+    "NO_SEARCHES_YET": "No searches yet. Ask something above to get started.",
+    "DELETE_SEARCH": "Delete search",
+    "PLACEHOLDER_FOLLOWUP": "Ask a follow-up...",
+    "STOP_GENERATING": "Stop generating"
+  },
+
+  "CHAT_MESSAGE": {
+    "COULD_NOT_SEND": "Couldn't send. Tap to retry."
+  },
+
+  "ERROR_404": {
+    "TITLE": "Page not found",
+    "DESCRIPTION": "The page you're looking for doesn't exist or has been moved.",
+    "GO_HOME": "Go home"
+  },
+
+  "ERROR_500": {
+    "TITLE": "Internal Server Error",
+    "DESCRIPTION": "Something went wrong on our end. Please try again or contact support if the problem persists.",
+    "LABEL_ERROR": "Error",
+    "LABEL_ORIGIN": "Origin",
+    "ORIGIN_TEXT": "This error comes from the server, not Angular",
+    "STACK_TRACE": "Stack Trace",
+    "TRY_AGAIN": "Try Again"
+  },
+
+  "TOAST": {
+    "CLOSE": "Close"
+  },
+
+  "ACCESS_DENIED": {
+    "TITLE": "Access Denied",
+    "DESCRIPTION": "You don't have permission to view this page. If you think this is a mistake, please contact your administrator.",
+    "GO_HOME": "Go home",
+    "MY_ACCOUNT": "My account"
+  },
+
+  "PROFILE": {
+    "TITLE": "Profile",
+    "SUBTITLE_DOCTOR": "Your doctor profile and public info",
+    "SUBTITLE_PERSONAL": "Your personal account info",
+    "CHANGE_PASSWORD": "Change password",
+    "EDIT_PROFILE": "Edit profile",
+    "CANCEL": "Cancel",
+    "COMPLETE_PROFILE": "Complete your profile",
+    "PROFILE_PHOTO": "Profile photo",
+    "ADD_TITLE": "Add your title",
+    "RECEPTIONIST": "Receptionist",
+    "REMOVE_PHOTO": "Remove photo",
+    "PERSONAL_INFORMATION": "PERSONAL INFORMATION",
+    "FULL_NAME": "Full name",
+    "TITLE_FIELD": "Title",
+    "EMAIL": "Email",
+    "PHONE": "Phone",
+    "CLINIC": "Clinic",
+    "CLINIC_ADDRESS": "Clinic address",
+    "ABOUT": "About",
+    "USERNAME": "Username",
+    "FIRST_NAME": "First name",
+    "LAST_NAME": "Last name",
+    "YEARS_OF_EXPERIENCE": "Years of experience",
+    "SAVE": "Save",
+    "AT_A_GLANCE": "AT A GLANCE",
+    "ADDRESS": "Address",
+    "EXPERIENCE": "Experience",
+    "YEARS": "years",
+    "CURRENT_PASSWORD": "Current password",
+    "NEW_PASSWORD": "New password",
+    "CONFIRM_NEW_PASSWORD": "Confirm new password",
+    "CROP_PHOTO_HEADER": "Crop your photo",
+    "USE_PHOTO": "Use photo",
+    "ERRORS": {
+      "CURRENT_PASSWORD_REQUIRED": "Current password is required.",
+      "PASSWORD_MIN_LENGTH": "Password must be at least 8 characters.",
+      "PASSWORDS_MISMATCH": "Passwords do not match."
+    }
+  },
+
+  "VERIFY_EMAIL": {
+    "BRAND": "PhysioAssist",
+    "LEFT_TITLE": "One last step.",
+    "LEFT_DESC": "Confirming your email keeps your patients' records secure.",
+    "VERSION": "© PhysioAssist · v1",
+    "HEADING": "Check your inbox",
+    "SUBHEADING": "We sent a 6-digit code to",
+    "INFO_BOX": "Enter the code below to activate your account. It may take a minute to arrive.",
+    "ERROR_CODE": "Please enter the full 6-digit code.",
+    "BUTTON_VERIFY": "Verify email",
+    "BUTTON_RESEND": "Resend confirmation email",
+    "WRONG_ADDRESS": "Wrong address?",
+    "GO_BACK": "Go back"
+  },
+
+  "FORGOT_PASSWORD": {
+    "BRAND": "PhysioAssist",
+    "LEFT_TITLE": "We'll get you back in.",
+    "LEFT_DESC": "Reset your password securely and continue managing your clinic.",
+    "VERSION": "© PhysioAssist · v1",
+    "HEADING": "Forgot your password?",
+    "SUBHEADING": "Enter your email and we'll send you a reset code.",
+    "EMAIL_LABEL": "Email",
+    "EMAIL_PLACEHOLDER": "you@clinic.eg",
+    "BUTTON_SUBMIT": "Send reset code",
+    "REMEMBER_IT": "Remember it?",
+    "SIGN_IN": "Sign in"
+  },
+
+  "COMPLETE_PROFILE": {
+    "BRAND": "PhysioAssist",
+    "LEFT_TITLE": "One more step\nand you're in.",
+    "LEFT_DESC": "Just a few clinic details and we'll get\nyour account set up.",
+    "VERSION": "© PhysioAssist · v1",
+    "HEADING": "Create your account",
+    "SUBHEADING": "Set up your clinic in under a minute.",
+    "UPLOAD_PHOTO": "Upload photo",
+    "PHOTO_HINT": "Optional · JPG or PNG",
+    "FIRST_NAME": "First name",
+    "FIRST_NAME_PLACEHOLDER": "Sarah",
+    "FIRST_NAME_REQUIRED": "First name is required.",
+    "LAST_NAME": "Last name",
+    "LAST_NAME_PLACEHOLDER": "Ahmed",
+    "LAST_NAME_REQUIRED": "Last name is required.",
+    "CLINIC_NAME": "Clinic name",
+    "CLINIC_NAME_PLACEHOLDER": "Cairo Physio Center",
+    "CLINIC_NAME_REQUIRED": "Clinic name is required.",
+    "EMAIL": "Email",
+    "BUTTON_SUBMIT": "Create account"
+  },
+
+  "LOGIN": {
+    "BRAND": "PhysioAssist",
+    "LEFT_TITLE": "Run your clinic\nwith one hand.",
+    "LEFT_DESC": "Voice-first session notes, AI-assisted documentation,\nand instant patient summaries.",
+    "VERSION": "© PhysioAssist · v1",
+    "HEADING": "Welcome back",
+    "SUBHEADING": "Sign in to your clinic.",
+    "EMAIL": "Email",
+    "EMAIL_PLACEHOLDER": "dr.sarah@clinic.eg",
+    "PASSWORD": "Password",
+    "PASSWORD_PLACEHOLDER": "••••••••",
+    "PASSWORD_REQUIRED": "Password is required.",
+    "REMEMBER_ME": "Remember me",
+    "FORGOT_PASSWORD": "Forgot password?",
+    "BUTTON_SIGN_IN": "Sign in",
+    "OR": "or",
+    "NEW_CLINIC": "New clinic?",
+    "CREATE_ACCOUNT": "Create an account"
+  },
+
+  "REGISTER": {
+    "BRAND": "PhysioAssist",
+    "LEFT_TITLE": "Built for solo\nphysiotherapists.",
+    "LEFT_DESC": "Onboard patients faster, document sessions with your\nvoice, and keep everything in one place.",
+    "VERSION": "© PhysioAssist · v1",
+    "HEADING": "Create your account",
+    "SUBHEADING": "Set up your clinic in under a minute.",
+    "CHANGE_PHOTO": "Change photo",
+    "UPLOAD_PHOTO": "Upload photo",
+    "PHOTO_HINT": "Optional · JPG or PNG",
+    "FIRST_NAME": "First name",
+    "FIRST_NAME_PLACEHOLDER": "Sarah",
+    "LAST_NAME": "Last name",
+    "LAST_NAME_PLACEHOLDER": "Ahmed",
+    "CLINIC_NAME": "Clinic name",
+    "CLINIC_NAME_PLACEHOLDER": "Cairo Physio Center",
+    "EMAIL": "Email",
+    "EMAIL_PLACEHOLDER": "you@clinic.eg",
+    "PASSWORD": "Password",
+    "PASSWORD_PLACEHOLDER": "At least 8 characters",
+    "AGREE_PREFIX": "I agree to the",
+    "TERMS": "Terms",
+    "AND": "and",
+    "PRIVACY": "Privacy Policy",
+    "BUTTON_SUBMIT": "Create account",
+    "ALREADY_HAVE_ACCOUNT": "Already have an account?",
+    "SIGN_IN": "Sign in"
+  },
+
+  "RESET_PASSWORD": {
+    "BRAND": "PhysioAssist",
+    "LEFT_TITLE": "Almost done.",
+    "LEFT_DESC": "Pick a new password and you're back in your clinic.",
+    "VERSION": "© PhysioAssist · v1",
+    "HEADING": "Set a new password",
+    "SUBHEADING": "Choose a strong password you haven't used before.",
+    "NEW_PASSWORD": "New password",
+    "NEW_PASSWORD_PLACEHOLDER": "At least 8 characters",
+    "CONFIRM_PASSWORD": "Confirm password",
+    "CONFIRM_PASSWORD_PLACEHOLDER": "Repeat your new password",
+    "CONFIRM_REQUIRED": "Please confirm your password.",
+    "MISMATCH": "Passwords do not match.",
+    "BUTTON_UPDATE": "Update password",
+    "BACK_TO": "Back to",
+    "SIGN_IN": "sign in"
+  },
+
+  "OTP": {
+    "BRAND": "PhysioAssist",
+    "LEFT_TITLE": "Check your inbox.",
+    "LEFT_DESC": "We sent a reset code to your email. It expires in 15 minutes.",
+    "VERSION": "© PhysioAssist · v1",
+    "HEADING": "Enter reset code",
+    "SUBHEADING_PREFIX": "We sent a 6-digit code to",
+    "INFO_TEXT": "Enter the code below to verify your identity. It may take a minute to arrive.",
+    "OTP_REQUIRED": "Please enter the full 6-digit code.",
+    "BUTTON_VERIFY": "Verify code",
+    "BUTTON_RESEND": "Resend code",
+    "WRONG_ADDRESS": "Wrong address?",
+    "GO_BACK": "Go back"
+  }
+}

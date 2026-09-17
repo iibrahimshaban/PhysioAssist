@@ -53,7 +53,7 @@
         (appointmentClicked)="onAppointmentClicked($event)"
         (intervalClicked)="onIntervalClicked($event)"
         (rescheduleRequested)="onReschedule($event)"
-        (invalidDropAttempted)="scheduleService.showToast('Doctor doesn\'t work that day.', 'error')"
+        (invalidDropAttempted)="onInvalidDropAttempt()"
         (quickComplete)="onQuickComplete($event)"
         (quickCancel)="onQuickCancel($event)"
       />
@@ -93,7 +93,11 @@
   <div class="toast-stack" aria-live="polite">
     @for (toast of scheduleService.toasts(); track toast.id) {
       <div class="toast" [class.toast--error]="toast.kind === 'error'">
-        <i class="pi" [class.pi-check-circle]="toast.kind !== 'error'" [class.pi-times-circle]="toast.kind === 'error'"></i>
+        <i
+          class="pi"
+          [class.pi-check-circle]="toast.kind !== 'error'"
+          [class.pi-times-circle]="toast.kind === 'error'"
+        ></i>
         <span>{{ toast.text }}</span>
       </div>
     }

@@ -24,11 +24,24 @@
             [routerLink]="item.route"
             routerLinkActive="!text-blue-600 !bg-blue-50 font-semibold"
           >
-            {{ item.label }}
+            {{ item.label | translate }}
           </a>
         }
 
-        <!-- spacer so account menu feels separate from nav links -->
+        <!-- Language Button -->
+        <button
+          type="button"
+          (click)="changeLanguage()"
+          class="px-3 py-2 rounded-lg text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer bg-transparent border-none"
+          [attr.aria-label]="
+            currentLang() === 'en'
+              ? ('NAVBAR.SWITCH_TO_ARABIC' | translate)
+              : ('NAVBAR.SWITCH_TO_ENGLISH' | translate)
+          "
+        >
+          {{ currentLang() === 'en' ? 'AR' : 'EN' }}
+        </button>
+
         <div class="w-px h-6 bg-gray-200 mx-2"></div>
 
         <!-- Account dropdown -->
@@ -44,11 +57,17 @@
                 alt=""
               />
             } @else {
-              <span class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+              <span
+                class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0"
+              >
                 <i class="pi pi-user text-gray-500"></i>
               </span>
             }
-            <span class="text-gray-700 font-medium">{{ auth.currentUser()?.firstName }}</span>
+
+            <span class="text-gray-700 font-medium">
+              {{ auth.currentUser()?.firstName }}
+            </span>
+
             <i
               class="pi pi-angle-down text-xs text-gray-400 transition-transform"
               [class.rotate-180]="accountMenuOpen()"
@@ -56,19 +75,18 @@
           </button>
 
           @if (accountMenuOpen()) {
-            <!-- backdrop to close on outside click -->
             <div class="fixed inset-0 account-dropdown-backdrop" (click)="closeAccountMenu()"></div>
 
             <div
-                class="absolute right-0 top-full mt-2 w-max max-w-xs min-w-[11rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1.5 account-dropdown-panel"
-              >
+              class="absolute right-0 top-full mt-2 w-max max-w-xs min-w-[11rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1.5 account-dropdown-panel"
+            >
               <a
                 routerLink="/app/account"
                 (click)="closeAccountMenu()"
                 class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors no-underline"
               >
                 <i class="pi pi-user text-gray-400"></i>
-                Account settings
+                {{ 'NAVBAR.ACCOUNT_SETTINGS' | translate }}
               </a>
 
               @if (nav.settingsItems().length) {
@@ -81,7 +99,7 @@
                     class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors no-underline whitespace-nowrap"
                   >
                     <i class="{{ item.icon }} text-gray-400 shrink-0"></i>
-                    <span class="whitespace-nowrap">{{ item.label }}</span>
+                    <span class="whitespace-nowrap">{{ item.label | translate }}</span>
                   </a>
                 }
               }
@@ -93,7 +111,7 @@
                 class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-left whitespace-nowrap"
               >
                 <i class="pi pi-sign-out"></i>
-                Logout
+                {{ 'NAVBAR.LOGOUT' | translate }}
               </button>
             </div>
           }
@@ -101,127 +119,194 @@
       }
 
       @if (!auth.isAuthenticated()) {
-        <!-- Marketing links: only relevant for logged-out visitors on the landing page -->
+        <!-- Marketing links -->
         @for (item of marketingNavItems; track item.fragment) {
           <a
             class="px-3.5 py-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
             [routerLink]="['/']"
             [fragment]="item.fragment"
           >
-            {{ item.label }}
+            {{ item.label | translate }}
           </a>
         }
 
         <div class="w-px h-6 bg-gray-200 mx-2"></div>
 
+        <!-- Language Button -->
+        <button
+          type="button"
+          (click)="changeLanguage()"
+          class="px-3 py-2 rounded-lg text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer bg-transparent border-none"
+          [attr.aria-label]="
+            currentLang() === 'en'
+              ? ('NAVBAR.SWITCH_TO_ARABIC' | translate)
+              : ('NAVBAR.SWITCH_TO_ENGLISH' | translate)
+          "
+        >
+          {{ currentLang() === 'en' ? 'AR' : 'EN' }}
+        </button>
+
+        <!-- Sign in -->
         <a
           class="px-3.5 py-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors no-underline"
           routerLink="/auth/login"
           routerLinkActive="!text-blue-600 !bg-blue-50"
-          >Sign in</a
         >
+          {{ 'NAVBAR.SIGN_IN' | translate }}
+        </a>
 
+        <!-- Start for free -->
         <a
           class="ml-2 px-4 py-2 rounded-xl text-sm font-medium text-white no-underline hover:opacity-90 transition-opacity"
-          style="background: var(--brand-gradient, linear-gradient(135deg, #1A7FD4, #0EB8A0))"
+          style="background: var(--brand-gradient, linear-gradient(135deg, #1a7fd4, #0eb8a0))"
           routerLink="/auth/register"
-          >Start for free</a
         >
+          {{ 'NAVBAR.START_FOR_FREE' | translate }}
+        </a>
       }
     </nav>
 
-    <!-- Mobile: avatar trigger for logged-in users -->
-    @if (auth.isAuthenticated()) {
-      <div class="md:hidden relative">
-        <button
-          (click)="toggleAccountMenu()"
-          class="flex items-center gap-1 pl-0.5 pr-1 py-0.5 rounded-full cursor-pointer bg-transparent border-none"
-        >
-          @if (auth.currentUser()?.profilePictureUrl) {
-            <img [src]="auth.currentUser()!.profilePictureUrl" class="w-7 h-7 rounded-full object-cover ring-1 ring-gray-200" alt="" />
-          } @else {
-            <span class="w-7 h-7 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold flex items-center justify-center">
-              {{ auth.currentUser()?.firstName?.charAt(0) }}
-            </span>
-          }
-          <i class="pi pi-angle-down text-xs text-gray-400 transition-transform" [class.rotate-180]="accountMenuOpen()"></i>
-        </button>
-
-        @if (accountMenuOpen()) {
-          <div class="absolute right-0 top-full mt-2 w-max max-w-[85vw] min-w-[10rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1 account-dropdown-panel">
-          <a routerLink="/app/account" (click)="closeAccountMenu()" class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline whitespace-nowrap">
-            <i class="pi pi-user text-gray-400 text-xs"></i>
-            Account settings
-          </a>
-
-          @for (item of nav.settingsItems(); track item.route) {
-            <a [routerLink]="item.route" (click)="closeAccountMenu()" class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline whitespace-nowrap">
-              <i class="{{ item.icon }} text-gray-400 shrink-0"></i>
-              <span class="whitespace-nowrap">{{ item.label }}</span>
-            </a>
-          }
-
-          <div class="h-px bg-gray-100 my-1"></div>
-
-          <button (click)="auth.logout(); closeAccountMenu()" class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-left whitespace-nowrap">
-            <i class="pi pi-sign-out text-xs"></i>
-            Logout
-          </button>
-        </div>
-        }
-      </div>
-    }
-
-    <!-- Mobile: hamburger for logged-out visitors, opens marketing menu -->
-    @if (!auth.isAuthenticated()) {
+    <!-- Mobile right side: language button always visible + auth-specific control -->
+    <div class="md:hidden flex items-center gap-2">
+      <!-- Language Button (always visible on mobile, both auth states) -->
       <button
-        (click)="toggleMenu()"
-        class="md:hidden flex flex-col justify-center gap-1 w-9 h-9 rounded-lg border border-gray-200 bg-transparent cursor-pointer"
-        [attr.aria-expanded]="menuOpen()"
-        aria-controls="mobile-marketing-menu"
-        aria-label="Toggle navigation menu"
+        type="button"
+        (click)="changeLanguage()"
+        class="w-9 h-9 rounded-lg border border-gray-200 bg-transparent text-sm font-semibold text-gray-600 hover:bg-gray-50 cursor-pointer shrink-0"
+        [attr.aria-label]="
+          currentLang() === 'en'
+            ? ('NAVBAR.SWITCH_TO_ARABIC' | translate)
+            : ('NAVBAR.SWITCH_TO_ENGLISH' | translate)
+        "
       >
-        <span
-          class="h-0.5 w-4 mx-auto bg-gray-700 rounded-full transition-transform duration-200"
-          [class.translate-y-[5px]]="menuOpen()"
-          [class.rotate-45]="menuOpen()"
-        ></span>
-        <span
-          class="h-0.5 w-4 mx-auto bg-gray-700 rounded-full transition-opacity duration-200"
-          [class.opacity-0]="menuOpen()"
-        ></span>
-        <span
-          class="h-0.5 w-4 mx-auto bg-gray-700 rounded-full transition-transform duration-200"
-          [class.-translate-y-[5px]]="menuOpen()"
-          [class.-rotate-45]="menuOpen()"
-        ></span>
+        {{ currentLang() === 'en' ? 'AR' : 'EN' }}
       </button>
-    }
+
+      <!-- Mobile: avatar + dropdown (authenticated) -->
+      @if (auth.isAuthenticated()) {
+        <div class="relative">
+          <button
+            (click)="toggleAccountMenu()"
+            class="flex items-center gap-1 pl-0.5 pr-1 py-0.5 rounded-full cursor-pointer bg-transparent border-none"
+          >
+            @if (auth.currentUser()?.profilePictureUrl) {
+              <img
+                [src]="auth.currentUser()!.profilePictureUrl"
+                class="w-7 h-7 rounded-full object-cover ring-1 ring-gray-200"
+                alt=""
+              />
+            } @else {
+              <span
+                class="w-7 h-7 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold flex items-center justify-center"
+              >
+                {{ auth.currentUser()?.firstName?.charAt(0) }}
+              </span>
+            }
+
+            <i
+              class="pi pi-angle-down text-xs text-gray-400 transition-transform"
+              [class.rotate-180]="accountMenuOpen()"
+            ></i>
+          </button>
+
+          @if (accountMenuOpen()) {
+            <div class="fixed inset-0 account-dropdown-backdrop" (click)="closeAccountMenu()"></div>
+
+            <div
+              class="absolute right-0 top-full mt-2 w-max max-w-[85vw] min-w-[10rem] bg-white rounded-xl border border-gray-100 shadow-lg py-1 account-dropdown-panel"
+            >
+              <a
+                routerLink="/app/account"
+                (click)="closeAccountMenu()"
+                class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline whitespace-nowrap"
+              >
+                <i class="pi pi-user text-gray-400 text-xs"></i>
+                {{ 'NAVBAR.ACCOUNT_SETTINGS' | translate }}
+              </a>
+
+              @for (item of nav.settingsItems(); track item.route) {
+                <a
+                  [routerLink]="item.route"
+                  (click)="closeAccountMenu()"
+                  class="flex items-center gap-2 px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors no-underline whitespace-nowrap"
+                >
+                  <i class="{{ item.icon }} text-gray-400 shrink-0"></i>
+                  <span class="whitespace-nowrap">{{ item.label | translate }}</span>
+                </a>
+              }
+
+              <div class="h-px bg-gray-100 my-1"></div>
+
+              <button
+                (click)="auth.logout(); closeAccountMenu()"
+                class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-red-500 hover:bg-red-50 transition-colors cursor-pointer bg-transparent border-none text-left whitespace-nowrap"
+              >
+                <i class="pi pi-sign-out text-xs"></i>
+                {{ 'NAVBAR.LOGOUT' | translate }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Mobile: hamburger (not authenticated) -->
+      @if (!auth.isAuthenticated()) {
+        <button
+          (click)="toggleMenu()"
+          class="flex flex-col justify-center gap-1 w-9 h-9 rounded-lg border border-gray-200 bg-transparent cursor-pointer"
+          [attr.aria-expanded]="menuOpen()"
+          aria-controls="mobile-marketing-menu"
+          [attr.aria-label]="'NAVBAR.TOGGLE_NAVIGATION' | translate"
+        >
+          <span
+            class="h-0.5 w-4 mx-auto bg-gray-700 rounded-full transition-transform duration-200"
+            [class.translate-y-[5px]]="menuOpen()"
+            [class.rotate-45]="menuOpen()"
+          ></span>
+          <span
+            class="h-0.5 w-4 mx-auto bg-gray-700 rounded-full transition-opacity duration-200"
+            [class.opacity-0]="menuOpen()"
+          ></span>
+          <span
+            class="h-0.5 w-4 mx-auto bg-gray-700 rounded-full transition-transform duration-200"
+            [class.-translate-y-[5px]]="menuOpen()"
+            [class.-rotate-45]="menuOpen()"
+          ></span>
+        </button>
+      }
+    </div>
   </div>
 
-  <!-- Mobile icon strip for authenticated users -->
+  <!-- Mobile icon strip -->
   @if (auth.isAuthenticated()) {
-    <nav class="md:hidden flex justify-between px-2 py-1.5 border-t border-gray-100 overflow-x-auto">
-    @for (item of nav.primaryItems(); track item.route) {
-      <a
-        class="flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg no-underline shrink-0 min-w-[52px]"
-        [routerLink]="item.route"
-        routerLinkActive="!bg-blue-50"
-      >
-        <i
-          class="{{ item.icon }} text-[17px] text-gray-500"
-          routerLinkActive="!text-blue-600"
-          [routerLinkActiveOptions]="{ exact: false }"
-        ></i>
-        <span class="text-[10px] text-gray-500 font-medium" routerLinkActive="!text-blue-600">{{ item.label }}</span>
-      </a>
-    }
-  </nav>
+    <nav
+      class="md:hidden flex justify-between px-2 py-1.5 border-t border-gray-100 overflow-x-auto"
+    >
+      @for (item of nav.primaryItems(); track item.route) {
+        <a
+          class="flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg no-underline shrink-0 min-w-[52px]"
+          [routerLink]="item.route"
+          routerLinkActive="!bg-blue-50"
+        >
+          <i
+            class="{{ item.icon }} text-[17px] text-gray-500"
+            routerLinkActive="!text-blue-600"
+            [routerLinkActiveOptions]="{ exact: false }"
+          ></i>
+          <span class="text-[10px] text-gray-500 font-medium" routerLinkActive="!text-blue-600">
+            {{ item.label | translate }}
+          </span>
+        </a>
+      }
+    </nav>
   }
 
-  <!-- Mobile marketing menu for logged-out visitors -->
+  <!-- Mobile marketing menu -->
   @if (!auth.isAuthenticated() && menuOpen()) {
-    <nav id="mobile-marketing-menu" class="md:hidden flex flex-col px-4 pb-4 pt-1 border-t border-gray-100 gap-0.5">
+    <nav
+      id="mobile-marketing-menu"
+      class="md:hidden flex flex-col px-4 pb-4 pt-1 border-t border-gray-100 gap-0.5"
+    >
       @for (item of marketingNavItems; track item.fragment) {
         <a
           class="px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors no-underline text-sm font-medium border-b border-gray-100"
@@ -229,23 +314,26 @@
           [fragment]="item.fragment"
           (click)="closeMenu()"
         >
-          {{ item.label }}
+          {{ item.label | translate }}
         </a>
       }
+
       <div class="flex gap-2 mt-3">
         <a
           routerLink="/auth/login"
           (click)="closeMenu()"
           class="flex-1 text-center px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 border border-gray-200 no-underline"
-          >Sign in</a
         >
+          {{ 'NAVBAR.SIGN_IN' | translate }}
+        </a>
         <a
           routerLink="/auth/register"
           (click)="closeMenu()"
           class="flex-1 text-center px-4 py-2.5 rounded-xl text-sm font-medium text-white no-underline"
-          style="background: var(--brand-gradient, linear-gradient(135deg, #1A7FD4, #0EB8A0))"
-          >Start for free</a
+          style="background: var(--brand-gradient, linear-gradient(135deg, #1a7fd4, #0eb8a0))"
         >
+          {{ 'NAVBAR.START_FOR_FREE' | translate }}
+        </a>
       </div>
     </nav>
   }

@@ -1,143 +1,140 @@
 <div class="flex h-screen">
- 
-      <!-- ─── Left panel ──────────────────────────────────────────────────── -->
-      <div class="hidden lg:flex w-[52%] flex-col justify-between p-10"
-           style="background: linear-gradient(145deg, #1a7fd4 0%, #0eb8a0 100%)">
- 
-        <!-- Logo -->
-        <div class="flex items-center gap-2 text-white">
-          <i class="pi pi-heart-fill text-xl"></i>
-          <span class="font-semibold text-lg tracking-tight">PhysioAssist</span>
-        </div>
- 
-        <!-- Headline -->
-        <div class="text-white">
-          <h1 class="text-4xl font-bold leading-tight mb-4">
-            Run your clinic<br>with one hand.
-          </h1>
-          <p class="text-white/75 text-base max-w-sm leading-relaxed">
-            Voice-first session notes, AI-assisted documentation,<br>
-            and instant patient summaries.
-          </p>
-        </div>
- 
-        <!-- Footer -->
-        <p class="text-white/50 text-sm">© PhysioAssist · v1</p>
-      </div>
- 
-      <!-- ─── Right panel ─────────────────────────────────────────────────── -->
-      <div class="flex-1 flex items-center justify-center bg-gray-50 px-6">
- 
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-100 p-10">
- 
-          <!-- Heading -->
-          <div class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-1">Welcome back</h2>
-            <p class="text-gray-500 text-sm">Sign in to your clinic.</p>
-          </div>
- 
-          <!-- Form -->
-          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5" novalidate>
- 
-            <!-- Email -->
-            <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-gray-700">Email</label>
-              <input
-                pInputText
-                type="email"
-                formControlName="email"
-                placeholder="dr.sarah@clinic.eg"
-                class="w-full"
-                [class.ng-invalid]="isInvalid('email')"
-                [class.ng-dirty]="isInvalid('email')"
-              />
-              @if (isInvalid('email')) {
-                <span class="text-xs text-red-500">
-                  {{ getEmailError() }}
-                </span>
-              }
-            </div>
- 
-            <!-- Password -->
-            <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium text-gray-700">Password</label>
-              <p-password
-                formControlName="password"
-                [feedback]="false"
-                [toggleMask]="true"
-                styleClass="w-full"
-                inputStyleClass="w-full"
-                placeholder="••••••••"
-                [class.ng-invalid]="isInvalid('password')"
-                [class.ng-dirty]="isInvalid('password')"
-              />
-              @if (isInvalid('password')) {
-                <span class="text-xs text-red-500">Password is required.</span>
-              }
-            </div>
- 
-            <!-- Remember me + Forgot password -->
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <p-checkbox
-                  formControlName="rememberMe"
-                  [binary]="true"
-                  inputId="rememberMe"
-                />
-                <label for="rememberMe" class="text-sm text-gray-600 cursor-pointer select-none">
-                  Remember me
-                </label>
-              </div>
-              <a routerLink="/auth/forgot-password"
-                 class="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
-                Forgot password?
-              </a>
-            </div>
- 
-            <!-- Submit -->
-            <p-button
-              type="submit"
-              label="Sign in"
-              styleClass="w-full"
-              [loading]="loading()"
-              [disabled]="loading()"
-            />
- 
-          </form>
-
-          <!-- Divider -->
-          <div class="flex items-center gap-3 my-6">
-            <div class="flex-1 h-px bg-gray-200"></div>
-            <span class="text-xs text-gray-400 uppercase tracking-wide">or</span>
-            <div class="flex-1 h-px bg-gray-200"></div>
-          </div>
-
-          <!-- Google sign-in -->
-          <div class="flex justify-center">
-            <asl-google-signin-button
-              type="standard"
-              theme="outline"
-              size="large"
-              text="signin_with"
-              shape="rectangular"
-              [width]= "320"
-            ></asl-google-signin-button>
-          </div>
-
-          @if (googleError()) {
-            <p class="text-xs text-red-500 text-center mt-3">{{ googleError() }}</p>
-          }
- 
-          <!-- Register link -->
-          <p class="text-center text-sm text-gray-500 mt-6">
-            New clinic?
-            <a routerLink="/auth/register"
-               class="font-medium text-blue-600 hover:text-blue-700 transition-colors">
-              Create an account
-            </a>
-          </p>
- 
-        </div>
-      </div>
- 
+  <!-- ─── Left panel ──────────────────────────────────────────────────── -->
+  <div
+    class="hidden lg:flex w-[52%] flex-col justify-between p-10"
+    style="background: linear-gradient(145deg, #1a7fd4 0%, #0eb8a0 100%)"
+  >
+    <!-- Logo -->
+    <div class="flex items-center gap-2 text-white">
+      <i class="pi pi-heart-fill text-xl"></i>
+      <span class="font-semibold text-lg tracking-tight">{{ 'LOGIN.BRAND' | translate }}</span>
     </div>
+
+    <!-- Headline -->
+    <div class="text-white">
+      <h1 class="text-4xl font-bold leading-tight mb-4 whitespace-pre-line">
+        {{ 'LOGIN.LEFT_TITLE' | translate }}
+      </h1>
+      <p class="text-white/75 text-base max-w-sm leading-relaxed whitespace-pre-line">
+        {{ 'LOGIN.LEFT_DESC' | translate }}
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <p class="text-white/50 text-sm">{{ 'LOGIN.VERSION' | translate }}</p>
+  </div>
+
+  <!-- ─── Right panel ─────────────────────────────────────────────────── -->
+  <div class="flex-1 flex items-center justify-center bg-gray-50 px-6">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-100 p-10">
+      <!-- Heading -->
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ 'LOGIN.HEADING' | translate }}</h2>
+        <p class="text-gray-500 text-sm">{{ 'LOGIN.SUBHEADING' | translate }}</p>
+      </div>
+
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5" novalidate>
+        <!-- Email -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-gray-700">{{ 'LOGIN.EMAIL' | translate }}</label>
+          <input
+            pInputText
+            type="email"
+            formControlName="email"
+            [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate"
+            class="w-full"
+            [class.ng-invalid]="isInvalid('email')"
+            [class.ng-dirty]="isInvalid('email')"
+          />
+          @if (isInvalid('email')) {
+            <span class="text-xs text-red-500">
+              {{ getEmailError() }}
+            </span>
+          }
+        </div>
+
+        <!-- Password -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-gray-700">{{
+            'LOGIN.PASSWORD' | translate
+          }}</label>
+          <p-password
+            formControlName="password"
+            [feedback]="false"
+            [toggleMask]="true"
+            styleClass="w-full"
+            inputStyleClass="w-full"
+            [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate"
+            [class.ng-invalid]="isInvalid('password')"
+            [class.ng-dirty]="isInvalid('password')"
+          />
+          @if (isInvalid('password')) {
+            <span class="text-xs text-red-500">{{ 'LOGIN.PASSWORD_REQUIRED' | translate }}</span>
+          }
+        </div>
+
+        <!-- Remember me + Forgot password -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <p-checkbox formControlName="rememberMe" [binary]="true" inputId="rememberMe" />
+            <label for="rememberMe" class="text-sm text-gray-600 cursor-pointer select-none">
+              {{ 'LOGIN.REMEMBER_ME' | translate }}
+            </label>
+          </div>
+          <a
+            routerLink="/auth/forgot-password"
+            class="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+          >
+            {{ 'LOGIN.FORGOT_PASSWORD' | translate }}
+          </a>
+        </div>
+
+        <!-- Submit -->
+        <p-button
+          type="submit"
+          [label]="'LOGIN.BUTTON_SIGN_IN' | translate"
+          styleClass="w-full"
+          [loading]="loading()"
+          [disabled]="loading()"
+        />
+      </form>
+
+      <!-- Divider -->
+      <div class="flex items-center gap-3 my-6">
+        <div class="flex-1 h-px bg-gray-200"></div>
+        <span class="text-xs text-gray-400 uppercase tracking-wide">{{
+          'LOGIN.OR' | translate
+        }}</span>
+        <div class="flex-1 h-px bg-gray-200"></div>
+      </div>
+
+      <!-- Google sign-in -->
+      <div class="flex justify-center">
+        <asl-google-signin-button
+          type="standard"
+          theme="outline"
+          size="large"
+          text="signin_with"
+          shape="rectangular"
+          [width]="320"
+        ></asl-google-signin-button>
+      </div>
+
+      @if (googleError()) {
+        <p class="text-xs text-red-500 text-center mt-3">{{ googleError() }}</p>
+      }
+
+      <!-- Register link -->
+      <p class="text-center text-sm text-gray-500 mt-6">
+        {{ 'LOGIN.NEW_CLINIC' | translate }}
+        <a
+          routerLink="/auth/register"
+          class="font-medium text-blue-600 hover:text-blue-700 transition-colors"
+        >
+          {{ 'LOGIN.CREATE_ACCOUNT' | translate }}
+        </a>
+      </p>
+    </div>
+  </div>
+</div>

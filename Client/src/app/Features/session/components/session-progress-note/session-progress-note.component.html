@@ -6,7 +6,7 @@
   >
     <span class="flex items-center text-sm font-bold uppercase text-slate-700">
       <i class="pi pi-clipboard icon-gradient mr-2"></i>
-      SESSION PROGRESS NOTE
+      {{ 'SESSION_PROGRESS_NOTE.TITLE' | translate }}
     </span>
   </button>
 
@@ -19,11 +19,16 @@
       } @else {
         <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p class="text-xs leading-5 text-slate-400 sm:max-w-[65%]">
-            AI-assisted objective findings and narrative draft for this session.
+            {{ 'SESSION_PROGRESS_NOTE.SUBTITLE' | translate }}
           </p>
 
           <p-button
-            [label]="noteExists() ? 'Regenerate AI Summary' : 'Generate AI Summary'"
+            [label]="
+              (noteExists()
+                ? 'SESSION_PROGRESS_NOTE.REGENERATE_AI_SUMMARY'
+                : 'SESSION_PROGRESS_NOTE.GENERATE_AI_SUMMARY'
+              ) | translate
+            "
             icon="pi pi-bolt"
             size="small"
             [loading]="generating()"
@@ -34,10 +39,14 @@
         </div>
 
         @if (!noteExists()) {
-          <p class="text-sm text-slate-500">No documentation generated yet for this session.</p>
+          <p class="text-sm text-slate-500">
+            {{ 'SESSION_PROGRESS_NOTE.NO_DOCUMENTATION' | translate }}
+          </p>
         } @else {
           <div>
-            <h4 class="mb-3 font-semibold text-slate-900">Objective Findings</h4>
+            <h4 class="mb-3 font-semibold text-slate-900">
+              {{ 'SESSION_PROGRESS_NOTE.OBJECTIVE_FINDINGS' | translate }}
+            </h4>
 
             @if (objectiveSimpleRows().length) {
               <div class="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -112,12 +121,16 @@
             }
 
             @if (!objectiveSimpleRows().length && !objectiveGroupRows().length) {
-              <p class="text-sm text-slate-500">No objective findings extracted yet.</p>
+              <p class="text-sm text-slate-500">
+                {{ 'SESSION_PROGRESS_NOTE.NO_OBJECTIVE_FINDINGS' | translate }}
+              </p>
             }
           </div>
 
           <div class="mt-4 border-t border-slate-100 pt-4">
-            <h4 class="mb-1 font-semibold text-slate-900">Subjective</h4>
+            <h4 class="mb-1 font-semibold text-slate-900">
+              {{ 'SESSION_PROGRESS_NOTE.SUBJECTIVE' | translate }}
+            </h4>
             <textarea
               #subjectiveEl
               dir="auto"
@@ -131,7 +144,9 @@
           </div>
 
           <div class="mt-4 border-t border-slate-100 pt-4">
-            <h4 class="mb-1 font-semibold text-slate-900">Assessment</h4>
+            <h4 class="mb-1 font-semibold text-slate-900">
+              {{ 'SESSION_PROGRESS_NOTE.ASSESSMENT' | translate }}
+            </h4>
             <textarea
               #assessmentEl
               dir="auto"
@@ -145,7 +160,9 @@
           </div>
 
           <div class="mt-4 border-t border-slate-100 pt-4">
-            <h4 class="mb-1 font-semibold text-slate-900">Plan</h4>
+            <h4 class="mb-1 font-semibold text-slate-900">
+              {{ 'SESSION_PROGRESS_NOTE.PLAN' | translate }}
+            </h4>
             <textarea
               #planEl
               dir="auto"
@@ -166,11 +183,11 @@
               class="text-left text-sm text-[var(--brand-gradient-start)] underline"
               (click)="retryNarrativeDraft()"
             >
-              Regenerate narrative draft only
+              {{ 'SESSION_PROGRESS_NOTE.REGENERATE_NARRATIVE_ONLY' | translate }}
             </button>
 
             <p-button
-              label="Submit"
+              [label]="'SESSION_PROGRESS_NOTE.SUBMIT' | translate"
               icon="pi pi-check"
               size="small"
               [loading]="saving()"

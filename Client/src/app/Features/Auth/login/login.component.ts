@@ -5,9 +5,14 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
-import { GoogleSigninButtonModule, SocialAuthService, GoogleLoginProvider } from '@abacritt/angularx-social-login';
+import {
+  GoogleSigninButtonModule,
+  SocialAuthService,
+  GoogleLoginProvider,
+} from '@abacritt/angularx-social-login';
 import { AuthService } from '../../../Core/Services/auth.service';
 import { requiresOnboarding } from '../../../Shared/Models/Auth.Modules';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-login',
@@ -19,27 +24,28 @@ import { requiresOnboarding } from '../../../Shared/Models/Auth.Modules';
     ButtonModule,
     CheckboxModule,
     GoogleSigninButtonModule,
+    TranslatePipe,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
 export class LoginComponent {
-  private readonly fb          = inject(FormBuilder);
-  private readonly auth        = inject(AuthService);
-  private readonly router      = inject(Router);
-  private readonly socialAuth  = inject(SocialAuthService);
+  private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly socialAuth = inject(SocialAuthService);
 
   loading = signal(false);
   googleError = signal('');
 
   form = this.fb.group({
-    email:      ['', [Validators.required, Validators.email]],
-    password:   ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
     rememberMe: [false],
   });
 
   constructor() {
-    this.socialAuth.authState.subscribe(socialUser => {
+    this.socialAuth.authState.subscribe((socialUser) => {
       if (socialUser?.idToken) {
         this.onGoogleSignIn(socialUser.idToken);
       }
@@ -87,7 +93,7 @@ export class LoginComponent {
         this.googleError.set(
           err.error?.code === 'User.AccountExistsWithPassword'
             ? 'An account with this email already exists. Please sign in with your password.'
-            : 'Google sign-in failed. Please try again.'
+            : 'Google sign-in failed. Please try again.',
         );
       },
     });
@@ -101,7 +107,7 @@ export class LoginComponent {
   getEmailError(): string {
     const ctrl = this.form.get('email');
     if (ctrl?.hasError('required')) return 'Email is required.';
-    if (ctrl?.hasError('email'))    return 'Enter a valid email address.';
+    if (ctrl?.hasError('email')) return 'Enter a valid email address.';
     return '';
   }
 }

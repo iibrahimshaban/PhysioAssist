@@ -39,6 +39,6 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
                .IsUnique();
 
         builder.HasIndex(p => new { p.ClinicId, p.PhoneNumber })
-               .IsUnique();
+             ;
     }
 }

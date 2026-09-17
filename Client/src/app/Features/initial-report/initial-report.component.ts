@@ -8,11 +8,16 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { from, of } from 'rxjs';
 import { catchError, concatMap, map, toArray } from 'rxjs/operators';
-import { InitialReportResponse, ReportAttachmentResponse, TreatmentSchedulePlanResponse } from '../../Shared/Models/InitialReport.models';
+import {
+  InitialReportResponse,
+  ReportAttachmentResponse,
+  TreatmentSchedulePlanResponse,
+} from '../../Shared/Models/InitialReport.models';
 
 import { SnackbarService } from '../../Core/Services/snackbar.service';
 import { InitialReportService } from '../../Core/Services/initial-report.service';
 import { ScheduleRequirementsComponent } from './schedule-requirements/schedule-requirements.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 interface AttachmentEntry {
   id?: string;
@@ -28,7 +33,15 @@ const PATIENT_CATEGORY_LABELS = ['Orthopedic', 'Neurological', 'Pediatric', 'Gen
 @Component({
   selector: 'app-initial-report',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, ButtonModule, ConfirmDialogModule, ScheduleRequirementsComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    HttpClientModule,
+    ButtonModule,
+    ConfirmDialogModule,
+    ScheduleRequirementsComponent,
+    TranslatePipe,
+  ],
   providers: [ConfirmationService],
   templateUrl: './initial-report.component.html',
   styleUrls: ['./initial-report.component.css'],
@@ -53,8 +66,8 @@ export class InitialReportComponent implements OnInit {
     this.patientName()
       .split(' ')
       .filter(Boolean)
-      .map(n => n[0])
-      .join('')
+      .map((n) => n[0])
+      .join(''),
   );
 
   // --- Report fields ---
@@ -107,7 +120,7 @@ export class InitialReportComponent implements OnInit {
     private readonly location: Location,
     private readonly initialReportService: InitialReportService,
     private readonly snackbar: SnackbarService,
-    private readonly confirmationService: ConfirmationService
+    private readonly confirmationService: ConfirmationService,
   ) {}
 
   ngOnInit(): void {
@@ -117,12 +130,16 @@ export class InitialReportComponent implements OnInit {
     }
 
     // patientId lives on the route path, e.g. /app/initial-report/:patientId
-    this.route.paramMap.subscribe(params => {
-      const resolvedId = params.get('patientId') ?? (navState?.patient?.id != null ? String(navState.patient.id) : null);
+    this.route.paramMap.subscribe((params) => {
+      const resolvedId =
+        params.get('patientId') ??
+        (navState?.patient?.id != null ? String(navState.patient.id) : null);
 
       if (!resolvedId) {
         this.noPatientSelected = true;
-        this.snackbar.warning('No patient selected', ['Open this page from a patient in the list.']);
+        this.snackbar.warning('No patient selected', [
+          'Open this page from a patient in the list.',
+        ]);
         return;
       }
 
@@ -147,7 +164,7 @@ export class InitialReportComponent implements OnInit {
    *  to populate the patient header card. */
   private loadIntakeHeader(patientId: string): void {
     this.initialReportService.getIntakeDataSummaryByPatientId(patientId).subscribe({
-      next: intake => {
+      next: (intake) => {
         if (intake.patientFullName) this.patientName.set(intake.patientFullName);
         if (intake.gender) this.gender.set(intake.gender);
         if (intake.age != null) this.age.set(intake.age);
@@ -160,12 +177,14 @@ export class InitialReportComponent implements OnInit {
         if (intake.patientType) this.patientType.set(intake.patientType);
         this.patientBadge.set(`Patient #${patientId}`);
       },
-      error: err => {
+      error: (err) => {
         if (err?.status !== 404) {
           console.warn('Unable to load intake data', err);
-          this.snackbar.warning('Unable to load intake details', ['Could not load patient intake data.']);
+          this.snackbar.warning('Unable to load intake details', [
+            'Could not load patient intake data.',
+          ]);
         }
-      }
+      },
     });
   }
 
@@ -179,7 +198,7 @@ export class InitialReportComponent implements OnInit {
    *  protect yet. */
   private loadOrCreateReport(patientId: string): void {
     this.initialReportService.getReportByPatientId(patientId).subscribe({
-      next: res => {
+      next: (res) => {
         this.isExistingReport.set(true);
         // A report row can exist but still be empty — e.g. pre-created as a side
         // effect of patient creation, with nothing actually written into it yet.
@@ -187,29 +206,33 @@ export class InitialReportComponent implements OnInit {
         this.readonlyMode.set(this.hasSavedContent(res));
         this.applyReportResponse(res);
       },
-      error: err => {
+      error: (err) => {
         if (err?.status === 404) {
           this.initialReportService.createReport({ patientId }).subscribe({
-            next: res => {
+            next: (res) => {
               this.isExistingReport.set(false);
               this.readonlyMode.set(false);
               this.applyReportResponse(res);
             },
-            error: createErr => {
+            error: (createErr) => {
               console.error('Unable to create report', createErr);
-              this.snackbar.error('Unable to start report', ['Could not create an initial report for this patient.']);
-            }
+              this.snackbar.error('Unable to start report', [
+                'Could not create an initial report for this patient.',
+              ]);
+            },
           });
         } else {
           console.warn('Unable to load existing report', err);
           this.snackbar.warning('Unable to load report', ['Could not load an existing report.']);
         }
-      }
+      },
     });
   }
 
   private hasSavedContent(res: InitialReportResponse): boolean {
-    return !!(res.reportText && res.reportText.trim().length > 0) || (res.attachments?.length ?? 0) > 0;
+    return (
+      !!(res.reportText && res.reportText.trim().length > 0) || (res.attachments?.length ?? 0) > 0
+    );
   }
 
   /** Unlocks the form for editing. Only meaningful for a report that already
@@ -224,13 +247,13 @@ export class InitialReportComponent implements OnInit {
     this.parseReportText(response.reportText ?? '');
     this.pendingDeletions.set([]);
     this.attachments.set(
-      (response.attachments ?? []).map(a => ({
+      (response.attachments ?? []).map((a) => ({
         id: a.id,
         name: a.fileName,
         size: 0,
         fileUrl: a.fileUrl,
         fileType: a.fileType,
-      }))
+      })),
     );
   }
 
@@ -263,14 +286,23 @@ export class InitialReportComponent implements OnInit {
 
     const treatmentIndex = reportText.indexOf(treatmentMarker);
     const examinationRaw = treatmentIndex >= 0 ? reportText.slice(0, treatmentIndex) : reportText;
-    const treatmentRaw = treatmentIndex >= 0 ? reportText.slice(treatmentIndex + treatmentMarker.length) : '';
+    const treatmentRaw =
+      treatmentIndex >= 0 ? reportText.slice(treatmentIndex + treatmentMarker.length) : '';
 
-    const examinationText = this.stripStrayEqualsArtifact(examinationRaw.replace(examinationMarker, '').trim());
+    const examinationText = this.stripStrayEqualsArtifact(
+      examinationRaw.replace(examinationMarker, '').trim(),
+    );
     const treatmentText = treatmentRaw.trim();
 
     // Auto-populate default structured text for empty sections to ensure no fields are empty
-    this.examination.set(examinationText || 'Patient presented for pre-visit intake evaluation. Initial posture and range of motion (ROM) assessed. Subjective symptoms and pain regions reviewed from patient intake.');
-    this.treatmentPlan.set(treatmentText || '1. Complete initial physical examination and range of motion testing.\n2. Establish targeted therapeutic exercise program.\n3. Schedule follow-up treatment sessions.');
+    this.examination.set(
+      examinationText ||
+        'Patient presented for pre-visit intake evaluation. Initial posture and range of motion (ROM) assessed. Subjective symptoms and pain regions reviewed from patient intake.',
+    );
+    this.treatmentPlan.set(
+      treatmentText ||
+        '1. Complete initial physical examination and range of motion testing.\n2. Establish targeted therapeutic exercise program.\n3. Schedule follow-up treatment sessions.',
+    );
   }
 
   private stripStrayEqualsArtifact(text: string): string {
@@ -297,12 +329,16 @@ export class InitialReportComponent implements OnInit {
     }
 
     if (!this.reportId) {
-      this.snackbar.warning('Report not ready', ['Please wait until the report finishes loading before recording audio.']);
+      this.snackbar.warning('Report not ready', [
+        'Please wait until the report finishes loading before recording audio.',
+      ]);
       return;
     }
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      this.snackbar.warning('Microphone unavailable', ['Your browser does not support audio recording.']);
+      this.snackbar.warning('Microphone unavailable', [
+        'Your browser does not support audio recording.',
+      ]);
       return;
     }
 
@@ -313,7 +349,7 @@ export class InitialReportComponent implements OnInit {
 
     navigator.mediaDevices
       .getUserMedia({ audio: true })
-      .then(stream => {
+      .then((stream) => {
         this.mediaRecorder = new MediaRecorder(stream);
         this.mediaRecorder.ondataavailable = (event: BlobEvent) => {
           if (event.data && event.data.size > 0) {
@@ -322,17 +358,19 @@ export class InitialReportComponent implements OnInit {
         };
         this.mediaRecorder.onstop = () => {
           this.listening.set(false);
-          stream.getTracks().forEach(track => track.stop());
+          stream.getTracks().forEach((track) => track.stop());
           const audioBlob = new Blob(this.recordedChunks, { type: 'audio/webm' });
           this.transcribeVoice(audioBlob, field);
         };
         this.mediaRecorder.start();
       })
-      .catch(err => {
+      .catch((err) => {
         this.listening.set(false);
         this.activeVoiceField = null;
         console.error('Microphone access denied', err);
-        this.snackbar.warning('Microphone access denied', [this.getApiErrorDetail(err) || 'Cannot start recording.']);
+        this.snackbar.warning('Microphone access denied', [
+          this.getApiErrorDetail(err) || 'Cannot start recording.',
+        ]);
       });
   }
 
@@ -346,8 +384,8 @@ export class InitialReportComponent implements OnInit {
   }
 
   /** Backend now returns only the freshly transcribed segment (not the whole
- *  report), so we append it to whatever's already in the target field
- *  rather than overwriting it. */
+   *  report), so we append it to whatever's already in the target field
+   *  rather than overwriting it. */
   private transcribeVoice(audioBlob: Blob, field: 'examination' | 'treatmentPlan'): void {
     if (!this.reportId) {
       this.snackbar.error('Cannot transcribe audio', ['Report ID is missing.']);
@@ -358,7 +396,7 @@ export class InitialReportComponent implements OnInit {
     this.transcribing.set(true);
 
     this.initialReportService.transcribeAudio(this.reportId, audioBlob).subscribe({
-      next: res => {
+      next: (res) => {
         this.transcribing.set(false);
         const newText = res.text?.trim() ?? '';
 
@@ -377,12 +415,14 @@ export class InitialReportComponent implements OnInit {
 
         this.activeVoiceField = null;
       },
-      error: err => {
+      error: (err) => {
         this.transcribing.set(false);
         console.error('Audio transcription failed', err);
-        this.snackbar.error('Transcription failed', [this.getApiErrorDetail(err) || 'Unable to transcribe audio.']);
+        this.snackbar.error('Transcription failed', [
+          this.getApiErrorDetail(err) || 'Unable to transcribe audio.',
+        ]);
         this.activeVoiceField = null;
-      }
+      },
     });
   }
 
@@ -419,7 +459,7 @@ export class InitialReportComponent implements OnInit {
     const files = Array.from(fileList);
     const rejected: string[] = [];
 
-    const staged = files.filter(file => {
+    const staged = files.filter((file) => {
       if (this.isAllowedAttachmentType(file)) return true;
       rejected.push(file.name);
       return false;
@@ -433,9 +473,9 @@ export class InitialReportComponent implements OnInit {
 
     if (staged.length === 0) return;
 
-    this.attachments.update(list => [
+    this.attachments.update((list) => [
       ...list,
-      ...staged.map(file => ({
+      ...staged.map((file) => ({
         name: file.name,
         size: file.size,
         fileType: file.type,
@@ -455,10 +495,10 @@ export class InitialReportComponent implements OnInit {
     if (!attachment) return;
 
     if (attachment.id) {
-      this.pendingDeletions.update(ids => [...ids, attachment.id!]);
+      this.pendingDeletions.update((ids) => [...ids, attachment.id!]);
     }
 
-    this.attachments.update(list => list.filter((_, i) => i !== index));
+    this.attachments.update((list) => list.filter((_, i) => i !== index));
   }
 
   saveDraft(): void {
@@ -473,14 +513,15 @@ export class InitialReportComponent implements OnInit {
           this.snackbar.success('Draft saved');
           this.isExistingReport.set(true);
         });
-      }
+      },
     });
   }
 
   submitAndSend(): void {
     this.confirmationService.confirm({
       header: 'Submit report?',
-      message: 'This finalizes the report and sends the treatment plan to the patient. Are you sure you want to continue?',
+      message:
+        'This finalizes the report and sends the treatment plan to the patient. Are you sure you want to continue?',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Submit',
       rejectLabel: 'Cancel',
@@ -490,23 +531,25 @@ export class InitialReportComponent implements OnInit {
             this.deletePendingAttachments(() => this.finalizeSubmit());
           });
         });
-      }
+      },
     });
   }
 
   private finalizeSubmit(): void {
     if (!this.reportId) return;
     this.initialReportService.submitReport(this.reportId).subscribe({
-      next: res => {
+      next: (res) => {
         this.applyReportResponse(res);
         this.isExistingReport.set(true);
         this.readonlyMode.set(true);
         this.snackbar.success('Submitted and sent', ['Report saved successfully.']);
       },
-      error: err => {
+      error: (err) => {
         console.error('Submit failed', err);
-        this.snackbar.error('Submit failed', [this.getApiErrorDetail(err) || 'Unable to submit report.']);
-      }
+        this.snackbar.error('Submit failed', [
+          this.getApiErrorDetail(err) || 'Unable to submit report.',
+        ]);
+      },
     });
   }
 
@@ -521,7 +564,7 @@ export class InitialReportComponent implements OnInit {
       return;
     }
 
-    const pending = this.attachments().filter(a => !a.id && a.file);
+    const pending = this.attachments().filter((a) => !a.id && a.file);
     if (pending.length === 0) {
       onDone();
       return;
@@ -531,20 +574,22 @@ export class InitialReportComponent implements OnInit {
 
     from(pending)
       .pipe(
-        concatMap(attachment =>
+        concatMap((attachment) =>
           this.initialReportService.uploadAttachment(this.reportId!, attachment.file!).pipe(
             map((res: ReportAttachmentResponse) => ({ attachment, res, error: null as any })),
-            catchError(error => of({ attachment, res: null as ReportAttachmentResponse | null, error }))
-          )
+            catchError((error) =>
+              of({ attachment, res: null as ReportAttachmentResponse | null, error }),
+            ),
+          ),
         ),
-        toArray()
+        toArray(),
       )
-      .subscribe(results => {
+      .subscribe((results) => {
         this.saving.set(false);
 
-        this.attachments.update(list =>
-          list.map(entry => {
-            const result = results.find(r => r.attachment === entry);
+        this.attachments.update((list) =>
+          list.map((entry) => {
+            const result = results.find((r) => r.attachment === entry);
             if (!result || !result.res) return entry;
             return {
               id: result.res.id,
@@ -553,12 +598,12 @@ export class InitialReportComponent implements OnInit {
               fileUrl: result.res.fileUrl,
               fileType: result.res.fileType,
             };
-          })
+          }),
         );
 
-        const failed = results.filter(r => r.error);
+        const failed = results.filter((r) => r.error);
         if (failed.length > 0) {
-          const names = failed.map(f => f.attachment.name).join(', ');
+          const names = failed.map((f) => f.attachment.name).join(', ');
           this.snackbar.error('Some attachments failed to upload', [
             `${names} — please retry before submitting.`,
           ]);
@@ -583,18 +628,18 @@ export class InitialReportComponent implements OnInit {
 
     from(ids)
       .pipe(
-        concatMap(id =>
+        concatMap((id) =>
           this.initialReportService.deleteAttachment(this.reportId!, id).pipe(
             map(() => ({ id, error: null as any })),
-            catchError(error => of({ id, error }))
-          )
+            catchError((error) => of({ id, error })),
+          ),
         ),
-        toArray()
+        toArray(),
       )
-      .subscribe(results => {
+      .subscribe((results) => {
         this.saving.set(false);
 
-        const failed = results.filter(r => r.error);
+        const failed = results.filter((r) => r.error);
         if (failed.length > 0) {
           this.snackbar.error('Some attachments failed to remove', [
             `${failed.length} file(s) could not be deleted — they may still appear after reload.`,
@@ -608,7 +653,9 @@ export class InitialReportComponent implements OnInit {
 
   private persistReportText(onSuccess: () => void): void {
     if (!this.reportId) {
-      this.snackbar.error('Unable to save', ['Report is still being created — try again in a moment.']);
+      this.snackbar.error('Unable to save', [
+        'Report is still being created — try again in a moment.',
+      ]);
       return;
     }
 
@@ -620,11 +667,13 @@ export class InitialReportComponent implements OnInit {
         this.saving.set(false);
         onSuccess();
       },
-      error: err => {
+      error: (err) => {
         this.saving.set(false);
         console.error('Report save failed', err);
-        this.snackbar.error('Save failed', [this.getApiErrorDetail(err) || 'Unable to save report.']);
-      }
+        this.snackbar.error('Save failed', [
+          this.getApiErrorDetail(err) || 'Unable to save report.',
+        ]);
+      },
     });
   }
 

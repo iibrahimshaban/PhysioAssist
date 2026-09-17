@@ -1,8 +1,9 @@
 import { Component, signal } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-server-error',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './server-error.component.html',
   styleUrl: './server-error.component.css',
 })
@@ -14,8 +15,8 @@ export class ServerErrorComponent {
     if (raw) {
       const lines = raw.split('\n');
       this.error.set({
-        message: lines[0],        // "System.Exception: This is a test exception"
-        details: lines.slice(1).join('\n')   // rest is the stack trace
+        message: lines[0], // "System.Exception: This is a test exception"
+        details: lines.slice(1).join('\n'), // rest is the stack trace
       });
     }
   }

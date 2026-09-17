@@ -1,101 +1,134 @@
 <div class="min-h-screen bg-[#f5fafc] p-6">
   <div class="mx-auto max-w-5xl">
-
+    <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold text-slate-900">Patients</h1>
-        <p class="mt-1 text-sm text-slate-500">Nearest session first</p>
+        <h1 class="text-3xl font-bold text-slate-900">{{ 'PATIENTS_LIST.TITLE' | translate }}</h1>
+        <p class="mt-1 text-sm text-slate-500">{{ 'PATIENTS_LIST.SUBTITLE' | translate }}</p>
       </div>
-      <button (click)="goToCreate()"
-        class="inline-flex items-center gap-2 rounded-lg bg-[#0B8EEA] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0a7ed1] transition-colors">
+      <button
+        (click)="goToCreate()"
+        class="inline-flex items-center gap-2 rounded-lg bg-[#0B8EEA] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0a7ed1]"
+      >
         <i class="pi pi-plus"></i>
-        Add Patient
+        {{ 'PATIENTS_LIST.ADD_PATIENT' | translate }}
       </button>
     </div>
 
+    <!-- Search & Tabs -->
     <div class="mb-4 flex items-center gap-4">
       <div class="relative flex-1">
-        <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+        <i
+          class="pi pi-search absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-xs text-slate-300"
+        ></i>
         <input
           type="text"
           [(ngModel)]="searchTerm"
-          placeholder="Search by name or phone"
-          class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm outline-none focus:border-[#0B8EEA]" />
+          [placeholder]="'PATIENTS_LIST.SEARCH_PLACEHOLDER' | translate"
+          class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 rtl:pl-4 rtl:pr-11 text-sm outline-none focus:border-[#0B8EEA]"
+        />
       </div>
 
       <div class="flex shrink-0 rounded-xl border border-slate-200 bg-white p-1">
-        <button (click)="setTab('all')"
-          [class]="activeTab() === 'all'
-            ? 'rounded-lg bg-[#0B8EEA] px-4 py-2 text-sm font-semibold text-white'
-            : 'rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700'">
-          All
+        <button
+          (click)="setTab('all')"
+          [class]="
+            activeTab() === 'all'
+              ? 'rounded-lg bg-[#0B8EEA] px-4 py-2 text-sm font-semibold text-white'
+              : 'rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700'
+          "
+        >
+          {{ 'PATIENTS_LIST.TAB_ALL' | translate }}
         </button>
-        <button (click)="setTab('today')"
-          [class]="activeTab() === 'today'
-            ? 'rounded-lg bg-[#0B8EEA] px-4 py-2 text-sm font-semibold text-white'
-            : 'rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700'">
-          Today
+        <button
+          (click)="setTab('today')"
+          [class]="
+            activeTab() === 'today'
+              ? 'rounded-lg bg-[#0B8EEA] px-4 py-2 text-sm font-semibold text-white'
+              : 'rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700'
+          "
+        >
+          {{ 'PATIENTS_LIST.TAB_TODAY' | translate }}
         </button>
-        <button (click)="setTab('pending')"
-          [class]="activeTab() === 'pending'
-            ? 'rounded-lg bg-[#0B8EEA] px-4 py-2 text-sm font-semibold text-white'
-            : 'rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700'">
-          Pending
+        <button
+          (click)="setTab('pending')"
+          [class]="
+            activeTab() === 'pending'
+              ? 'rounded-lg bg-[#0B8EEA] px-4 py-2 text-sm font-semibold text-white'
+              : 'rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700'
+          "
+        >
+          {{ 'PATIENTS_LIST.TAB_PENDING' | translate }}
         </button>
       </div>
     </div>
 
+    <!-- Loading State -->
     @if (isLoading()) {
       <div class="py-20 text-center text-slate-400">
         <i class="pi pi-spin pi-spinner text-2xl"></i>
-        <p class="mt-2 text-sm">Loading patients...</p>
+        <p class="mt-2 text-sm">{{ 'PATIENTS_LIST.LOADING' | translate }}</p>
       </div>
     }
 
+    <!-- Empty State -->
     @if (!isLoading() && filteredPatients().length === 0) {
       <div class="rounded-xl bg-white p-12 text-center text-slate-400 shadow-sm">
-        <i class="pi pi-users text-4xl mb-3"></i>
-        <p class="text-sm">No patients found.</p>
+        <i class="pi pi-users mb-3 text-4xl"></i>
+        <p class="text-sm">{{ 'PATIENTS_LIST.NO_PATIENTS' | translate }}</p>
       </div>
     }
 
+    <!-- Patients List -->
     @if (!isLoading() && filteredPatients().length > 0) {
       <div class="flex flex-col gap-3">
         @for (patient of filteredPatients(); track patient.id) {
-          <div (click)="goToDetail(patient.id)"
-            class="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 sm:px-6 sm:py-4 shadow-sm transition-shadow hover:shadow-md">
-
+          <div
+            (click)="goToDetail(patient.id)"
+            class="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 shadow-sm transition-shadow hover:shadow-md sm:px-6 sm:py-4"
+          >
             <div class="flex min-w-0 items-center gap-3 sm:gap-4">
-              <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
-  style="background: var(--brand-gradient);">
+              <div
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+                style="background: var(--brand-gradient)"
+              >
                 {{ getInitials(patient.fullName) }}
               </div>
-              <p class="min-w-0 truncate text-sm font-semibold" style="color: var(--color-text-primary);">
+              <p
+                class="min-w-0 truncate text-sm font-semibold"
+                style="color: var(--color-text-primary)"
+              >
                 {{ patient.fullName }}
               </p>
             </div>
 
             <div class="flex shrink-0 items-center gap-3">
               @if (patient.slotStart) {
-                <div class="text-right">
-                  <p class="text-sm font-semibold" style="color: var(--color-text-primary);">
-                    {{ patient.slotStart | date:'h:mm a' }}
+                <div class="text-right rtl:text-left">
+                  <p class="text-sm font-semibold" style="color: var(--color-text-primary)">
+                    {{ patient.slotStart | date: 'h:mm a' }}
                   </p>
-                  <span class="mt-0.5 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium"
-                    style="background: var(--neutral-100); color: var(--color-text-secondary);">
-                    scheduled
+                  <span
+                    class="mt-0.5 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium"
+                    style="background: var(--neutral-100); color: var(--color-text-secondary)"
+                  >
+                    {{ 'PATIENTS_LIST.SCHEDULED' | translate }}
                   </span>
                 </div>
               } @else {
-                <p class="text-xs whitespace-nowrap" style="color: var(--color-text-muted);">No session today</p>
+                <p class="whitespace-nowrap text-xs" style="color: var(--color-text-muted)">
+                  {{ 'PATIENTS_LIST.NO_SESSION_TODAY' | translate }}
+                </p>
               }
 
-              <i class="pi pi-chevron-right text-xs" style="color: var(--neutral-300);"></i>
+              <i
+                class="pi pi-chevron-right rtl:rotate-180 text-xs"
+                style="color: var(--neutral-300)"
+              ></i>
             </div>
           </div>
         }
       </div>
     }
-
   </div>
 </div>
