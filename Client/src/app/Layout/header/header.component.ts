@@ -3,6 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../Core/Services/auth.service';
 import { NavigationService } from '../../Core/Services/navigation.service';
+import { MyTranslateService } from '../../Core/Services/my-translate.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 interface MarketingNavItem {
   label: string;
@@ -11,7 +13,7 @@ interface MarketingNavItem {
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
 })
@@ -22,7 +24,9 @@ export class HeaderComponent {
 
   menuOpen = signal(false);
 
-  toggleMenu(): void { this.menuOpen.update(v => !v); }
+  toggleMenu(): void {
+    this.menuOpen.update((v) => !v);
+  }
 
   accountMenuOpen = signal(false);
 
@@ -31,7 +35,7 @@ export class HeaderComponent {
   mobileAccountMenuOpen = signal(false);
 
   toggleMobileAccountMenu() {
-    this.mobileAccountMenuOpen.update(v => !v);
+    this.mobileAccountMenuOpen.update((v) => !v);
   }
 
   closeMenu() {
@@ -40,7 +44,7 @@ export class HeaderComponent {
   }
 
   toggleAccountMenu(): void {
-    this.accountMenuOpen.update(v => !v);
+    this.accountMenuOpen.update((v) => !v);
   }
 
   closeAccountMenu(): void {
@@ -48,11 +52,23 @@ export class HeaderComponent {
   }
 
   // ── Marketing nav (shown to logged-out visitors, e.g. on the landing page) ──
-  readonly marketingNavItems: MarketingNavItem[] = [
-    { label: 'Features', fragment: 'features' },
-    { label: 'AI Assistant', fragment: 'ai-assistant' },
-    { label: 'Scheduling', fragment: 'scheduling' },
-    { label: 'For Physiotherapists', fragment: 'for-physios' },
+  marketingNavItems = [
+    {
+      label: 'NAVBAR.FOR_PHYSIOTHERAPISTS',
+      fragment: 'for-physiotherapists',
+    },
+    {
+      label: 'NAVBAR.SCHEDULING',
+      fragment: 'scheduling',
+    },
+    {
+      label: 'NAVBAR.AI_ASSISTANT',
+      fragment: 'ai-assistant',
+    },
+    {
+      label: 'NAVBAR.FEATURES',
+      fragment: 'features',
+    },
   ];
 
   // ── Sticky/blurred navbar on scroll ──
@@ -62,5 +78,18 @@ export class HeaderComponent {
   onWindowScroll(): void {
     if (!isPlatformBrowser(this.platformId)) return;
     this.scrolled.set(window.scrollY > 12);
+  }
+
+  // translate
+  private myTranslateService = inject(MyTranslateService);
+
+  currentLang = signal(localStorage.getItem('lang') ?? 'en');
+
+  changeLanguage(): void {
+    const newLang = this.currentLang() === 'en' ? 'ar' : 'en';
+
+    this.myTranslateService.changeLang(newLang);
+
+    this.currentLang.set(newLang);
   }
 }

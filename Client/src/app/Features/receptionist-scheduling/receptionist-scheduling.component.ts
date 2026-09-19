@@ -7,13 +7,14 @@ import { SessionPlanHeaderComponent } from './session-plan-header/session-plan-h
 import { PatientFreeTimeEditorComponent } from './patient-free-time-editor/patient-free-time-editor.component';
 import { SlotCandidatesGridComponent } from './slot-candidates-grid/slot-candidates-grid.component';
 import { PendingPlanSummaryComponent } from './pending-plan-summary/pending-plan-summary.component';
-import { Button } from "primeng/button";
+import { Button } from 'primeng/button';
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { Dialog } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
 import { ConfirmationService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-receptionist-scheduling',
@@ -26,13 +27,13 @@ import { FormsModule } from '@angular/forms';
     ConfirmDialog,
     Dialog,
     InputNumber,
-    FormsModule
+    FormsModule,
+    TranslatePipe,
   ],
   templateUrl: './receptionist-scheduling.component.html',
   styleUrl: './receptionist-scheduling.component.css',
 })
 export class ReceptionistSchedulingComponent {
-
   private readonly router = inject(Router);
   private readonly confirmationService = inject(ConfirmationService);
 
@@ -69,7 +70,7 @@ export class ReceptionistSchedulingComponent {
   private loadContext(patientId: string): void {
     this.isLoadingContext.set(true);
     this.schedulingService.getSchedulingContext(patientId).subscribe({
-      next: ctx => {
+      next: (ctx) => {
         this.context.set(ctx);
         this.isLoadingContext.set(false);
 
@@ -91,11 +92,14 @@ export class ReceptionistSchedulingComponent {
 
     this.isCreatingPackage.set(true);
     this.schedulingService.convertPlanToPackage(ctx.pendingPlan.treatmentPlanId, {}).subscribe({
-      next: packageSummary => {
+      next: (packageSummary) => {
         this.isCreatingPackage.set(false);
         this.schedulingService.summary.set(packageSummary);
         this.freeTimeText.set(packageSummary.patientFreeTimeText);
-        this.context.set({ state: PatientSchedulingState.ActivePackage, activePackage: packageSummary });
+        this.context.set({
+          state: PatientSchedulingState.ActivePackage,
+          activePackage: packageSummary,
+        });
         this.schedulingService.loadNextSessionCandidates(packageSummary.packageId);
       },
       error: () => this.isCreatingPackage.set(false),

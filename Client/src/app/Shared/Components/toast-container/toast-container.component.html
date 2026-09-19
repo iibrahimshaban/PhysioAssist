@@ -3,10 +3,18 @@
     <div class="toast animate-fade-in-up" [class]="'toast-' + toast.type">
       <span class="toast-icon">
         @switch (toast.type) {
-          @case ('success') { <i class="pi pi-check-circle"></i> }
-          @case ('error')   { <i class="pi pi-times-circle"></i> }
-          @case ('warning') { <i class="pi pi-exclamation-triangle"></i> }
-          @case ('info')    { <i class="pi pi-info-circle"></i> }
+          @case ('success') {
+            <i class="pi pi-check-circle"></i>
+          }
+          @case ('error') {
+            <i class="pi pi-times-circle"></i>
+          }
+          @case ('warning') {
+            <i class="pi pi-exclamation-triangle"></i>
+          }
+          @case ('info') {
+            <i class="pi pi-info-circle"></i>
+          }
         }
       </span>
       <span class="toast-body">
@@ -19,7 +27,11 @@
           </ul>
         }
       </span>
-      <button class="toast-close" (click)="snackbar.remove(toast.id)" aria-label="Close">
+      <button
+        class="toast-close"
+        (click)="snackbar.remove(toast.id)"
+        [attr.aria-label]="'TOAST.CLOSE' | translate"
+      >
         <i class="pi pi-times"></i>
       </button>
     </div>

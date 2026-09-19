@@ -35,9 +35,7 @@ namespace PhysioAssist.Api.Persistence.Migrations
                 name: "IX_Patient_ClinicId_PhoneNumber",
                 schema: "patient",
                 table: "Patient",
-                columns: new[] { "ClinicId", "PhoneNumber" },
-                unique: true,
-                filter: "[PhoneNumber] IS NOT NULL");
+                columns: new[] { "ClinicId", "PhoneNumber" });
         }
 
         /// <inheritdoc />

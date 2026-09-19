@@ -3,22 +3,22 @@
     <div class="error-icon-wrapper">
       <i class="pi pi-exclamation-triangle"></i>
     </div>
-    <h1 class="error-title">Internal Server Error</h1>
-    <p class="error-description">Something went wrong on our end. Please try again or contact support if the problem persists.</p>
+    <h1 class="error-title">{{ 'ERROR_500.TITLE' | translate }}</h1>
+    <p class="error-description">{{ 'ERROR_500.DESCRIPTION' | translate }}</p>
 
-    @if(error(); as e) {
+    @if (error(); as e) {
       <div class="error-details">
         <div class="error-detail-row">
-          <span class="error-detail-label">Error</span>
+          <span class="error-detail-label">{{ 'ERROR_500.LABEL_ERROR' | translate }}</span>
           <span class="error-detail-value">{{ e.message }}</span>
         </div>
         <div class="error-detail-row">
-          <span class="error-detail-label">Origin</span>
-          <span class="error-detail-value">This error comes from the server, not Angular</span>
+          <span class="error-detail-label">{{ 'ERROR_500.LABEL_ORIGIN' | translate }}</span>
+          <span class="error-detail-value">{{ 'ERROR_500.ORIGIN_TEXT' | translate }}</span>
         </div>
 
         <details class="error-stack-details">
-          <summary class="error-stack-summary">Stack Trace</summary>
+          <summary class="error-stack-summary">{{ 'ERROR_500.STACK_TRACE' | translate }}</summary>
           <code class="error-stack">{{ e.details }}</code>
         </details>
       </div>
@@ -26,7 +26,7 @@
 
     <button class="error-button" (click)="reload()">
       <i class="pi pi-refresh"></i>
-      Try Again
+      {{ 'ERROR_500.TRY_AGAIN' | translate }}
     </button>
   </div>
 </div>

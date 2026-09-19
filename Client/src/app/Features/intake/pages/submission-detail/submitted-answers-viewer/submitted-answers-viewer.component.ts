@@ -7,15 +7,16 @@ import {
   DynamicFormSubmissionDto,
   PreVisitIntakeDetailsResponse,
   FormQuestionDto,
-  SubmissionAnswerDto
+  SubmissionAnswerDto,
 } from '../../../models';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-submitted-answers-viewer',
   standalone: true,
-  imports: [CommonModule, DynamicFormRendererComponent],
+  imports: [CommonModule, DynamicFormRendererComponent, TranslatePipe],
   templateUrl: './submitted-answers-viewer.component.html',
-  styleUrl: './submitted-answers-viewer.component.css'
+  styleUrl: './submitted-answers-viewer.component.css',
 })
 export class SubmittedAnswersViewerComponent {
   private readonly engine = inject(DynamicFormEngineService);
@@ -110,7 +111,9 @@ export class SubmittedAnswersViewerComponent {
     // Arrays
     if (Array.isArray(val)) {
       if (val.length === 0) return '—';
-      const items = val.map(item => this.formatValueRecursive(item)).filter(item => item !== '—');
+      const items = val
+        .map((item) => this.formatValueRecursive(item))
+        .filter((item) => item !== '—');
       return items.length > 0 ? items.join(', ') : '—';
     }
 
@@ -134,7 +137,7 @@ export class SubmittedAnswersViewerComponent {
           if (formatted !== '—') {
             const cleanKey = key
               .replace(/([A-Z])/g, ' $1')
-              .replace(/^./, str => str.toUpperCase())
+              .replace(/^./, (str) => str.toUpperCase())
               .trim();
             pairs.push(`${cleanKey}: ${formatted}`);
           }

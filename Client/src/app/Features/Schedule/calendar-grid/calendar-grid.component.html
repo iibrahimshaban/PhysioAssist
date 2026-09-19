@@ -16,7 +16,9 @@
           @if (!isWorkingDay(day.date)) {
             <div class="day-column__off">
               <i class="pi pi-moon day-column__off-icon" aria-hidden="true"></i>
-              <span class="day-column__off-text">Not working this day</span>
+              <span class="day-column__off-text">{{
+                'CALENDAR_GRID.NOT_WORKING' | translate
+              }}</span>
             </div>
           } @else {
             @for (hour of hours(); track hour) {

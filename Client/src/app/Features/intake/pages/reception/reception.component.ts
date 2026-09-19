@@ -11,6 +11,7 @@ import { SubmissionRowComponent } from '../submission-list/submission-row/submis
 import { SubmissionSummaryStatsComponent } from '../submission-list/submission-summary-stats/submission-summary-stats.component';
 import { SubmissionFiltersBarComponent } from '../submission-list/submission-filters-bar/submission-filters-bar.component';
 import { IntakePageContainerComponent } from '../../shared/intake-page-container.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-reception',
@@ -22,10 +23,11 @@ import { IntakePageContainerComponent } from '../../shared/intake-page-container
     IntakePageContainerComponent,
     SubmissionRowComponent,
     SubmissionSummaryStatsComponent,
-    SubmissionFiltersBarComponent
+    SubmissionFiltersBarComponent,
+    TranslatePipe,
   ],
   templateUrl: './reception.component.html',
-  styleUrl: './reception.component.css'
+  styleUrl: './reception.component.css',
 })
 export class ReceptionComponent implements OnInit {
   private readonly router = inject(Router);
@@ -54,7 +56,7 @@ export class ReceptionComponent implements OnInit {
     const map: Record<string | number, number> = {
       all: list.length,
       [IntakeStatus.Pending]: 0,
-      [IntakeStatus.InReview]: 0
+      [IntakeStatus.InReview]: 0,
     };
     for (const s of list) {
       if (map[s.status] !== undefined) {
@@ -69,7 +71,7 @@ export class ReceptionComponent implements OnInit {
     return [
       { label: 'All Waiting', value: null, count: counts['all'] },
       { label: 'Pending', value: IntakeStatus.Pending, count: counts[IntakeStatus.Pending] },
-      { label: 'In Review', value: IntakeStatus.InReview, count: counts[IntakeStatus.InReview] }
+      { label: 'In Review', value: IntakeStatus.InReview, count: counts[IntakeStatus.InReview] },
     ];
   });
 
@@ -79,19 +81,22 @@ export class ReceptionComponent implements OnInit {
     let list = this.submissions();
 
     if (status !== null) {
-      list = list.filter(s => s.status === status);
+      list = list.filter((s) => s.status === status);
     }
 
     if (!term) return list;
-    return list.filter(s =>
-      (s.patientName ?? '').toLowerCase().includes(term) ||
-      (s.shortCode ?? '').toLowerCase().includes(term) ||
-      `#${s.shortCode ?? ''}`.toLowerCase().includes(term)
+    return list.filter(
+      (s) =>
+        (s.patientName ?? '').toLowerCase().includes(term) ||
+        (s.shortCode ?? '').toLowerCase().includes(term) ||
+        `#${s.shortCode ?? ''}`.toLowerCase().includes(term),
     );
   });
 
   // Pagination computed values
-  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filteredSubmissions().length / this.pageSize())));
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredSubmissions().length / this.pageSize())),
+  );
 
   readonly paginatedSubmissions = computed(() => {
     const start = (this.currentPage() - 1) * this.pageSize();
@@ -99,7 +104,7 @@ export class ReceptionComponent implements OnInit {
   });
 
   readonly pageEndIndex = computed(() =>
-    Math.min(this.currentPage() * this.pageSize(), this.filteredSubmissions().length)
+    Math.min(this.currentPage() * this.pageSize(), this.filteredSubmissions().length),
   );
 
   readonly pageNumbers = computed(() => {
@@ -116,18 +121,21 @@ export class ReceptionComponent implements OnInit {
     return range;
   });
 
-  readonly waitingCount = computed(() =>
-    this.submissions().filter(s => s.status === IntakeStatus.Pending || s.status === IntakeStatus.Submitted).length
+  readonly waitingCount = computed(
+    () =>
+      this.submissions().filter(
+        (s) => s.status === IntakeStatus.Pending || s.status === IntakeStatus.Submitted,
+      ).length,
   );
 
-  readonly inReviewCount = computed(() =>
-    this.submissions().filter(s => s.status === IntakeStatus.InReview).length
+  readonly inReviewCount = computed(
+    () => this.submissions().filter((s) => s.status === IntakeStatus.InReview).length,
   );
 
   readonly todayCount = computed(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return this.submissions().filter(s => new Date(s.submittedAt) >= today).length;
+    return this.submissions().filter((s) => new Date(s.submittedAt) >= today).length;
   });
 
   ngOnInit(): void {
@@ -151,26 +159,32 @@ export class ReceptionComponent implements OnInit {
     }
     this.error.set(null);
 
-    this.intakeApi.getSubmissions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (data) => {
-        if (requestId !== this.loadRequestId) return;
-        this.submissions.set(data.filter(submission =>
-          submission.status === IntakeStatus.Pending ||
-          submission.status === IntakeStatus.Submitted ||
-          submission.status === IntakeStatus.InReview
-        ));
-        this.loading.set(false);
-        this.lastRefreshed.set(new Date());
-      },
-      error: () => {
-        if (requestId !== this.loadRequestId) return;
-        if (!silent) {
-          this.error.set('Failed to load reception queue. Please try again.');
-          this.snackbar.error('Error', ['Could not load pending intake submissions.']);
-        }
-        this.loading.set(false);
-      }
-    });
+    this.intakeApi
+      .getSubmissions()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          if (requestId !== this.loadRequestId) return;
+          this.submissions.set(
+            data.filter(
+              (submission) =>
+                submission.status === IntakeStatus.Pending ||
+                submission.status === IntakeStatus.Submitted ||
+                submission.status === IntakeStatus.InReview,
+            ),
+          );
+          this.loading.set(false);
+          this.lastRefreshed.set(new Date());
+        },
+        error: () => {
+          if (requestId !== this.loadRequestId) return;
+          if (!silent) {
+            this.error.set('Failed to load reception queue. Please try again.');
+            this.snackbar.error('Error', ['Could not load pending intake submissions.']);
+          }
+          this.loading.set(false);
+        },
+      });
   }
 
   onSearch(term: string): void {

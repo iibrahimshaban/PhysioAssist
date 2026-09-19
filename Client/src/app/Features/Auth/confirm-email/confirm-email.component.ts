@@ -4,18 +4,19 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputOtpModule } from 'primeng/inputotp';
 import { AuthService } from '../../../Core/Services/auth.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-confirm-email',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ButtonModule, InputOtpModule],
+  imports: [ReactiveFormsModule, RouterLink, ButtonModule, InputOtpModule, TranslatePipe],
   templateUrl: './confirm-email.component.html',
 })
 export class ConfirmEmailComponent implements OnInit {
-  private readonly fb     = inject(FormBuilder);
-  private readonly auth   = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly route  = inject(ActivatedRoute);
+  private readonly route = inject(ActivatedRoute);
 
   email = signal('');
   loading = signal(false);
@@ -41,20 +42,18 @@ export class ConfirmEmailComponent implements OnInit {
 
     this.loading.set(true);
 
-    this.auth.confirmEmail({ email: this.email(), code: this.form.getRawValue().code! })
-      .subscribe({
-        next: () => this.router.navigateByUrl('/auth/login'),
-        error: () => this.loading.set(false),
-      });
+    this.auth.confirmEmail({ email: this.email(), code: this.form.getRawValue().code! }).subscribe({
+      next: () => this.router.navigateByUrl('/auth/login'),
+      error: () => this.loading.set(false),
+    });
   }
 
   onResend(): void {
     this.resending.set(true);
 
-    this.auth.resendConfirmationEmail({ email: this.email() })
-      .subscribe({
-        next: () => this.resending.set(false),
-        error: () => this.resending.set(false),
-      });
+    this.auth.resendConfirmationEmail({ email: this.email() }).subscribe({
+      next: () => this.resending.set(false),
+      error: () => this.resending.set(false),
+    });
   }
 }

@@ -1,15 +1,20 @@
 import { Component, effect, inject, input, signal } from '@angular/core';
 import { NextSessionBookingService } from '../../../../Core/Services/next-session-booking.service';
 import { Router } from '@angular/router';
-import { NextSessionBookingState, SessionBookingRoundDto, SlotCandidateDto } from '../../../../Shared/Models/next-session-booking.model';
-import { Button } from "primeng/button";
-import { InputNumber } from "primeng/inputnumber";
+import {
+  NextSessionBookingState,
+  SessionBookingRoundDto,
+  SlotCandidateDto,
+} from '../../../../Shared/Models/next-session-booking.model';
+import { Button } from 'primeng/button';
+import { InputNumber } from 'primeng/inputnumber';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-next-session-booking',
-  imports: [Button, InputNumber, DatePipe, FormsModule],
+  imports: [Button, InputNumber, DatePipe, FormsModule, TranslatePipe],
   templateUrl: './next-session-booking.component.html',
   styleUrl: './next-session-booking.component.css',
 })
@@ -124,7 +129,7 @@ export class NextSessionBookingComponent {
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:00`;
   }
 
-   hasNothingToShow(): boolean {
+  hasNothingToShow(): boolean {
     return this.state() === NextSessionBookingState.NotApplicable && !this.nextScheduledSlotStart();
   }
 }

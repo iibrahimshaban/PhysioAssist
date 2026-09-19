@@ -2,35 +2,50 @@
   <div class="drawer-backdrop" (click)="closeRequested.emit()"></div>
   <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
     <div class="drawer__header">
-      <h2 class="drawer__title" id="drawer-title">Appointment Details</h2>
+      <h2 class="drawer__title" id="drawer-title">{{ 'APPOINTMENT_DRAWER.TITLE' | translate }}</h2>
       <button
         type="button"
         class="drawer__close"
         (click)="closeRequested.emit()"
-        pTooltip="Close"
+        [pTooltip]="'APPOINTMENT_DRAWER.CLOSE' | translate"
         tooltipPosition="left"
-        aria-label="Close appointment details"
+        [attr.aria-label]="'APPOINTMENT_DRAWER.CLOSE_ARIA' | translate"
       >
         <i class="pi pi-times" aria-hidden="true"></i>
       </button>
     </div>
 
-    <div class="owner-section"
-         [class.owner-section--patient]="owner()?.kind === 'patient'"
-         [class.owner-section--guest]="owner()?.kind === 'guest'">
-      <span class="owner-badge" [class.owner-badge--patient]="owner()?.kind === 'patient'"
-                                 [class.owner-badge--guest]="owner()?.kind === 'guest'">
-        {{ owner()?.kind === 'guest' ? 'Guest' : owner()?.kind === 'patient' ? 'Patient' : 'Unknown' }}
+    <div
+      class="owner-section"
+      [class.owner-section--patient]="owner()?.kind === 'patient'"
+      [class.owner-section--guest]="owner()?.kind === 'guest'"
+    >
+      <span
+        class="owner-badge"
+        [class.owner-badge--patient]="owner()?.kind === 'patient'"
+        [class.owner-badge--guest]="owner()?.kind === 'guest'"
+      >
+        {{
+          owner()?.kind === 'guest'
+            ? ('APPOINTMENT_DRAWER.GUEST' | translate)
+            : owner()?.kind === 'patient'
+              ? ('APPOINTMENT_DRAWER.PATIENT' | translate)
+              : ('APPOINTMENT_DRAWER.UNKNOWN' | translate)
+        }}
       </span>
       <span class="owner-name">{{ owner()?.name }}</span>
 
       @if (owner()?.phoneNumber || owner()?.emailAddress) {
         <div class="owner-contact">
           @if (owner()?.phoneNumber) {
-            <span class="owner-detail"><i class="pi pi-phone" aria-hidden="true"></i> {{ owner()!.phoneNumber }}</span>
+            <span class="owner-detail"
+              ><i class="pi pi-phone" aria-hidden="true"></i> {{ owner()!.phoneNumber }}</span
+            >
           }
           @if (owner()?.emailAddress) {
-            <span class="owner-detail"><i class="pi pi-envelope" aria-hidden="true"></i> {{ owner()!.emailAddress }}</span>
+            <span class="owner-detail"
+              ><i class="pi pi-envelope" aria-hidden="true"></i> {{ owner()!.emailAddress }}</span
+            >
           }
         </div>
       }
@@ -38,43 +53,48 @@
 
     <div class="info-row">
       <div class="info-cell">
-        <span class="drawer__label">Start</span>
+        <span class="drawer__label">{{ 'APPOINTMENT_DRAWER.START' | translate }}</span>
         <span class="drawer__value">{{ formatDateTime(a.slotStart) }}</span>
       </div>
       <div class="info-cell">
-        <span class="drawer__label">End</span>
+        <span class="drawer__label">{{ 'APPOINTMENT_DRAWER.END' | translate }}</span>
         <span class="drawer__value">{{ formatDateTime(a.slotEnd) }}</span>
       </div>
     </div>
 
     <div class="info-row info-row--last">
       <div class="info-cell">
-        <span class="drawer__label">Duration</span>
+        <span class="drawer__label">{{ 'APPOINTMENT_DRAWER.DURATION' | translate }}</span>
         <span class="drawer__value">{{ durationLabel() }}</span>
       </div>
       <div class="info-cell">
-        <span class="drawer__label">Status</span>
-        <span class="status-pill" [class]="'status-pill--' + a.status.toLowerCase()">{{ a.status }}</span>
+        <span class="drawer__label">{{ 'APPOINTMENT_DRAWER.STATUS' | translate }}</span>
+        <span class="status-pill" [class]="'status-pill--' + a.status.toLowerCase()">{{
+          'APPOINTMENT_STATUS.' + a.status.toUpperCase() | translate
+        }}</span>
       </div>
     </div>
 
     <div class="drawer__actions">
       @if (a.status === 'Booked') {
         <button type="button" class="drawer-btn drawer-btn--success" (click)="requestComplete()">
-          <i class="pi pi-check-circle" aria-hidden="true"></i> Complete
+          <i class="pi pi-check-circle" aria-hidden="true"></i>
+          {{ 'APPOINTMENT_DRAWER.COMPLETE' | translate }}
         </button>
         <button type="button" class="drawer-btn" (click)="rescheduleRequested.emit(a)">
-          <i class="pi pi-calendar" aria-hidden="true"></i> Reschedule
+          <i class="pi pi-calendar" aria-hidden="true"></i>
+          {{ 'APPOINTMENT_DRAWER.RESCHEDULE' | translate }}
         </button>
         <button type="button" class="drawer-btn drawer-btn--warning" (click)="requestNoShow()">
-          <i class="pi pi-exclamation-triangle" aria-hidden="true"></i> Mark No Show
+          <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+          {{ 'APPOINTMENT_DRAWER.MARK_NO_SHOW' | translate }}
         </button>
         <button type="button" class="drawer-btn drawer-btn--danger" (click)="requestCancel()">
-          <i class="pi pi-ban" aria-hidden="true"></i> Cancel
+          <i class="pi pi-ban" aria-hidden="true"></i> {{ 'APPOINTMENT_DRAWER.CANCEL' | translate }}
         </button>
       }
       <button type="button" class="drawer-btn drawer-btn--outline-danger" (click)="requestDelete()">
-        <i class="pi pi-trash" aria-hidden="true"></i> Delete
+        <i class="pi pi-trash" aria-hidden="true"></i> {{ 'APPOINTMENT_DRAWER.DELETE' | translate }}
       </button>
     </div>
   </div>
@@ -83,7 +103,7 @@
     [isOpen]="pendingAction() !== null"
     [title]="pendingAction()?.title ?? ''"
     [message]="pendingAction()?.message ?? ''"
-    [confirmLabel]="pendingAction()?.confirmLabel ?? 'Confirm'"
+    [confirmLabel]="pendingAction()?.confirmLabel ?? ('APPOINTMENT_DRAWER.CONFIRM' | translate)"
     [tone]="pendingAction()?.tone ?? 'default'"
     (confirmed)="onConfirmed()"
     (cancelled)="onCancelled()"

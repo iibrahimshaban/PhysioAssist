@@ -6,11 +6,12 @@
         type="button"
         class="stat-block stat-block--total"
         [class.active]="selectedStatus === null"
-        (click)="onCardClick(null)">
+        (click)="onCardClick(null)"
+      >
         <i class="pi pi-inbox stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ totalCount }}</span>
-          <span class="stat-label">Total Submissions</span>
+          <span class="stat-label">{{ 'STATS_GRID.TOTAL_SUBMISSIONS' | translate }}</span>
         </div>
         <i class="pi pi-inbox stat-bg-icon"></i>
       </button>
@@ -20,11 +21,12 @@
         type="button"
         class="stat-block stat-block--pending"
         [class.active]="selectedStatus === IntakeStatus.Pending"
-        (click)="onCardClick(IntakeStatus.Pending)">
+        (click)="onCardClick(IntakeStatus.Pending)"
+      >
         <i class="pi pi-clock stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ pendingCount }}</span>
-          <span class="stat-label">Pending</span>
+          <span class="stat-label">{{ 'STATS_GRID.PENDING' | translate }}</span>
         </div>
         <i class="pi pi-clock stat-bg-icon"></i>
         @if (pendingCount > 0) {
@@ -37,11 +39,12 @@
         type="button"
         class="stat-block stat-block--review"
         [class.active]="selectedStatus === IntakeStatus.InReview"
-        (click)="onCardClick(IntakeStatus.InReview)">
+        (click)="onCardClick(IntakeStatus.InReview)"
+      >
         <i class="pi pi-eye stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ inReviewCount }}</span>
-          <span class="stat-label">In Review</span>
+          <span class="stat-label">{{ 'STATS_GRID.IN_REVIEW' | translate }}</span>
         </div>
         <i class="pi pi-eye stat-bg-icon"></i>
       </button>
@@ -51,11 +54,12 @@
         type="button"
         class="stat-block stat-block--approved"
         [class.active]="selectedStatus === IntakeStatus.Approved"
-        (click)="onCardClick(IntakeStatus.Approved)">
+        (click)="onCardClick(IntakeStatus.Approved)"
+      >
         <i class="pi pi-check-circle stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ approvedCount }}</span>
-          <span class="stat-label">Approved</span>
+          <span class="stat-label">{{ 'STATS_GRID.APPROVED' | translate }}</span>
         </div>
         <i class="pi pi-check-circle stat-bg-icon"></i>
       </button>
@@ -65,11 +69,12 @@
         type="button"
         class="stat-block stat-block--pending"
         [class.active]="selectedStatus === IntakeStatus.Pending"
-        (click)="onCardClick(IntakeStatus.Pending)">
+        (click)="onCardClick(IntakeStatus.Pending)"
+      >
         <i class="pi pi-clock stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ pendingCount }}</span>
-          <span class="stat-label">Waiting</span>
+          <span class="stat-label">{{ 'STATS_GRID.WAITING' | translate }}</span>
         </div>
         <i class="pi pi-clock stat-bg-icon"></i>
         @if (pendingCount > 0) {
@@ -82,11 +87,12 @@
         type="button"
         class="stat-block stat-block--review"
         [class.active]="selectedStatus === IntakeStatus.InReview"
-        (click)="onCardClick(IntakeStatus.InReview)">
+        (click)="onCardClick(IntakeStatus.InReview)"
+      >
         <i class="pi pi-eye stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ inReviewCount }}</span>
-          <span class="stat-label">In Review</span>
+          <span class="stat-label">{{ 'STATS_GRID.IN_REVIEW' | translate }}</span>
         </div>
         <i class="pi pi-eye stat-bg-icon"></i>
       </button>
@@ -96,7 +102,7 @@
         <i class="pi pi-calendar stat-icon stat-icon--deco"></i>
         <div class="stat-content">
           <span class="stat-value">{{ todayCount }}</span>
-          <span class="stat-label">Today's Arrivals</span>
+          <span class="stat-label">{{ 'STATS_GRID.TODAYS_ARRIVALS' | translate }}</span>
         </div>
         <i class="pi pi-calendar stat-bg-icon"></i>
       </div>

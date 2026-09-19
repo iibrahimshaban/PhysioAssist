@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -17,11 +24,7 @@ import { DividerModule } from 'primeng/divider';
 
 import { WorkingScheduleService } from '../../Core/Services/working-schedule.service';
 import { SnackbarService } from '../../Core/Services/snackbar.service';
-import {
-  WEEK_DAYS,
-  WorkingScheduleDayRequest,
-  WorkingScheduleDto,
-} from './WorkingSchedule.models';
+import { WEEK_DAYS, WorkingScheduleDayRequest, WorkingScheduleDto } from './WorkingSchedule.models';
 import {
   MINUTES_IN_DAY,
   formatMinutesLabel,
@@ -29,7 +32,11 @@ import {
   toInputTimeString,
   toMinutes,
 } from '../../Shared/Utils/time.utils';
-import { DayViewModel, WeeklyScheduleEditorComponent } from './weekly-schedule-editor/weekly-schedule-editor.component';
+import {
+  DayViewModel,
+  WeeklyScheduleEditorComponent,
+} from './weekly-schedule-editor/weekly-schedule-editor.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 type Preset = 'weekdays' | 'everyday' | 'clear';
 
@@ -51,9 +58,10 @@ function dayRangeValidator(group: AbstractControl): ValidationErrors | null {
   imports: [
     ReactiveFormsModule,
     WeeklyScheduleEditorComponent,
-    TagModule,      // 👈 enables <p-tag>
-    ButtonModule,    // 👈 enables <p-button>
-    DividerModule,   // 👈 enables <p-divider>
+    TagModule, // 👈 enables <p-tag>
+    ButtonModule, // 👈 enables <p-button>
+    DividerModule, // 👈 enables <p-divider>
+    TranslatePipe,
   ],
   templateUrl: './working-schedule.component.html',
   styleUrl: './working-schedule.component.css',
@@ -87,10 +95,14 @@ export class WorkingScheduleComponent implements OnInit {
     return this.form.get('days') as FormArray;
   }
 
-  private readonly formValue = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
+  private readonly formValue = toSignal(this.form.valueChanges, {
+    initialValue: this.form.getRawValue(),
+  });
 
   readonly dayViewModels = computed<DayViewModel[]>(() => {
-    const value = this.formValue() as { days: Array<{ enabled?: boolean; startTime?: string; endTime?: string }> };
+    const value = this.formValue() as {
+      days: Array<{ enabled?: boolean; startTime?: string; endTime?: string }>;
+    };
 
     return this.weekDays.map((day, index) => {
       const raw = value.days[index];
@@ -297,17 +309,17 @@ export class WorkingScheduleComponent implements OnInit {
   }
 
   cancelChanges(): void {
-  const current = this.schedule();
+    const current = this.schedule();
 
-  if (current) {
-    this.patchFormFromSchedule(current);
-  } else {
-    this.weekDays.forEach((_, index) => {
-      this.daysArray.at(index).patchValue({ enabled: false, startTime: '', endTime: '' });
-    });
+    if (current) {
+      this.patchFormFromSchedule(current);
+    } else {
+      this.weekDays.forEach((_, index) => {
+        this.daysArray.at(index).patchValue({ enabled: false, startTime: '', endTime: '' });
+      });
+    }
+
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
   }
-
-  this.form.markAsPristine();
-  this.form.markAsUntouched();
-}
 }

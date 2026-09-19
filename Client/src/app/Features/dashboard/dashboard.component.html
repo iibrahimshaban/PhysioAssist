@@ -1,26 +1,37 @@
 @if (isLoading()) {
   <div class="max-w-5xl mx-auto p-4 sm:p-6">
     <div class="animate-pulse space-y-4">
-      <div class="h-8 w-64 rounded-lg" style="background: var(--color-page-bg-alt);"></div>
-      <div class="h-24 rounded-2xl" style="background: var(--color-page-bg-alt);"></div>
+      <div class="h-8 w-64 rounded-lg" style="background: var(--color-page-bg-alt)"></div>
+      <div class="h-24 rounded-2xl" style="background: var(--color-page-bg-alt)"></div>
     </div>
   </div>
 } @else if (summary(); as s) {
   <div class="max-w-5xl mx-auto p-4 sm:p-6">
-
     <!-- Greeting -->
     <div class="mb-6">
-      <h1 class="text-2xl sm:text-3xl font-bold" style="color: var(--color-text-primary); letter-spacing: -0.025em;">
-        Welcome back, <span style="color: var(--color-primary);">{{ s.doctorFirstName }}</span>
+      <h1
+        class="text-2xl sm:text-3xl font-bold"
+        style="color: var(--color-text-primary); letter-spacing: -0.025em"
+      >
+        {{ 'DASHBOARD.WELCOME_BACK' | translate }}
+        <span style="color: var(--color-primary)">{{ s.doctorFirstName }}</span>
       </h1>
       @if (hasActivityToday()) {
-        <p class="text-sm mt-1" style="color: var(--color-text-secondary);">
-          {{ s.pendingIntakesCount }} pending intake{{ s.pendingIntakesCount === 1 ? '' : 's' }}
-          · {{ s.upcomingSessionsTodayCount }} upcoming session{{ s.upcomingSessionsTodayCount === 1 ? '' : 's' }} today
+        <p class="text-sm mt-1" style="color: var(--color-text-secondary)">
+          {{
+            'DASHBOARD.STATS_SUMMARY'
+              | translate
+                : {
+                    pending: s.pendingIntakesCount,
+                    pendingPlural: s.pendingIntakesCount === 1 ? '' : 's',
+                    upcoming: s.upcomingSessionsTodayCount,
+                    upcomingPlural: s.upcomingSessionsTodayCount === 1 ? '' : 's',
+                  }
+          }}
         </p>
       } @else {
-        <p class="text-sm mt-1" style="color: var(--color-text-secondary);">
-          You're all caught up. Start a new session or view your schedule to get going.
+        <p class="text-sm mt-1" style="color: var(--color-text-secondary)">
+          {{ 'DASHBOARD.ALL_CAUGHT_UP' | translate }}
         </p>
       }
     </div>
@@ -32,10 +43,14 @@
           <i class="pi pi-microphone"></i>
         </div>
         <div class="flex-1 min-w-0">
-          <p class="font-semibold" style="color: var(--color-text-primary);">Today's sessions</p>
-          <p class="text-sm" style="color: var(--color-text-secondary);">Pick a patient and record</p>
+          <p class="font-semibold" style="color: var(--color-text-primary)">
+            {{ 'DASHBOARD.TODAY_SESSIONS' | translate }}
+          </p>
+          <p class="text-sm" style="color: var(--color-text-secondary)">
+            {{ 'DASHBOARD.TODAY_SESSIONS_DESC' | translate }}
+          </p>
         </div>
-        <i class="pi pi-arrow-right" style="color: var(--color-text-secondary);"></i>
+        <i class="pi pi-arrow-right rtl:rotate-180" style="color: var(--color-text-secondary)"></i>
       </button>
 
       <button (click)="goToSchedule()" class="dash-action-card">
@@ -43,10 +58,14 @@
           <i class="pi pi-calendar"></i>
         </div>
         <div class="flex-1 min-w-0">
-          <p class="font-semibold" style="color: var(--color-text-primary);">View schedule</p>
-          <p class="text-sm" style="color: var(--color-text-secondary);">Check availability or booking</p>
+          <p class="font-semibold" style="color: var(--color-text-primary)">
+            {{ 'DASHBOARD.VIEW_SCHEDULE' | translate }}
+          </p>
+          <p class="text-sm" style="color: var(--color-text-secondary)">
+            {{ 'DASHBOARD.VIEW_SCHEDULE_DESC' | translate }}
+          </p>
         </div>
-        <i class="pi pi-arrow-right" style="color: var(--color-text-secondary);"></i>
+        <i class="pi pi-arrow-right rtl:rotate-180" style="color: var(--color-text-secondary)"></i>
       </button>
     </div>
 
@@ -54,44 +73,84 @@
     <div>
       <div class="flex items-center justify-between mb-1">
         <div>
-          <h2 class="text-lg font-bold" style="color: var(--color-text-primary);">Pending intakes</h2>
-          <p class="text-sm" style="color: var(--color-text-secondary);">From reception, oldest first</p>
+          <h2 class="text-lg font-bold" style="color: var(--color-text-primary)">
+            {{ 'DASHBOARD.PENDING_INTAKES' | translate }}
+          </h2>
+          <p class="text-sm" style="color: var(--color-text-secondary)">
+            {{ 'DASHBOARD.PENDING_INTAKES_DESC' | translate }}
+          </p>
         </div>
         @if (s.pendingIntakes.length > 0) {
           <button class="dash-link" (click)="goToSubmissions()">
-            View all →
+            {{ 'DASHBOARD.VIEW_ALL' | translate }}
           </button>
         }
       </div>
 
       @if (s.pendingIntakes.length === 0) {
-        <div class="mt-4 rounded-2xl p-8 text-center" style="background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-sm);">
-          <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style="background: var(--color-success-light); color: var(--color-success-text);">
+        <div
+          class="mt-4 rounded-2xl p-8 text-center"
+          style="
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+          "
+        >
+          <div
+            class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
+            style="background: var(--color-success-light); color: var(--color-success-text)"
+          >
             <i class="pi pi-check text-lg"></i>
           </div>
-          <p class="font-medium" style="color: var(--color-text-primary);">No pending intakes right now</p>
-          <p class="text-sm mt-1" style="color: var(--color-text-secondary);">
-            New submissions from reception will show up here for review.
+          <p class="font-medium" style="color: var(--color-text-primary)">
+            {{ 'DASHBOARD.NO_PENDING_TITLE' | translate }}
+          </p>
+          <p class="text-sm mt-1" style="color: var(--color-text-secondary)">
+            {{ 'DASHBOARD.NO_PENDING_DESC' | translate }}
           </p>
         </div>
       } @else {
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
           @for (intake of s.pendingIntakes; track intake.submissionId) {
-            <div class="rounded-2xl p-4" style="background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-sm);">
+            <div
+              class="rounded-2xl p-4"
+              style="
+                background: var(--color-surface);
+                border: 1px solid var(--color-border);
+                box-shadow: var(--shadow-sm);
+              "
+            >
               <div class="flex items-start justify-between gap-2">
-                <p class="font-semibold" style="color: var(--color-text-primary);">{{ intake.patientFullName }}</p>
-                <span class="text-xs font-medium rounded-full px-2 py-0.5 shrink-0" style="background: var(--color-warning-light); color: var(--color-warning-text);">
-                  Pending
+                <p class="font-semibold" style="color: var(--color-text-primary)">
+                  {{ intake.patientFullName }}
+                </p>
+                <span
+                  class="text-xs font-medium rounded-full px-2 py-0.5 shrink-0"
+                  style="background: var(--color-warning-light); color: var(--color-warning-text)"
+                >
+                  {{ 'DASHBOARD.STATUS_PENDING' | translate }}
                 </span>
               </div>
-              <p class="text-sm mt-0.5" style="color: var(--color-text-secondary);">Checked in {{ timeAgo(intake.submittedAt) }}</p>
+              <p class="text-sm mt-0.5" style="color: var(--color-text-secondary)">
+                {{ 'DASHBOARD.CHECKED_IN' | translate: { time: timeAgo(intake.submittedAt) } }}
+              </p>
 
-              <div class="flex items-center justify-between mt-4 pt-3" style="border-top: 1px solid var(--color-border);">
-                <span class="text-sm" style="color: var(--color-text-secondary);">
-                  {{ intake.painRegionsCount }} pain region{{ intake.painRegionsCount === 1 ? '' : 's' }}
+              <div
+                class="flex items-center justify-between mt-4 pt-3"
+                style="border-top: 1px solid var(--color-border)"
+              >
+                <span class="text-sm" style="color: var(--color-text-secondary)">
+                  {{
+                    'DASHBOARD.PAIN_REGIONS'
+                      | translate
+                        : {
+                            count: intake.painRegionsCount,
+                            plural: intake.painRegionsCount === 1 ? '' : 's',
+                          }
+                  }}
                 </span>
                 <button class="dash-link" (click)="reviewSubmission(intake.submissionId)">
-                  Review →
+                  {{ 'DASHBOARD.REVIEW' | translate }}
                 </button>
               </div>
             </div>

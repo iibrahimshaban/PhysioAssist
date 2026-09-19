@@ -1,13 +1,21 @@
 import { Component, ChangeDetectionStrategy, input, inject } from '@angular/core';
-import { ScheduleStatistics, Appointment, AvailableInterval, WorkingDayWindow, shortId } from '../schedule.models';
+import {
+  ScheduleStatistics,
+  Appointment,
+  AvailableInterval,
+  WorkingDayWindow,
+  shortId,
+} from '../schedule.models';
 import { OwnerDirectoryService } from '../../../Core/Services/owner-directory.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-statistics-panel',
   standalone: true,
+  imports: [TranslatePipe],
   templateUrl: './statistics-panel.component.html',
   styleUrl: './statistics-panel.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StatisticsPanelComponent {
   statistics = input.required<ScheduleStatistics>();
@@ -24,7 +32,6 @@ export class StatisticsPanelComponent {
   protected formatTime(date: Date): string {
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   }
-
 
   protected get freeTimeLabel(): string {
     const totalMinutes = this.statistics().freeMinutesRemaining;

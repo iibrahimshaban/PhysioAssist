@@ -1,53 +1,113 @@
-<div class="min-h-screen p-6 pb-28" style="background: var(--color-page-bg);">
+<div class="min-h-screen p-6 pb-28" style="background: var(--color-page-bg)">
   <div class="mx-auto max-w-5xl">
-
-    <div *ngIf="isLoading()" class="py-20 text-center" style="color: var(--color-text-muted);">
+    <!-- Loading State -->
+    <div *ngIf="isLoading()" class="py-20 text-center" style="color: var(--color-text-muted)">
       <i class="pi pi-spin pi-spinner text-2xl"></i>
-      <p class="mt-2 text-sm">Loading overview...</p>
+      <p class="mt-2 text-sm">{{ 'PATIENT_OVERVIEW.LOADING' | translate }}</p>
     </div>
 
     <div *ngIf="!isLoading() && patient()">
-
       <!-- Header -->
       <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-          <button (click)="goBack()" class="po-nav-circle" aria-label="Back" title="Back">
-            <i class="pi pi-arrow-left"></i>
+          <button
+            (click)="goBack()"
+            class="po-nav-circle"
+            [attr.aria-label]="'COMMON.BACK' | translate"
+            [attr.title]="'COMMON.BACK' | translate"
+          >
+            <i class="pi pi-arrow-left rtl:rotate-180"></i>
           </button>
-          <button (click)="goForward()" class="po-nav-circle" aria-label="Forward" title="Forward">
-            <i class="pi pi-arrow-right"></i>
+          <button
+            (click)="goForward()"
+            class="po-nav-circle"
+            [attr.aria-label]="'COMMON.FORWARD' | translate"
+            [attr.title]="'COMMON.FORWARD' | translate"
+          >
+            <i class="pi pi-arrow-right rtl:rotate-180"></i>
           </button>
           <div>
-            <h1 class="text-3xl font-bold" style="color: var(--color-text-primary); letter-spacing: -0.025em;">{{ patient().fullName }}</h1>
-            <p class="mt-1 text-sm" style="color: var(--color-text-secondary);">
-              {{ patient().dateOfBirth | age }} years old · {{ patient().gender | gender }}
+            <h1
+              class="text-3xl font-bold"
+              style="color: var(--color-text-primary); letter-spacing: -0.025em"
+            >
+              {{ patient().fullName }}
+            </h1>
+            <p class="mt-1 text-sm" style="color: var(--color-text-secondary)">
+              {{
+                'PATIENT_OVERVIEW.SUBTITLE_AGE'
+                  | translate
+                    : { age: (patient().dateOfBirth | age), gender: (patient().gender | gender) }
+              }}
             </p>
           </div>
         </div>
 
-        <div class="flex flex-col items-stretch sm:items-end gap-2 w-full sm:w-auto" *ngIf="!isEditMode()">
-          <div class="flex items-center gap-2 w-full sm:w-auto">
-            <p-button label="Edit" icon="pi pi-pencil" (onClick)="enterEditMode()" styleClass="flex-1 sm:flex-none justify-center" />
-            <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="delete()" aria-label="Delete patient" />
+        <div
+          class="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:items-end"
+          *ngIf="!isEditMode()"
+        >
+          <div class="flex w-full items-center gap-2 sm:w-auto">
+            <p-button
+              [label]="'PATIENT_OVERVIEW.EDIT' | translate"
+              icon="pi pi-pencil"
+              (onClick)="enterEditMode()"
+              styleClass="flex-1 sm:flex-none justify-center"
+            />
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              [text]="true"
+              (onClick)="delete()"
+              [attr.aria-label]="'PATIENT_OVERVIEW.DELETE' | translate"
+            />
           </div>
           <div class="flex flex-wrap items-center gap-2 sm:justify-end">
-            <p-button label="Initial Report" icon="pi pi-file" [outlined]="true" size="small" (onClick)="goToInitialReport()" />
-            <p-button label="Continue Scheduling" icon="pi pi-calendar" [outlined]="true" size="small" (onClick)="continueScheduling()" />
-            <p-button label="Documentation" icon="pi pi-book" [outlined]="true" size="small" (onClick)="goToDocumentation()" />
+            <p-button
+              [label]="'PATIENT_OVERVIEW.INITIAL_REPORT' | translate"
+              icon="pi pi-file"
+              [outlined]="true"
+              size="small"
+              (onClick)="goToInitialReport()"
+            />
+            <p-button
+              [label]="'PATIENT_OVERVIEW.CONTINUE_SCHEDULING' | translate"
+              icon="pi pi-calendar"
+              [outlined]="true"
+              size="small"
+              (onClick)="continueScheduling()"
+            />
+            <p-button
+              [label]="'PATIENT_OVERVIEW.DOCUMENTATION' | translate"
+              icon="pi pi-book"
+              [outlined]="true"
+              size="small"
+              (onClick)="goToDocumentation()"
+            />
           </div>
         </div>
       </div>
 
-      <!-- Patient details -->
+      <!-- Patient Details -->
       <div *ngIf="formSchema() && submissionData()" class="po-card mb-5 p-5">
-        <h2 class="mb-4 text-sm font-bold uppercase tracking-wide" style="color: var(--color-text-secondary);">Patient Details</h2>
+        <h2
+          class="mb-4 text-sm font-bold uppercase tracking-wide"
+          style="color: var(--color-text-secondary)"
+        >
+          {{ 'PATIENT_OVERVIEW.PATIENT_DETAILS_HEADER' | translate }}
+        </h2>
 
-        <div *ngIf="!isEditMode()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div *ngIf="!isEditMode()" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <ng-container *ngFor="let section of patientVisibleSections()">
             <ng-container *ngFor="let group of section.groups">
               <div *ngFor="let question of group.questions" class="flex flex-col gap-0.5">
-                <span class="text-xs font-semibold uppercase tracking-wide" style="color: var(--color-text-muted);">{{ question.text }}</span>
-                <span class="text-sm font-medium" style="color: var(--color-text-primary);">
+                <span
+                  class="text-xs font-semibold uppercase tracking-wide"
+                  style="color: var(--color-text-muted)"
+                >
+                  {{ question.text }}
+                </span>
+                <span class="text-sm font-medium" style="color: var(--color-text-primary)">
                   {{ getAnswerValue(question.questionId) ?? '—' }}
                 </span>
               </div>
@@ -61,41 +121,57 @@
             [formSchemaId]="submissionData()?.formSchemaId"
             [formSchemaVersion]="submissionData()?.formSchemaVersion"
             [initialAnswers]="flatInitialAnswers()"
-            (submissionChange)="onSubmissionChange($event)">
+            (submissionChange)="onSubmissionChange($event)"
+          >
           </app-dynamic-form-renderer>
         </div>
       </div>
 
       <!-- Clinical Summary + Pain Map -->
       <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
-
         <div class="po-card p-5">
-          <h2 class="mb-4 text-sm font-bold uppercase tracking-wide" style="color: var(--color-text-secondary);">Clinical Summary</h2>
+          <h2
+            class="mb-4 text-sm font-bold uppercase tracking-wide"
+            style="color: var(--color-text-secondary)"
+          >
+            {{ 'PATIENT_OVERVIEW.CLINICAL_SUMMARY_HEADER' | translate }}
+          </h2>
 
           <div *ngIf="!isEditMode()">
             <div *ngIf="hasDoctorOnlyContent()">
               <ng-container *ngFor="let section of doctorOnlySections()">
                 <ng-container *ngFor="let group of section.groups">
                   <div *ngFor="let question of group.questions" class="mb-4 last:mb-0">
-                    <p class="text-xs font-semibold uppercase tracking-wide mb-1" style="color: var(--color-text-muted);">{{ question.text }}</p>
-                    <p class="text-sm leading-relaxed whitespace-pre-wrap" style="color: var(--color-text-primary);">{{ getAnswerValue(question.questionId) ?? '—' }}</p>
+                    <p
+                      class="mb-1 text-xs font-semibold uppercase tracking-wide"
+                      style="color: var(--color-text-muted)"
+                    >
+                      {{ question.text }}
+                    </p>
+                    <p
+                      class="whitespace-pre-wrap text-sm leading-relaxed"
+                      style="color: var(--color-text-primary)"
+                    >
+                      {{ getAnswerValue(question.questionId) ?? '—' }}
+                    </p>
                   </div>
                 </ng-container>
               </ng-container>
             </div>
 
-            <div *ngIf="!hasDoctorOnlyContent()" class="text-center py-6" style="color: var(--color-text-muted);">
-              <i class="pi pi-inbox text-2xl mb-2 block"></i>
-              <p class="text-sm">No intake submitted for this patient yet.</p>
+            <div
+              *ngIf="!hasDoctorOnlyContent()"
+              class="py-6 text-center"
+              style="color: var(--color-text-muted)"
+            >
+              <i class="pi pi-inbox mb-2 block text-2xl"></i>
+              <p class="text-sm">{{ 'PATIENT_OVERVIEW.NO_INTAKE' | translate }}</p>
             </div>
           </div>
 
-          <!-- Edit mode: doctor-only fields (Chief Complaint, Patient Category, Clinical Summary, ...)
-               are regular questions in the schema now, so they're edited inline in the Patient Details
-               form above alongside the patient-facing fields, rather than in a separate editor here. -->
-          <div *ngIf="isEditMode()" class="text-center py-6" style="color: var(--color-text-muted);">
-            <i class="pi pi-pencil text-2xl mb-2 block"></i>
-            <p class="text-sm">These fields are edited in the Patient Details form above and saved together.</p>
+          <div *ngIf="isEditMode()" class="py-6 text-center" style="color: var(--color-text-muted)">
+            <i class="pi pi-pencil mb-2 block text-2xl"></i>
+            <p class="text-sm">{{ 'PATIENT_OVERVIEW.INLINE_EDIT_NOTE' | translate }}</p>
           </div>
         </div>
 
@@ -104,52 +180,58 @@
             *ngIf="isEditMode() || painMapPayload()"
             [readOnly]="!isEditMode()"
             [showDoctorFields]="false"
-            [initialValue]="isEditMode() ? $any({ regions: pendingPainMap()?.regions ?? [] }) : painMapPayload()"
-                  (mapChange)="onPainMapChange($event)">
-          
-        </app-body-pain-map>
+            [initialValue]="
+              isEditMode() ? $any({ regions: pendingPainMap()?.regions ?? [] }) : painMapPayload()
+            "
+            (mapChange)="onPainMapChange($event)"
+          >
+          </app-body-pain-map>
 
-          <div *ngIf="!isEditMode() && !painMapPayload()"
+          <div
+            *ngIf="!isEditMode() && !painMapPayload()"
             class="po-card flex items-center justify-center p-5"
-            style="color: var(--color-text-muted);">
-            <div class="text-center py-6">
-              <i class="pi pi-map-marker text-2xl mb-2 block"></i>
-              <p class="text-sm">No pain map data available.</p>
+            style="color: var(--color-text-muted)"
+          >
+            <div class="py-6 text-center">
+              <i class="pi pi-map-marker mb-2 block text-2xl"></i>
+              <p class="text-sm">{{ 'PATIENT_OVERVIEW.NO_PAIN_MAP' | translate }}</p>
             </div>
           </div>
         </div>
-
       </div>
 
       <div *ngIf="scheduleOverview() as overview" class="mt-5">
-        <app-patient-schedule-overview [overview]="overview" class="block mb-6" />
+        <app-patient-schedule-overview [overview]="overview" class="mb-6 block" />
       </div>
-
     </div>
 
-    <div *ngIf="!isLoading() && !patient()"
+    <div
+      *ngIf="!isLoading() && !patient()"
       class="po-card p-12 text-center"
-      style="color: var(--color-text-muted);">
-      <i class="pi pi-user text-4xl mb-3"></i>
-      <p class="text-sm">Patient not found.</p>
+      style="color: var(--color-text-muted)"
+    >
+      <i class="pi pi-user mb-3 text-4xl"></i>
+      <p class="text-sm">{{ 'PATIENT_OVERVIEW.NOT_FOUND' | translate }}</p>
     </div>
-
   </div>
 </div>
 
-<!-- Floating save bar — always visible during edit mode, no scrolling needed.
-     z-index is pushed well above the app shell's floating "Ask AI" button (and any
-     other global fixed widget) so this bar always sits on top of it rather than
-     the two competing for the same corner of the viewport. -->
+<!-- Floating save bar -->
 <div *ngIf="isEditMode()" class="po-save-bar px-6 py-4">
-  <div class="mx-auto max-w-5xl flex justify-end gap-3">
-    <button (click)="cancelEdit()" [disabled]="isSaving()"
-      class="po-btn-outline px-6 py-2.5 text-sm font-semibold disabled:opacity-60">
-      Cancel
+  <div class="mx-auto flex max-w-5xl justify-end gap-3 rtl:justify-start">
+    <button
+      (click)="cancelEdit()"
+      [disabled]="isSaving()"
+      class="po-btn-outline px-6 py-2.5 text-sm font-semibold disabled:opacity-60"
+    >
+      {{ 'COMMON.CANCEL' | translate }}
     </button>
-    <button (click)="saveEdit()" [disabled]="isSaving()"
-      class="po-btn-primary px-6 py-2.5 text-sm font-semibold disabled:opacity-60">
-      {{ isSaving() ? 'Saving...' : 'Save Changes' }}
+    <button
+      (click)="saveEdit()"
+      [disabled]="isSaving()"
+      class="po-btn-primary px-6 py-2.5 text-sm font-semibold disabled:opacity-60"
+    >
+      {{ (isSaving() ? 'PATIENT_OVERVIEW.SAVING' : 'PATIENT_OVERVIEW.SAVE_CHANGES') | translate }}
     </button>
   </div>
 </div>

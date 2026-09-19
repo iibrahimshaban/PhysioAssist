@@ -395,7 +395,7 @@ namespace PhysioAssist.Api.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("PhysioAssist.Api.Modules.DocumentationModule.Entities.ClinicDocumentationPreference", b =>
@@ -1134,8 +1134,7 @@ namespace PhysioAssist.Api.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("ClinicId", "PhoneNumber")
-                        .IsUnique()
-                        .HasFilter("[PhoneNumber] IS NOT NULL");
+                        ;
 
                     b.ToTable("Patient", "patient");
                 });

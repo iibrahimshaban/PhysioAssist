@@ -2,10 +2,11 @@ import { Component, input, output, signal } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { Attachment } from '../../../../Shared/Models/session-details-response';
 import { SelectedAttachment } from '../../../../Shared/Models/selected-attachment';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-session-attachments',
-  imports: [ButtonModule],
+  imports: [ButtonModule, TranslatePipe],
   templateUrl: './session-attachments.component.html',
   styleUrl: './session-attachments.component.css',
 })

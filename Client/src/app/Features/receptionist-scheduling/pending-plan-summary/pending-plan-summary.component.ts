@@ -1,16 +1,17 @@
 import { Component, input } from '@angular/core';
 import { PendingTreatmentPlanDto } from '../SessionScheduling.model';
 import { SchedulingPriority } from '../../../Shared/Models/InitialReport.models';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-pending-plan-summary',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './pending-plan-summary.component.html',
   styleUrl: './pending-plan-summary.component.css',
 })
 export class PendingPlanSummaryComponent {
   plan = input<PendingTreatmentPlanDto | null>(null);
- 
+
   protected priorityLabel(value: SchedulingPriority): string {
     return {
       [SchedulingPriority.Normal]: 'Normal',

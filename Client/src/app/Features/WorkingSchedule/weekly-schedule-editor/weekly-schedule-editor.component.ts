@@ -3,6 +3,7 @@ import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TagModule } from 'primeng/tag';
 import { DayOption } from '../WorkingSchedule.models';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export interface DayViewModel {
   index: number;
@@ -17,7 +18,7 @@ export interface DayViewModel {
 @Component({
   selector: 'app-weekly-schedule-editor',
   standalone: true,
-  imports: [ReactiveFormsModule, ToggleSwitchModule, TagModule],
+  imports: [ReactiveFormsModule, ToggleSwitchModule, TagModule, TranslatePipe],
   templateUrl: './weekly-schedule-editor.component.html',
   styleUrl: './weekly-schedule-editor.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

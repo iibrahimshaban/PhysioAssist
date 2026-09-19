@@ -6,7 +6,7 @@
   >
     <span class="flex items-center text-sm font-bold uppercase text-slate-700">
       <i class="pi pi-paperclip icon-gradient mr-2"></i>
-      ATTACHMENTS
+      {{ 'ATTACHMENTS_SECTION.TITLE' | translate }}
     </span>
     <i
       class="pi cursor-pointer"
@@ -22,7 +22,7 @@
         class="flex h-24 cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 px-3 text-center text-sm text-slate-500 transition hover:border-[var(--brand-gradient-start)] hover:text-[var(--brand-gradient-start)]"
       >
         <i class="pi pi-paperclip mr-2"></i>
-        <span>Drop X-rays or photos here</span>
+        <span>{{ 'ATTACHMENTS_SECTION.DROP_HINT' | translate }}</span>
       </label>
 
       <input
@@ -36,7 +36,9 @@
 
       @if (attachments().length > 0) {
         <div class="mt-4">
-          <p class="mb-2 text-xs font-bold uppercase text-slate-500">Uploaded attachments</p>
+          <p class="mb-2 text-xs font-bold uppercase text-slate-500">
+            {{ 'ATTACHMENTS_SECTION.UPLOADED_TITLE' | translate }}
+          </p>
 
           <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
             @for (attachment of attachments(); track attachment.id) {
@@ -49,7 +51,7 @@
                   size="small"
                   styleClass="!absolute !right-2 !top-2 !z-10 !h-7 !w-7 !bg-white/90 shadow"
                   (onClick)="deleteAttachment(attachment.id)"
-                  ariaLabel="Remove attachment"
+                  [ariaLabel]="'ATTACHMENTS_SECTION.REMOVE_ARIA' | translate"
                 />
 
                 <a [href]="attachment.fileUrl" target="_blank" rel="noopener noreferrer">
@@ -72,7 +74,9 @@
 
       @if (selectedFiles().length > 0) {
         <div class="mt-4">
-          <p class="mb-2 text-xs font-bold uppercase text-slate-500">New attachments</p>
+          <p class="mb-2 text-xs font-bold uppercase text-slate-500">
+            {{ 'ATTACHMENTS_SECTION.NEW_TITLE' | translate }}
+          </p>
 
           <div class="space-y-2">
             @for (item of selectedFiles(); track item.preview; let index = $index) {
@@ -97,7 +101,7 @@
                   severity="secondary"
                   size="small"
                   (onClick)="removeSelectedAttachment(index)"
-                  ariaLabel="Remove attachment"
+                  [ariaLabel]="'ATTACHMENTS_SECTION.REMOVE_ARIA' | translate"
                 />
               </div>
             }
@@ -106,7 +110,9 @@
       }
 
       @if (attachments().length === 0 && selectedFiles().length === 0) {
-        <p class="mt-4 text-center text-xs text-slate-400">No attachments yet.</p>
+        <p class="mt-4 text-center text-xs text-slate-400">
+          {{ 'ATTACHMENTS_SECTION.NO_ATTACHMENTS' | translate }}
+        </p>
       }
     </div>
   }

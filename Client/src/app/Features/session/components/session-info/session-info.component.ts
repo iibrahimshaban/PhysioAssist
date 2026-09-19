@@ -1,10 +1,11 @@
 import { DatePipe } from '@angular/common';
 import { Component, input, output } from '@angular/core';
 import { SessionDetailsResponse } from '../../../../Shared/Models/session-details-response';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-session-info',
-  imports: [DatePipe],
+  imports: [DatePipe, TranslatePipe],
   templateUrl: './session-info.component.html',
   styleUrl: './session-info.component.css',
 })

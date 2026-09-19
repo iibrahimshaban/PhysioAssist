@@ -1,34 +1,50 @@
 <div class="min-h-screen bg-[#f5fafc] p-6">
   <div class="mx-auto max-w-3xl">
-
+    <!-- Header Controls -->
     <div class="mb-6 flex items-center gap-4">
-      <button (click)="goBack()" class="nav-circle" aria-label="Back" title="Back">
-        <i class="pi pi-arrow-left"></i>
+      <button
+        (click)="goBack()"
+        class="nav-circle"
+        [attr.aria-label]="'ADD_PATIENT.BACK' | translate"
+        [attr.title]="'ADD_PATIENT.BACK' | translate"
+      >
+        <i class="pi pi-arrow-left rtl:rotate-180"></i>
       </button>
-      <button (click)="goForward()" class="nav-circle" aria-label="Forward" title="Forward">
-        <i class="pi pi-arrow-right"></i>
+      <button
+        (click)="goForward()"
+        class="nav-circle"
+        [attr.aria-label]="'ADD_PATIENT.FORWARD' | translate"
+        [attr.title]="'ADD_PATIENT.FORWARD' | translate"
+      >
+        <i class="pi pi-arrow-right rtl:rotate-180"></i>
       </button>
       <div>
-        <h1 class="text-3xl font-bold text-slate-900">Add Patient</h1>
-        <p class="mt-1 text-sm text-slate-500">Fill out the intake form to register a new patient.</p>
+        <h1 class="text-3xl font-bold text-slate-900">{{ 'ADD_PATIENT.TITLE' | translate }}</h1>
+        <p class="mt-1 text-sm text-slate-500">{{ 'ADD_PATIENT.SUBTITLE' | translate }}</p>
       </div>
     </div>
 
+    <!-- Loading Schemas State -->
     <div *ngIf="isLoadingSchemas" class="py-20 text-center text-slate-400">
       <i class="pi pi-spin pi-spinner text-2xl"></i>
-      <p class="mt-2 text-sm">Loading forms...</p>
+      <p class="mt-2 text-sm">{{ 'ADD_PATIENT.LOADING_FORMS' | translate }}</p>
     </div>
 
-    <div *ngIf="!isLoadingSchemas && availableSchemas.length === 0"
-      class="rounded-3xl border border-slate-200 bg-white p-6 text-center text-slate-400">
+    <!-- Empty Schemas State -->
+    <div
+      *ngIf="!isLoadingSchemas && availableSchemas.length === 0"
+      class="rounded-3xl border border-slate-200 bg-white p-6 text-center text-slate-400"
+    >
       <i class="pi pi-inbox text-2xl mb-2 block"></i>
-      <p class="text-sm">No intake forms found. Please create and publish one first.</p>
+      <p class="text-sm">{{ 'ADD_PATIENT.NO_FORMS_TITLE' | translate }}</p>
     </div>
 
+    <!-- Form Content -->
     <div *ngIf="!isLoadingSchemas && availableSchemas.length > 0">
-
       <div class="mb-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Intake Form</label>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+          {{ 'ADD_PATIENT.INTAKE_FORM_LABEL' | translate }}
+        </label>
         <p-select
           [options]="availableSchemas"
           optionLabel="name"
@@ -36,58 +52,79 @@
           [(ngModel)]="selectedSchemaId"
           (onChange)="onSchemaSelected()"
           styleClass="w-full !rounded-xl !border-slate-200"
-          placeholder="Select an intake form">
+          [placeholder]="'ADD_PATIENT.SELECT_FORM_PLACEHOLDER' | translate"
+        >
         </p-select>
       </div>
 
+      <!-- Loading Selected Form -->
       <div *ngIf="isLoadingForm" class="py-16 text-center text-slate-400">
         <i class="pi pi-spin pi-spinner text-2xl"></i>
-        <p class="mt-2 text-sm">Loading form...</p>
+        <p class="mt-2 text-sm">{{ 'ADD_PATIENT.LOADING_FORM' | translate }}</p>
       </div>
 
-      <div *ngIf="!isLoadingForm && errorMessage && !formSchema"
-        class="rounded-3xl border border-red-100 bg-red-50 p-6 text-center text-red-600">
+      <!-- Error State -->
+      <div
+        *ngIf="!isLoadingForm && errorMessage && !formSchema"
+        class="rounded-3xl border border-red-100 bg-red-50 p-6 text-center text-red-600"
+      >
         <i class="pi pi-exclamation-triangle text-2xl mb-2 block"></i>
         <p class="text-sm">{{ errorMessage }}</p>
       </div>
 
-      <div *ngIf="!isLoadingForm && formSchema" class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-
+      <!-- Main Form Render -->
+      <div
+        *ngIf="!isLoadingForm && formSchema"
+        class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
+      >
         @if (emailChecking()) {
-          <div class="mt-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 text-xs font-medium">
-            <i class="pi pi-spin pi-spinner"></i> Verifying email address&hellip;
+          <div
+            class="mt-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 text-xs font-medium"
+          >
+            <i class="pi pi-spin pi-spinner"></i> {{ 'ADD_PATIENT.VERIFYING_EMAIL' | translate }}
           </div>
         }
         @if (emailDuplicate() && duplicateEmailAddress()) {
           <div class="mt-4 rounded-xl bg-red-50 border border-red-100 p-3 text-sm text-red-600">
             <i class="pi pi-exclamation-triangle"></i>
-            The email address <strong>{{ duplicateEmailAddress() }}</strong> is already associated with an existing patient record.
+            {{ 'ADD_PATIENT.DUPLICATE_EMAIL' | translate: { email: duplicateEmailAddress() } }}
           </div>
         }
         @if (phoneChecking()) {
-          <div class="mt-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 text-xs font-medium">
-            <i class="pi pi-spin pi-spinner"></i> Verifying phone number&hellip;
+          <div
+            class="mt-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 text-xs font-medium"
+          >
+            <i class="pi pi-spin pi-spinner"></i> {{ 'ADD_PATIENT.VERIFYING_PHONE' | translate }}
           </div>
         }
         @if (phoneDuplicate() && duplicatePhoneNumber()) {
           <div class="mt-4 rounded-xl bg-red-50 border border-red-100 p-3 text-sm text-red-600">
             <i class="pi pi-exclamation-triangle"></i>
-            The phone number <strong>{{ duplicatePhoneNumber() }}</strong> is already associated with an existing patient record.
+            {{ 'ADD_PATIENT.DUPLICATE_PHONE' | translate: { phone: duplicatePhoneNumber() } }}
           </div>
         }
 
-        <div *ngIf="errorMessage" class="mt-4 rounded-xl bg-red-50 border border-red-100 p-3 text-sm text-red-600">
+        <div
+          *ngIf="errorMessage"
+          class="mt-4 rounded-xl bg-red-50 border border-red-100 p-3 text-sm text-red-600"
+        >
           {{ errorMessage }}
         </div>
 
         <div class="flex gap-3 mt-4">
-          <button (click)="submit()" [disabled]="isSubmitting || !canSubmit()"
-            class="px-6 py-2.5 rounded-lg bg-[#0B8EEA] text-white text-sm font-semibold hover:bg-[#0a7ed1] disabled:opacity-60">
-            {{ isSubmitting ? 'Creating...' : 'Create Patient' }}
+          <button
+            (click)="submit()"
+            [disabled]="isSubmitting || !canSubmit()"
+            class="px-6 py-2.5 rounded-lg bg-[#0B8EEA] text-white text-sm font-semibold hover:bg-[#0a7ed1] disabled:opacity-60"
+          >
+            {{ (isSubmitting ? 'ADD_PATIENT.CREATING' : 'ADD_PATIENT.CREATE_PATIENT') | translate }}
           </button>
-          <button (click)="goBack()" [disabled]="isSubmitting"
-            class="px-6 py-2.5 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50">
-            Cancel
+          <button
+            (click)="goBack()"
+            [disabled]="isSubmitting"
+            class="px-6 py-2.5 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            {{ 'ADD_PATIENT.CANCEL' | translate }}
           </button>
         </div>
 
@@ -95,16 +132,13 @@
           [schema]="formSchema"
           [formSchemaId]="selectedSchemaId ?? ''"
           [formSchemaVersion]="formSchemaVersion"
-          (submissionChange)="onSubmissionChange($event)">
+          (submissionChange)="onSubmissionChange($event)"
+        >
         </app-dynamic-form-renderer>
 
-        <app-body-pain-map
-          [showDoctorFields]="false"
-          (mapChange)="onPainMapChange($event)">
+        <app-body-pain-map [showDoctorFields]="false" (mapChange)="onPainMapChange($event)">
         </app-body-pain-map>
       </div>
-
     </div>
-
   </div>
 </div>

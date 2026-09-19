@@ -1,5 +1,11 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, ValidationErrors, Validators, AbstractControl } from '@angular/forms';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+  AbstractControl,
+} from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
@@ -14,6 +20,8 @@ import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
 import { AuthService } from '../../Core/Services/auth.service';
 import { NavigationService } from '../../Core/Services/navigation.service';
 import { Router } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
+import { TooltipModule } from 'primeng/tooltip';
 
 function passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
   const newPassword = group.get('newPassword')?.value;
@@ -34,8 +42,10 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
     TextareaModule,
     InputNumberModule,
     MenuModule,
-    ImageCropperComponent
-],
+    ImageCropperComponent,
+    TranslatePipe,
+    TooltipModule,
+  ],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css',
 })
@@ -114,18 +124,21 @@ export class AccountComponent implements OnInit {
     yearsOfExperience: [null as number | null],
   });
 
-  passwordForm = this.fb.group({
-    currentPassword: ['', [Validators.required]],
-    newPassword: ['', [Validators.required, Validators.minLength(8)]],
-    confirmPassword: ['', [Validators.required]],
-  }, { validators: passwordsMatchValidator });
+  passwordForm = this.fb.group(
+    {
+      currentPassword: ['', [Validators.required]],
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', [Validators.required]],
+    },
+    { validators: passwordsMatchValidator },
+  );
 
   ngOnInit(): void {
     this.loadProfile();
   }
 
   loadProfile(): void {
-    this.accountService.getProfile().subscribe(profile => {
+    this.accountService.getProfile().subscribe((profile) => {
       this.profile.set(profile);
       this.patchForm(profile);
     });
@@ -173,32 +186,34 @@ export class AccountComponent implements OnInit {
     this.isSaving.set(true);
     const value = this.form.getRawValue();
 
-    this.accountService.updateProfile({
-      userName: value.userName!,
-      firstName: value.firstName!,
-      lastName: value.lastName!,
-      phoneNumber: value.phoneNumber,
-      about: value.about,
-      profilePhoto: this.selectedPhotoFile,
-      removeProfilePhoto: this.removePhotoFlag(),
-      ...(this.isDoctor() && {
-        title: value.title,
-        clinicName: value.clinicName,
-        clinicAddress: value.clinicAddress,
-        yearsOfExperience: value.yearsOfExperience,
-      }),
-    }).subscribe({
-      next: () => {
-        this.isSaving.set(false);
-        this.isEditMode.set(false);
-        this.selectedPhotoFile = null;
-        this.removePhotoFlag.set(false);
-        this.loadProfile();
-      },
-      error: () => {
-        this.isSaving.set(false);
-      },
-    });
+    this.accountService
+      .updateProfile({
+        userName: value.userName!,
+        firstName: value.firstName!,
+        lastName: value.lastName!,
+        phoneNumber: value.phoneNumber,
+        about: value.about,
+        profilePhoto: this.selectedPhotoFile,
+        removeProfilePhoto: this.removePhotoFlag(),
+        ...(this.isDoctor() && {
+          title: value.title,
+          clinicName: value.clinicName,
+          clinicAddress: value.clinicAddress,
+          yearsOfExperience: value.yearsOfExperience,
+        }),
+      })
+      .subscribe({
+        next: () => {
+          this.isSaving.set(false);
+          this.isEditMode.set(false);
+          this.selectedPhotoFile = null;
+          this.removePhotoFlag.set(false);
+          this.loadProfile();
+        },
+        error: () => {
+          this.isSaving.set(false);
+        },
+      });
   }
 
   openPasswordDialog(): void {
@@ -219,18 +234,20 @@ export class AccountComponent implements OnInit {
     this.isChangingPassword.set(true);
     const { currentPassword, newPassword } = this.passwordForm.getRawValue();
 
-    this.accountService.changePassword({
-      currentPassword: currentPassword!,
-      newPassword: newPassword!,
-    }).subscribe({
-      next: () => {
-        this.isChangingPassword.set(false);
-        this.isPasswordDialogOpen.set(false);
-      },
-      error: () => {
-        this.isChangingPassword.set(false);
-      },
-    });
+    this.accountService
+      .changePassword({
+        currentPassword: currentPassword!,
+        newPassword: newPassword!,
+      })
+      .subscribe({
+        next: () => {
+          this.isChangingPassword.set(false);
+          this.isPasswordDialogOpen.set(false);
+        },
+        error: () => {
+          this.isChangingPassword.set(false);
+        },
+      });
   }
 
   get initials(): string {

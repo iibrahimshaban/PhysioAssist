@@ -1,8 +1,9 @@
 import { Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-recording-modal',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './recording-modal.component.html',
   styleUrl: './recording-modal.component.css',
 })

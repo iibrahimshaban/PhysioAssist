@@ -1,20 +1,38 @@
-import { Component, ChangeDetectionStrategy, input, output, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  input,
+  output,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { TooltipModule } from 'primeng/tooltip';
 import { Appointment } from '../schedule.models';
 import { OwnerDirectoryService } from '../../../Core/Services/owner-directory.service';
-import { ConfirmDialogComponent, ConfirmDialogTone } from '../ConfirmDialogComponent/ConfirmDialogComponent';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogTone,
+} from '../ConfirmDialogComponent/ConfirmDialogComponent';
+import { TranslatePipe } from '@ngx-translate/core';
 
 type ActionKind = 'complete' | 'cancel' | 'noShow' | 'delete';
-type PendingAction = { kind: ActionKind; title: string; message: string; tone: ConfirmDialogTone; confirmLabel: string } | null;
+type PendingAction = {
+  kind: ActionKind;
+  title: string;
+  message: string;
+  tone: ConfirmDialogTone;
+  confirmLabel: string;
+} | null;
 
 @Component({
   selector: 'app-appointment-drawer',
   standalone: true,
   // TooltipModule added to power the pTooltip on the close button.
-  imports: [ConfirmDialogComponent, TooltipModule],
+  imports: [ConfirmDialogComponent, TooltipModule, TranslatePipe],
   templateUrl: './appointment-drawer.component.html',
   styleUrl: './appointment-drawer.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppointmentDrawerComponent {
   appointment = input<Appointment | null>(null);
@@ -39,11 +57,19 @@ export class AppointmentDrawerComponent {
     const a = this.appointment();
     if (!a) return '';
     const minutes = (a.slotEnd.getTime() - a.slotStart.getTime()) / 60000;
-    return minutes < 60 ? `${minutes} min` : `${(minutes / 60).toFixed(minutes % 60 === 0 ? 0 : 1)} hr`;
+    return minutes < 60
+      ? `${minutes} min`
+      : `${(minutes / 60).toFixed(minutes % 60 === 0 ? 0 : 1)} hr`;
   });
 
   protected formatDateTime(date: Date): string {
-    return date.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    return date.toLocaleString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
   }
 
   private ownerName(): string {
@@ -52,46 +78,65 @@ export class AppointmentDrawerComponent {
 
   protected requestComplete(): void {
     this.pendingAction.set({
-      kind: 'complete', title: 'Complete appointment?',
+      kind: 'complete',
+      title: 'Complete appointment?',
       message: `Mark ${this.ownerName()}'s appointment as completed.`,
-      tone: 'success', confirmLabel: 'Complete'
+      tone: 'success',
+      confirmLabel: 'Complete',
     });
   }
 
   protected requestCancel(): void {
     this.pendingAction.set({
-      kind: 'cancel', title: 'Cancel appointment?',
+      kind: 'cancel',
+      title: 'Cancel appointment?',
       message: `${this.ownerName()}'s appointment will be cancelled. This can't be undone.`,
-      tone: 'danger', confirmLabel: 'Cancel Appointment'
+      tone: 'danger',
+      confirmLabel: 'Cancel Appointment',
     });
   }
 
   protected requestNoShow(): void {
     this.pendingAction.set({
-      kind: 'noShow', title: 'Mark as no-show?',
+      kind: 'noShow',
+      title: 'Mark as no-show?',
       message: `Mark ${this.ownerName()} as a no-show for this appointment.`,
-      tone: 'warning', confirmLabel: 'Mark No Show'
+      tone: 'warning',
+      confirmLabel: 'Mark No Show',
     });
   }
 
   protected requestDelete(): void {
     this.pendingAction.set({
-      kind: 'delete', title: 'Delete appointment?',
+      kind: 'delete',
+      title: 'Delete appointment?',
       message: `This permanently deletes ${this.ownerName()}'s appointment record. This can't be undone.`,
-      tone: 'danger', confirmLabel: 'Delete'
+      tone: 'danger',
+      confirmLabel: 'Delete',
     });
   }
 
   protected onConfirmed(): void {
     const action = this.pendingAction();
     const a = this.appointment();
-    if (!action || !a) { this.pendingAction.set(null); return; }
+    if (!action || !a) {
+      this.pendingAction.set(null);
+      return;
+    }
 
     switch (action.kind) {
-      case 'complete': this.completeRequested.emit(a.id); break;
-      case 'cancel': this.cancelRequested.emit(a.id); break;
-      case 'noShow': this.noShowRequested.emit(a.id); break;
-      case 'delete': this.deleteRequested.emit(a.id); break;
+      case 'complete':
+        this.completeRequested.emit(a.id);
+        break;
+      case 'cancel':
+        this.cancelRequested.emit(a.id);
+        break;
+      case 'noShow':
+        this.noShowRequested.emit(a.id);
+        break;
+      case 'delete':
+        this.deleteRequested.emit(a.id);
+        break;
     }
     this.pendingAction.set(null);
   }

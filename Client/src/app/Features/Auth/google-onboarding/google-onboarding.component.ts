@@ -1,19 +1,20 @@
-import {  Component, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { AuthService } from '../../../Core/Services/auth.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-google-onboarding',
-  imports: [ReactiveFormsModule, InputTextModule, ButtonModule],
+  imports: [ReactiveFormsModule, InputTextModule, ButtonModule, TranslatePipe],
   templateUrl: './google-onboarding.component.html',
   styleUrl: './google-onboarding.component.css',
 })
 export class GoogleOnboardingComponent {
-  private readonly fb     = inject(FormBuilder);
-  private readonly auth   = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
   photoPreviewUrl = signal<string | null>(null);
@@ -24,8 +25,8 @@ export class GoogleOnboardingComponent {
   private onboardingToken = '';
 
   form = this.fb.group({
-    firstName:  ['', Validators.required],
-    lastName:   ['', Validators.required],
+    firstName: ['', Validators.required],
+    lastName: ['', Validators.required],
     clinicName: ['', Validators.required],
   });
 
@@ -70,18 +71,20 @@ export class GoogleOnboardingComponent {
     this.loading.set(true);
     const { firstName, lastName, clinicName } = this.form.getRawValue();
 
-    this.auth.completeGoogleOnboarding({
-      onboardingToken: this.onboardingToken,
-      firstName: firstName!,
-      lastName: lastName!,
-      clinicName: clinicName!,
-      profilePhoto: this.profilePhoto() ?? undefined,
-    }).subscribe({
-      next: () => this.router.navigateByUrl('/app/dashboard'),
-      error: (err) => {
-        console.error('Onboarding navigation failed:', err);
-        this.loading.set(false);
-      },
-    });
+    this.auth
+      .completeGoogleOnboarding({
+        onboardingToken: this.onboardingToken,
+        firstName: firstName!,
+        lastName: lastName!,
+        clinicName: clinicName!,
+        profilePhoto: this.profilePhoto() ?? undefined,
+      })
+      .subscribe({
+        next: () => this.router.navigateByUrl('/app/dashboard'),
+        error: (err) => {
+          console.error('Onboarding navigation failed:', err);
+          this.loading.set(false);
+        },
+      });
   }
 }

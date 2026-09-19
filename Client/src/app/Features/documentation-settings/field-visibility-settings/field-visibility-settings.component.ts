@@ -9,6 +9,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 import { DocumentationField } from '../../../Shared/Models/documentation.model';
 import { DocumentationTemplateService } from '../../../Core/Services/documentation-template.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 interface FieldRow {
   field: DocumentationField;
@@ -18,8 +19,16 @@ interface FieldRow {
 @Component({
   selector: 'app-field-visibility-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, CardModule, CheckboxModule, ButtonModule, SkeletonModule],
-  templateUrl: './field-visibility-settings.component.html'
+  imports: [
+    CommonModule,
+    FormsModule,
+    CardModule,
+    CheckboxModule,
+    ButtonModule,
+    SkeletonModule,
+    TranslatePipe,
+  ],
+  templateUrl: './field-visibility-settings.component.html',
 })
 export class FieldVisibilitySettingsComponent {
   templateId = input.required<string>();
@@ -32,7 +41,7 @@ export class FieldVisibilitySettingsComponent {
   readonly rows = signal<FieldRow[]>([]);
   readonly skeletonRows = [1, 2, 3, 4, 5];
 
-  readonly hiddenCount = computed(() => this.rows().filter(r => !r.visible).length);
+  readonly hiddenCount = computed(() => this.rows().filter((r) => !r.visible).length);
 
   constructor() {
     effect(() => {
@@ -49,18 +58,26 @@ export class FieldVisibilitySettingsComponent {
   save(): void {
     this.saving.set(true);
     const hiddenFieldIds = this.rows()
-      .filter(r => !r.visible)
-      .map(r => r.field.id);
+      .filter((r) => !r.visible)
+      .map((r) => r.field.id);
 
     this.templateService.saveHiddenFields(this.templateId(), hiddenFieldIds).subscribe({
       next: () => {
         this.saving.set(false);
-        this.messageService.add({ severity: 'success', summary: 'Saved', detail: 'Field visibility updated.' });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Saved',
+          detail: 'Field visibility updated.',
+        });
       },
       error: () => {
         this.saving.set(false);
-        this.messageService.add({ severity: 'error', summary: 'Save failed', detail: 'Could not update field visibility.' });
-      }
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Save failed',
+          detail: 'Could not update field visibility.',
+        });
+      },
     });
   }
 
@@ -69,14 +86,14 @@ export class FieldVisibilitySettingsComponent {
 
     forkJoin({
       all: this.templateService.getAllFields(templateId),
-      effective: this.templateService.getEffectiveFields(templateId)
+      effective: this.templateService.getEffectiveFields(templateId),
     }).subscribe({
       next: ({ all, effective }) => {
-        const effectiveIds = new Set(effective.map(f => f.id));
-        this.rows.set(all.map(field => ({ field, visible: effectiveIds.has(field.id) })));
+        const effectiveIds = new Set(effective.map((f) => f.id));
+        this.rows.set(all.map((field) => ({ field, visible: effectiveIds.has(field.id) })));
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: () => this.loading.set(false),
     });
   }
 }

@@ -1,4 +1,13 @@
-import { Component, ChangeDetectionStrategy, input, output, inject, effect, signal, computed } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  input,
+  output,
+  inject,
+  effect,
+  signal,
+  computed,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CreateAppointmentRequest, PatientOption } from '../schedule.models';
 import { toIsoWithOffset } from '../../../Core/Services/schedule-page.service';
@@ -11,14 +20,15 @@ type PatientMode = 'existing' | 'guest';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputTextModule } from 'primeng/inputtext';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-create-appointment-drawer',
   standalone: true,
-  imports: [ReactiveFormsModule, ButtonModule, TooltipModule, InputTextModule],
+  imports: [ReactiveFormsModule, ButtonModule, TooltipModule, InputTextModule, TranslatePipe],
   templateUrl: './create-appointment-drawer.component.html',
   styleUrl: './create-appointment-drawer.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateAppointmentDrawerComponent {
   isOpen = input<boolean>(false);
@@ -34,24 +44,22 @@ export class CreateAppointmentDrawerComponent {
   private readonly patientService = inject(DoctorPatientService);
   private readonly guestService = inject(GuestService);
 
- protected readonly form = this.fb.nonNullable.group({
+  protected readonly form = this.fb.nonNullable.group({
     startTime: ['', Validators.required],
-    durationMinutes: [30, Validators.required]
+    durationMinutes: [30, Validators.required],
   });
 
   protected readonly guestForm = this.fb.nonNullable.group({
     fullName: ['', Validators.required],
-    phoneNumber: ['', Validators.required]
+    phoneNumber: ['', Validators.required],
   });
 
-   private readonly formValid = toSignal(
-    this.form.statusChanges,
-    { initialValue: this.form.status }
-  );
-  private readonly guestFormValid = toSignal(
-    this.guestForm.statusChanges,
-    { initialValue: this.guestForm.status }
-  );
+  private readonly formValid = toSignal(this.form.statusChanges, {
+    initialValue: this.form.status,
+  });
+  private readonly guestFormValid = toSignal(this.guestForm.statusChanges, {
+    initialValue: this.guestForm.status,
+  });
 
   protected readonly durationOptions = [30, 45, 60, 90, 120];
 
@@ -76,16 +84,15 @@ export class CreateAppointmentDrawerComponent {
     const term = this.patientSearchTerm().trim().toLowerCase();
     const list = this.patients();
     if (!term) return list;
-    return list.filter(p => p.name.toLowerCase().includes(term));
+    return list.filter((p) => p.name.toLowerCase().includes(term));
   });
 
-   protected readonly canSubmit = computed(() => {
+  protected readonly canSubmit = computed(() => {
     if (this.formValid() !== 'VALID') return false;
     if (this.isCreatingGuest()) return false;
     if (this.patientMode() === 'guest') return this.guestFormValid() === 'VALID';
     return this.selectedPatient() !== null;
   });
-
 
   constructor() {
     effect(() => {
@@ -108,7 +115,7 @@ export class CreateAppointmentDrawerComponent {
       const list = this.patients();
       if (!prefillId || list.length === 0) return;
       if (this.prefillAppliedForPatientId === prefillId) return;
-      const match = list.find(p => p.id === prefillId);
+      const match = list.find((p) => p.id === prefillId);
       if (match) {
         this.patientMode.set('existing');
         this.selectPatient(match);
@@ -188,7 +195,7 @@ export class CreateAppointmentDrawerComponent {
           doctorId: this.doctorId()!,
           guestId: guest.id,
           slotStart: toIsoWithOffset(start),
-          slotEnd: toIsoWithOffset(end)
+          slotEnd: toIsoWithOffset(end),
         });
       } catch {
         // Guest creation failed — do NOT emit createRequested. The drawer
@@ -205,7 +212,7 @@ export class CreateAppointmentDrawerComponent {
       doctorId: this.doctorId()!,
       patientId: this.selectedPatient()!.id,
       slotStart: toIsoWithOffset(start),
-      slotEnd: toIsoWithOffset(end)
+      slotEnd: toIsoWithOffset(end),
     });
   }
 

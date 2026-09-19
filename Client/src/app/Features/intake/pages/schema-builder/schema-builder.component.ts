@@ -26,8 +26,9 @@ import {
   FormGroupDto,
   FormQuestionDto,
   QuestionConditionDto,
-  ValidationRuleDto
+  ValidationRuleDto,
 } from '../../models';
+import { TranslatePipe } from '@ngx-translate/core';
 
 type BuilderMode = 'schema' | 'section' | 'group' | 'question' | null;
 
@@ -54,7 +55,7 @@ const CORE_FIELD_IDS = new Set([
   'question_default_dob',
   'question_default_chief_complaint',
   'question_default_injury_date',
-  'question_default_patient_type'
+  'question_default_patient_type',
 ]);
 
 // Core field texts for matching
@@ -67,7 +68,7 @@ const CORE_FIELD_TEXTS = new Set([
   'Date of Birth',
   'Chief Complaint',
   'Injury Date',
-  'Patient Type'
+  'Patient Type',
 ]);
 
 const CORE_SECTION_ID = 'section_core_fields';
@@ -98,10 +99,11 @@ interface PublishValidationIssue {
     SelectButtonModule,
     AccordionModule,
     DividerModule,
-    DialogModule
+    DialogModule,
+    TranslatePipe,
   ],
   templateUrl: './schema-builder.component.html',
-  styleUrl: './schema-builder.component.css'
+  styleUrl: './schema-builder.component.css',
 })
 export class SchemaBuilderComponent implements OnInit {
   private readonly apiService = inject(IntakeApiService);
@@ -146,7 +148,7 @@ export class SchemaBuilderComponent implements OnInit {
   // Form Schema Signal
   formSchema = signal<DynamicFormSchemaDto>({
     schemaVersion: 1,
-    sections: []
+    sections: [],
   });
 
   // Selected items
@@ -157,9 +159,10 @@ export class SchemaBuilderComponent implements OnInit {
   // Computed
   availableQuestions = computed(() => {
     const current = this.selectedQuestion();
-    return this.engine.getAllQuestions(this.formSchema())
-      .filter(q => !current || q.questionId !== current.questionId)
-      .map(q => ({ label: q.text, value: q.questionId }));
+    return this.engine
+      .getAllQuestions(this.formSchema())
+      .filter((q) => !current || q.questionId !== current.questionId)
+      .map((q) => ({ label: q.text, value: q.questionId }));
   });
 
   // Pre-publish validation computed
@@ -170,12 +173,15 @@ export class SchemaBuilderComponent implements OnInit {
 
     // Check each core field
     for (const coreId of CORE_FIELD_IDS) {
-      const found = allQuestions.find(q => q.questionId === coreId);
+      const found = allQuestions.find((q) => q.questionId === coreId);
       if (!found) {
         // Try matching by text
-        const byText = allQuestions.find(q => CORE_FIELD_TEXTS.has(q.text));
+        const byText = allQuestions.find((q) => CORE_FIELD_TEXTS.has(q.text));
         if (!byText) {
-          issues.push({ fieldName: coreId.replace('question_default_', '').replace('_', ' '), issue: 'Missing from schema' });
+          issues.push({
+            fieldName: coreId.replace('question_default_', '').replace('_', ' '),
+            issue: 'Missing from schema',
+          });
           continue;
         }
         if (!byText.required) {
@@ -206,7 +212,7 @@ export class SchemaBuilderComponent implements OnInit {
   conditionLogic: 'and' | 'or' = 'and';
   readonly conditionLogicOptions = [
     { label: 'All (AND)', value: 'and' },
-    { label: 'Any (OR)', value: 'or' }
+    { label: 'Any (OR)', value: 'or' },
   ];
 
   // Question types
@@ -226,11 +232,11 @@ export class SchemaBuilderComponent implements OnInit {
     { label: 'File Upload', value: 'file', icon: 'pi pi-upload' },
     { label: 'File Upload (Legacy)', value: 'fileupload', icon: 'pi pi-upload' },
     { label: 'Pain Scale', value: 'painscale', icon: 'pi pi-chart-bar' },
-    { label: 'Clinical Summary', value: 'summary', icon: 'pi pi-file-edit' }
+    { label: 'Clinical Summary', value: 'summary', icon: 'pi pi-file-edit' },
   ];
 
   ngOnInit(): void {
-    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const schemaId = params.get('id');
       if (schemaId) {
         this.loadSchema(schemaId);
@@ -240,7 +246,7 @@ export class SchemaBuilderComponent implements OnInit {
     });
 
     // Determine whether we are in read-only Preview mode.
-    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(qp => {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((qp) => {
       this.previewMode.set(qp.get('preview') === 'true');
     });
   }
@@ -264,7 +270,7 @@ export class SchemaBuilderComponent implements OnInit {
     this.schemaVersion.set(1);
     this.formSchema.set({
       schemaVersion: 1,
-      sections: [this.buildCoreFieldsSection()]
+      sections: [this.buildCoreFieldsSection()],
     });
   }
 
@@ -274,41 +280,44 @@ export class SchemaBuilderComponent implements OnInit {
 
   loadSchema(id: string): void {
     this.loading.set(true);
-    this.apiService.getFormSchemaById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (schema) => {
-        this.selectedSchema.set(schema);
-        this.schemaName = schema.name;
-        this.schemaDescription = schema.description || '';
-        this.isDefault = schema.isDefault;
-        this.schemaVersion.set(schema.version);
+    this.apiService
+      .getFormSchemaById(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (schema) => {
+          this.selectedSchema.set(schema);
+          this.schemaName = schema.name;
+          this.schemaDescription = schema.description || '';
+          this.isDefault = schema.isDefault;
+          this.schemaVersion.set(schema.version);
 
-        try {
-          const parsed = JSON.parse(schema.schemaJson) as DynamicFormSchemaDto;
-          let sections = parsed.sections ?? [];
-          // Ensure core fields section exists
-          if (!sections.some(s => s.sectionId === CORE_SECTION_ID)) {
-            sections.unshift(this.buildCoreFieldsSection());
+          try {
+            const parsed = JSON.parse(schema.schemaJson) as DynamicFormSchemaDto;
+            let sections = parsed.sections ?? [];
+            // Ensure core fields section exists
+            if (!sections.some((s) => s.sectionId === CORE_SECTION_ID)) {
+              sections.unshift(this.buildCoreFieldsSection());
+            }
+            // Migrate legacy core section layout (Chief Complaint / Injury Date / Patient Type
+            // used to live under "Patient Details") into the current Medical Information /
+            // Clinical Summary groups.
+            sections = sections.map((s) => this.migrateCoreSectionGroups(s));
+            this.formSchema.set({
+              schemaVersion: parsed.schemaVersion ?? 1,
+              sections,
+            });
+          } catch (error) {
+            console.error('Failed to parse schema JSON:', error);
+            this.formSchema.set({ schemaVersion: 1, sections: [] });
           }
-          // Migrate legacy core section layout (Chief Complaint / Injury Date / Patient Type
-          // used to live under "Patient Details") into the current Medical Information /
-          // Clinical Summary groups.
-          sections = sections.map(s => this.migrateCoreSectionGroups(s));
-          this.formSchema.set({
-            schemaVersion: parsed.schemaVersion ?? 1,
-            sections
-          });
-        } catch (error) {
-          console.error('Failed to parse schema JSON:', error);
-          this.formSchema.set({ schemaVersion: 1, sections: [] });
-        }
 
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.loading.set(false);
-        this.snackbar.error('Failed to load schema', [this.extractError(err)]);
-      }
-    });
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.snackbar.error('Failed to load schema', [this.extractError(err)]);
+        },
+      });
   }
 
   // Expansion management
@@ -342,11 +351,12 @@ export class SchemaBuilderComponent implements OnInit {
 
   // Helper to find sectionId by groupId
   getSectionId(group: FormGroupDto): string | undefined {
-    return this.formSchema().sections.find(s => s.groups.some(g => g.groupId === group.groupId))?.sectionId;
+    return this.formSchema().sections.find((s) => s.groups.some((g) => g.groupId === group.groupId))
+      ?.sectionId;
   }
 
   getQuestionTypeIcon(type: string): string {
-    return this.questionTypes.find(t => t.value === type)?.icon || 'pi pi-question';
+    return this.questionTypes.find((t) => t.value === type)?.icon || 'pi pi-question';
   }
 
   // Check if a question is a locked core field
@@ -374,13 +384,60 @@ export class SchemaBuilderComponent implements OnInit {
           order: 1,
           isLocked: true,
           questions: [
-            { questionId: 'question_default_full_name', text: 'Full Name', type: 'text', order: 1, required: true, isLocked: true, placeholder: 'e.g. John Doe' },
-            { questionId: 'question_default_email', text: 'Email Address', type: 'email', order: 2, required: true, isLocked: true, placeholder: 'john@example.com' },
-            { questionId: 'question_default_phone', text: 'Phone Number', type: 'phone', order: 3, required: true, isLocked: true, placeholder: '(555) 000-0000' },
-            { questionId: 'question_default_free_time', text: 'Patient Free Time', type: 'text', order: 4, required: true, isLocked: true, placeholder: 'e.g. Weekdays after 5pm' },
-            { questionId: 'question_default_gender', text: 'Gender', type: 'radio', order: 5, required: true, isLocked: true, options: ['Male', 'Female'] },
-            { questionId: 'question_default_dob', text: 'Date of Birth', type: 'date', order: 6, required: true, isLocked: true },
-          ]
+            {
+              questionId: 'question_default_full_name',
+              text: 'Full Name',
+              type: 'text',
+              order: 1,
+              required: true,
+              isLocked: true,
+              placeholder: 'e.g. John Doe',
+            },
+            {
+              questionId: 'question_default_email',
+              text: 'Email Address',
+              type: 'email',
+              order: 2,
+              required: true,
+              isLocked: true,
+              placeholder: 'john@example.com',
+            },
+            {
+              questionId: 'question_default_phone',
+              text: 'Phone Number',
+              type: 'phone',
+              order: 3,
+              required: true,
+              isLocked: true,
+              placeholder: '(555) 000-0000',
+            },
+            {
+              questionId: 'question_default_free_time',
+              text: 'Patient Free Time',
+              type: 'text',
+              order: 4,
+              required: true,
+              isLocked: true,
+              placeholder: 'e.g. Weekdays after 5pm',
+            },
+            {
+              questionId: 'question_default_gender',
+              text: 'Gender',
+              type: 'radio',
+              order: 5,
+              required: true,
+              isLocked: true,
+              options: ['Male', 'Female'],
+            },
+            {
+              questionId: 'question_default_dob',
+              text: 'Date of Birth',
+              type: 'date',
+              order: 6,
+              required: true,
+              isLocked: true,
+            },
+          ],
         },
         {
           groupId: MEDICAL_INFO_GROUP_ID,
@@ -389,9 +446,24 @@ export class SchemaBuilderComponent implements OnInit {
           order: 2,
           isLocked: true,
           questions: [
-            { questionId: 'question_default_chief_complaint', text: 'Chief Complaint', type: 'textarea', order: 1, required: true, isLocked: true, placeholder: 'Primary reason for the visit' },
-            { questionId: 'question_default_injury_date', text: 'Injury Date', type: 'date', order: 2, required: true, isLocked: true },
-          ]
+            {
+              questionId: 'question_default_chief_complaint',
+              text: 'Chief Complaint',
+              type: 'textarea',
+              order: 1,
+              required: true,
+              isLocked: true,
+              placeholder: 'Primary reason for the visit',
+            },
+            {
+              questionId: 'question_default_injury_date',
+              text: 'Injury Date',
+              type: 'date',
+              order: 2,
+              required: true,
+              isLocked: true,
+            },
+          ],
         },
         {
           groupId: CLINICAL_SUMMARY_GROUP_ID,
@@ -401,18 +473,31 @@ export class SchemaBuilderComponent implements OnInit {
           hiddenFromPatient: true,
           isLocked: true,
           questions: [
-            { questionId: 'question_default_patient_type', text: 'Patient Type', type: 'select', order: 1, required: true, isLocked: true, options: ['Orthopedic', 'Neurological', 'Pediatric', 'GeneralOther'] },
-          ]
-        }
-      ]
+            {
+              questionId: 'question_default_patient_type',
+              text: 'Patient Type',
+              type: 'select',
+              order: 1,
+              required: true,
+              isLocked: true,
+              options: ['Orthopedic', 'Neurological', 'Pediatric', 'GeneralOther'],
+            },
+          ],
+        },
+      ],
     };
   }
 
   // Ids of the core questions that must live in the Medical Information / Clinical Summary
   // groups. Used to migrate schemas saved before those groups existed, so old drafts get
   // restructured on load instead of being stuck with the legacy single-group layout.
-  private static readonly MEDICAL_INFO_QUESTION_IDS = new Set(['question_default_chief_complaint', 'question_default_injury_date']);
-  private static readonly CLINICAL_SUMMARY_QUESTION_IDS = new Set(['question_default_patient_type']);
+  private static readonly MEDICAL_INFO_QUESTION_IDS = new Set([
+    'question_default_chief_complaint',
+    'question_default_injury_date',
+  ]);
+  private static readonly CLINICAL_SUMMARY_QUESTION_IDS = new Set([
+    'question_default_patient_type',
+  ]);
 
   // Ensures a loaded core section has the current three-group shape, moving any of the
   // relocated core questions out of wherever they currently sit (e.g. the legacy
@@ -422,13 +507,13 @@ export class SchemaBuilderComponent implements OnInit {
       return section;
     }
 
-    const groups = section.groups.map(g => ({ ...g, questions: [...g.questions] }));
+    const groups = section.groups.map((g) => ({ ...g, questions: [...g.questions] }));
 
     const pullOut = (ids: Set<string>): FormQuestionDto[] => {
       const pulled: FormQuestionDto[] = [];
       for (const g of groups) {
-        const removed = g.questions.filter(q => ids.has(q.questionId));
-        g.questions = g.questions.filter(q => !ids.has(q.questionId));
+        const removed = g.questions.filter((q) => ids.has(q.questionId));
+        g.questions = g.questions.filter((q) => !ids.has(q.questionId));
         pulled.push(...removed);
       }
       return pulled;
@@ -437,24 +522,38 @@ export class SchemaBuilderComponent implements OnInit {
     const medicalQuestions = pullOut(SchemaBuilderComponent.MEDICAL_INFO_QUESTION_IDS);
     const clinicalQuestions = pullOut(SchemaBuilderComponent.CLINICAL_SUMMARY_QUESTION_IDS);
 
-    let medicalGroup = groups.find(g => g.groupId === MEDICAL_INFO_GROUP_ID);
+    let medicalGroup = groups.find((g) => g.groupId === MEDICAL_INFO_GROUP_ID);
     if (!medicalGroup) {
-      medicalGroup = { groupId: MEDICAL_INFO_GROUP_ID, title: 'Medical Information', description: 'Details about the presenting condition', order: groups.length + 1, isLocked: true, questions: [] };
+      medicalGroup = {
+        groupId: MEDICAL_INFO_GROUP_ID,
+        title: 'Medical Information',
+        description: 'Details about the presenting condition',
+        order: groups.length + 1,
+        isLocked: true,
+        questions: [],
+      };
       groups.push(medicalGroup);
     }
     for (const q of medicalQuestions) {
-      if (!medicalGroup.questions.some(existing => existing.questionId === q.questionId)) {
+      if (!medicalGroup.questions.some((existing) => existing.questionId === q.questionId)) {
         medicalGroup.questions.push(q);
       }
     }
 
-    let clinicalGroup = groups.find(g => g.groupId === CLINICAL_SUMMARY_GROUP_ID);
+    let clinicalGroup = groups.find((g) => g.groupId === CLINICAL_SUMMARY_GROUP_ID);
     if (!clinicalGroup) {
-      clinicalGroup = { groupId: CLINICAL_SUMMARY_GROUP_ID, title: 'Clinical Summary', description: 'Classification used by clinicians', order: groups.length + 1, isLocked: true, questions: [] };
+      clinicalGroup = {
+        groupId: CLINICAL_SUMMARY_GROUP_ID,
+        title: 'Clinical Summary',
+        description: 'Classification used by clinicians',
+        order: groups.length + 1,
+        isLocked: true,
+        questions: [],
+      };
       groups.push(clinicalGroup);
     }
     for (const q of clinicalQuestions) {
-      if (!clinicalGroup.questions.some(existing => existing.questionId === q.questionId)) {
+      if (!clinicalGroup.questions.some((existing) => existing.questionId === q.questionId)) {
         clinicalGroup.questions.push(q);
       }
     }
@@ -470,12 +569,12 @@ export class SchemaBuilderComponent implements OnInit {
       title: 'New Section',
       description: '',
       order: schema.sections.length + 1,
-      groups: []
+      groups: [],
     };
 
     this.formSchema.set({
       ...schema,
-      sections: [...schema.sections, newSection]
+      sections: [...schema.sections, newSection],
     });
 
     this.toggleSection(newSection.sectionId);
@@ -484,24 +583,30 @@ export class SchemaBuilderComponent implements OnInit {
 
   deleteSection(sectionId: string): void {
     const schema = this.formSchema();
-    const section = schema.sections.find(s => s.sectionId === sectionId);
+    const section = schema.sections.find((s) => s.sectionId === sectionId);
     if (section) {
       // Check if section is locked
       if (this.isSectionLocked(section)) {
-        this.snackbar.warning('Cannot delete', ['This is a required section and cannot be removed.']);
+        this.snackbar.warning('Cannot delete', [
+          'This is a required section and cannot be removed.',
+        ]);
         return;
       }
       // Check if section contains locked questions
-      const hasLocked = section.groups.some(g => g.questions.some(q => this.isQuestionLocked(q)));
+      const hasLocked = section.groups.some((g) =>
+        g.questions.some((q) => this.isQuestionLocked(q)),
+      );
       if (hasLocked) {
-        this.snackbar.warning('Cannot delete', ['This section contains locked required fields and cannot be removed.']);
+        this.snackbar.warning('Cannot delete', [
+          'This section contains locked required fields and cannot be removed.',
+        ]);
         return;
       }
     }
 
     this.formSchema.set({
       ...schema,
-      sections: schema.sections.filter(s => s.sectionId !== sectionId)
+      sections: schema.sections.filter((s) => s.sectionId !== sectionId),
     });
 
     if (this.selectedItem() === sectionId) {
@@ -511,7 +616,7 @@ export class SchemaBuilderComponent implements OnInit {
 
   addGroup(sectionId: string): void {
     const schema = this.formSchema();
-    const section = schema.sections.find(s => s.sectionId === sectionId);
+    const section = schema.sections.find((s) => s.sectionId === sectionId);
 
     if (section) {
       const newGroup: FormGroupDto = {
@@ -519,7 +624,7 @@ export class SchemaBuilderComponent implements OnInit {
         title: 'New Group',
         description: '',
         order: section.groups.length + 1,
-        questions: []
+        questions: [],
       };
 
       section.groups.push(newGroup);
@@ -532,20 +637,22 @@ export class SchemaBuilderComponent implements OnInit {
 
   deleteGroup(sectionId: string, groupId: string): void {
     const schema = this.formSchema();
-    const section = schema.sections.find(s => s.sectionId === sectionId);
+    const section = schema.sections.find((s) => s.sectionId === sectionId);
 
     if (section) {
-      const group = section.groups.find(g => g.groupId === groupId);
+      const group = section.groups.find((g) => g.groupId === groupId);
       if (group) {
         // Check if group contains locked questions
-        const hasLocked = group.questions.some(q => this.isQuestionLocked(q));
+        const hasLocked = group.questions.some((q) => this.isQuestionLocked(q));
         if (hasLocked) {
-          this.snackbar.warning('Cannot delete', ['This group contains locked required fields and cannot be removed.']);
+          this.snackbar.warning('Cannot delete', [
+            'This group contains locked required fields and cannot be removed.',
+          ]);
           return;
         }
       }
 
-      section.groups = section.groups.filter(g => g.groupId !== groupId);
+      section.groups = section.groups.filter((g) => g.groupId !== groupId);
       this.formSchema.set({ ...schema });
 
       if (this.selectedItem() === groupId) {
@@ -556,8 +663,8 @@ export class SchemaBuilderComponent implements OnInit {
 
   addQuestion(sectionId: string, groupId: string): void {
     const schema = this.formSchema();
-    const section = schema.sections.find(s => s.sectionId === sectionId);
-    const group = section?.groups.find(g => g.groupId === groupId);
+    const section = schema.sections.find((s) => s.sectionId === sectionId);
+    const group = section?.groups.find((g) => g.groupId === groupId);
 
     if (group) {
       const newQuestion: FormQuestionDto = {
@@ -567,7 +674,7 @@ export class SchemaBuilderComponent implements OnInit {
         type: 'text',
         order: group.questions.length + 1,
         required: false,
-        options: []
+        options: [],
       };
 
       group.questions.push(newQuestion);
@@ -579,9 +686,9 @@ export class SchemaBuilderComponent implements OnInit {
 
   deleteQuestion(sectionId: string, groupId: string, questionId: string): void {
     const schema = this.formSchema();
-    const section = schema.sections.find(s => s.sectionId === sectionId);
-    const group = section?.groups.find(g => g.groupId === groupId);
-    const question = group?.questions.find(q => q.questionId === questionId);
+    const section = schema.sections.find((s) => s.sectionId === sectionId);
+    const group = section?.groups.find((g) => g.groupId === groupId);
+    const question = group?.questions.find((q) => q.questionId === questionId);
 
     if (question && this.isQuestionLocked(question)) {
       this.snackbar.warning('Cannot delete', ['This field is locked and cannot be removed.']);
@@ -589,7 +696,7 @@ export class SchemaBuilderComponent implements OnInit {
     }
 
     if (group) {
-      group.questions = group.questions.filter(q => q.questionId !== questionId);
+      group.questions = group.questions.filter((q) => q.questionId !== questionId);
       this.formSchema.set({ ...schema });
 
       if (this.selectedItem() === questionId) {
@@ -609,7 +716,10 @@ export class SchemaBuilderComponent implements OnInit {
   updateOptions(value: string): void {
     const question = this.selectedQuestion();
     if (question) {
-      question.options = value.split(',').map(o => o.trim()).filter(o => o.length > 0);
+      question.options = value
+        .split(',')
+        .map((o) => o.trim())
+        .filter((o) => o.length > 0);
     }
   }
 
@@ -630,7 +740,7 @@ export class SchemaBuilderComponent implements OnInit {
     question.conditions.push({
       targetQuestionId: '',
       operator: 'equals',
-      value: ''
+      value: '',
     });
     this.formSchema.set({ ...this.formSchema() });
   }
@@ -654,7 +764,7 @@ export class SchemaBuilderComponent implements OnInit {
     question.validationRules.push({
       ruleType: 'required',
       value: undefined,
-      message: undefined
+      message: undefined,
     });
     this.formSchema.set({ ...this.formSchema() });
   }
@@ -682,36 +792,42 @@ export class SchemaBuilderComponent implements OnInit {
       name: this.schemaName,
       description: this.schemaDescription || undefined,
       schemaJson,
-      isDefault: this.isDefault
+      isDefault: this.isDefault,
     };
 
     if (existing) {
-      this.apiService.updateFormSchema(existing.id, request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: (updated) => {
-          this.selectedSchema.set(updated);
-          this.schemaVersion.set(updated.version);
-          this.saving.set(false);
-          this.snackbar.success('Schema saved', ['Draft updated successfully']);
-        },
-        error: (err: any) => {
-          this.saving.set(false);
-          this.snackbar.error('Save failed', [this.extractError(err)]);
-        }
-      });
+      this.apiService
+        .updateFormSchema(existing.id, request)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (updated) => {
+            this.selectedSchema.set(updated);
+            this.schemaVersion.set(updated.version);
+            this.saving.set(false);
+            this.snackbar.success('Schema saved', ['Draft updated successfully']);
+          },
+          error: (err: any) => {
+            this.saving.set(false);
+            this.snackbar.error('Save failed', [this.extractError(err)]);
+          },
+        });
     } else {
-      this.apiService.createFormSchema(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: (created) => {
-          this.selectedSchema.set(created);
-          this.schemaVersion.set(created.version);
-          this.saving.set(false);
-          this.snackbar.success('Schema saved', ['Draft created successfully']);
-          this.router.navigate(['/app/intake/schemas/edit', created.id], { replaceUrl: true });
-        },
-        error: (err: any) => {
-          this.saving.set(false);
-          this.snackbar.error('Save failed', [this.extractError(err)]);
-        }
-      });
+      this.apiService
+        .createFormSchema(request)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (created) => {
+            this.selectedSchema.set(created);
+            this.schemaVersion.set(created.version);
+            this.saving.set(false);
+            this.snackbar.success('Schema saved', ['Draft created successfully']);
+            this.router.navigate(['/app/intake/schemas/edit', created.id], { replaceUrl: true });
+          },
+          error: (err: any) => {
+            this.saving.set(false);
+            this.snackbar.error('Save failed', [this.extractError(err)]);
+          },
+        });
     }
   }
 
@@ -744,7 +860,7 @@ export class SchemaBuilderComponent implements OnInit {
       name: this.schemaName,
       description: this.schemaDescription || undefined,
       schemaJson,
-      isDefault: this.isDefault
+      isDefault: this.isDefault,
     };
 
     const save$ = existing
@@ -761,7 +877,7 @@ export class SchemaBuilderComponent implements OnInit {
       error: (err: any) => {
         this.saving.set(false);
         this.snackbar.error('Save failed', [this.extractError(err)]);
-      }
+      },
     });
   }
 
@@ -770,19 +886,22 @@ export class SchemaBuilderComponent implements OnInit {
     if (!existing) return;
 
     this.publishing.set(true);
-    this.apiService.publishFormSchema(existing.id, { version: existing.version }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (published) => {
-        this.selectedSchema.set(published);
-        this.schemaVersion.set(published.version);
-        this.publishing.set(false);
-        this.snackbar.success('Schema published', ['Form schema is now live']);
-        this.router.navigate(['/app/intake/schemas']);
-      },
-      error: (err: any) => {
-        this.publishing.set(false);
-        this.snackbar.error('Publish failed', [this.extractError(err)]);
-      }
-    });
+    this.apiService
+      .publishFormSchema(existing.id, { version: existing.version })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (published) => {
+          this.selectedSchema.set(published);
+          this.schemaVersion.set(published.version);
+          this.publishing.set(false);
+          this.snackbar.success('Schema published', ['Form schema is now live']);
+          this.router.navigate(['/app/intake/schemas']);
+        },
+        error: (err: any) => {
+          this.publishing.set(false);
+          this.snackbar.error('Publish failed', [this.extractError(err)]);
+        },
+      });
   }
 
   goBack(): void {
@@ -800,15 +919,15 @@ export class SchemaBuilderComponent implements OnInit {
   }
 
   toggleStructureCollapsed(): void {
-    this.structureCollapsed.update(v => !v);
+    this.structureCollapsed.update((v) => !v);
   }
 
   togglePreviewCollapsed(): void {
-    this.previewCollapsed.update(v => !v);
+    this.previewCollapsed.update((v) => !v);
   }
 
   togglePropertiesCollapsed(): void {
-    this.propertiesCollapsed.update(v => !v);
+    this.propertiesCollapsed.update((v) => !v);
   }
 
   // When a user selects an item from the Structure tab on mobile,
@@ -851,7 +970,7 @@ export class SchemaBuilderComponent implements OnInit {
 
   // ── Quick-Add FAB Action Sheet ───────────────────────────────────────────
   toggleQuickAddSheet(): void {
-    this.showQuickAddSheet.update(v => !v);
+    this.showQuickAddSheet.update((v) => !v);
   }
 
   closeQuickAddSheet(): void {
@@ -877,13 +996,15 @@ export class SchemaBuilderComponent implements OnInit {
     if (this.selectedSection()) {
       targetSection = this.selectedSection()!;
     } else if (this.selectedGroup()) {
-      targetSection = schema.sections.find(s => s.groups.some(g => g.groupId === this.selectedGroup()!.groupId));
+      targetSection = schema.sections.find((s) =>
+        s.groups.some((g) => g.groupId === this.selectedGroup()!.groupId),
+      );
       targetGroup = this.selectedGroup()!;
     } else if (this.selectedQuestion()) {
       const q = this.selectedQuestion()!;
       for (const s of schema.sections) {
         for (const g of s.groups) {
-          if (g.questions.some(qq => qq.questionId === q.questionId)) {
+          if (g.questions.some((qq) => qq.questionId === q.questionId)) {
             targetSection = s;
             targetGroup = g;
             break;

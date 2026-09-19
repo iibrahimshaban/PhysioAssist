@@ -1,6 +1,7 @@
 <p-confirmDialog
   [style]="{ width: 'min(420px, calc(100vw - 2rem))' }"
-  ariaLabel="Confirmation dialog" />
+  [ariaLabel]="'INTAKE_DETAILS.CONFIRM_DIALOG_ARIA' | translate"
+/>
 
 <!-- Convert Dialog -->
 <app-convert-to-patient-dialog
@@ -11,33 +12,48 @@
   [updating]="updating()"
   [missingFields]="conversionValidation().missing"
   (cancelDialog)="showConvertDialog.set(false)"
-  (confirmDialog)="convertToPatient()" />
+  (confirmDialog)="convertToPatient()"
+/>
 
 <div class="intake-module max-w-6xl mx-auto py-4 sm:py-6 px-3 sm:px-4 lg:px-8" aria-live="polite">
-
   <!-- Loading State -->
   @if (loading()) {
     <div class="flex flex-col items-center justify-center py-24 animate-fade-in" role="status">
       <div class="premium-spinner mb-4"></div>
-      <p class="text-sm text-[var(--color-text-secondary)]">Loading submission details...</p>
+      <p class="text-sm text-[var(--color-text-secondary)]">
+        {{ 'INTAKE_DETAILS.LOADING' | translate }}
+      </p>
     </div>
   }
 
   <!-- Error State -->
   @else if (error()) {
     <div class="max-w-lg mx-auto mt-8 animate-fade-in-up">
-      <div class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-danger-border,#fecaca)] p-6 sm:p-8 text-center" role="alert">
-        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--color-danger-light,#fef2f2)] flex items-center justify-center mx-auto mb-4">
+      <div
+        class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-danger-border,#fecaca)] p-6 sm:p-8 text-center"
+        role="alert"
+      >
+        <div
+          class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--color-danger-light,#fef2f2)] flex items-center justify-center mx-auto mb-4"
+        >
           <i class="pi pi-exclamation-triangle text-xl sm:text-2xl text-[var(--color-danger)]"></i>
         </div>
-        <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-2">Failed to Load</h2>
+        <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-2">
+          {{ 'INTAKE_DETAILS.ERROR_TITLE' | translate }}
+        </h2>
         <p class="text-[var(--color-text-secondary)] text-sm mb-6">{{ error() }}</p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
           <button type="button" (click)="goBack()" class="btn-action-secondary btn-action-mobile">
-            <i class="pi pi-arrow-left text-xs"></i> Go Back
+            <i class="pi pi-arrow-left text-xs rtl:rotate-180"></i>
+            {{ 'INTAKE_DETAILS.GO_BACK' | translate }}
           </button>
-          <button type="button" (click)="loadDetails()" class="btn-action-primary btn-action-mobile">
-            <i class="pi pi-refresh text-xs"></i> Retry
+          <button
+            type="button"
+            (click)="loadDetails()"
+            class="btn-action-primary btn-action-mobile"
+          >
+            <i class="pi pi-refresh text-xs"></i>
+            {{ 'INTAKE_DETAILS.RETRY' | translate }}
           </button>
         </div>
       </div>
@@ -47,18 +63,22 @@
   <!-- Content -->
   @else if (details(); as d) {
     <div class="animate-fade-in">
-
       <!-- Back + Breadcrumb -->
       <div class="flex items-center gap-2 mb-4 sm:mb-6 min-w-0 overflow-hidden">
         <button
           type="button"
           (click)="goBack()"
-          class="text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] flex items-center gap-1.5 shrink-0 transition-colors">
-          <i class="pi pi-arrow-left text-xs"></i>
-          Submissions
+          class="text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] flex items-center gap-1.5 shrink-0 transition-colors"
+        >
+          <i class="pi pi-arrow-left text-xs rtl:rotate-180"></i>
+          {{ 'INTAKE_DETAILS.SUBMISSIONS_BREADCRUMB' | translate }}
         </button>
-        <i class="pi pi-chevron-right text-[var(--color-border)] text-xs shrink-0"></i>
-        <span class="text-sm text-[var(--color-text-secondary)] truncate capitalize min-w-0">{{ patientNameDisplay() || 'Unnamed patient' }}</span>
+        <i
+          class="pi pi-chevron-right text-[var(--color-border)] text-xs shrink-0 rtl:rotate-180"
+        ></i>
+        <span class="text-sm text-[var(--color-text-secondary)] truncate capitalize min-w-0">
+          {{ patientNameDisplay() || ('INTAKE_DETAILS.UNNAMED_PATIENT' | translate) }}
+        </span>
       </div>
 
       <!-- Header Summary Card -->
@@ -66,7 +86,8 @@
         [details]="d"
         [patientName]="patientNameDisplay()"
         [patientEmail]="patientEmailDisplay()"
-        [patientPhone]="patientPhoneDisplay()" />
+        [patientPhone]="patientPhoneDisplay()"
+      />
 
       <!-- Submitted Answers -->
       <app-submitted-answers-viewer
@@ -76,7 +97,8 @@
         [details]="d"
         [initialAnswers]="initialAnswersForEdit()"
         (submissionChange)="editedSubmission.set($event)"
-        (validityChange)="editIsValid.set($event)" />
+        (validityChange)="editIsValid.set($event)"
+      />
 
       <!-- Pain Map -->
       @if (isEditing() || hasPainData()) {
@@ -84,13 +106,20 @@
           [readOnly]="!isEditing()"
           [showDoctorFields]="isEditing()"
           [initialValue]="painMapPayload()"
-          (mapChange)="editedPainMap.set($event)" />
+          (mapChange)="editedPainMap.set($event)"
+        />
       }
 
       <!-- Actions -->
       @if (!d.convertedToPatientId && canEditPermission()) {
-        <div class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-4 sm:p-5 mt-4">
-          <h3 class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">Actions</h3>
+        <div
+          class="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-4 sm:p-5 mt-4"
+        >
+          <h3
+            class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3"
+          >
+            {{ 'INTAKE_DETAILS.ACTIONS_TITLE' | translate }}
+          </h3>
 
           @if (!isEditing()) {
             <div class="flex flex-wrap gap-2">
@@ -102,8 +131,12 @@
                   class="btn-action-mobile"
                   [ngClass]="getActionButtonClass(action.severity)"
                   [attr.aria-label]="action.label"
-                  [title]="action.label">
-                  <i class="pi text-xs" [ngClass]="updating() ? 'pi-spin pi-spinner' : action.icon"></i>
+                  [title]="action.label"
+                >
+                  <i
+                    class="pi text-xs"
+                    [ngClass]="updating() ? 'pi-spin pi-spinner' : action.icon"
+                  ></i>
                   {{ action.label }}
                 </button>
               }
@@ -112,9 +145,10 @@
                   type="button"
                   (click)="startEditing()"
                   class="btn-action-secondary btn-action-mobile"
-                  aria-label="Edit submission">
+                  [attr.aria-label]="'INTAKE_DETAILS.EDIT' | translate"
+                >
                   <i class="pi pi-pencil text-xs"></i>
-                  Edit
+                  {{ 'INTAKE_DETAILS.EDIT' | translate }}
                 </button>
               }
             </div>
@@ -124,17 +158,22 @@
                 type="button"
                 (click)="cancelEditing()"
                 class="btn-action-secondary btn-action-mobile"
-                aria-label="Cancel editing">
-                Cancel
+                [attr.aria-label]="'INTAKE_DETAILS.CANCEL' | translate"
+              >
+                {{ 'INTAKE_DETAILS.CANCEL' | translate }}
               </button>
               <button
                 type="button"
                 (click)="attemptConvert()"
                 [disabled]="updating()"
                 class="btn-action-primary btn-action-mobile"
-                aria-label="Convert to patient">
-                <i class="pi text-xs" [ngClass]="updating() ? 'pi-spin pi-spinner' : 'pi-user-plus'"></i>
-                Convert to Patient
+                [attr.aria-label]="'INTAKE_DETAILS.CONVERT_TO_PATIENT' | translate"
+              >
+                <i
+                  class="pi text-xs"
+                  [ngClass]="updating() ? 'pi-spin pi-spinner' : 'pi-user-plus'"
+                ></i>
+                {{ 'INTAKE_DETAILS.CONVERT_TO_PATIENT' | translate }}
               </button>
             </div>
           }

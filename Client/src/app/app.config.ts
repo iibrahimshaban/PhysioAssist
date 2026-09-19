@@ -13,15 +13,23 @@ import { errorInterceptor } from './Core/Interceptors/error-interceptor';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
 import { authInterceptor } from './Core/Interceptors/ath-interceptor';
-import { GoogleLoginProvider, SOCIAL_AUTH_CONFIG, SocialAuthServiceConfig, SocialLoginModule } from '@abacritt/angularx-social-login';
+import {
+  GoogleLoginProvider,
+  SOCIAL_AUTH_CONFIG,
+  SocialAuthServiceConfig,
+  SocialLoginModule,
+} from '@abacritt/angularx-social-login';
 import { environment } from '../environments/environment';
 import { AuthService } from './Core/Services/auth.service';
 import { firstValueFrom } from 'rxjs';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    MessageService, ConfirmationService,
+    MessageService,
+    ConfirmationService,
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
     provideZonelessChangeDetection(),
@@ -30,8 +38,8 @@ export const appConfig: ApplicationConfig = {
       theme: {
         preset: Aura,
         options: {
-          darkModeSelector: 'none'
-        }
+          darkModeSelector: 'none',
+        },
       },
     }),
     provideAppInitializer(() => {
@@ -53,5 +61,13 @@ export const appConfig: ApplicationConfig = {
         ],
       } as SocialAuthServiceConfig,
     },
+    provideTranslateService({
+      loader: provideTranslateHttpLoader({
+        prefix: '/assets/i18n/',
+        suffix: '.json',
+      }),
+      fallbackLang: 'en',
+      lang: 'en',
+    }),
   ],
 };

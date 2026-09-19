@@ -1,21 +1,30 @@
 // components/reschedule-dialog/reschedule-dialog.component.ts
-import { Component, ChangeDetectionStrategy, input, output, inject, signal, effect, computed } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  input,
+  output,
+  inject,
+  signal,
+  effect,
+  computed,
+} from '@angular/core';
 import { Appointment, AvailableInterval, DailyAvailability } from '../schedule.models';
 import { SchedulePageService, toIsoWithOffset } from '../../../Core/Services/schedule-page.service';
 import { DatePipe } from '@angular/common';
 
-
 const LOOKAHEAD_DAYS = 30;
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
+import { TranslatePipe } from '@ngx-translate/core';
 // ...
 @Component({
   selector: 'app-reschedule-dialog',
   standalone: true,
-  imports: [DatePipe, ButtonModule, TooltipModule],
+  imports: [DatePipe, ButtonModule, TooltipModule, TranslatePipe],
   templateUrl: './reschedule-dialog.component.html',
   styleUrl: './reschedule-dialog.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RescheduleDialogComponent {
   isOpen = input<boolean>(false);
@@ -44,7 +53,7 @@ export class RescheduleDialogComponent {
   // not just the interval's start time.
   protected readonly timeInputMin = computed(() => {
     const interval = this.selectedInterval();
-    console.log(interval)
+    console.log(interval);
     return interval ? this.toTimeString(interval.start) : '';
   });
 
@@ -102,7 +111,7 @@ export class RescheduleDialogComponent {
     this.confirmRequested.emit({
       appointmentId: a.id,
       newSlotStart: toIsoWithOffset(newStart),
-      newSlotEnd: toIsoWithOffset(newEnd)
+      newSlotEnd: toIsoWithOffset(newEnd),
     });
   }
 
@@ -124,7 +133,7 @@ export class RescheduleDialogComponent {
       const days = await this.scheduleService.fetchAvailabilityRange(doctorId, from, to);
 
       // Only days with at least one free interval are useful to reschedule into.
-      this.workingDays.set(days.filter(d => d.intervals.length > 0));
+      this.workingDays.set(days.filter((d) => d.intervals.length > 0));
     } finally {
       this.loading.set(false);
     }

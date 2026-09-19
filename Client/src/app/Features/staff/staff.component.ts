@@ -9,7 +9,12 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { DatePickerModule } from 'primeng/datepicker';
 import { StaffService } from '../../Core/Services/staff.service';
-import { Receptionist, ReceptionistShiftType, SHIFT_DEFAULTS } from '../../Shared/Models/staff.model';
+import {
+  Receptionist,
+  ReceptionistShiftType,
+  SHIFT_DEFAULTS,
+} from '../../Shared/Models/staff.model';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-staff',
@@ -25,6 +30,7 @@ import { Receptionist, ReceptionistShiftType, SHIFT_DEFAULTS } from '../../Share
     CheckboxModule,
     TagModule,
     DatePickerModule,
+    TranslatePipe,
   ],
   templateUrl: './staff.component.html',
 })
@@ -113,7 +119,7 @@ export class StaffComponent implements OnInit {
   }
 
   private shiftName(shift: ReceptionistShiftType | null | undefined): string {
-    return this.shiftOptions.find(o => o.value === shift)?.label ?? '';
+    return this.shiftOptions.find((o) => o.value === shift)?.label ?? '';
   }
 
   /** Live label shown in the modal, reflecting whatever From/To are currently set to. */
@@ -195,7 +201,7 @@ export class StaffComponent implements OnInit {
   }
 
   permissionTitle(value: string): string {
-    return this.availablePermissions().find(p => p.value === value)?.title ?? value;
+    return this.availablePermissions().find((p) => p.value === value)?.title ?? value;
   }
 
   // ─── Save / delete / toggle ──────────────────────────────────────────────
@@ -255,7 +261,7 @@ export class StaffComponent implements OnInit {
   initials(fullName: string): string {
     return fullName
       .split(' ')
-      .map(p => p[0])
+      .map((p) => p[0])
       .join('')
       .toUpperCase();
   }

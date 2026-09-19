@@ -1,7 +1,9 @@
 <p-card>
-  <ng-template pTemplate="title">Documentation Fields</ng-template>
+  <ng-template pTemplate="title">
+    {{ 'DOCUMENTATION_FIELDS.TITLE' | translate }}
+  </ng-template>
   <ng-template pTemplate="subtitle">
-    Choose which fields appear in your progress notes for this template. Hidden fields are also skipped by AI extraction.
+    {{ 'DOCUMENTATION_FIELDS.SUBTITLE' | translate }}
   </ng-template>
 
   @if (loading()) {
@@ -20,22 +22,22 @@
               <div class="text-sm text-surface-500">{{ row.field.type }}</div>
             }
           </div>
-          <p-checkbox
-            [binary]="true"
-            [ngModel]="row.visible"
-            (ngModelChange)="toggle(row)">
+          <p-checkbox [binary]="true" [ngModel]="row.visible" (ngModelChange)="toggle(row)">
           </p-checkbox>
         </div>
       }
     </div>
 
-    <div class="flex items-center justify-between mt-4">
-      <span class="text-sm text-surface-500">{{ hiddenCount() }} field(s) hidden</span>
+    <div class="flex items-center justify-between mt-4 pt-2">
+      <span class="text-sm text-surface-500">
+        {{ 'DOCUMENTATION_FIELDS.HIDDEN_COUNT' | translate: { count: hiddenCount() } }}
+      </span>
       <p-button
-        label="Save"
+        [label]="'GLOBAL.SAVE' | translate"
         icon="pi pi-check"
         [loading]="saving()"
-        (onClick)="save()">
+        (onClick)="save()"
+      >
       </p-button>
     </div>
   }

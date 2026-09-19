@@ -1,13 +1,14 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PreVisitIntakeDetailsResponse, IntakeStatus } from '../../../models';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-submission-summary-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './submission-summary-card.component.html',
-  styleUrl: './submission-summary-card.component.css'
+  styleUrl: './submission-summary-card.component.css',
 })
 export class SubmissionSummaryCardComponent {
   @Input({ required: true }) details!: PreVisitIntakeDetailsResponse;
@@ -17,19 +18,33 @@ export class SubmissionSummaryCardComponent {
 
   getInitials(name: string | undefined): string {
     if (!name) return '?';
-    return name.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    return name
+      .trim()
+      .split(/\s+/)
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   }
 
   getStatusLabel(status: IntakeStatus): string {
     switch (status) {
-      case IntakeStatus.Pending: return 'Pending';
-      case IntakeStatus.Submitted: return 'Submitted';
-      case IntakeStatus.InReview: return 'In Review';
-      case IntakeStatus.Approved: return 'Approved';
-      case IntakeStatus.Rejected: return 'Rejected';
-      case IntakeStatus.Converted: return 'Converted';
-      case IntakeStatus.Expired: return 'Expired';
-      default: return 'Unknown';
+      case IntakeStatus.Pending:
+        return 'Pending';
+      case IntakeStatus.Submitted:
+        return 'Submitted';
+      case IntakeStatus.InReview:
+        return 'In Review';
+      case IntakeStatus.Approved:
+        return 'Approved';
+      case IntakeStatus.Rejected:
+        return 'Rejected';
+      case IntakeStatus.Converted:
+        return 'Converted';
+      case IntakeStatus.Expired:
+        return 'Expired';
+      default:
+        return 'Unknown';
     }
   }
 

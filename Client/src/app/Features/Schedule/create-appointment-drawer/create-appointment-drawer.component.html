@@ -4,25 +4,29 @@
     <div class="drawer__header">
       <h2 class="drawer__title" id="create-appt-title">
         <i class="pi pi-calendar-plus drawer__title-icon" aria-hidden="true"></i>
-        New Appointment
+        {{ 'CREATE_APPOINTMENT.TITLE' | translate }}
       </h2>
       <button
         type="button"
         pButton
         icon="pi pi-times"
         class="p-button-text p-button-rounded drawer__close"
-        pTooltip="Close"
+        [pTooltip]="'CREATE_APPOINTMENT.CLOSE' | translate"
         tooltipPosition="left"
-        aria-label="Close"
+        [attr.aria-label]="'CREATE_APPOINTMENT.CLOSE' | translate"
         (click)="onCancel()"
       ></button>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="drawer__form">
       <div class="form-field">
-        <span class="form-field__label">Patient</span>
+        <span class="form-field__label">{{ 'CREATE_APPOINTMENT.PATIENT_LABEL' | translate }}</span>
 
-        <div class="patient-mode-toggle" role="tablist" aria-label="Patient type">
+        <div
+          class="patient-mode-toggle"
+          role="tablist"
+          [attr.aria-label]="'CREATE_APPOINTMENT.PATIENT_TYPE_ARIA' | translate"
+        >
           <button
             type="button"
             role="tab"
@@ -32,7 +36,7 @@
             (click)="setMode('existing')"
           >
             <i class="pi pi-user" aria-hidden="true"></i>
-            Existing Patient
+            {{ 'CREATE_APPOINTMENT.EXISTING_PATIENT' | translate }}
           </button>
           <button
             type="button"
@@ -43,7 +47,7 @@
             (click)="setMode('guest')"
           >
             <i class="pi pi-user-plus" aria-hidden="true"></i>
-            Guest
+            {{ 'CREATE_APPOINTMENT.GUEST' | translate }}
           </button>
         </div>
 
@@ -56,12 +60,12 @@
               type="text"
               pInputText
               class="form-field__input patient-search__input"
-              placeholder="Search patient by name..."
+              [placeholder]="'CREATE_APPOINTMENT.SEARCH_PLACEHOLDER' | translate"
               [value]="patientSearchTerm()"
               (input)="onSearchInput($any($event.target).value)"
               (focus)="openPatientList()"
               (blur)="closePatientList()"
-              aria-label="Search patient by name"
+              [attr.aria-label]="'CREATE_APPOINTMENT.SEARCH_ARIA' | translate"
               [attr.aria-expanded]="isPatientListOpen()"
               role="combobox"
             />
@@ -71,7 +75,7 @@
                 @if (patientsLoading()) {
                   <div class="patient-dropdown__status">
                     <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
-                    Loading patients...
+                    {{ 'CREATE_APPOINTMENT.LOADING_PATIENTS' | translate }}
                   </div>
                 } @else if (patientsError()) {
                   <div class="patient-dropdown__status patient-dropdown__status--error">
@@ -81,7 +85,7 @@
                 } @else if (filteredPatients().length === 0) {
                   <div class="patient-dropdown__status">
                     <i class="pi pi-info-circle" aria-hidden="true"></i>
-                    No patients found
+                    {{ 'CREATE_APPOINTMENT.NO_PATIENTS_FOUND' | translate }}
                   </div>
                 } @else {
                   @for (patient of filteredPatients(); track patient.id) {
@@ -102,31 +106,38 @@
             @if (selectedPatient()) {
               <div class="patient-selected">
                 <i class="pi pi-check-circle" aria-hidden="true"></i>
-                Selected: {{ selectedPatient()!.name }}
+                {{
+                  'CREATE_APPOINTMENT.SELECTED_PATIENT'
+                    | translate: { name: selectedPatient()!.name }
+                }}
               </div>
             }
           </div>
         } @else {
           <div class="guest-fields" [formGroup]="guestForm">
             <label class="form-field">
-              <span class="form-field__label">Full Name</span>
+              <span class="form-field__label">{{
+                'CREATE_APPOINTMENT.FULL_NAME' | translate
+              }}</span>
               <input
                 type="text"
                 pInputText
                 formControlName="fullName"
                 class="form-field__input"
-                placeholder="Guest's full name"
+                [placeholder]="'CREATE_APPOINTMENT.GUEST_NAME_PLACEHOLDER' | translate"
               />
             </label>
 
             <label class="form-field">
-              <span class="form-field__label">Phone Number</span>
+              <span class="form-field__label">{{
+                'CREATE_APPOINTMENT.PHONE_NUMBER' | translate
+              }}</span>
               <input
                 type="tel"
                 pInputText
                 formControlName="phoneNumber"
                 class="form-field__input"
-                placeholder="Phone number"
+                [placeholder]="'CREATE_APPOINTMENT.PHONE_PLACEHOLDER' | translate"
               />
             </label>
 
@@ -141,13 +152,17 @@
       </div>
 
       <label class="form-field">
-        <span class="form-field__label">Start Time</span>
+        <span class="form-field__label">{{ 'CREATE_APPOINTMENT.START_TIME' | translate }}</span>
         <input type="time" formControlName="startTime" class="form-field__input" />
       </label>
 
       <div class="form-field">
-        <span class="form-field__label">Duration</span>
-        <div class="duration-buttons" role="group" aria-label="Appointment duration">
+        <span class="form-field__label">{{ 'CREATE_APPOINTMENT.DURATION' | translate }}</span>
+        <div
+          class="duration-buttons"
+          role="group"
+          [attr.aria-label]="'CREATE_APPOINTMENT.DURATION_ARIA' | translate"
+        >
           @for (option of durationOptions; track option) {
             <button
               type="button"
@@ -169,14 +184,18 @@
           class="drawer-btn drawer-btn--primary"
           [disabled]="!canSubmit()"
           [icon]="isCreatingGuest() ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
-          [label]="isCreatingGuest() ? 'Creating guest...' : 'Create'"
+          [label]="
+            isCreatingGuest()
+              ? ('CREATE_APPOINTMENT.CREATING_GUEST' | translate)
+              : ('CREATE_APPOINTMENT.CREATE' | translate)
+          "
         ></button>
         <button
           type="button"
           pButton
           class="p-button-outlined drawer-btn"
           icon="pi pi-times"
-          label="Cancel"
+          [label]="'CREATE_APPOINTMENT.CANCEL' | translate"
           (click)="onCancel()"
         ></button>
       </div>

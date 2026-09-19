@@ -1,8 +1,9 @@
 import { Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-session-actions',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './session-actions.component.html',
   styleUrl: './session-actions.component.css',
 })

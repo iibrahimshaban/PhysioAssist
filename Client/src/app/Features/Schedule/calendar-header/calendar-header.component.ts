@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export interface CalendarDayColumn {
   date: Date;
@@ -10,9 +11,10 @@ export interface CalendarDayColumn {
 @Component({
   selector: 'app-calendar-header',
   standalone: true,
+  imports: [TranslatePipe],
   templateUrl: './calendar-header.component.html',
   styleUrl: './calendar-header.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarHeaderComponent {
   days = input.required<CalendarDayColumn[]>();

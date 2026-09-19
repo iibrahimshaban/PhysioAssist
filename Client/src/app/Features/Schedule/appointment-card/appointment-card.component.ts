@@ -1,21 +1,38 @@
-import { Component, ChangeDetectionStrategy, input, output, inject, computed, signal } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  input,
+  output,
+  inject,
+  computed,
+  signal,
+} from '@angular/core';
 import { NgClass } from '@angular/common';
 import { TooltipModule } from 'primeng/tooltip';
 import { Appointment } from '../schedule.models';
 import { OwnerDirectoryService } from '../../../Core/Services/owner-directory.service';
-import { ConfirmDialogComponent, ConfirmDialogTone } from '../ConfirmDialogComponent/ConfirmDialogComponent';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogTone,
+} from '../ConfirmDialogComponent/ConfirmDialogComponent';
+import { TranslatePipe } from '@ngx-translate/core';
 
-type PendingCardAction = { kind: 'complete' | 'cancel'; title: string; message: string; tone: ConfirmDialogTone } | null;
+type PendingCardAction = {
+  kind: 'complete' | 'cancel';
+  title: string;
+  message: string;
+  tone: ConfirmDialogTone;
+} | null;
 
 @Component({
   selector: 'app-appointment-card',
   standalone: true,
   // NgClass + TooltipModule added for the redesigned template (status icon,
   // pTooltip on the quick-action buttons). No existing bindings changed.
-  imports: [ConfirmDialogComponent, NgClass, TooltipModule],
+  imports: [ConfirmDialogComponent, NgClass, TooltipModule, TranslatePipe],
   templateUrl: './appointment-card.component.html',
   styleUrl: './appointment-card.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppointmentCardComponent {
   appointment = input.required<Appointment>();
@@ -38,20 +55,30 @@ export class AppointmentCardComponent {
   // accent icon; does not affect any scheduling logic.
   protected readonly statusIcon = computed(() => {
     switch (this.appointment().status) {
-      case 'Completed': return 'pi-check-circle';
-      case 'Cancelled': return 'pi-times-circle';
-      case 'NoShow': return 'pi-exclamation-circle';
-      default: return 'pi-calendar';
+      case 'Completed':
+        return 'pi-check-circle';
+      case 'Cancelled':
+        return 'pi-times-circle';
+      case 'NoShow':
+        return 'pi-exclamation-circle';
+      default:
+        return 'pi-calendar';
     }
   });
 
   protected get durationLabel(): string {
-    const minutes = (this.appointment().slotEnd.getTime() - this.appointment().slotStart.getTime()) / 60000;
-    return minutes < 60 ? `${minutes} min` : `${(minutes / 60).toFixed(minutes % 60 === 0 ? 0 : 1)} hr`;
+    const minutes =
+      (this.appointment().slotEnd.getTime() - this.appointment().slotStart.getTime()) / 60000;
+    return minutes < 60
+      ? `${minutes} min`
+      : `${(minutes / 60).toFixed(minutes % 60 === 0 ? 0 : 1)} hr`;
   }
 
   protected get timeLabel(): string {
-    return this.appointment().slotStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return this.appointment().slotStart.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
   }
 
   protected onCardClick(): void {
@@ -63,7 +90,7 @@ export class AppointmentCardComponent {
     this.dragStarted.emit({
       appointment: this.appointment(),
       clientY: event.clientY,
-      clientX: event.clientX
+      clientX: event.clientX,
     });
   }
 
@@ -78,7 +105,7 @@ export class AppointmentCardComponent {
       kind: 'complete',
       title: 'Complete appointment?',
       message: `Mark ${this.owner().name}'s appointment as completed.`,
-      tone: 'success'
+      tone: 'success',
     });
   }
 
@@ -88,7 +115,7 @@ export class AppointmentCardComponent {
       kind: 'cancel',
       title: 'Cancel appointment?',
       message: `This will cancel ${this.owner().name}'s appointment.`,
-      tone: 'danger'
+      tone: 'danger',
     });
   }
 

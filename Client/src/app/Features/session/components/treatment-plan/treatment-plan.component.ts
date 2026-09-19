@@ -1,8 +1,9 @@
 import { Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-treatment-plan',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './treatment-plan.component.html',
   styleUrl: './treatment-plan.component.css',
 })

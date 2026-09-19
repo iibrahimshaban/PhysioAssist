@@ -15,6 +15,7 @@ import {
   PATIENT_CATEGORY_LABELS,
 } from '../../Shared/Models/documentation.model';
 import { SnackbarService } from '../../Core/Services/snackbar.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export interface FieldRow {
   field: DocumentationField;
@@ -47,6 +48,7 @@ const CATEGORY_ICON_STYLE: Record<PatientCategory, string> = {
     SkeletonModule,
     ToggleSwitchModule,
     InputTextModule,
+    TranslatePipe,
   ],
   templateUrl: './documentation-settings.component.html',
 })
@@ -71,7 +73,7 @@ export class DocumentationSettingsComponent {
   readonly rowsByTemplate = signal<Record<string, FieldRow[]>>({});
 
   readonly activeCategory = computed<PatientCategory | undefined>(
-    () => this.templates().find((t) => t.id === this.activeTemplateId())?.category
+    () => this.templates().find((t) => t.id === this.activeTemplateId())?.category,
   );
 
   readonly activeRows = computed(() => this.rowsByTemplate()[this.activeTemplateId() ?? ''] ?? []);
@@ -84,11 +86,13 @@ export class DocumentationSettingsComponent {
       (r) =>
         r.field.label?.toLowerCase().includes(term) ||
         this.fieldHelpText(r.field)?.toLowerCase().includes(term) ||
-        r.field.id.toLowerCase().includes(term)
+        r.field.id.toLowerCase().includes(term),
     );
   });
 
-  readonly isDirty = computed(() => Object.keys(this.rowsByTemplate()).some((id) => this.hasChanges(id)));
+  readonly isDirty = computed(() =>
+    Object.keys(this.rowsByTemplate()).some((id) => this.hasChanges(id)),
+  );
 
   constructor() {
     this.templateService.getTemplates().subscribe({
@@ -110,11 +114,13 @@ export class DocumentationSettingsComponent {
   }
 
   categoryIcon(category: PatientCategory | undefined): string {
-    return category !== undefined ? CATEGORY_ICONS[category] ?? 'pi-file' : 'pi-file';
+    return category !== undefined ? (CATEGORY_ICONS[category] ?? 'pi-file') : 'pi-file';
   }
 
   iconStyle(category: PatientCategory | undefined): string {
-    return category !== undefined ? CATEGORY_ICON_STYLE[category] ?? 'icon-bg-blue' : 'icon-bg-blue';
+    return category !== undefined
+      ? (CATEGORY_ICON_STYLE[category] ?? 'icon-bg-blue')
+      : 'icon-bg-blue';
   }
 
   categoryLabel(category: PatientCategory | undefined): string {
@@ -155,7 +161,7 @@ export class DocumentationSettingsComponent {
     if (!templateId) return;
 
     const rows = (this.rowsByTemplate()[templateId] ?? []).map((r) =>
-      r.field.id === row.field.id ? { ...r, visible: !r.visible } : r
+      r.field.id === row.field.id ? { ...r, visible: !r.visible } : r,
     );
     this.rowsByTemplate.set({ ...this.rowsByTemplate(), [templateId]: rows });
   }
@@ -176,7 +182,9 @@ export class DocumentationSettingsComponent {
     this.saving.set(true);
     const requests: Record<string, Observable<unknown>> = {};
     for (const id of dirtyIds) {
-      const hiddenFieldIds = (this.rowsByTemplate()[id] ?? []).filter((r) => !r.visible).map((r) => r.field.id);
+      const hiddenFieldIds = (this.rowsByTemplate()[id] ?? [])
+        .filter((r) => !r.visible)
+        .map((r) => r.field.id);
       requests[id] = this.templateService.saveHiddenFields(id, hiddenFieldIds);
     }
 
@@ -186,11 +194,15 @@ export class DocumentationSettingsComponent {
         for (const id of dirtyIds) {
           this.savedRows[id] = (this.rowsByTemplate()[id] ?? []).map((r) => ({ ...r }));
         }
-        this.snackbar.success('Documentation settings saved', ['Your changes are now live in the report editor.']);
+        this.snackbar.success('Documentation settings saved', [
+          'Your changes are now live in the report editor.',
+        ]);
       },
       error: () => {
         this.saving.set(false);
-        this.snackbar.error('Save failed', ['Could not save documentation settings. Please try again.']);
+        this.snackbar.error('Save failed', [
+          'Could not save documentation settings. Please try again.',
+        ]);
       },
     });
   }
@@ -205,7 +217,10 @@ export class DocumentationSettingsComponent {
   private preloadAll(templates: DocumentationTemplateSummary[]): void {
     this.loadingFields.set(true);
 
-    const requests: Record<string, Observable<{ all: DocumentationField[]; effective: DocumentationField[] }>> = {};
+    const requests: Record<
+      string,
+      Observable<{ all: DocumentationField[]; effective: DocumentationField[] }>
+    > = {};
     for (const t of templates) {
       requests[t.id] = forkJoin({
         all: this.templateService.getAllFields(t.id),
@@ -227,7 +242,9 @@ export class DocumentationSettingsComponent {
         }
         this.savedRows = rows;
         this.rowsByTemplate.set(
-          Object.fromEntries(Object.entries(rows).map(([id, list]) => [id, list.map((r) => ({ ...r }))]))
+          Object.fromEntries(
+            Object.entries(rows).map(([id, list]) => [id, list.map((r) => ({ ...r }))]),
+          ),
         );
         this.loadingFields.set(false);
       },

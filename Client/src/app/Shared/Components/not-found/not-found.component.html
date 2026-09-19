@@ -4,11 +4,11 @@
       <i class="pi pi-exclamation-circle"></i>
     </div>
     <h1 class="error-code">404</h1>
-    <h2 class="error-title">Page not found</h2>
-    <p class="error-description">The page you're looking for doesn't exist or has been moved.</p>
+    <h2 class="error-title">{{ 'ERROR_404.TITLE' | translate }}</h2>
+    <p class="error-description">{{ 'ERROR_404.DESCRIPTION' | translate }}</p>
     <a routerLink="/" class="error-button">
       <i class="pi pi-arrow-left"></i>
-      Go home
+      {{ 'ERROR_404.GO_HOME' | translate }}
     </a>
   </div>
 </div>

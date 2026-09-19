@@ -3,10 +3,11 @@ import { DashboardService } from '../../Core/Services/dashboard.service';
 import { Router } from '@angular/router';
 import { DoctorDashboardSummary } from '../../Shared/Models/dashboard.model';
 import { ButtonModule } from 'primeng/button';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [ButtonModule],
+  imports: [ButtonModule, TranslatePipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })

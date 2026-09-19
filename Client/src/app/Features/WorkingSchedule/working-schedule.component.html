@@ -1,8 +1,8 @@
 <section class="ws-page">
   <header class="ws-page-header">
     <div class="ws-header-text">
-      <h1>Working Hours</h1>
-      <p>Configure your weekly availability and appointment schedule.</p>
+      <h1>{{ 'WORKING_HOURS_PAGE.TITLE' | translate }}</h1>
+      <p>{{ 'WORKING_HOURS_PAGE.SUBTITLE' | translate }}</p>
     </div>
 
     @if (statusLabel(); as status) {
@@ -27,14 +27,14 @@
         <div class="ws-section-heading">
           <span class="ws-section-icon pi pi-sliders-h" aria-hidden="true"></span>
           <div>
-            <p class="ws-section-title">Quick setup</p>
-            <p class="ws-section-hint">Apply a common pattern, then fine-tune any day below.</p>
+            <p class="ws-section-title">{{ 'WORKING_HOURS_PAGE.QUICK_SETUP_TITLE' | translate }}</p>
+            <p class="ws-section-hint">{{ 'WORKING_HOURS_PAGE.QUICK_SETUP_HINT' | translate }}</p>
           </div>
         </div>
 
         <div class="ws-presets">
           <p-button
-            label="Weekdays, 9–5"
+            [label]="'WORKING_HOURS_PAGE.PRESET_WEEKDAYS' | translate"
             icon="pi pi-briefcase"
             size="small"
             [outlined]="true"
@@ -42,7 +42,7 @@
             (onClick)="applyPreset('weekdays')"
           />
           <p-button
-            label="Every day, 9–5"
+            [label]="'WORKING_HOURS_PAGE.PRESET_EVERYDAY' | translate"
             icon="pi pi-calendar"
             size="small"
             [outlined]="true"
@@ -50,7 +50,7 @@
             (onClick)="applyPreset('everyday')"
           />
           <p-button
-            label="Clear all"
+            [label]="'WORKING_HOURS_PAGE.PRESET_CLEAR' | translate"
             icon="pi pi-refresh"
             size="small"
             severity="secondary"
@@ -67,8 +67,12 @@
         <div class="ws-section-heading">
           <span class="ws-section-icon pi pi-clock" aria-hidden="true"></span>
           <div>
-            <p class="ws-section-title">Weekly schedule</p>
-            <p class="ws-section-hint">Turn a day on to set the hours you're available.</p>
+            <p class="ws-section-title">
+              {{ 'WORKING_HOURS_PAGE.WEEKLY_SCHEDULE_TITLE' | translate }}
+            </p>
+            <p class="ws-section-hint">
+              {{ 'WORKING_HOURS_PAGE.WEEKLY_SCHEDULE_HINT' | translate }}
+            </p>
           </div>
         </div>
 
@@ -89,7 +93,7 @@
           @if (form.dirty && !saving()) {
             <span class="ws-unsaved-indicator">
               <span class="ws-unsaved-dot" aria-hidden="true"></span>
-              Unsaved changes
+              {{ 'WORKING_HOURS_PAGE.UNSAVED_CHANGES' | translate }}
             </span>
           }
         </div>
@@ -97,7 +101,7 @@
         <div class="ws-actions-buttons">
           @if (form.dirty) {
             <p-button
-              label="Cancel"
+              [label]="'WORKING_HOURS_PAGE.CANCEL' | translate"
               severity="secondary"
               [text]="true"
               type="button"
@@ -108,7 +112,7 @@
 
           @if (hasSchedule()) {
             <p-button
-              label="Delete schedule"
+              [label]="'WORKING_HOURS_PAGE.DELETE_SCHEDULE' | translate"
               icon="pi pi-trash"
               severity="danger"
               [outlined]="true"
@@ -120,7 +124,7 @@
           }
 
           <p-button
-            [label]="saving() ? 'Saving…' : submitLabel()"
+            [label]="saving() ? ('WORKING_HOURS_PAGE.SAVING' | translate) : submitLabel()"
             icon="pi pi-check"
             type="submit"
             [loading]="saving()"
